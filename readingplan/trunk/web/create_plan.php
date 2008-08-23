@@ -25,12 +25,22 @@
 	function parse_books($text)
 	{
 		$lines = explode("\n", $text);
-		foreach ($lines as $line)
+		foreach ($lines as $reflistStr)
 		{
+			$reflist = parse_reflist($reflistStr);
+			$line = "";
+
+			foreach ($reflist as $refStr)
+			{
+				if ($line != "")
+					$line .= ", ";
+				$ref = parse_ref($refStr);
+				$line .= get_refstr($ref);
+			}
+
 			if ($line != "")
 			{
-				$book = get_book_name(get_book_id($line));
-				$books[] = $book;
+				$books[] = "$line\n";
 			}
 		}
 		return $books;

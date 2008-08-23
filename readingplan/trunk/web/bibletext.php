@@ -41,27 +41,57 @@
 		
 		return $row['name'];
 	}
-	
-	// Function for echoing scripture
-	function echo_scripture($version, $book=1, $chapter1=0, $verse1=0, $chapter2=0, $verse2=0)
+
+	function normalize_ref($ref)
 	{
-		// Create the reference string
-		$refStr = "";
-		if ($chapter1 != 0)
-		{
-			$refStr .= " $chapter1";
-			if ($verse1 != 0)
-				$refStr .= ":$verse1";
-			if ($chapter2 != 0)
-			{
-				$refStr .= "-$chapter2";
-				if ($verse2 != 0)
-					$refStr .= ":$verse2";
-			}
-			else if ($verse2 != 0)
-				$refStr .= "-$verse2";
-		}
+		$normal_keys = array('chapter1', 'verse1', 'chapter2', 'verse2');
+
+		// Set all the normal keys to 0 if they are not already set
+		foreach ($normal_keys as $key)
+			if (!isset($ref[$key]))
+				$ref[$key] = 0;
 		
+		return $ref;
+	}
+	
+	function get_refstr($ref)
+	{
+		$ref = normalize_ref($ref);
+
+		// Create the reference string
+		$refStr = "{$ref['book_name']}";
+		if ($ref['chapter1'] != 0)
+		{
+			$refStr .= " {$ref['chapter1']}";
+			if ($ref['verse1'] != 0)
+				$refStr .= ":{$ref['verse1']}";
+			if ($ref['chapter2'] != 0)
+			{
+				$refStr .= "-{$ref['chapter2']}";
+				if ($ref['verse2'] != 0)
+					$refStr .= ":{$ref['verse2']}";
+			}
+			else if ($ref['verse2'] != 0)
+				$refStr .= "-{$ref['verse2']}";
+		}
+
+		return $refStr;
+	}
+
+	// Function for echoing scripture
+	function echo_scripture($version, $ref)
+	{
+		$ref = normalize_ref($ref);
+		$refStr = get_refstr($ref);
+		echo "<h1>$refStr</h1>";
+		
+		$book_name = $ref['book_name'];
+		$book_id = $ref['book_id'];
+		$chapter1 = $ref['chapter1'];
+		$verse1 = $ref['verse1'];
+		$chapter2 = $ref['chapter2'];
+		$verse2 = $ref['verse2'];
+
 		/*
 		 Conversion methods:
 		 john			0:0-max:max		max:max
@@ -90,12 +120,9 @@
 		{
 			$chapter2 = ($chapter1 == 0) ? MAX_CHAPTER : $chapter1;
 		}
-		
-		$book_name = get_book_name($book);
-		echo "<h1>$book_name$refStr</h1>";
-		
-		$start_id = get_verse_unique_id($book, $chapter1, $verse1);
-		$finish_id = get_verse_unique_id($book, $chapter2, $verse2);
+
+		$start_id = get_verse_unique_id($book_id, $chapter1, $verse1);
+		$finish_id = get_verse_unique_id($book_id, $chapter2, $verse2);
 		
 		$query = sprintf("select verse_id, verse from %s_verses where unique_id >= %d and unique_id <= %d",
 						 mysql_real_escape_string($version),
@@ -148,11 +175,17 @@
 			}
 		}
 		
-		$ref['book'] = get_book_id($book_name);
+		$book_id = get_book_id($book_name);
+		$ref['book_id'] = $book_id;
+		$ref['book_name'] = get_book_name($book_id);
 		$ref['chapter1'] = $chapter1;
 		$ref['verse1'] = $verse1;
 		$ref['chapter2'] = $chapter2;
 		$ref['verse2'] = $verse2;
+
+		$refStr = get_refstr($ref);
+		
+		$ref = normalize_ref($ref);
 		
 		return $ref;
 	}
