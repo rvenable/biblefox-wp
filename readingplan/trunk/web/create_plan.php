@@ -2,27 +2,65 @@
 	include("bibletext.php");
 	connect_to_bible();
 
-	function get_chapter_list($text)
+	function get_sections($text, $size)
 	{
 		$reflist = parse_reflist($text);
-		
+
+		$period = 0;
+		$section = 0;
+		$remainder = 0;
+		$remainderStr = "";
 		foreach ($reflist as $refStr)
 		{
 			$ref = parse_ref($refStr);
 			$chapters = get_chapters($ref);
+			$num_chapters = count($chapters);
+			$num_sections = (int) floor(($num_chapters + $remainder) / $size);
+
 			$tmpRef['book_name'] = $ref['book_name'];
-			foreach ($chapters as $chapter)
+			$chapter1_index = 0;
+			$chapter2_index = $size - $remainder - 1;
+			for ($index = 0; $index < $num_sections; $index++)
 			{
-				if ($chapter != 0)
+				$tmpRefStr = "";
+				if (($index == 0) && ($remainder > 0))
 				{
-					$tmpRef['chapter1'] = $chapter;
-					
-					$chapter_list[] = get_refstr($tmpRef);
+					$tmpRefStr .= "$remainderStr, ";
+					$remainderStr = "";
+					$remainder = 0;
 				}
+
+				$tmpRef['chapter1'] = $chapters[$chapter1_index];
+				if ($chapter2_index > $chapter1_index)
+					$tmpRef['chapter2'] = $chapters[$chapter2_index];
+				else $tmpRef['chapter2'] = 0;
+
+				$tmpRefStr .= get_refstr($tmpRef);
+				$sections[] = $tmpRefStr;
+
+				$chapter1_index = $chapter2_index + 1;
+				$chapter2_index = $chapter1_index + $size - 1;
+			}
+
+			if ($chapter1_index < $num_chapters)
+			{
+				$remainder += $num_chapters - $chapter1_index;
+				$chapter2_index = $num_chapters - 1;
+
+				$tmpRef['chapter1'] = $chapters[$chapter1_index];
+				if ($chapter2_index > $chapter1_index)
+					$tmpRef['chapter2'] = $chapters[$chapter2_index];
+				else $tmpRef['chapter2'] = 0;
+
+				if ($remainderStr != "")
+					$remainderStr .= ", ";
+				$remainderStr .= get_refstr($tmpRef);
 			}
 		}
+		if ($remainderStr != "")
+			$sections[] = $remainderStr;
 		
-		return $chapter_list;
+		return $sections;
 	}
 	
 	$text = (string) $_POST['books'];
@@ -30,20 +68,13 @@
 	$section_size = (int) $_POST['num_chapters'];
 	if ($section_size == 0) $section_size = 1;
 	
-	$chapter_list = get_chapter_list($text);
+	$sections = get_sections($text, $section_size);
 	
-	$period = 0;
-	$section = 0;
-	foreach ($chapter_list as $chapter)
+	$index = 1;
+	foreach ($sections as $section)
 	{
-		if ($period % $section_size == 0)
-		{
-			$section++;
-			echo "<br/>$period_length $section: $chapter";
-		}
-		else
-			echo ", $chapter";
-		$period++;
+		echo "<br/>$period_length $index: $section";
+		$index++;
 	}
 	
 ?>

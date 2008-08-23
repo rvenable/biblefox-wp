@@ -158,7 +158,9 @@
 		
 		while($row = mysql_fetch_array($result))
 		{
-			$chapters[] = $row['chapter_id'];
+			$chapter = (int) $row['chapter_id'];
+			if ($chapter > 0)
+				$chapters[] = $chapter;
 		}
 		
 		return $chapters;
