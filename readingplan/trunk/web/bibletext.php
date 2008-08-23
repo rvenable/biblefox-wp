@@ -78,20 +78,8 @@
 		return $refStr;
 	}
 
-	// Function for echoing scripture
-	function echo_scripture($version, $ref)
+	function get_unique_id_range($ref)
 	{
-		$ref = normalize_ref($ref);
-		$refStr = get_refstr($ref);
-		echo "<h1>$refStr</h1>";
-		
-		$book_name = $ref['book_name'];
-		$book_id = $ref['book_id'];
-		$chapter1 = $ref['chapter1'];
-		$verse1 = $ref['verse1'];
-		$chapter2 = $ref['chapter2'];
-		$verse2 = $ref['verse2'];
-
 		/*
 		 Conversion methods:
 		 john			0:0-max:max		max:max
@@ -102,32 +90,46 @@
 		 john 1:1-0:2	1:1-1:2			first:second
 		 john 1:1-5:2	1:1-5:2			second:second
 		 john 1-5:2		1:0-5:2			second:second
-
+		 
 		 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
 		 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
 		 */
+		
+		$ref = normalize_ref($ref);
 
 		// When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
-		if ($verse2 == 0)
+		if ($ref['verse2'] == 0)
 		{
-			$verse2 = MAX_VERSE;
-			if (($verse1 != 0) && ($chapter2 == 0))
-				$verse2 = $verse1;
+			$ref['verse2'] = MAX_VERSE;
+			if (($ref['verse1'] != 0) && ($ref['chapter2'] == 0))
+				$ref['verse2'] = $ref['verse1'];
 		}
-
+		
 		// When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
-		if ($chapter2 == 0)
+		if ($ref['chapter2'] == 0)
 		{
-			$chapter2 = ($chapter1 == 0) ? MAX_CHAPTER : $chapter1;
+			$ref['chapter2'] = ($ref['chapter1'] == 0) ? MAX_CHAPTER : $ref['chapter1'];
 		}
+		
+		$range[0] = get_verse_unique_id($ref['book_id'], $ref['chapter1'], $ref['verse1']);
+		$range[1] = get_verse_unique_id($ref['book_id'], $ref['chapter2'], $ref['verse2']);
 
-		$start_id = get_verse_unique_id($book_id, $chapter1, $verse1);
-		$finish_id = get_verse_unique_id($book_id, $chapter2, $verse2);
+		return $range;
+	}
+	
+	// Function for echoing scripture
+	function echo_scripture($version, $ref)
+	{
+		$refStr = get_refstr($ref);
+		echo "<title>Biblefox: $refStr</title>";
+		echo "<h1>$refStr</h1>";
+		
+		$range = get_unique_id_range($ref);
 		
 		$query = sprintf("select verse_id, verse from %s_verses where unique_id >= %d and unique_id <= %d",
 						 mysql_real_escape_string($version),
-						 mysql_real_escape_string($start_id),
-						 mysql_real_escape_string($finish_id));
+						 mysql_real_escape_string($range[0]),
+						 mysql_real_escape_string($range[1]));
 		$result = mysql_query($query) or die(mysql_error());
 		
 		while($row = mysql_fetch_array($result))
@@ -139,6 +141,27 @@
 			}
 			echo $row['verse'];
 		}
+	}
+	
+	function get_chapters($ref)
+	{
+		// HACK: We need to let the user pick their own version
+		$version = "asv";
+
+		$range = get_unique_id_range($ref);
+		
+		$query = sprintf("select chapter_id, verse from %s_verses where unique_id >= %d and unique_id <= %d group by chapter_id",
+						 mysql_real_escape_string($version),
+						 mysql_real_escape_string($range[0]),
+						 mysql_real_escape_string($range[1]));
+		$result = mysql_query($query) or die(mysql_error());
+		
+		while($row = mysql_fetch_array($result))
+		{
+			$chapters[] = $row['chapter_id'];
+		}
+		
+		return $chapters;
 	}
 
 	function parse_ref($refStr)
@@ -192,7 +215,7 @@
 	
 	function parse_reflist($reflistStr)
 	{
-		$reflist = preg_split("/[,;]/", trim($reflistStr));
+		$reflist = preg_split("/[\n,;]/", trim($reflistStr));
 		return $reflist;
 	}
 	

@@ -2,59 +2,48 @@
 	include("bibletext.php");
 	connect_to_bible();
 
-	function get_num_chapters($books)
+	function get_chapter_list($text)
 	{
-	}
-	
-	function create_plan($books)
-	{
-		$query = "select book_id from ${version}_verses group by book_id, chapter_id";
-		$result = mysql_query($query) or die(mysql_error());
-		$chapters = mysql_num_rows($result);
-
-		$query = "select book_id from ${version}_verses where verse_id != 0";
-		$result = mysql_query($query) or die(mysql_error());
-		$verses = mysql_num_rows($result);
-
-		$partitions = $chapters / $num;
-		echo "$chapters Chapters<br/>";
-		echo "$verses Verses<br/>";
-		echo "$partitions Partitions<br/>";
-	}
-	
-	function parse_books($text)
-	{
-		$lines = explode("\n", $text);
-		foreach ($lines as $reflistStr)
+		$reflist = parse_reflist($text);
+		
+		foreach ($reflist as $refStr)
 		{
-			$reflist = parse_reflist($reflistStr);
-			$line = "";
-
-			foreach ($reflist as $refStr)
+			$ref = parse_ref($refStr);
+			$chapters = get_chapters($ref);
+			$tmpRef['book_name'] = $ref['book_name'];
+			foreach ($chapters as $chapter)
 			{
-				if ($line != "")
-					$line .= ", ";
-				$ref = parse_ref($refStr);
-				$line .= get_refstr($ref);
-			}
-
-			if ($line != "")
-			{
-				$books[] = "$line\n";
+				if ($chapter != 0)
+				{
+					$tmpRef['chapter1'] = $chapter;
+					
+					$chapter_list[] = get_refstr($tmpRef);
+				}
 			}
 		}
-		return $books;
+		
+		return $chapter_list;
 	}
 	
-	$text = $_POST['books'];
-	$books = parse_books($text);
-	foreach ($books as $book)
+	$text = (string) $_POST['books'];
+	$period_length = (string) $_POST['frequency'];
+	$section_size = (int) $_POST['num_chapters'];
+	if ($section_size == 0) $section_size = 1;
+	
+	$chapter_list = get_chapter_list($text);
+	
+	$period = 0;
+	$section = 0;
+	foreach ($chapter_list as $chapter)
 	{
-		echo "$book<br/>";
+		if ($period % $section_size == 0)
+		{
+			$section++;
+			echo "<br/>$period_length $section: $chapter";
+		}
+		else
+			echo ", $chapter";
+		$period++;
 	}
 	
-	$unique_id = get_verse_unique_id(2, 1, 5);
-	//list
-	list($book, $chapter, $verse) = get_verse_ref_from_unique_id($unique_id);
-	echo "$unique_id,$book,$chapter,$verse<br/>";
 ?>
