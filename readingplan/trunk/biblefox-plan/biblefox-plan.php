@@ -1,7 +1,18 @@
 <?php
+	/*
+	 Plugin Name: biblefox-plan
+	 Plugin URI: http://tools.biblefox.com/plan/
+	 Description: A wordpress plugin for making a bible reading plan
+	 Version: 0.1
+	 Author: Biblefox
+	 Author URI: http://biblefox.com
+	 */
+
 	include("bibletext.php");
 	connect_to_bible();
 
+	require_once("plan.php");
+	
 	function get_sections($text, $size)
 	{
 		$reflist = parse_reflist($text);
@@ -63,18 +74,23 @@
 		return $sections;
 	}
 	
-	$text = (string) $_POST['books'];
-	$period_length = (string) $_POST['frequency'];
-	$section_size = (int) $_POST['num_chapters'];
-	if ($section_size == 0) $section_size = 1;
-	
-	$sections = get_sections($text, $section_size);
-	
-	$index = 1;
-	foreach ($sections as $section)
+	if($_POST['hidden_field'] == 'Y')
 	{
-		echo "<br/>$period_length $index: $section";
-		$index++;
+		$text = (string) $_POST['books'];
+		$period_length = (string) $_POST['frequency'];
+		$section_size = (int) $_POST['num_chapters'];
+		if ($section_size == 0) $section_size = 1;
+		
+		$sections = get_sections($text, $section_size);
+		
+		$index = 1;
+		foreach ($sections as $section)
+		{
+			echo "<br/>$period_length $index: $section";
+			$index++;
+		}
 	}
+	
+	create_plan_menu();
 	
 ?>
