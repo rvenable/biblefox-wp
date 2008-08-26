@@ -8,9 +8,17 @@
 	 Author URI: http://biblefox.com
 	 */
 
-	include("bibletext.php");
-	connect_to_bible();
-
+//	include("bibletext.php");
+//	connect_to_bible();
+	
+	function bfox_plan_menu()
+	{
+		$min_user_level = 8;
+		add_menu_page('Make a Reading Plan', 'Make a Reading Plan', $min_user_level, __FILE__, 'create_plan');
+		add_submenu_page(__FILE__, 'Make a Reading Plan', 'Make a Reading Plan', $min_user_level, __FILE__, 'create_plan');
+		add_management_page('test', 'test', 0, __FILE__, 'create_plan');
+	}
+	
 	function create_plan_menu()
 	{
 	?>
@@ -92,23 +100,32 @@ How Fast?<br/>
 		return $sections;
 	}
 	
-	if($_POST['hidden_field'] == 'Y')
+	function create_plan()
 	{
-		$text = (string) $_POST['books'];
-		$period_length = (string) $_POST['frequency'];
-		$section_size = (int) $_POST['num_chapters'];
-		if ($section_size == 0) $section_size = 1;
-		
-		$sections = get_sections($text, $section_size);
-		
-		$index = 1;
-		foreach ($sections as $section)
+		if($_POST['hidden_field'] == 'Y')
 		{
-			echo "<br/>$period_length $index: $section";
-			$index++;
+			$text = (string) $_POST['books'];
+			$period_length = (string) $_POST['frequency'];
+			$section_size = (int) $_POST['num_chapters'];
+			if ($section_size == 0) $section_size = 1;
+			
+			$sections = get_sections($text, $section_size);
+			
+			$index = 1;
+			foreach ($sections as $section)
+			{
+				echo "<br/>$period_length $index: $section";
+				$index++;
+			}
 		}
+		
+		create_plan_menu();
 	}
-	
-	create_plan_menu();
+
+	function bfox_plan_init()
+	{
+		add_action('admin_menu', 'bfox_plan_menu');
+	}
+	add_action('init', 'bfox_plan_init');
 	
 ?>
