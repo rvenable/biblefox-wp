@@ -1,25 +1,19 @@
 <?php
-	function connect_to_bible()
-	{
-		mysql_connect("localhost", "biblefox", "bfoxword") or die(mysql_error());
-		mysql_select_db("bibletext") or die(mysql_error());
-	}
-
-	define("MAX_CHAPTER", 0xFF);
-	define("MAX_VERSE", 0xFF);
+	define("BFOX_MAX_CHAPTER", 0xFF);
+	define("BFOX_MAX_VERSE", 0xFF);
 	
-	function get_verse_unique_id($book, $chapter, $verse)
+	function bfox_get_verse_unique_id($book, $chapter, $verse)
 	{
 		return ($book << 16) + ($chapter << 8) + $verse;
 	}
 
-	function get_verse_ref_from_unique_id($unique_id)
+	function bfox_get_verse_ref_from_unique_id($unique_id)
 	{
 		$mask = 0xFF;
 		return array((($book >> 16) & $mask), (($chapter >> 8) & $mask), ($verse & $mask));
 	}
 
-	function get_book_id($book)
+	function bfox_get_book_id($book)
 	{
 		// Strip beginning and ending whitespace
 		$book = trim($book);
@@ -32,7 +26,7 @@
 		return $row['book_id'];
 	}
 	
-	function get_book_name($id)
+	function bfox_get_book_name($id)
 	{
 		$query = sprintf("select name from books where id = '%s'",
 						 mysql_real_escape_string($id));
@@ -42,7 +36,7 @@
 		return $row['name'];
 	}
 
-	function normalize_ref($ref)
+	function bfox_normalize_ref($ref)
 	{
 		$normal_keys = array('chapter1', 'verse1', 'chapter2', 'verse2');
 
@@ -54,9 +48,9 @@
 		return $ref;
 	}
 	
-	function get_refstr($ref)
+	function bfox_get_refstr($ref)
 	{
-		$ref = normalize_ref($ref);
+		$ref = bfox_normalize_ref($ref);
 
 		// Create the reference string
 		$refStr = "{$ref['book_name']}";
@@ -78,7 +72,7 @@
 		return $refStr;
 	}
 
-	function get_unique_id_range($ref)
+	function bfox_get_unique_id_range($ref)
 	{
 		/*
 		 Conversion methods:
@@ -95,12 +89,12 @@
 		 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
 		 */
 		
-		$ref = normalize_ref($ref);
+		$ref = bfox_normalize_ref($ref);
 
 		// When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
 		if ($ref['verse2'] == 0)
 		{
-			$ref['verse2'] = MAX_VERSE;
+			$ref['verse2'] = BFOX_MAX_VERSE;
 			if (($ref['verse1'] != 0) && ($ref['chapter2'] == 0))
 				$ref['verse2'] = $ref['verse1'];
 		}
@@ -108,23 +102,23 @@
 		// When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
 		if ($ref['chapter2'] == 0)
 		{
-			$ref['chapter2'] = ($ref['chapter1'] == 0) ? MAX_CHAPTER : $ref['chapter1'];
+			$ref['chapter2'] = ($ref['chapter1'] == 0) ? BFOX_MAX_CHAPTER : $ref['chapter1'];
 		}
 		
-		$range[0] = get_verse_unique_id($ref['book_id'], $ref['chapter1'], $ref['verse1']);
-		$range[1] = get_verse_unique_id($ref['book_id'], $ref['chapter2'], $ref['verse2']);
+		$range[0] = bfox_get_verse_unique_id($ref['book_id'], $ref['chapter1'], $ref['verse1']);
+		$range[1] = bfox_get_verse_unique_id($ref['book_id'], $ref['chapter2'], $ref['verse2']);
 
 		return $range;
 	}
 	
 	// Function for echoing scripture
-	function echo_scripture($version, $ref)
+	function bfox_echo_scripture($version, $ref)
 	{
-		$refStr = get_refstr($ref);
+		$refStr = bfox_get_refstr($ref);
 		echo "<title>Biblefox: $refStr</title>";
 		echo "<h1>$refStr</h1>";
 		
-		$range = get_unique_id_range($ref);
+		$range = bfox_get_unique_id_range($ref);
 		
 		$query = sprintf("select verse_id, verse from %s_verses where unique_id >= %d and unique_id <= %d",
 						 mysql_real_escape_string($version),
@@ -143,12 +137,12 @@
 		}
 	}
 	
-	function get_chapters($ref)
+	function bfox_get_chapters($ref)
 	{
 		// HACK: We need to let the user pick their own version
 		$version = "asv";
 
-		$range = get_unique_id_range($ref);
+		$range = bfox_get_unique_id_range($ref);
 		
 		$query = sprintf("select chapter_id, verse from %s_verses where unique_id >= %d and unique_id <= %d group by chapter_id",
 						 mysql_real_escape_string($version),
@@ -166,7 +160,7 @@
 		return $chapters;
 	}
 
-	function parse_ref($refStr)
+	function bfox_parse_ref($refStr)
 	{
 		$chapter1 = $verse1 = $chapter2 = $verse2 = 0;
 		
@@ -200,22 +194,22 @@
 			}
 		}
 		
-		$book_id = get_book_id($book_name);
+		$book_id = bfox_get_book_id($book_name);
 		$ref['book_id'] = $book_id;
-		$ref['book_name'] = get_book_name($book_id);
+		$ref['book_name'] = bfox_get_book_name($book_id);
 		$ref['chapter1'] = $chapter1;
 		$ref['verse1'] = $verse1;
 		$ref['chapter2'] = $chapter2;
 		$ref['verse2'] = $verse2;
 
-		$refStr = get_refstr($ref);
+		$refStr = bfox_get_refstr($ref);
 		
-		$ref = normalize_ref($ref);
+		$ref = bfox_normalize_ref($ref);
 		
 		return $ref;
 	}
 	
-	function parse_reflist($reflistStr)
+	function bfox_parse_reflist($reflistStr)
 	{
 		$reflist = preg_split("/[\n,;]/", trim($reflistStr));
 		return $reflist;
