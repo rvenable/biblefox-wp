@@ -23,7 +23,7 @@
 
 	function bfox_read()
 	{
-		echo "<h2>Read the Bible</h2>";
+		require("bfox-read.php");
 	};
 	
 	function bfox_plan()

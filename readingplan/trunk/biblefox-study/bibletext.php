@@ -15,25 +15,22 @@
 
 	function bfox_get_book_id($book)
 	{
-		// Strip beginning and ending whitespace
-		$book = trim($book);
-		
-		$query = sprintf("select book_id from synonyms where synonym like '%s'",
-						 mysql_real_escape_string($book));
-		$result = mysql_query($query) or die(mysql_error());
-		$row = mysql_fetch_array($result);
-		
-		return $row['book_id'];
+		// HACK: BFOX_SYNONYMS_TABLE is in bfox-translations.php but should be in some common file
+		require_once("bfox-setup.php");
+
+		global $wpdb;
+		$query = $wpdb->prepare("SELECT book_id FROM " . BFOX_SYNONYMS_TABLE . " WHERE synonym LIKE %s", trim($book));
+		return $wpdb->get_var($query);
 	}
 	
-	function bfox_get_book_name($id)
+	function bfox_get_book_name($book_id)
 	{
-		$query = sprintf("select name from books where id = '%s'",
-						 mysql_real_escape_string($id));
-		$result = mysql_query($query) or die(mysql_error());
-		$row = mysql_fetch_array($result);
+		// HACK: BFOX_BOOKS_TABLE is in bfox-translations.php but should be in some common file
+		require_once("bfox-setup.php");
 		
-		return $row['name'];
+		global $wpdb;
+		$query = $wpdb->prepare("SELECT name FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
+		return $wpdb->get_var($query);
 	}
 
 	function bfox_normalize_ref($ref)
@@ -112,28 +109,33 @@
 	}
 	
 	// Function for echoing scripture
-	function bfox_echo_scripture($version, $ref)
+	function bfox_echo_scripture($version_id, $ref)
 	{
+		global $wpdb;
+
 		$refStr = bfox_get_refstr($ref);
-		echo "<title>Biblefox: $refStr</title>";
-		echo "<h1>$refStr</h1>";
+//		echo "<title>Biblefox: $refStr</title>";
+		echo "<h2>$refStr</h2>";
 		
 		$range = bfox_get_unique_id_range($ref);
+
+		// HACK: The bfox_get_verses_table_name function is in bfox-translations.php but should be in some common file
+		require_once("bfox-translations.php");
+		$table_name = bfox_get_verses_table_name($version_id);
+
+		$query = $wpdb->prepare("SELECT verse_id, verse
+								FROM " . $table_name . "
+								WHERE unique_id >= %d
+								and unique_id <= %d",
+								$range[0],
+								$range[1]);
+		$verses = $wpdb->get_results($query);
 		
-		$query = sprintf("select verse_id, verse from %s_verses where unique_id >= %d and unique_id <= %d",
-						 mysql_real_escape_string($version),
-						 mysql_real_escape_string($range[0]),
-						 mysql_real_escape_string($range[1]));
-		$result = mysql_query($query) or die(mysql_error());
-		
-		while($row = mysql_fetch_array($result))
+		foreach ($verses as $verse)
 		{
-			$verse_id = $row['verse_id'];
-			if ($verse_id != 0)
-			{
-				echo "<sup>$verse_id</sup>";
-			}
-			echo $row['verse'];
+			if ($verse->verse_id != 0)
+				echo "<sup>$verse->verse_id</sup>";
+			echo $verse->verse;
 		}
 	}
 	

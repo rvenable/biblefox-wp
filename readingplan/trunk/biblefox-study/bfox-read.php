@@ -1,16 +1,17 @@
+<div class="wrap">
 <?php
 	include("bibletext.php");
-	connect_to_bible();
 
-	$version = "asv";
-	$reflistStr = trim($_GET['ref']);
+	$version = 13;
+//	$reflistStr = trim($_GET['ref']);
+	$reflistStr = "genesis 1";
 	if ($reflistStr != "")
 	{
-		$reflist = parse_reflist($reflistStr);
+		$reflist = bfox_parse_reflist($reflistStr);
 		foreach ($reflist as $refStr)
 		{
-			$ref = parse_ref($refStr);
-			echo_scripture($version, $ref);
+			$ref = bfox_parse_ref($refStr);
+			bfox_echo_scripture($version, $ref);
 		}
 	}
 	else
@@ -18,7 +19,8 @@
 /*		$ref['book'] = $_GET['book'];
 		$ref['chapter1'] = $_GET['chapter1'];
 		$ref['verse1'] = $_GET['verse1'];*/
-		echo_scripture($version, $_GET);
+		bfox_echo_scripture($version, $_GET);
 	}
 
 ?>
+</div>
