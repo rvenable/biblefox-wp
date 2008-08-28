@@ -10,7 +10,6 @@
 
 	define(BFOX_FILE, __FILE__);
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
-	define(DIEONDBERROR, '');
 
 	function bfox_study_menu()
 	{
@@ -35,6 +34,7 @@
 	function bfox_share()
 	{
 		echo "<h2>Share with Friends</h2>";
+		bfox_activate();
 	};
 	
 	function bfox_translations()
@@ -47,6 +47,14 @@
 	{
 		add_action('admin_menu', 'bfox_study_menu');
 	}
+	
+	function bfox_activate()
+	{
+		require_once("bfox-setup.php");
+		bfox_setup();
+	}
+
 	add_action('init', 'bfox_study_init');
+	register_activation_hook(__FILE__, 'bfox_activate');
 	
 ?>
