@@ -126,7 +126,7 @@
 		$query = $wpdb->prepare("SELECT verse_id, verse
 								FROM " . $table_name . "
 								WHERE unique_id >= %d
-								and unique_id <= %d",
+								AND unique_id <= %d",
 								$range[0],
 								$range[1]);
 		$verses = $wpdb->get_results($query);
@@ -141,25 +141,26 @@
 	
 	function bfox_get_chapters($ref)
 	{
+		global $wpdb;
+
 		// HACK: We need to let the user pick their own version
-		$version = "asv";
+		$version_id = 13;
 
 		$range = bfox_get_unique_id_range($ref);
+
+		// HACK: The bfox_get_verses_table_name function is in bfox-translations.php but should be in some common file
+		require_once("bfox-translations.php");
+		$table_name = bfox_get_verses_table_name($version_id);
 		
-		$query = sprintf("select chapter_id, verse from %s_verses where unique_id >= %d and unique_id <= %d group by chapter_id",
-						 mysql_real_escape_string($version),
-						 mysql_real_escape_string($range[0]),
-						 mysql_real_escape_string($range[1]));
-		$result = mysql_query($query) or die(mysql_error());
-		
-		while($row = mysql_fetch_array($result))
-		{
-			$chapter = (int) $row['chapter_id'];
-			if ($chapter > 0)
-				$chapters[] = $chapter;
-		}
-		
-		return $chapters;
+		$query = $wpdb->prepare("SELECT chapter_id
+								FROM $table_name
+								WHERE unique_id >= %d
+								AND unique_id <= %d
+								AND chapter_id != 0
+								GROUP BY chapter_id",
+								$range[0],
+								$range[1]);
+		return $wpdb->get_col($query);
 	}
 
 	function bfox_parse_ref($refStr)

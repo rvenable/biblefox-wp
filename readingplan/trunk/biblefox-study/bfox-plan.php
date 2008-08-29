@@ -1,56 +1,44 @@
 <?php
-	/*
-	 Plugin Name: biblefox-plan
-	 Plugin URI: http://tools.biblefox.com/plan/
-	 Description: A wordpress plugin for making a bible reading plan
-	 Version: 0.1
-	 Author: Biblefox
-	 Author URI: http://biblefox.com
-	 */
-
-//	include("bibletext.php");
-//	connect_to_bible();
+	require_once("bibletext.php");
 	
-	function bfox_plan_menu()
+	function bfox_create_plan_menu()
 	{
-		$min_user_level = 8;
-		add_menu_page('Make a Reading Plan', 'Make a Reading Plan', $min_user_level, __FILE__, 'create_plan');
-		add_submenu_page(__FILE__, 'Make a Reading Plan', 'Make a Reading Plan', $min_user_level, __FILE__, 'create_plan');
-		add_management_page('test', 'test', 0, __FILE__, 'create_plan');
-	}
-	
-	function create_plan_menu()
-	{
+		$text = (string) $_GET['books'];
+		$period_length = (string) $_GET['frequency'];
+		$section_size = (int) $_GET['num_chapters'];
+		
 	?>
 <h4>Create a Reading Plan</h4>
-<form action="biblefox-plan.php" method="post">
+<form action="admin.php" method="get">
+<input type="hidden" name="page" value="<?php echo BFOX_PLAN_SUBPAGE; ?>">
 <input type="hidden" name="hidden_field" value="Y">
 Which books?<br/>
-<textarea rows="5" cols="20" wrap="physical" name="books"></textarea><br/>
+<textarea rows="5" cols="20" wrap="physical" name="books"><?php echo $text; ?></textarea><br/>
 How Fast?<br/>
-<input type="text" size="10" maxlength="40" name="num_chapters"> chapters per
-<select name="frequency">
+<input type="text" size="10" maxlength="40" name="num_chapters" value="<?php echo $section_size; ?>"> chapters per
+<select name="frequency" value="<?php echo $period_length; ?>">
 <option>day</option>
 <option>week</option>
 <option>month</option>
 </select>
-<input type="submit" />
+<input type="submit" class="button" />
 </form>
 <?php
 	}
 	
-	function get_sections($text, $size)
+	function bfox_get_sections($text, $size)
 	{
-		$reflist = parse_reflist($text);
+		$reflist = bfox_parse_reflist($text);
 
+		$sections = array();
 		$period = 0;
 		$section = 0;
 		$remainder = 0;
 		$remainderStr = "";
 		foreach ($reflist as $refStr)
 		{
-			$ref = parse_ref($refStr);
-			$chapters = get_chapters($ref);
+			$ref = bfox_parse_ref($refStr);
+			$chapters = bfox_get_chapters($ref);
 			$num_chapters = count($chapters);
 			$num_sections = (int) floor(($num_chapters + $remainder) / $size);
 
@@ -72,7 +60,7 @@ How Fast?<br/>
 					$tmpRef['chapter2'] = $chapters[$chapter2_index];
 				else $tmpRef['chapter2'] = 0;
 
-				$tmpRefStr .= get_refstr($tmpRef);
+				$tmpRefStr .= bfox_get_refstr($tmpRef);
 				$sections[] = $tmpRefStr;
 
 				$chapter1_index = $chapter2_index + 1;
@@ -91,7 +79,7 @@ How Fast?<br/>
 
 				if ($remainderStr != "")
 					$remainderStr .= ", ";
-				$remainderStr .= get_refstr($tmpRef);
+				$remainderStr .= bfox_get_refstr($tmpRef);
 			}
 		}
 		if ($remainderStr != "")
@@ -100,16 +88,16 @@ How Fast?<br/>
 		return $sections;
 	}
 	
-	function create_plan()
+	function bfox_create_plan()
 	{
-		if($_POST['hidden_field'] == 'Y')
+		if($_GET['hidden_field'] == 'Y')
 		{
-			$text = (string) $_POST['books'];
-			$period_length = (string) $_POST['frequency'];
-			$section_size = (int) $_POST['num_chapters'];
+			$text = (string) $_GET['books'];
+			$period_length = (string) $_GET['frequency'];
+			$section_size = (int) $_GET['num_chapters'];
 			if ($section_size == 0) $section_size = 1;
 			
-			$sections = get_sections($text, $section_size);
+			$sections = bfox_get_sections($text, $section_size);
 			
 			$index = 1;
 			foreach ($sections as $section)
@@ -119,13 +107,7 @@ How Fast?<br/>
 			}
 		}
 		
-		create_plan_menu();
+		bfox_create_plan_menu();
 	}
 
-	function bfox_plan_init()
-	{
-		add_action('admin_menu', 'bfox_plan_menu');
-	}
-	add_action('init', 'bfox_plan_init');
-	
 ?>
