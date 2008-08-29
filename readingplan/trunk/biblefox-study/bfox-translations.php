@@ -1,22 +1,6 @@
 <?php
-	define('BFOX_TRANSLATION_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
-	define('BFOX_TRANSLATIONS_TABLE', BFOX_TRANSLATION_TABLE_PREFIX . 'translations');
 	define('BFOX_TRANSLATIONS_DIR', dirname(__FILE__) . "/translations");
 	
-	function bfox_get_default_version()
-	{
-		$table_name = BFOX_TRANSLATIONS_TABLE;
-		return $wpdb->get_var("SELECT id FROM $table_name WHERE is_default = TRUE");
-	}
-
-	function bfox_get_verses_table_name($id)
-	{
-		if (!isset($id))
-			$id = bfox_get_default_version();
-
-		return BFOX_TRANSLATION_TABLE_PREFIX . "trans{$id}_verses";
-	}
-
 	function bfox_get_installed_translations()
 	{
 		global $wpdb;

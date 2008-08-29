@@ -1,7 +1,4 @@
 <?php
-	define('BFOX_BASE_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
-	define('BFOX_BOOKS_TABLE', BFOX_BASE_TABLE_PREFIX . 'books');
-	define('BFOX_SYNONYMS_TABLE', BFOX_BASE_TABLE_PREFIX . 'synonyms');
 	define('BFOX_SETUP_DIR', dirname(__FILE__) . "/setup");
 	
 	function bfox_create_books_table()

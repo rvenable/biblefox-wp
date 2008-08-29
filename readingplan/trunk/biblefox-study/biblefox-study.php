@@ -14,6 +14,8 @@
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
 	define(BFOX_DOMAIN, 'biblefox-study');
+	
+	require_once("bfox-include.php");
 
 	function bfox_study_menu()
 	{

@@ -1,6 +1,5 @@
 <?php
-	include("bibletext.php");
-	
+
 	$version = 13;
 	$reflistStr = trim($_GET['ref']);
 	if ($reflistStr == '')

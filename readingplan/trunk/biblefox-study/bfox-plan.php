@@ -1,6 +1,5 @@
 <?php
-	require_once("bibletext.php");
-	
+
 	function bfox_create_plan_menu()
 	{
 		$text = (string) $_GET['books'];

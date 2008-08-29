@@ -15,9 +15,6 @@
 
 	function bfox_get_book_id($book)
 	{
-		// HACK: BFOX_SYNONYMS_TABLE is in bfox-translations.php but should be in some common file
-		require_once("bfox-setup.php");
-
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT book_id FROM " . BFOX_SYNONYMS_TABLE . " WHERE synonym LIKE %s", trim($book));
 		return $wpdb->get_var($query);
@@ -25,9 +22,6 @@
 	
 	function bfox_get_book_name($book_id)
 	{
-		// HACK: BFOX_BOOKS_TABLE is in bfox-translations.php but should be in some common file
-		require_once("bfox-setup.php");
-		
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT name FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
 		return $wpdb->get_var($query);
@@ -114,13 +108,10 @@
 		global $wpdb;
 
 		$refStr = bfox_get_refstr($ref);
-//		echo "<title>Biblefox: $refStr</title>";
 		echo "<h2>$refStr</h2>";
 		
 		$range = bfox_get_unique_id_range($ref);
 
-		// HACK: The bfox_get_verses_table_name function is in bfox-translations.php but should be in some common file
-		require_once("bfox-translations.php");
 		$table_name = bfox_get_verses_table_name($version_id);
 
 		$query = $wpdb->prepare("SELECT verse_id, verse
@@ -148,8 +139,6 @@
 
 		$range = bfox_get_unique_id_range($ref);
 
-		// HACK: The bfox_get_verses_table_name function is in bfox-translations.php but should be in some common file
-		require_once("bfox-translations.php");
 		$table_name = bfox_get_verses_table_name($version_id);
 		
 		$query = $wpdb->prepare("SELECT chapter_id
