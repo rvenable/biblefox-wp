@@ -7,20 +7,8 @@
 	define('BFOX_SYNONYMS_TABLE', BFOX_BASE_TABLE_PREFIX . 'synonyms');
 	define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
 
-	function bfox_get_default_version()
-	{
-		global $wpdb;
-		return $wpdb->get_var("SELECT id FROM " . BFOX_TRANSLATIONS_TABLE . " WHERE is_default = TRUE");
-	}
-	
-	function bfox_get_verses_table_name($id)
-	{
-		if (!isset($id))
-			$id = bfox_get_default_version();
-		
-		return BFOX_BASE_TABLE_PREFIX . "trans{$id}_verses";
-	}
-	
+	require_once("bfox-settings.php");
+	require_once("bfox-blog-specific.php");
 	require_once("bibletext.php");
 
 	?>
