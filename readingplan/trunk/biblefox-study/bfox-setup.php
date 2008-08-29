@@ -165,7 +165,7 @@
 		}
 	}
 
-	function bfox_setup()
+	function bfox_initial_setup()
 	{
 		bfox_fill_books_table();
 		bfox_fill_synonyms_table();

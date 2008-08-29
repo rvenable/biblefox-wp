@@ -12,6 +12,7 @@
 	define(BFOX_READ_SUBPAGE, __FILE__);
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
+	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	function bfox_study_menu()
@@ -22,6 +23,7 @@
 		add_submenu_page(__FILE__, 'Design a Reading Plan', 'Plan', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
 		add_submenu_page(__FILE__, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 		add_submenu_page(__FILE__, 'Manage Translations', 'Translations', 0, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
+		add_submenu_page(__FILE__, 'Biblefox Setup', 'Setup', 0, BFOX_SETUP_SUBPAGE, 'bfox_setup');
 	}
 
 	function bfox_read()
@@ -39,13 +41,18 @@
 	function bfox_share()
 	{
 		echo "<h2>Share with Friends</h2>";
-		bfox_activate();
 	};
-	
+
 	function bfox_translations()
 	{
 		require_once("bfox-translations.php");
 		bfox_translations_page();
+	};
+	
+	function bfox_setup()
+	{
+		echo "<h2>Biblefox Setup</h2>";
+		bfox_activate();
 	};
 	
 	function bfox_study_init()
@@ -56,7 +63,7 @@
 	function bfox_activate()
 	{
 		require_once("bfox-setup.php");
-		bfox_setup();
+		bfox_initial_setup();
 	}
 
 	add_action('init', 'bfox_study_init');
