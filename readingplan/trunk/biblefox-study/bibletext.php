@@ -134,8 +134,9 @@
 	{
 		global $wpdb;
 
-		// HACK: We need to let the user pick their own version
-		$version_id = 13;
+		// TODO: We need to let the user pick their own version
+		// Use the default translation until we add user input for this value
+		$version_id = bfox_get_default_version();
 
 		$range = bfox_get_unique_id_range($ref);
 

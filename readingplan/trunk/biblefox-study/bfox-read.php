@@ -10,7 +10,7 @@
 	}
 	else
 	{
-		$trans_id = 13;
+		$trans_id = $translations[0]->id;
 	}
 
 	$reflistStr = trim($_GET['ref']);
