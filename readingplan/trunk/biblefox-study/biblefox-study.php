@@ -10,12 +10,14 @@
 
 	define(BFOX_FILE, __FILE__);
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
+	define(BFOX_READ_SUBPAGE, __FILE__);
+	define(BFOX_DOMAIN, 'biblefox-study');
 
 	function bfox_study_menu()
 	{
 		$min_user_level = 8;
 		add_menu_page('Study the Bible', 'Study', 0, __FILE__, 'bfox_read');
-		add_submenu_page(__FILE__, 'Read the Bible', 'Read', 0, __FILE__, 'bfox_read');
+		add_submenu_page(__FILE__, 'Read the Bible', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 		add_submenu_page(__FILE__, 'Design a Reading Plan', 'Plan', 0, 'plan', 'bfox_plan');
 		add_submenu_page(__FILE__, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 		add_submenu_page(__FILE__, 'Manage Translations', 'Translations', 0, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');

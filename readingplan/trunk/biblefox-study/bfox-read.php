@@ -1,10 +1,24 @@
-<div class="wrap">
 <?php
 	include("bibletext.php");
-
+	
 	$version = 13;
-//	$reflistStr = trim($_GET['ref']);
-	$reflistStr = "genesis 1";
+	$reflistStr = trim($_GET['ref']);
+	if ($reflistStr == '')
+	{
+		$reflistStr = "genesis 1";
+	}
+?>
+
+<div class="wrap">
+<form id="posts-filter" action="admin.php" method="get">
+<input type="hidden" name="page" value="<?php echo BFOX_READ_SUBPAGE; ?>" />
+<p id="post-search">
+<input type="text" id="post-search-input" name="ref" value="<?php echo $reflistStr; ?>" />
+<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
+</p>
+</form>
+
+<?php
 	if ($reflistStr != "")
 	{
 		$reflist = bfox_parse_reflist($reflistStr);
