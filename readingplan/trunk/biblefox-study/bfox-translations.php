@@ -11,13 +11,18 @@
 		}
 		else
 		{
-			$select = "SELECT long_name, is_enabled, is_default FROM $table_name ORDER BY long_name";
+			$select = "SELECT id, long_name, is_enabled, is_default FROM $table_name ORDER BY long_name";
 			$translations = $wpdb->get_results($select);
 			foreach ($translations as $translation)
 			{
 				echo "$translation->is_enabled ";
 				echo "$translation->is_default ";
-				echo "$translation->long_name";
+				echo "$translation->long_name ";
+				$page = BFOX_TRANSLATION_SUBPAGE;
+				$url = "admin.php?page=$page&amp;action=delete&amp;trans_id=$translation->id";
+				echo "<a href='$url'>delete</a> ";
+				$url = "admin.php?page=$page&amp;action=enable&amp;trans_id=$translation->id";
+				echo "<a href='$url'>enable</a>";
 				echo "<br/>";
 			}
 		}
@@ -155,7 +160,6 @@
 			define(DIEONDBERROR, '');
 			
 			$result = $wpdb->query($sql);
-			echo "result = $result <br/>";
 		}
 	}
 
@@ -194,12 +198,35 @@
 		echo '</div>';
 	}
 
+	function bfox_delete_translation($trans_id)
+	{
+		global $wpdb;
+		$wpdb->query($wpdb->prepare("DELETE FROM " . BFOX_TRANSLATIONS_TABLE . " WHERE id = %d", $trans_id));
+		$wpdb->query("DROP TABLE " . bfox_get_verses_table_name($trans_id));
+	}
+	
+	function bfox_enable_translation($trans_id)
+	{
+		global $wpdb;
+		$wpdb->query($wpdb->prepare("UPDATE " . BFOX_TRANSLATIONS_TABLE . " SET is_enabled = !(is_enabled) WHERE id = %d", $trans_id));
+	}
+	
 	function bfox_translations_action($action)
 	{
 		if ('install' == $action)
 		{
 			$file = trim($_GET['file']);
 			bfox_install_bft_file($file);
+		}
+		else if ('delete' == $action)
+		{
+			$trans_id = (int) $_GET['trans_id'];
+			bfox_delete_translation($trans_id);
+		}
+		else if ('enable' == $action)
+		{
+			$trans_id = (int) $_GET['trans_id'];
+			bfox_enable_translation($trans_id);
 		}
 	}
 	
