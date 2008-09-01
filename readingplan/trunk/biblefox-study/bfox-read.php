@@ -1,5 +1,7 @@
 <?php
 
+	require_once('bfox-history.php');
+
 	global $wpdb;
 
 	// Get all enabled translations
@@ -13,12 +15,23 @@
 		$trans_id = $translations[0]->id;
 	}
 
+	// Create a list of bible references to show
+	// If the user passed a list through the GET parameter use that
 	$reflistStr = trim($_GET['ref']);
 	if ($reflistStr == '')
 	{
-		$reflistStr = "genesis 1";
+		// If there are no GET references then get the last viewed references
+		$refs = bfox_get_last_viewed_refs();
 	}
-?>
+	else
+	{
+		// Create a list of references from the passed in GET param
+		$reflist = bfox_parse_reflist($reflistStr);
+		$refs = array();
+		foreach ($reflist as $refStr) $refs[] = bfox_parse_ref($refStr);
+	}
+
+	?>
 
 <div class="wrap">
 <form id="posts-filter" action="admin.php" method="get">
@@ -42,21 +55,15 @@
 
 <?php
 
-	if ($reflistStr != "")
+
+	// If we have at least one scripture reference
+	if (0 < count($refs))
 	{
-		$reflist = bfox_parse_reflist($reflistStr);
-		foreach ($reflist as $refStr)
-		{
-			$ref = bfox_parse_ref($refStr);
-			bfox_echo_scripture($trans_id, $ref);
-		}
-	}
-	else
-	{
-/*		$ref['book'] = $_GET['book'];
-		$ref['chapter1'] = $_GET['chapter1'];
-		$ref['verse1'] = $_GET['verse1'];*/
-		bfox_echo_scripture($trans_id, $_GET);
+		// Output all the scripture references
+		foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
+
+		// Update the read history to show that we viewed these scriptures
+		bfox_update_table_read_history($refs);
 	}
 
 ?>

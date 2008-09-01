@@ -5,6 +5,9 @@
 	 (As opposed to tables which are for an entire WPMU installation)
 	 */
 	
+	define('BFOX_BLOG_TABLE_PREFIX', $GLOBALS['wpdb']->prefix . 'bfox_');
+	define('BFOX_TABLE_READ_HISTORY', BFOX_BLOG_TABLE_PREFIX . 'read_history');
+
 	function bfox_get_verses_table_name($id)
 	{
 		if (!isset($id))
@@ -12,5 +15,5 @@
 		
 		return BFOX_BASE_TABLE_PREFIX . "trans{$id}_verses";
 	}
-	
+		
 	?>

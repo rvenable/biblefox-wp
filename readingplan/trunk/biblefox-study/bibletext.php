@@ -10,7 +10,7 @@
 	function bfox_get_verse_ref_from_unique_id($unique_id)
 	{
 		$mask = 0xFF;
-		return array((($book >> 16) & $mask), (($chapter >> 8) & $mask), ($verse & $mask));
+		return array((($unique_id >> 16) & $mask), (($unique_id >> 8) & $mask), ($unique_id & $mask));
 	}
 
 	function bfox_get_book_id($book)
@@ -43,8 +43,13 @@
 	{
 		$ref = bfox_normalize_ref($ref);
 
+		if (isset($ref['book_name']) && ($ref['book_name'] != ''))
+			$book_name = $ref['book_name'];
+		else
+			$book_name = bfox_get_book_name($ref['book_id']);
+
 		// Create the reference string
-		$refStr = "{$ref['book_name']}";
+		$refStr = "$book_name";
 		if ($ref['chapter1'] != 0)
 		{
 			$refStr .= " {$ref['chapter1']}";
@@ -102,6 +107,31 @@
 		return $range;
 	}
 	
+	function bfox_get_ref_for_range($range)
+	{
+		// Convert the ranges to a ref
+		// Note: we currently only support ranges which have identical book ids
+		list($ref['book_id'], $ref['chapter1'], $ref['verse1']) = bfox_get_verse_ref_from_unique_id($range[0]);
+		list($ref['book_id'], $ref['chapter2'], $ref['verse2']) = bfox_get_verse_ref_from_unique_id($range[1]);
+
+		if ((BFOX_MAX_CHAPTER == $ref['chapter2']) || ($ref['chapter1'] == $ref['chapter2']))
+			$ref['chapter2'] = 0;
+		if ((BFOX_MAX_VERSE == $ref['verse2']) || ($ref['verse1'] == $ref['verse2']))
+			$ref['verse2'] = 0;
+		
+		return $ref;
+	}
+	
+	function bfox_get_refs_for_ranges($ranges)
+	{
+		$refs = array();
+		foreach ($ranges as $range)
+		{
+			$refs[] = bfox_get_ref_for_range($range);
+		}
+		return $refs;
+	}
+
 	// Function for echoing scripture
 	function bfox_echo_scripture($version_id, $ref)
 	{
