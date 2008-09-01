@@ -30,6 +30,18 @@
 		$refs = array();
 		foreach ($reflist as $refStr) $refs[] = bfox_parse_ref($refStr);
 	}
+	
+	$next_factor = 0;
+	if ('next' == $_GET['action']) $next_factor = 1;
+	else if ('previous' == $_GET['action']) $next_factor = -1;
+	
+	if (0 != $next_factor)
+	{
+		$newRefs = array();
+		foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
+		$refs = $newRefs;
+		unset($newRefs);
+	}
 
 	?>
 
@@ -63,6 +75,8 @@
 		$refStr = implode('; ', $refStrs);
 		echo "<h2>$refStr</h2>";
 		echo "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
+		echo "<a href=\"admin.php?page=" . BFOX_READ_SUBPAGE . "&ref=$refStr&action=previous\">Previous</a> ";
+		echo "<a href=\"admin.php?page=" . BFOX_READ_SUBPAGE . "&ref=$refStr&action=next\">Next</a><br/>";
 		
 		// Output all the scripture references
 		foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);

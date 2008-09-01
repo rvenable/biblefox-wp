@@ -235,4 +235,27 @@
 		return $reflist;
 	}
 	
+	// Takes a reference and returns the next passage after that reference of the same size
+	function bfox_get_ref_next($ref, $factor = 1)
+	{
+		// NOTE: Currently the function only considers how many chapters are in the ref
+		// It will need to consider how many verses as well
+		// Also, it doesn't currently handle moving on to the next book of the bible
+
+		// Create the new ref from the old ref
+		$newRef = $ref;
+
+		// Calculate how much we should increment our chapter numbers
+		$chapDiff = $ref['chapter2'] - $ref['chapter1'];
+		$chapInc = 1;
+		if (0 < $chapDiff) $chapInc = $chapDiff;
+		$chapInc *= $factor;
+
+		// Increment the chapters
+		$newRef['chapter1'] += $chapInc;
+		if (0 != $newRef['chapter2']) $newRef['chapter2'] += $chapInc;
+
+		return $newRef;
+	}
+	
 ?>
