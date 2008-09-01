@@ -137,9 +137,6 @@
 	{
 		global $wpdb;
 
-		$refStr = bfox_get_refstr($ref);
-		echo "<h2>$refStr</h2>";
-		
 		$range = bfox_get_unique_id_range($ref);
 
 		$table_name = bfox_get_verses_table_name($version_id);

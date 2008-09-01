@@ -59,6 +59,10 @@
 	// If we have at least one scripture reference
 	if (0 < count($refs))
 	{
+		foreach ($refs as $ref) $refStrs[] = bfox_get_refstr($ref);
+		$refStr = implode('; ', $refStrs);
+		echo "<h2>$refStr</h2>";
+		
 		// Output all the scripture references
 		foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
 
