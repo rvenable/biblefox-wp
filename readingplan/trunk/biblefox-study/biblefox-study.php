@@ -14,6 +14,9 @@
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
 	define(BFOX_DOMAIN, 'biblefox-study');
+
+	// Uncomment for testing DB queries
+	//define('DIEONDBERROR', 'die!');
 	
 	require_once("bfox-include.php");
 
