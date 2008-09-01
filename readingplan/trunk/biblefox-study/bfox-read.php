@@ -62,6 +62,7 @@
 		foreach ($refs as $ref) $refStrs[] = bfox_get_refstr($ref);
 		$refStr = implode('; ', $refStrs);
 		echo "<h2>$refStr</h2>";
+		echo "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
 		
 		// Output all the scripture references
 		foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
