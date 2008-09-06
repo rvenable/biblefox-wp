@@ -16,7 +16,7 @@
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	// Uncomment for testing DB queries
-	//define('DIEONDBERROR', 'die!');
+	define('DIEONDBERROR', 'die!');
 	
 	require_once("bfox-include.php");
 
@@ -29,36 +29,59 @@
 		add_submenu_page(__FILE__, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 		add_submenu_page(__FILE__, 'Manage Translations', 'Translations', 0, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
 		add_submenu_page(__FILE__, 'Biblefox Setup', 'Setup', 0, BFOX_SETUP_SUBPAGE, 'bfox_setup');
+
+		add_action('edit_form_advanced', 'bfox_edit_form_advanced');
+		add_action('save_post', 'bfox_save_post');
 	}
 
+	function bfox_save_post($post_id = 0)
+	{
+		$refStr = $_POST['bible_ref'];
+				
+		$refs = array();
+		$reflist = bfox_parse_reflist($refStr);
+		foreach($reflist as $ref) $refs[] = bfox_parse_ref($ref);
+		if ((0 != $post_id) && (0 < count($refs)))
+		{
+			require_once("bfox-write.php");
+			bfox_set_post_bible_refs($post_id, $refs);
+		}
+	}
+
+	function bfox_edit_form_advanced()
+	{
+		require_once("bfox-write.php");
+		bfox_form_edit_bible_refs();
+	}
+	
 	function bfox_read()
 	{
 		require("bfox-read.php");
-	};
+	}
 	
 	function bfox_plan()
 	{
 		require("bfox-plan.php");
 		echo "<h2>Design a Reading Plan</h2>";
 		bfox_create_plan();
-	};
+	}
 	
 	function bfox_share()
 	{
 		echo "<h2>Share with Friends</h2>";
-	};
+	}
 
 	function bfox_translations()
 	{
 		require_once("bfox-translations.php");
 		bfox_translations_page();
-	};
+	}
 	
 	function bfox_setup()
 	{
 		echo "<h2>Biblefox Setup</h2>";
 		bfox_activate();
-	};
+	}
 	
 	function bfox_study_init()
 	{

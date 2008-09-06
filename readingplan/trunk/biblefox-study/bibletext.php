@@ -67,7 +67,14 @@
 
 		return $refStr;
 	}
-
+	
+	function bfox_get_reflist_str($refs)
+	{
+		$refStrs = array();
+		foreach ($refs as $ref) $refStrs[] = bfox_get_refstr($ref);
+		return implode('; ', $refStrs);
+	}
+	
 	function bfox_get_unique_id_range($ref)
 	{
 		/*
