@@ -25,10 +25,18 @@
 		$min_user_level = 8;
 		add_menu_page('Study the Bible', 'Study', 0, __FILE__, 'bfox_read');
 		add_submenu_page(__FILE__, 'Read the Bible', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
-		add_submenu_page(__FILE__, 'Design a Reading Plan', 'Plan', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
-		add_submenu_page(__FILE__, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
-		add_submenu_page(__FILE__, 'Manage Translations', 'Translations', 0, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
-		add_submenu_page(__FILE__, 'Biblefox Setup', 'Setup', 0, BFOX_SETUP_SUBPAGE, 'bfox_setup');
+
+		// Editing the Reading Plan is only for Editors (level 7)
+		add_submenu_page(__FILE__, 'Design a Reading Plan', 'Plan', 7, BFOX_PLAN_SUBPAGE, 'bfox_plan');
+
+		//add_submenu_page(__FILE__, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
+
+		// These menu pages are only for the site admin
+		if (is_site_admin())
+		{
+			add_submenu_page(__FILE__, 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
+			add_submenu_page(__FILE__, 'Biblefox Setup', 'Setup', 10, BFOX_SETUP_SUBPAGE, 'bfox_setup');
+		}
 
 		add_action('edit_form_advanced', 'bfox_edit_form_advanced');
 		add_action('save_post', 'bfox_save_post');
