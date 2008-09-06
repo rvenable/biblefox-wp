@@ -31,6 +31,9 @@
 		foreach ($reflist as $refStr) $refs[] = bfox_parse_ref($refStr);
 	}
 	
+	// If we don't have any refs, show Genesis 1
+	if (0 == count($refs)) $refs[] = bfox_parse_ref('Genesis 1');
+
 	$next_factor = 0;
 	if ('next' == $_GET['action']) $next_factor = 1;
 	else if ('previous' == $_GET['action']) $next_factor = -1;

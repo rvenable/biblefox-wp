@@ -131,11 +131,12 @@
 	
 	function bfox_get_refs_for_ranges($ranges)
 	{
+		$ranges = (array) $ranges;
+
 		$refs = array();
 		foreach ($ranges as $range)
-		{
 			$refs[] = bfox_get_ref_for_range($range);
-		}
+
 		return $refs;
 	}
 

@@ -45,6 +45,10 @@
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_READ_HISTORY;
+
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
+			return array();
+
 		$id = $wpdb->get_var("SELECT id FROM $table_name ORDER BY time DESC");
 		$ranges = $wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $table_name WHERE id = %d", $id), ARRAY_N);
 		return bfox_get_refs_for_ranges($ranges);
