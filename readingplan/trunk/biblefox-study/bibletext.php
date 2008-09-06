@@ -270,7 +270,10 @@
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
-		
+
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
+			return array();
+
 		$equation = '';
 		foreach ($refs as $ref)
 		{
