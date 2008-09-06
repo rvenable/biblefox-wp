@@ -73,6 +73,8 @@
 			else
 				$refStr = '';
 		}
+
+		// Create the form
 	?>
 <div id="biblerefdiv" class="postbox">
 <h3><?php _e('Scripture References'); ?></h3>
@@ -81,8 +83,7 @@
 </div>
 </div>
 <?php
+
 	}
-	
-	
-	
+
 ?>

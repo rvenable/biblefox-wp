@@ -77,7 +77,19 @@
 		echo "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
 		echo "<a href=\"admin.php?page=" . BFOX_READ_SUBPAGE . "&ref=$refStr&action=previous\">Previous</a> ";
 		echo "<a href=\"admin.php?page=" . BFOX_READ_SUBPAGE . "&ref=$refStr&action=next\">Next</a><br/>";
-		
+		echo "<a href=\"post-new.php?bible_ref=$refStr\">Write about this passage</a><br/>";
+
+		$post_ids = bfox_get_posts_for_refs($refs);
+		if (0 < count($post_ids))
+		{
+			echo "Posts about this scripture:<br/>";
+			foreach ($post_ids as $post_id)
+			{
+				$my_post = get_post($post_id);
+				echo "<a href=\"post.php?action=edit&post=$post_id\">$my_post->post_title</a><br/>";
+			}
+		}
+
 		// Output all the scripture references
 		foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
 

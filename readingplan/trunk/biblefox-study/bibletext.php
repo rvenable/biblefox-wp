@@ -264,5 +264,42 @@
 
 		return $newRef;
 	}
+
+	function bfox_get_posts_for_refs($refs)
+	{
+		global $wpdb;
+		$table_name = BFOX_TABLE_BIBLE_REF;
+		
+		$equation = '';
+		foreach ($refs as $ref)
+		{
+			/*
+			 Equation for determining whether one bible reference overlaps another
+			 
+			 a1 <= b1 and b1 <= a2 or
+			 a1 <= b2 and b2 <= a2
+			 or
+			 b1 <= a1 and a1 <= b2 or
+			 b1 <= a2 and a2 <= b2
+			 
+			 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
+			 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
+			 
+			 */
+			
+			$range = bfox_get_unique_id_range($ref);
+			
+			if ('' != $equation) $equation .= " OR ";
+			$equation .= $wpdb->prepare("(((verse_begin <= %d) AND ((%d <= verse_begin) OR (%d <= verse_end))) OR
+										((%d <= verse_end) AND ((verse_begin <= %d) OR (verse_end <= %d))))",
+										$range[1], $range[0], $range[1],
+										$range[0], $range[0], $range[1]);
+		}
+
+		if ('' != $equation)
+			return $wpdb->get_col("SELECT post_id FROM $table_name WHERE $equation GROUP BY post_id");
+		
+		return array();
+	}
 	
 ?>

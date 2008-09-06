@@ -37,7 +37,7 @@
 	function bfox_save_post($post_id = 0)
 	{
 		$refStr = $_POST['bible_ref'];
-				
+
 		$refs = array();
 		$reflist = bfox_parse_reflist($refStr);
 		foreach($reflist as $ref) $refs[] = bfox_parse_ref($ref);
