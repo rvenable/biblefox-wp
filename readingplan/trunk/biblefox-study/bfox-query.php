@@ -137,10 +137,29 @@
 			// If the permalink is blank, we should try to make a permalink
 			$post = &get_post($id);
 			if (isset($post->bible_ref_str))
-				$permalink = get_option('home') . '/?bible_ref=' . $post->bible_ref_str;
+				$permalink = bfox_get_bible_permalink($post->bible_ref_str);
 		}
 
 		return $permalink;
+	}
+
+	function bfox_the_content($content)
+	{
+		global $post;
+		$refs = bfox_get_post_bible_refs($post->ID);
+		if (0 < count($refs))
+		{
+			$refStrs = '';
+			foreach ($refs as $ref)
+			{
+				$refStr = bfox_get_refstr($ref);
+				$link = bfox_get_bible_permalink($refStr);
+				if ('' != $refStrs) $refStrs .= ', ';
+				$refStrs .= "<a href=\"$link\">$refStr</a>";
+			}
+			$content = '<p>Scriptures Referenced: ' . $refStrs . '</p>' . $content;
+		}
+		return $content;
 	}
 
 	function bfox_query_init()
@@ -153,6 +172,7 @@
 		add_filter('posts_groupby', 'bfox_posts_groupby');
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('the_permalink', 'bfox_the_permalink');
+		add_filter('the_content', 'bfox_the_content');
 	}
 	
 ?>
