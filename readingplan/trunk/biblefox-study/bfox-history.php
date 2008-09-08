@@ -57,4 +57,42 @@
 		return bfox_get_refs_for_ranges($ranges);
 	}
 
+	function bfox_get_viewed_history_refs($max = 0, $read = false)
+	{
+		global $wpdb;
+		$table_name = BFOX_TABLE_READ_HISTORY;
+
+		// If there is not read history, just return nothing
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
+			return array();
+
+		global $user_ID;
+		get_currentuserinfo();
+
+		// Add a where clause for is_read
+		if ($read) $read_where = 'AND is_read = TRUE';
+
+		// Get all the history ids for this user
+		$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read GROUP BY id ORDER BY time DESC", $user_ID));
+
+		// Create an array of reference strings
+		$refStrs = array();
+		if (0 < count($ids))
+		{
+			$index = 0;
+			foreach ($ids as $id)
+			{
+				if ($index < $max)
+				{
+					$ranges = $wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $table_name WHERE id = %d", $id), ARRAY_N);
+					$refs = bfox_get_refs_for_ranges($ranges);
+					$refStrs[] = bfox_get_reflist_str($refs);
+					$index++;
+				}
+			}
+		}
+
+		return $refStrs;
+	}
+
 ?>

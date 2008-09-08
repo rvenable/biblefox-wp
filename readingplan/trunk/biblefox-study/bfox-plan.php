@@ -109,4 +109,25 @@ How Fast?<br/>
 		bfox_create_plan_menu();
 	}
 
+	function bfox_get_special_page_plan()
+	{
+		require_once("bfox-history.php");
+		$content = '';
+		$refStrs = bfox_get_viewed_history_refs(10);
+		if (0 < count($refStrs))
+		{
+			$content .= '<h3>Recently Viewed Scriptures</h3>';
+			foreach ($refStrs as $refStr)
+			{
+				$content .= bfox_get_bible_link($refStr) . '<br/>';
+			}
+		}
+
+		$special_page = array();
+		$special_page['post_title'] = 'Reading Plan';
+		$special_page['post_content'] = $content;
+		$special_page['post_type'] = 'page';
+		return $special_page;
+	}
+
 ?>

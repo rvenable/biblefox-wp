@@ -17,21 +17,33 @@
 		return $wp_query->is_bfox_bible_ref;
 	}
 
+	// Returns whether the current query is a special page
+	function is_bfox_special()
+	{
+		global $wp_query;
+		return $wp_query->is_bfox_special;
+	}
+	
 	// Function for adding query variables for our plugin
 	function bfox_queryvars($qvars)
 	{
 		// Add a query variable for bible references
 		$qvars[] = 'bible_ref';
+		$qvars[] = 'bfox_special';
 		return $qvars;
 	}
-	
+
 	// Function to be run after parsing the query
 	function bfox_parse_query($wp_query)
 	{
-		// Set whether this query is a bible reference
 		$wp_query->is_bfox_bible_ref = false;
+		$wp_query->is_bfox_special = false;
+
+		// Set whether this query is a bible reference
 		if (isset($wp_query->query_vars['bible_ref']))
 			$wp_query->is_bfox_bible_ref = true;
+		else if (isset($wp_query->query_vars['bfox_special']))
+			$wp_query->is_bfox_special = true;
 	}
 
 	// Function for doing any preparation before doing the post query
@@ -102,6 +114,7 @@
 		return $groupby;
 	}
 
+	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
 		global $bfox_bible_refs;
@@ -123,6 +136,18 @@
 
 			// Append the new posts onto the beginning of the post list
 			$posts = array_merge($new_posts, $posts);
+		}
+		else if (is_bfox_special())
+		{
+			global $wp_query;
+			// If this is a special page, then we need to add the content ourselves
+			$posts = array();
+			$page = $wp_query->query_vars['bfox_special'];
+			if ('plan' == $page)
+			{
+				require_once("bfox-plan.php");
+				$posts[] = ((object) bfox_get_special_page_plan());
+			}
 		}
 
 		return $posts;
@@ -154,9 +179,8 @@
 			foreach ($refs as $ref)
 			{
 				$refStr = bfox_get_refstr($ref);
-				$link = bfox_get_bible_permalink($refStr);
 				if ('' != $refStrs) $refStrs .= ', ';
-				$refStrs .= "<a href=\"$link\">$refStr</a>";
+				$refStrs .= bfox_get_bible_link($refStr);
 			}
 			$content = '<p>Scriptures Referenced: ' . $refStrs . '</p>' . $content;
 		}

@@ -366,4 +366,10 @@
 		return get_option('home') . '/?bible_ref=' . $refStr;
 	}
 
+	function bfox_get_bible_link($refStr)
+	{
+		$permalink = bfox_get_bible_permalink($refStr);
+		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
+	}
+
 ?>
