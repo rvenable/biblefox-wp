@@ -140,8 +140,7 @@
 		return $refs;
 	}
 
-	// Function for echoing scripture
-	function bfox_echo_scripture($version_id, $ref)
+	function bfox_get_ref_content($ref, $version_id = -1)
 	{
 		global $wpdb;
 
@@ -156,15 +155,25 @@
 								$range[0],
 								$range[1]);
 		$verses = $wpdb->get_results($query);
-		
+
+		$content = '';
 		foreach ($verses as $verse)
 		{
 			if ($verse->verse_id != 0)
-				echo "<sup>$verse->verse_id</sup>";
-			echo $verse->verse;
+				$content .= "<sup>$verse->verse_id</sup>";
+			$content .= $verse->verse;
 		}
+
+		return $content;
 	}
-	
+
+	// Function for echoing scripture
+	function bfox_echo_scripture($version_id, $ref)
+	{
+		$content = bfox_get_ref_content($ref, $version_id);
+		echo $content;
+	}
+
 	function bfox_get_chapters($ref)
 	{
 		global $wpdb;
