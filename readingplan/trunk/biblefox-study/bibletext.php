@@ -345,8 +345,8 @@
 		
 		// If the table does not exist then there are obviously no bible references
 		if ((0 == $post_id) || ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name))
-			return;
-		
+			return array();
+
 		$select = $wpdb->prepare("SELECT verse_begin, verse_end FROM $table_name WHERE post_id = %d ORDER BY ref_order ASC", $post_id);
 		$ranges = $wpdb->get_results($select, ARRAY_N);
 
