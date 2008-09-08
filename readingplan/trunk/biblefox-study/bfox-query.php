@@ -117,6 +117,7 @@
 				$new_post['post_title'] = $refStr;
 				$new_post['post_content'] = bfox_get_ref_content($ref);
 				$new_post['bible_ref_str'] = $refStr;
+				$new_post['post_type'] = 'bible_ref';
 				$new_posts[] = ((object) $new_post);
 			}
 
@@ -162,6 +163,22 @@
 		return $content;
 	}
 
+	// Function for updating the edit post link
+	function bfox_get_edit_post_link($link)
+	{
+		$post = &get_post($id);
+		
+		// If this post is actually scripture then we should change the
+		// edit post link to be a link to write a new post about this scripture
+		if (isset($post->bible_ref_str))
+		{
+			// Remove anything after the last '/'
+			$link = substr($link, 0, strrpos($link, '/') + 1);
+			$link .= "post-new.php?bible_ref=$post->bible_ref_str";
+		}
+		return $link;
+	}
+
 	function bfox_query_init()
 	{
 		add_filter('query_vars', 'bfox_queryvars' );
@@ -173,6 +190,7 @@
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('the_permalink', 'bfox_the_permalink');
 		add_filter('the_content', 'bfox_the_content');
+		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 	}
 	
 ?>
