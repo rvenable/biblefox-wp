@@ -243,6 +243,18 @@
 		return $reflist;
 	}
 	
+	function bfox_parse_refs($reflistStr)
+	{
+		$reflist = bfox_parse_reflist($reflistStr);
+		$refs = array();
+		foreach ($reflist as $refStr)
+		{
+			$ref = bfox_parse_ref($refStr);
+			if (0 < $ref['book_id']) $refs[] = $ref;
+		}
+		return $refs;
+	}
+	
 	// Takes a reference and returns the next passage after that reference of the same size
 	function bfox_get_ref_next($ref, $factor = 1)
 	{
@@ -266,13 +278,10 @@
 		return $newRef;
 	}
 
-	function bfox_get_posts_for_refs($refs)
+	function bfox_get_posts_equation_for_refs($refs)
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
-
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-			return array();
 
 		$equation = '';
 		foreach ($refs as $ref)
@@ -292,14 +301,28 @@
 			 */
 			
 			$range = bfox_get_unique_id_range($ref);
+			$begin = $table_name . '.verse_begin';
+			$end = $table_name . '.verse_end';
 			
 			if ('' != $equation) $equation .= " OR ";
-			$equation .= $wpdb->prepare("(((verse_begin <= %d) AND ((%d <= verse_begin) OR (%d <= verse_end))) OR
-										((%d <= verse_end) AND ((verse_begin <= %d) OR (verse_end <= %d))))",
+			$equation .= $wpdb->prepare("((($begin <= %d) AND ((%d <= $begin) OR (%d <= $end))) OR
+										((%d <= $end) AND (($begin <= %d) OR ($end <= %d))))",
 										$range[1], $range[0], $range[1],
 										$range[0], $range[0], $range[1]);
 		}
 
+		return '(' . $equation . ')';
+	}
+
+	function bfox_get_posts_for_refs($refs)
+	{
+		global $wpdb;
+		$table_name = BFOX_TABLE_BIBLE_REF;
+
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
+			return array();
+
+		$equation = bfox_get_posts_equation_for_refs($refs);
 		if ('' != $equation)
 			return $wpdb->get_col("SELECT post_id FROM $table_name WHERE $equation GROUP BY post_id");
 		

@@ -94,6 +94,8 @@
 	function bfox_study_init()
 	{
 		add_action('admin_menu', 'bfox_study_menu');
+
+		bfox_query_init();
 	}
 	
 	function bfox_activate()
