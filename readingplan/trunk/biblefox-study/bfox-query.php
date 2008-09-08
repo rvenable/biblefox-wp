@@ -113,8 +113,10 @@
 			foreach ($bfox_bible_refs as $ref)
 			{
 				$new_post = array();
-				$new_post['post_title'] = bfox_get_refstr($ref);
+				$refStr = bfox_get_refstr($ref);
+				$new_post['post_title'] = $refStr;
 				$new_post['post_content'] = bfox_get_ref_content($ref);
+				$new_post['bible_ref_str'] = $refStr;
 				$new_posts[] = ((object) $new_post);
 			}
 
@@ -123,6 +125,22 @@
 		}
 
 		return $posts;
+	}
+
+	// Function for filtering the output of the_permalink()
+	function bfox_the_permalink($permalink)
+	{
+		// the_permalink() doesn't work for our custom made bible_ref pages,
+		// so we need to manually set up the permalink
+		if ('' == $permalink)
+		{
+			// If the permalink is blank, we should try to make a permalink
+			$post = &get_post($id);
+			if (isset($post->bible_ref_str))
+				$permalink = get_option('home') . '/?bible_ref=' . $post->bible_ref_str;
+		}
+
+		return $permalink;
 	}
 
 	function bfox_query_init()
@@ -134,6 +152,7 @@
 		add_filter('posts_where', 'bfox_posts_where');
 		add_filter('posts_groupby', 'bfox_posts_groupby');
 		add_filter('the_posts', 'bfox_the_posts');
+		add_filter('the_permalink', 'bfox_the_permalink');
 	}
 	
 ?>
