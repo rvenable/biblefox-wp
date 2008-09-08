@@ -140,7 +140,7 @@
 		return $refs;
 	}
 
-	function bfox_get_ref_content($ref, $version_id = -1)
+	function bfox_get_ref_content($ref, $version_id = -1, $id_text_begin = '', $id_text_end = ' ')
 	{
 		global $wpdb;
 
@@ -160,7 +160,7 @@
 		foreach ($verses as $verse)
 		{
 			if ($verse->verse_id != 0)
-				$content .= "<sup>$verse->verse_id</sup>";
+				$content .= "$id_text_begin$verse->verse_id$id_text_end";
 			$content .= $verse->verse;
 		}
 
