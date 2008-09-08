@@ -349,11 +349,14 @@
 		
 		$select = $wpdb->prepare("SELECT verse_begin, verse_end FROM $table_name WHERE post_id = %d ORDER BY ref_order ASC", $post_id);
 		$ranges = $wpdb->get_results($select, ARRAY_N);
-		
+
 		$refs = array();
-		foreach ($ranges as $range)
+		if (is_array($ranges))
 		{
-			$refs[] = bfox_get_ref_for_range($range);
+			foreach ($ranges as $range)
+			{
+				$refs[] = bfox_get_ref_for_range($range);
+			}
 		}
 		return $refs;
 	}
