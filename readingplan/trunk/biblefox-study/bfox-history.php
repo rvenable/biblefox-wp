@@ -18,7 +18,15 @@
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
 	}
-	
+
+	function bfox_get_refs_for_history_id($id)
+	{
+		global $wpdb;
+		$table_name = BFOX_TABLE_READ_HISTORY;
+		$ranges = $wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $table_name WHERE id = %d", $id), ARRAY_N);
+		return bfox_get_refs_for_ranges($ranges);
+	}
+
 	function bfox_update_table_read_history($refs)
 	{
 		global $wpdb;
@@ -53,8 +61,7 @@
 		get_currentuserinfo();
 
 		$id = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d ORDER BY time DESC", $user_ID));
-		$ranges = $wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $table_name WHERE id = %d", $id), ARRAY_N);
-		return bfox_get_refs_for_ranges($ranges);
+		return bfox_get_refs_for_history_id($id);
 	}
 
 	function bfox_get_viewed_history_refs($max = 0, $read = false)
@@ -70,7 +77,7 @@
 		get_currentuserinfo();
 
 		// Add a where clause for is_read
-		if ($read) $read_where = 'AND is_read = TRUE';
+		if ($read) $where_read = 'AND is_read = TRUE';
 
 		// Get all the history ids for this user
 		$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read GROUP BY id ORDER BY time DESC", $user_ID));
@@ -84,8 +91,7 @@
 			{
 				if ($index < $max)
 				{
-					$ranges = $wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $table_name WHERE id = %d", $id), ARRAY_N);
-					$refs = bfox_get_refs_for_ranges($ranges);
+					$refs = bfox_get_refs_for_history_id($id);
 					$refStrs[] = bfox_get_reflist_str($refs);
 					$index++;
 				}
@@ -93,6 +99,53 @@
 		}
 
 		return $refStrs;
+	}
+
+	function bfox_get_history_for_ref($refs, $max = 1, $read = false)
+	{
+		global $wpdb;
+		$table_name = BFOX_TABLE_READ_HISTORY;
+		
+		// If there is not read history, just return nothing
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
+			return array();
+
+		global $user_ID;
+		get_currentuserinfo();
+
+		// Add a where clause for is_read
+		if ($read) $where_read = 'AND is_read = TRUE';
+		
+		$where_ref = 'AND ' . bfox_get_posts_equation_for_refs($refs, $table_name, 'verse_start', 'verse_end');
+
+		// Get all the history ids for this user
+		$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read $where_ref GROUP BY id ORDER BY time DESC LIMIT %d", $user_ID, $max));
+
+		return $ids;
+	}
+
+	function bfox_get_date_for_history_id($id)
+	{
+		global $wpdb;
+		$table_name = BFOX_TABLE_READ_HISTORY;
+		return $wpdb->get_var($wpdb->prepare("SELECT DATE(time) FROM $table_name WHERE id = %d LIMIT 1", $id));
+	}
+
+	function bfox_get_dates_last_viewed_str($refs, $read = false)
+	{
+		list($id) = bfox_get_history_for_ref($refs, 1, $read);
+
+		if ($read) $read_str = 'read';
+		else $read_str = 'viewed';
+
+		if (isset($id))
+		{
+			$date = bfox_get_date_for_history_id($id);
+			$str = "You last $read_str this scripture on $date";
+		}
+		else $str = "You have not yet $read_str this scripture";
+		
+		return $str;
 	}
 
 ?>

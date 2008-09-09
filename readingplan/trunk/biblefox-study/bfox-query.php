@@ -150,14 +150,13 @@
 				$new_post = array();
 				$refStr = bfox_get_refstr($ref);
 				$new_post['post_title'] = $refStr;
-				$new_post['post_content'] = bfox_get_ref_menu($refStr) . bfox_get_ref_content($ref);
+				$new_post['post_content'] = bfox_get_ref_menu_header($refStr) . bfox_get_ref_content($ref) . bfox_get_ref_menu_footer($refStr);
 				$new_post['bible_ref_str'] = $refStr;
 				$new_post['post_type'] = 'bible_ref';
 				$new_posts[] = ((object) $new_post);
 			}
 
 			// Update the read history to show that we viewed these scriptures
-			require_once('bfox-history.php');
 			bfox_update_table_read_history($bfox_bible_refs);
 
 			// Append the new posts onto the beginning of the post list

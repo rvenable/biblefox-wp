@@ -287,10 +287,9 @@
 		return $newRef;
 	}
 
-	function bfox_get_posts_equation_for_refs($refs)
+	function bfox_get_posts_equation_for_refs($refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
 	{
 		global $wpdb;
-		$table_name = BFOX_TABLE_BIBLE_REF;
 
 		$equation = '';
 		foreach ($refs as $ref)
@@ -310,8 +309,8 @@
 			 */
 			
 			$range = bfox_get_unique_id_range($ref);
-			$begin = $table_name . '.verse_begin';
-			$end = $table_name . '.verse_end';
+			$begin = $table_name . '.' . $verse_begin;
+			$end = $table_name . '.' . $verse_end;
 			
 			if ('' != $equation) $equation .= " OR ";
 			$equation .= $wpdb->prepare("((($begin <= %d) AND ((%d <= $begin) OR (%d <= $end))) OR
@@ -372,7 +371,7 @@
 		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
 	}
 
-	function bfox_get_ref_menu($refStr)
+	function bfox_get_ref_menu_header($refStr)
 	{
 		$home_dir = get_option('home');
 		$admin_dir = $home_dir . '/wp-admin';
@@ -384,9 +383,28 @@
 
 		$menu = '';
 		// Add bible gateway link
+		$refs = array(bfox_parse_ref($refStr));
+		$menu .= bfox_get_dates_last_viewed_str($refs, false) . '<br/>';
+		$menu .= bfox_get_dates_last_viewed_str($refs, true) . '<br/>';
 		$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
 		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
 		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
+		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
+		return '<center>' . $menu . '</center>';
+	}
+
+	function bfox_get_ref_menu_footer($refStr)
+	{
+		$home_dir = get_option('home');
+		$admin_dir = $home_dir . '/wp-admin';
+		
+		if (defined('WP_ADMIN'))
+			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
+		else
+			$page_url = "{$home_dir}/?";
+		
+		$menu = '';
+		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Finish Reading</a><br/>";
 		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
 		return '<center>' . $menu . '</center>';
 	}
