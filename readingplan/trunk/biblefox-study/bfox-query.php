@@ -30,6 +30,7 @@
 		// Add a query variable for bible references
 		$qvars[] = 'bible_ref';
 		$qvars[] = 'bfox_special';
+		$qvars[] = 'bfox_action';
 		return $qvars;
 	}
 
@@ -49,7 +50,6 @@
 	// Function for doing any preparation before doing the post query
 	function bfox_pre_get_posts($wp_query)
 	{
-		global $bfox_bible_refs;
 		$vars = $wp_query->query_vars;
 
 		if (is_search())
@@ -57,7 +57,29 @@
 		else if (is_bfox_bible_ref())
 			$refStrs = $vars['bible_ref'];
 
-		$bfox_bible_refs = bfox_parse_refs($refStrs);
+		$refs = bfox_parse_refs($refStrs);
+		
+		// If we have refs, check for any needed ref modifications
+		if (0 < count($refs))
+		{
+			// Determine if we need to modify the refs using a next/previous action
+			$next_factor = 0;
+			if ('next' == $vars['bfox_action']) $next_factor = 1;
+			else if ('previous' == $vars['bfox_action']) $next_factor = -1;
+
+			// Modify the refs for the next factor
+			if (0 != $next_factor)
+			{
+				$newRefs = array();
+				foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
+				$refs = $newRefs;
+				unset($newRefs);
+			}
+
+			// Save the refs in a global variable
+			global $bfox_bible_refs;
+			$bfox_bible_refs = $refs;
+		}
 	}
 
 	// Function for modifying the query JOIN statement
@@ -128,7 +150,7 @@
 				$new_post = array();
 				$refStr = bfox_get_refstr($ref);
 				$new_post['post_title'] = $refStr;
-				$new_post['post_content'] = bfox_get_ref_content($ref);
+				$new_post['post_content'] = bfox_get_ref_menu($refStr) . bfox_get_ref_content($ref);
 				$new_post['bible_ref_str'] = $refStr;
 				$new_post['post_type'] = 'bible_ref';
 				$new_posts[] = ((object) $new_post);

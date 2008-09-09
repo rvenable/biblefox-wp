@@ -372,4 +372,23 @@
 		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
 	}
 
+	function bfox_get_ref_menu($refStr)
+	{
+		$home_dir = get_option('home');
+		$admin_dir = $home_dir . '/wp-admin';
+
+		if (defined('WP_ADMIN'))
+			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
+		else
+			$page_url = "{$home_dir}/?";
+
+		$menu = '';
+		// Add bible gateway link
+		$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
+		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
+		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
+		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
+		return '<center>' . $menu . '</center>';
+	}
+
 ?>

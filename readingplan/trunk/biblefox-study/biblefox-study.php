@@ -61,12 +61,13 @@
 		require_once("bfox-write.php");
 		bfox_form_edit_bible_refs();
 	}
-	
+
 	function bfox_read()
 	{
-		require("bfox-read.php");
+		require_once("bfox-read.php");
+		bfox_read_menu();
 	}
-	
+
 	function bfox_plan()
 	{
 		require("bfox-plan.php");
