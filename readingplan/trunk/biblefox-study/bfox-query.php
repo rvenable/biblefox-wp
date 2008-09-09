@@ -156,6 +156,10 @@
 				$new_posts[] = ((object) $new_post);
 			}
 
+			// Update the read history to show that we viewed these scriptures
+			require_once('bfox-history.php');
+			bfox_update_table_read_history($bfox_bible_refs);
+
 			// Append the new posts onto the beginning of the post list
 			$posts = array_merge($new_posts, $posts);
 		}
