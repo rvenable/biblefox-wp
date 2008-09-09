@@ -35,18 +35,7 @@
 		
 		// If we don't have any refs, show Genesis 1
 		if (0 == count($refs)) $refs[] = bfox_parse_ref('Genesis 1');
-		
-		$next_factor = 0;
-		if ('next' == $_GET['bfox_action']) $next_factor = 1;
-		else if ('previous' == $_GET['bfox_action']) $next_factor = -1;
-		
-		if (0 != $next_factor)
-		{
-			$newRefs = array();
-			foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
-			$refs = $newRefs;
-			unset($newRefs);
-		}
+		$refs = bfox_get_next_refs($refs, $_GET['bfox_action']);
 		
 	?>
 
@@ -77,7 +66,7 @@
 			foreach ($refs as $ref) $refStrs[] = bfox_get_refstr($ref);
 			$refStr = implode('; ', $refStrs);
 			echo "<h2>$refStr</h2>";
-			echo bfox_get_ref_menu($refStr);
+			echo bfox_get_ref_menu_header($refStr);
 			
 			$post_ids = bfox_get_posts_for_refs($refs);
 			if (0 < count($post_ids))
@@ -92,6 +81,7 @@
 			
 			// Output all the scripture references
 			foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
+			echo bfox_get_ref_menu_footer($refStr);
 			
 			// Update the read history to show that we viewed these scriptures
 			bfox_update_table_read_history($refs);

@@ -27,7 +27,7 @@
 		return bfox_get_refs_for_ranges($ranges);
 	}
 
-	function bfox_update_table_read_history($refs)
+	function bfox_update_table_read_history($refs, $is_read = false)
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_READ_HISTORY;
@@ -44,7 +44,7 @@
 		foreach ($refs as $ref)
 		{
 			$range = bfox_get_unique_id_range($ref);
-			$insert = $wpdb->prepare("INSERT INTO $table_name (id, user, verse_start, verse_end, time, is_read) VALUES (%d, %d, %d, %d, NOW(), FALSE)", $id, $user_ID, $range[0], $range[1]);
+			$insert = $wpdb->prepare("INSERT INTO $table_name (id, user, verse_start, verse_end, time, is_read) VALUES (%d, %d, %d, %d, NOW(), %d)", $id, $user_ID, $range[0], $range[1], $is_read);
 			$wpdb->query($insert);
 		}
 	}

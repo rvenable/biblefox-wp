@@ -62,23 +62,9 @@
 		// If we have refs, check for any needed ref modifications
 		if (0 < count($refs))
 		{
-			// Determine if we need to modify the refs using a next/previous action
-			$next_factor = 0;
-			if ('next' == $vars['bfox_action']) $next_factor = 1;
-			else if ('previous' == $vars['bfox_action']) $next_factor = -1;
-
-			// Modify the refs for the next factor
-			if (0 != $next_factor)
-			{
-				$newRefs = array();
-				foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
-				$refs = $newRefs;
-				unset($newRefs);
-			}
-
 			// Save the refs in a global variable
 			global $bfox_bible_refs;
-			$bfox_bible_refs = $refs;
+			$bfox_bible_refs = bfox_get_next_refs($refs, $vars['bfox_action']);
 		}
 	}
 

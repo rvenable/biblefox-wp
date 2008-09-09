@@ -382,10 +382,10 @@
 			$page_url = "{$home_dir}/?";
 
 		$menu = '';
-		// Add bible gateway link
 		$refs = array(bfox_parse_ref($refStr));
 		$menu .= bfox_get_dates_last_viewed_str($refs, false) . '<br/>';
-		$menu .= bfox_get_dates_last_viewed_str($refs, true) . '<br/>';
+		$menu .= bfox_get_dates_last_viewed_str($refs, true);
+		$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
 		$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
 		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
 		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
@@ -402,11 +402,37 @@
 			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
 		else
 			$page_url = "{$home_dir}/?";
-		
+
 		$menu = '';
-		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Finish Reading</a><br/>";
+		$refs = array(bfox_parse_ref($refStr));
+		$menu .= bfox_get_dates_last_viewed_str($refs, true);
+		$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
 		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
 		return '<center>' . $menu . '</center>';
+	}
+
+	function bfox_get_next_refs($refs, $action)
+	{
+		// Determine if we need to modify the refs using a next/previous action
+		$next_factor = 0;
+		if ('next' == $action) $next_factor = 1;
+		else if ('previous' == $action) $next_factor = -1;
+		else if ('mark_read' == $action)
+		{
+			$next_factor = 0;
+			bfox_update_table_read_history($refs, true);
+		}
+
+		// Modify the refs for the next factor
+		if (0 != $next_factor)
+		{
+			$newRefs = array();
+			foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
+			$refs = $newRefs;
+			unset($newRefs);
+		}
+
+		return $refs;
 	}
 
 ?>
