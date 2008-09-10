@@ -371,7 +371,7 @@
 		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
 	}
 
-	function bfox_get_ref_menu_header($refStr)
+	function bfox_get_ref_menu($refStr, $header = true)
 	{
 		$home_dir = get_option('home');
 		$admin_dir = $home_dir . '/wp-admin';
@@ -383,31 +383,29 @@
 
 		$menu = '';
 		$refs = array(bfox_parse_ref($refStr));
-		$menu .= bfox_get_dates_last_viewed_str($refs, false) . '<br/>';
-		$menu .= bfox_get_dates_last_viewed_str($refs, true);
-		$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
-		$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
-		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
-		$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
-		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
-		return '<center>' . $menu . '</center>';
-	}
 
-	function bfox_get_ref_menu_footer($refStr)
-	{
-		$home_dir = get_option('home');
-		$admin_dir = $home_dir . '/wp-admin';
-		
-		if (defined('WP_ADMIN'))
-			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
-		else
-			$page_url = "{$home_dir}/?";
+		// Add bible tracking data
+		global $user_ID;
+		get_currentuserinfo();
+		if (0 < $user_ID)
+		{
+			if ($header) $menu .= bfox_get_dates_last_viewed_str($refs, false) . '<br/>';
+			$menu .= bfox_get_dates_last_viewed_str($refs, true);
+			$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
+		}
+		else $menu .= "<a href=\"$home_dir/wp-login.php\">Login</a> to track your bible reading<br/>";
 
-		$menu = '';
-		$refs = array(bfox_parse_ref($refStr));
-		$menu .= bfox_get_dates_last_viewed_str($refs, true);
-		$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
+		// Scripture navigation links
+		if ($header)
+		{
+			$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
+			$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
+			$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
+		}
+
+		// Write about this passage
 		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
+
 		return '<center>' . $menu . '</center>';
 	}
 

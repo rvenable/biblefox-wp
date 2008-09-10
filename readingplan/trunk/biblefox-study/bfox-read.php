@@ -66,7 +66,7 @@
 			foreach ($refs as $ref) $refStrs[] = bfox_get_refstr($ref);
 			$refStr = implode('; ', $refStrs);
 			echo "<h2>$refStr</h2>";
-			echo bfox_get_ref_menu_header($refStr);
+			echo bfox_get_ref_menu($refStr, true);
 			
 			$post_ids = bfox_get_posts_for_refs($refs);
 			if (0 < count($post_ids))
@@ -81,7 +81,7 @@
 			
 			// Output all the scripture references
 			foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
-			echo bfox_get_ref_menu_footer($refStr);
+			echo bfox_get_ref_menu($refStr, false);
 			
 			// Update the read history to show that we viewed these scriptures
 			bfox_update_table_read_history($refs);
