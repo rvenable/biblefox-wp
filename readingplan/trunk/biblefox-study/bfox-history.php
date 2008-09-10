@@ -1,5 +1,13 @@
 <?php
-	
+
+	function bfox_get_history_user_id()
+	{
+		global $user_ID;
+		get_currentuserinfo();
+		if (0 < $user_ID)
+			return $user_ID;
+	}
+
 	function bfox_create_table_read_history()
 	{
 		echo "yo3<br/>";
@@ -37,15 +45,17 @@
 			bfox_create_table_read_history();
 		else
 			$id = 1 + $wpdb->get_var("SELECT MAX(id) FROM $table_name");
-		
-		global $user_ID;
-		get_currentuserinfo();
 
-		foreach ($refs as $ref)
+		$user_id = bfox_get_history_user_id();
+
+		if (0 < $user_id)
 		{
-			$range = bfox_get_unique_id_range($ref);
-			$insert = $wpdb->prepare("INSERT INTO $table_name (id, user, verse_start, verse_end, time, is_read) VALUES (%d, %d, %d, %d, NOW(), %d)", $id, $user_ID, $range[0], $range[1], $is_read);
-			$wpdb->query($insert);
+			foreach ($refs as $ref)
+			{
+				$range = bfox_get_unique_id_range($ref);
+				$insert = $wpdb->prepare("INSERT INTO $table_name (id, user, verse_start, verse_end, time, is_read) VALUES (%d, %d, %d, %d, NOW(), %d)", $id, $user_id, $range[0], $range[1], $is_read);
+				$wpdb->query($insert);
+			}
 		}
 	}
 
@@ -54,14 +64,18 @@
 		global $wpdb;
 		$table_name = BFOX_TABLE_READ_HISTORY;
 
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-			return array();
+		$refs = array();
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name)
+		{
+			$user_id = bfox_get_history_user_id();
+			if (0 < $user_id)
+			{
+				$id = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d ORDER BY time DESC", $user_id));
+				$refs = bfox_get_refs_for_history_id($id);
+			}
+		}
 
-		global $user_ID;
-		get_currentuserinfo();
-
-		$id = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d ORDER BY time DESC", $user_ID));
-		return bfox_get_refs_for_history_id($id);
+		return $refs;
 	}
 
 	function bfox_get_viewed_history_refs($max = 0, $read = false)
@@ -69,31 +83,31 @@
 		global $wpdb;
 		$table_name = BFOX_TABLE_READ_HISTORY;
 
-		// If there is not read history, just return nothing
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-			return array();
-
-		global $user_ID;
-		get_currentuserinfo();
-
-		// Add a where clause for is_read
-		if ($read) $where_read = 'AND is_read = TRUE';
-
-		// Get all the history ids for this user
-		$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read GROUP BY id ORDER BY time DESC", $user_ID));
-
-		// Create an array of reference strings
 		$refStrs = array();
-		if (0 < count($ids))
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name)
 		{
-			$index = 0;
-			foreach ($ids as $id)
+			$user_id = bfox_get_history_user_id();
+			if (0 < $user_id)
 			{
-				if ($index < $max)
+				// Add a where clause for is_read
+				if ($read) $where_read = 'AND is_read = TRUE';
+				
+				// Get all the history ids for this user
+				$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read GROUP BY id ORDER BY time DESC", $user_id));
+				
+				// Create an array of reference strings
+				if (0 < count($ids))
 				{
-					$refs = bfox_get_refs_for_history_id($id);
-					$refStrs[] = bfox_get_reflist_str($refs);
-					$index++;
+					$index = 0;
+					foreach ($ids as $id)
+					{
+						if ($index < $max)
+						{
+							$refs = bfox_get_refs_for_history_id($id);
+							$refStrs[] = bfox_get_reflist_str($refs);
+							$index++;
+						}
+					}
 				}
 			}
 		}
@@ -105,21 +119,22 @@
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_READ_HISTORY;
-		
-		// If there is not read history, just return nothing
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-			return array();
 
-		global $user_ID;
-		get_currentuserinfo();
-
-		// Add a where clause for is_read
-		if ($read) $where_read = 'AND is_read = TRUE';
-		
-		$where_ref = 'AND ' . bfox_get_posts_equation_for_refs($refs, $table_name, 'verse_start', 'verse_end');
-
-		// Get all the history ids for this user
-		$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read $where_ref GROUP BY id ORDER BY time DESC LIMIT %d", $user_ID, $max));
+		$ids = array();
+		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name)
+		{
+			$user_id = bfox_get_history_user_id();
+			if (0 < $user_id)
+			{
+				// Add a where clause for is_read
+				if ($read) $where_read = 'AND is_read = TRUE';
+				
+				$where_ref = 'AND ' . bfox_get_posts_equation_for_refs($refs, $table_name, 'verse_start', 'verse_end');
+				
+				// Get all the history ids for this user
+				$ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM $table_name WHERE user = %d $where_read $where_ref GROUP BY id ORDER BY time DESC LIMIT %d", $user_id, $max));
+			}
+		}
 
 		return $ids;
 	}
