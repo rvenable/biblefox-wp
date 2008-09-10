@@ -198,6 +198,13 @@
 		return $content;
 	}
 
+	function bfox_the_author($author)
+	{
+		global $post;
+		if ('bible_ref' == $post->post_type) $author = 'Biblefox.com';
+		return $author;
+	}
+
 	// Function for updating the edit post link
 	function bfox_get_edit_post_link($link)
 	{
@@ -225,6 +232,7 @@
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('the_permalink', 'bfox_the_permalink');
 		add_filter('the_content', 'bfox_the_content');
+		add_filter('the_author', 'bfox_the_author');
 		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 	}
 	
