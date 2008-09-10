@@ -164,8 +164,8 @@
 			$date = bfox_get_date_for_history_id($id);
 			$str = "You last $read_link this scripture on $date";
 		}
-		else $str = "You have not yet $read_link this scripture";
-		
+		else $str = "You have not previously $read_link this scripture";
+
 		return $str;
 	}
 
