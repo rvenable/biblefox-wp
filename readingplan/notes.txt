@@ -1,0 +1,24 @@
+The biblefox-study plugin was originally stored under the overarching biblefox repository before it was broken up.
+
+A dump file was made of the original repos at revision 166.
+
+From the dump file an intermediary dump file was made which excluded the setup and translation files (because they are data and should not be stored in the plugin)
+
+svndumpfilter \
+exclude \
+/readingplan/trunk/biblefox-study/setup \
+/readingplan/trunk/biblefox-study/translations \
+/readingplan/tags/0.1/biblefox-study/setup \
+/readingplan/tags/0.1/biblefox-study/translations \
+< bf.dump \
+> bf-no-rp-setup-trans.dump
+
+The the dumpfile was set to only include the plugin
+
+svndumpfilter \
+include \
+readingplan \
+< bf-no-rp-setup-trans.dump \
+> rp.dump
+
+This dumpfile was loaded into the new plugin repos
