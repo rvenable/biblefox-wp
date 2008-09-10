@@ -23,7 +23,18 @@
 		global $wp_query;
 		return $wp_query->is_bfox_special;
 	}
-	
+
+	// Function for redirecting templates
+	function bfox_template_redirect()
+	{
+		if (is_bfox_special() && $template = get_page_template())
+		{
+			// Use the page template for bfox special pages
+			include($template);
+			exit;
+		}
+	}
+
 	// Function for adding query variables for our plugin
 	function bfox_queryvars($qvars)
 	{
@@ -234,6 +245,7 @@
 		add_filter('the_content', 'bfox_the_content');
 		add_filter('the_author', 'bfox_the_author');
 		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
+		add_action('template_redirect', 'bfox_template_redirect');
 	}
 	
 ?>
