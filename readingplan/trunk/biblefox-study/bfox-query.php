@@ -150,6 +150,8 @@
 				$new_post['post_content'] = bfox_get_ref_menu_header($refStr) . bfox_get_ref_content($ref) . bfox_get_ref_menu_footer($refStr);
 				$new_post['bible_ref_str'] = $refStr;
 				$new_post['post_type'] = 'bible_ref';
+				$new_post['post_date'] = current_time('mysql', false);
+				$new_post['post_date_gmt'] = current_time('mysql', true);
 				$new_posts[] = ((object) $new_post);
 			}
 
