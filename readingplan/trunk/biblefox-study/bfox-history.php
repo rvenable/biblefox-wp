@@ -131,19 +131,25 @@
 		return $wpdb->get_var($wpdb->prepare("SELECT DATE(time) FROM $table_name WHERE id = %d LIMIT 1", $id));
 	}
 
+	function bfox_get_special_history_url($read)
+	{
+		return get_option('home') . '/?bfox_special=plan';
+	}
+
 	function bfox_get_dates_last_viewed_str($refs, $read = false)
 	{
 		list($id) = bfox_get_history_for_ref($refs, 1, $read);
 
 		if ($read) $read_str = 'read';
 		else $read_str = 'viewed';
+		$read_link = "<a href=\"" . bfox_get_special_history_url($read) . "\">$read_str</a>";
 
 		if (isset($id))
 		{
 			$date = bfox_get_date_for_history_id($id);
-			$str = "You last $read_str this scripture on $date";
+			$str = "You last $read_link this scripture on $date";
 		}
-		else $str = "You have not yet $read_str this scripture";
+		else $str = "You have not yet $read_link this scripture";
 		
 		return $str;
 	}
