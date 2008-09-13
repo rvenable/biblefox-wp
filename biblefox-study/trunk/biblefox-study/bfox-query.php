@@ -211,6 +211,42 @@
 		return $content;
 	}
 
+	// Function for adding footnotes
+	function bfox_footnotes($data)
+	{
+		$footnotes = "";
+		$offset = 0;
+		$index = 0;
+
+		$open = '((';
+		$close = '))';
+
+		// Loop through each footnote
+		while (1 == preg_match("/" . preg_quote($open) . "(.*?)" . preg_quote($close) . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
+		{
+			// Store the match data in more readable variables
+			$offset = (int) $matches[0][1];
+			$pattern = (string) $matches[0][0];
+			$note_text = (string) $matches[1][0];
+			$index++;
+			
+			// Update the footnotes section string
+			$footnotes .= "<li>[<a name=\"footnote_$index\" href=\"#footnote_ref_$index\">$index</a>] $note_text</li>";
+			
+			// Replace the footnote with a link
+			$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\"><sup>$index</sup></a>";
+			$data = substr_replace($data, $replacement, $offset, strlen($pattern));
+			
+			// Skip the rest of the replacement string
+			$offset += strlen($replacement);
+		}
+		
+		// Add the footnotes section to the end of the data
+		if (0 < $index) $data .= "<h3>Footnotes</h3><ul>" . $footnotes . "</ul>";
+		
+		return $data;
+	}
+
 	function bfox_the_author($author)
 	{
 		global $post;
@@ -245,6 +281,7 @@
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('the_permalink', 'bfox_the_permalink');
 		add_filter('the_content', 'bfox_the_content');
+		add_filter('the_content', 'bfox_footnotes');
 		add_filter('the_author', 'bfox_the_author');
 		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 		add_action('template_redirect', 'bfox_template_redirect');
