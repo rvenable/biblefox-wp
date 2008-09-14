@@ -56,6 +56,10 @@
 			$wp_query->is_bfox_bible_ref = true;
 		else if (isset($wp_query->query_vars['bfox_special']))
 			$wp_query->is_bfox_special = true;
+
+		// Don't use the home page for certain queries
+		if ($wp_query->is_bfox_bible_ref || $wp_query->is_bfox_special)
+			$wp_query->is_home = false;
 	}
 
 	// Function for doing any preparation before doing the post query
