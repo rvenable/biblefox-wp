@@ -9,6 +9,7 @@
 
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");
+	require_once("ref.php");
 	require_once("bibletext.php");
 	require_once("bfox-history.php");
 	require_once("bfox-query.php");

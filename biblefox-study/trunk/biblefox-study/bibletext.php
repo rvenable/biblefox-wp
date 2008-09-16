@@ -20,13 +20,6 @@
 		return $wpdb->get_var($query);
 	}
 	
-	function bfox_get_book_name($book_id)
-	{
-		global $wpdb;
-		$query = $wpdb->prepare("SELECT name FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
-		return $wpdb->get_var($query);
-	}
-
 	function bfox_normalize_ref($ref)
 	{
 		$normal_keys = array('chapter1', 'verse1', 'chapter2', 'verse2');

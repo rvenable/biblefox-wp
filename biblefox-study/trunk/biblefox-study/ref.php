@@ -1,8 +1,6 @@
 <?php
 	define('BFOX_UNIQUE_ID_PART_SIZE', 8);
 	define('BFOX_UNIQUE_ID_MASK', 0xFF);
-	define('BFOX_MAX_CHAPTER', BFOX_UNIQUE_ID_MASK);
-	define('BFOX_MAX_VERSE', BFOX_UNIQUE_ID_MASK);
 
 	function bfox_get_book_name($book_id)
 	{
@@ -327,7 +325,7 @@
 			$parsed = get_parsed();
 			
 			// Calculate how much we should increment our chapter numbers
-			$chapDiff = $parsed->chapter2 - get_parsed->chapter1;
+			$chapDiff = $parsed->chapter2 - $parsed->chapter1;
 			$chapInc = 1;
 			if (0 < $chapDiff) $chapInc = $chapDiff;
 			$chapInc *= $factor;
@@ -344,7 +342,6 @@
 			// If we couldn't create a new ref, return the old one
 			return $this;
 		}
-		
 	}
 
 	class BibleRefs
@@ -373,7 +370,7 @@
 				$ref = new BibleRefSingle;
 				if ($ref->set_by_unique_ids($unique_ids))
 				{
-					$this->$refs[] = $ref;
+					$this->refs[] = $ref;
 					$count++;
 				}
 			}
@@ -389,7 +386,7 @@
 				$ref = new BibleRefSingle;
 				if ($ref->set_by_string($refstr))
 				{
-					$this->$refs[] = $ref;
+					$this->refs[] = $ref;
 					$count++;
 				}
 			}
@@ -409,13 +406,14 @@
 			foreach ($this->refs as $ref) $strs[] = $ref->sql_where2($col1, $col2);
 			return '(' . implode(' OR ', $strs) . ')';
 		}
-		
+
 		function increment($factor = 1)
 		{
 			foreach ($this->refs as &$ref) $ref = $ref->get_next($factor);
 		}
 	}
 
+	/*
 	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '', $id_text_end = ' ')
 	{
 		global $wpdb;
@@ -552,5 +550,5 @@
 
 		return $refs;
 	}
-
+*/
 ?>
