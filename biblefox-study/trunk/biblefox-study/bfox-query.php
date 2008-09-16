@@ -8,7 +8,7 @@
 	 */
 
 	// Global array for storing bible references used in a search
-	$bfox_bible_refs = array();
+	$bfox_bible_refs = new BibleRefs;
 
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
@@ -72,10 +72,11 @@
 		else if (is_bfox_bible_ref())
 			$refStrs = $vars['bible_ref'];
 
-		$refs = bfox_parse_refs($refStrs);
+		$refs = new BibleRefs;
+		$refs->push_string($refStrs);
 		
 		// If we have refs, check for any needed ref modifications
-		if (0 < count($refs))
+		if (0 < $refs->get_count())
 		{
 			// Save the refs in a global variable
 			global $bfox_bible_refs;
@@ -89,7 +90,7 @@
 		global $bfox_bible_refs, $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
 
-		if (0 < count($bfox_bible_refs))
+		if (0 < $bfox_bible_refs->get_count())
 			$join .= " LEFT JOIN $table_name ON " . $wpdb->posts . ".ID = {$table_name}.post_id ";
 
 		return $join;
@@ -100,7 +101,7 @@
 	{
 		global $bfox_bible_refs;
 		
-		if (0 < count($bfox_bible_refs))
+		if (0 < $bfox_bible_refs->get_count())
 		{
 			// NOTE: Searches can currently return unpublished results too!!! (because of this OR)
 			if (is_search())
@@ -119,7 +120,7 @@
 	{
 		global $bfox_bible_refs, $wpdb;
 		
-		if (0 < count($bfox_bible_refs))
+		if (0 < $bfox_bible_refs->get_count())
 		{
 			// Group on post ID
 			$mygroupby = "{$wpdb->posts}.ID";
@@ -141,17 +142,17 @@
 	function bfox_the_posts($posts)
 	{
 		global $bfox_bible_refs;
-		if (0 < count($bfox_bible_refs))
+		if (0 < $bfox_bible_refs->get_count())
 		{
 			// If there are bible references, then we should display them as posts
 			// So we create an array of posts with scripture and add that to the current array of posts
 			$new_posts = array();
-			foreach ($bfox_bible_refs as $ref)
+			foreach ($bfox_bible_refs->get_refs_array() as $ref)
 			{
 				$new_post = array();
-				$refStr = bfox_get_refstr($ref);
+				$refStr = $ref->get_string();
 				$new_post['post_title'] = $refStr;
-				$new_post['post_content'] = bfox_get_ref_menu($refStr, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($refStr, false);
+				$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
 				$new_post['bible_ref_str'] = $refStr;
 				$new_post['post_type'] = 'bible_ref';
 				$new_post['post_date'] = current_time('mysql', false);
@@ -160,7 +161,8 @@
 			}
 
 			// Update the read history to show that we viewed these scriptures
-			bfox_update_table_read_history($bfox_bible_refs);
+			global $bfox_history;
+			$bfox_history->update($bfox_bible_refs);
 
 			// Append the new posts onto the beginning of the post list
 			$posts = array_merge($new_posts, $posts);

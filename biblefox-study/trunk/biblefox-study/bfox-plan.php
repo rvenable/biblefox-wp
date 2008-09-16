@@ -111,15 +111,17 @@ How Fast?<br/>
 
 	function bfox_get_recent_scriptures_output($max = 1, $read = false)
 	{
+		global $bfox_history;
+
 		$output = '';
-		$refStrs = bfox_get_viewed_history_refs($max, $read);
-		if (0 < count($refStrs))
+		$refs_array = $bfox_history->get_refs_array($max, $read);
+		if (0 < count($refs_array))
 		{
 			$read_str = $read? 'Read' : 'Viewed';
 			$output .= "<h3>Recently $read_str Scriptures</h3>";
-			foreach ($refStrs as $refStr)
+			foreach ($refs_array as $refs)
 			{
-				$output .= bfox_get_bible_link($refStr) . '<br/>';
+				$output .= bfox_get_bible_link($refs->get_string()) . '<br/>';
 			}
 		}
 		return $output;

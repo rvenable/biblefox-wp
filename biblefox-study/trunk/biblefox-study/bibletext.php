@@ -133,22 +133,14 @@
 		return $refs;
 	}
 
-	function bfox_get_ref_content($ref, $version_id = -1, $id_text_begin = '', $id_text_end = ' ')
+	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '', $id_text_end = ' ')
 	{
 		global $wpdb;
-
-		$range = bfox_get_unique_id_range($ref);
-
+		
+		$ref_where = $refs->sql_where();
 		$table_name = bfox_get_verses_table_name($version_id);
-
-		$query = $wpdb->prepare("SELECT verse_id, verse
-								FROM " . $table_name . "
-								WHERE unique_id >= %d
-								AND unique_id <= %d",
-								$range[0],
-								$range[1]);
-		$verses = $wpdb->get_results($query);
-
+		$verses = $wpdb->get_results("SELECT verse_id, verse FROM " . $table_name . " WHERE $ref_where");
+		
 		$content = '';
 		foreach ($verses as $verse)
 		{
@@ -156,17 +148,17 @@
 				$content .= "$id_text_begin$verse->verse_id$id_text_end";
 			$content .= $verse->verse;
 		}
-
+		
 		return $content;
 	}
-
+	
 	// Function for echoing scripture
-	function bfox_echo_scripture($version_id, $ref)
+	function bfox_echo_scripture($version_id, BibleRefs $ref)
 	{
 		$content = bfox_get_ref_content($ref, $version_id);
 		echo $content;
 	}
-
+	
 	function bfox_get_chapters($ref)
 	{
 		global $wpdb;
@@ -280,49 +272,21 @@
 		return $newRef;
 	}
 
-	function bfox_get_posts_equation_for_refs($refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
+	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
 	{
-		global $wpdb;
-
-		$equation = '';
-		foreach ($refs as $ref)
-		{
-			/*
-			 Equation for determining whether one bible reference overlaps another
-			 
-			 a1 <= b1 and b1 <= a2 or
-			 a1 <= b2 and b2 <= a2
-			 or
-			 b1 <= a1 and a1 <= b2 or
-			 b1 <= a2 and a2 <= b2
-			 
-			 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
-			 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
-			 
-			 */
-			
-			$range = bfox_get_unique_id_range($ref);
-			$begin = $table_name . '.' . $verse_begin;
-			$end = $table_name . '.' . $verse_end;
-			
-			if ('' != $equation) $equation .= " OR ";
-			$equation .= $wpdb->prepare("((($begin <= %d) AND ((%d <= $begin) OR (%d <= $end))) OR
-										((%d <= $end) AND (($begin <= %d) OR ($end <= %d))))",
-										$range[1], $range[0], $range[1],
-										$range[0], $range[0], $range[1]);
-		}
-
-		return '(' . $equation . ')';
+		$begin = $table_name . '.' . $verse_begin;
+		$end = $table_name . '.' . $verse_end;
+		return $refs->sql_where2($begin, $end);
 	}
-
-	function bfox_get_posts_for_refs($refs)
+	
+	function bfox_get_posts_for_refs(BibleRefs $refs)
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
-
+		
 		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
 			return array();
-
+		
 		$equation = bfox_get_posts_equation_for_refs($refs);
 		if ('' != $equation)
 			return $wpdb->get_col("SELECT post_id FROM $table_name WHERE $equation GROUP BY post_id");
@@ -338,18 +302,11 @@
 		// If the table does not exist then there are obviously no bible references
 		if ((0 == $post_id) || ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name))
 			return array();
-
+		
 		$select = $wpdb->prepare("SELECT verse_begin, verse_end FROM $table_name WHERE post_id = %d ORDER BY ref_order ASC", $post_id);
-		$ranges = $wpdb->get_results($select, ARRAY_N);
-
-		$refs = array();
-		if (is_array($ranges))
-		{
-			foreach ($ranges as $range)
-			{
-				$refs[] = bfox_get_ref_for_range($range);
-			}
-		}
+		$sets = $wpdb->get_results($select, ARRAY_N);
+		$refs = new BibleRefs;
+		$refs->push_sets($sets);
 		return $refs;
 	}
 	
@@ -364,10 +321,11 @@
 		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
 	}
 
-	function bfox_get_ref_menu($refStr, $header = true)
+	function bfox_get_ref_menu(BibleRefs $refs, $header = true)
 	{
 		$home_dir = get_option('home');
 		$admin_dir = $home_dir . '/wp-admin';
+		$refStr = $refs->get_string();
 
 		if (defined('WP_ADMIN'))
 			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
@@ -375,15 +333,15 @@
 			$page_url = "{$home_dir}/?";
 
 		$menu = '';
-		$refs = array(bfox_parse_ref($refStr));
 
 		// Add bible tracking data
 		global $user_ID;
 		get_currentuserinfo();
 		if (0 < $user_ID)
 		{
-			if ($header) $menu .= bfox_get_dates_last_viewed_str($refs, false) . '<br/>';
-			$menu .= bfox_get_dates_last_viewed_str($refs, true);
+			global $bfox_history;
+			if ($header) $menu .= $bfox_history->get_dates_str($refs, false) . '<br/>';
+			$menu .= $bfox_history->get_dates_str($refs, true);
 			$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
 		}
 		else $menu .= "<a href=\"$home_dir/wp-login.php\">Login</a> to track your bible reading<br/>";
@@ -402,7 +360,7 @@
 		return '<center>' . $menu . '</center>';
 	}
 
-	function bfox_get_next_refs($refs, $action)
+	function bfox_get_next_refs(BibleRefs $refs, $action)
 	{
 		// Determine if we need to modify the refs using a next/previous action
 		$next_factor = 0;
@@ -411,17 +369,12 @@
 		else if ('mark_read' == $action)
 		{
 			$next_factor = 0;
-			bfox_update_table_read_history($refs, true);
+			global $bfox_history;
+			$bfox_history->update($refs, true);
 		}
 
 		// Modify the refs for the next factor
-		if (0 != $next_factor)
-		{
-			$newRefs = array();
-			foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
-			$refs = $newRefs;
-			unset($newRefs);
-		}
+		if (0 != $next_factor) $refs->increment($next_factor);
 
 		return $refs;
 	}

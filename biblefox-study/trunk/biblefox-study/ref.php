@@ -51,9 +51,9 @@
 
 			// If chapter two is set to max, we should not use it
 			if ((BFOX_UNIQUE_ID_MASK == $chapter2) || ($chapter1 == $chapter2))
-				unset($chapter2);
+				$chapter2 = 0;
 			if ((BFOX_UNIQUE_ID_MASK == $verse2) || ($verse1 == $verse2))
-				unset($verse2);
+				$verse2 = 0;
 
 			$this->set($book_id, $chapter1, $verse1, $chapter2, $verse1);
 		}
@@ -214,7 +214,7 @@
 				return $this->str;
 			
 			if (!isset($this->book_name))
-				$this->book_name = bfox_get_book_name($parsed->book_id);
+				$this->book_name = bfox_get_book_name($this->book_id);
 			
 			// Create the reference string
 			$str = "$this->book_name";
@@ -251,7 +251,7 @@
 			$chapInc *= $factor;
 
 			// Increment the chapters
-			$this->chapter1 += $chapInc;
+			if (isset($this->chapter1)) $this->chapter1 += $chapInc;
 			if (isset($this->chapter2)) $this->chapter2 += $chapInc;
 		}
 	}
@@ -280,7 +280,7 @@
 				return $this->parsed;
 
 			$this->parsed = new BibleRefParsed;
-			$this->parsed->set_by_unique_ids($unique_ids);
+			$this->parsed->set_by_unique_ids($this->unique_ids);
 			return $this->parsed;
 		}
 
@@ -342,7 +342,7 @@
 		function increment($factor = 1)
 		{
 			$parsed = $this->get_parsed();
-			$parsed->increment();
+			$parsed->increment($factor);
 			return $this->set_by_parsed($parsed);
 		}
 	}
@@ -354,6 +354,20 @@
 	{
 		private $refs = array();
 
+		// Returns the internal array of BibleRefSingles converted to an
+		// array of BibleRefs where each element has just one BibleRefSingle
+		function get_refs_array()
+		{
+			$refs_array = array();
+			foreach ($this->refs as $ref)
+			{
+				$new_ref = new BibleRefs;
+				$new_ref->push_ref_single($ref);
+				$refs_array[] = $new_ref;
+			}
+			return $refs_array;
+		}
+		
 		function get_sets()
 		{
 			$unique_id_sets = array();
@@ -370,7 +384,12 @@
 
 		function get_count()
 		{
-			return count($refs);
+			return count($this->refs);
+		}
+
+		function push_ref_single(BibleRefSingle $ref)
+		{
+			$this->refs[] = $ref;
 		}
 
 		function push_sets($unique_id_sets)
@@ -424,142 +443,4 @@
 		}
 	}
 
-	/*
-	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '', $id_text_end = ' ')
-	{
-		global $wpdb;
-
-		$ref_where = $refs->sql_where();
-		$table_name = bfox_get_verses_table_name($version_id);
-		$verses = $wpdb->get_results("SELECT verse_id, verse FROM " . $table_name . " WHERE $ref_where");
-
-		$content = '';
-		foreach ($verses as $verse)
-		{
-			if ($verse->verse_id != 0)
-				$content .= "$id_text_begin$verse->verse_id$id_text_end";
-			$content .= $verse->verse;
-		}
-
-		return $content;
-	}
-
-	// Function for echoing scripture
-	function bfox_echo_scripture($version_id, BibleRefs $ref)
-	{
-		$content = bfox_get_ref_content($ref, $version_id);
-		echo $content;
-	}
-
-	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
-	{
-		$begin = $table_name . '.' . $verse_begin;
-		$end = $table_name . '.' . $verse_end;
-		return refs->sql_where2($begin, $end);
-	}
-
-	function bfox_get_posts_for_refs(BibleRefs $refs)
-	{
-		global $wpdb;
-		$table_name = BFOX_TABLE_BIBLE_REF;
-
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-			return array();
-
-		$equation = bfox_get_posts_equation_for_refs(BibleRefs $refs);
-		if ('' != $equation)
-			return $wpdb->get_col("SELECT post_id FROM $table_name WHERE $equation GROUP BY post_id");
-		
-		return array();
-	}
-	
-	function bfox_get_post_bible_refs($post_id = 0)
-	{
-		global $wpdb;
-		$table_name = BFOX_TABLE_BIBLE_REF;
-		
-		// If the table does not exist then there are obviously no bible references
-		if ((0 == $post_id) || ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name))
-			return array();
-
-		$select = $wpdb->prepare("SELECT verse_begin, verse_end FROM $table_name WHERE post_id = %d ORDER BY ref_order ASC", $post_id);
-		$sets = $wpdb->get_results($select, ARRAY_N);
-		$refs = new BibleRefs;
-		$refs->push_sets($sets);
-		return $refs;
-	}
-	
-	function bfox_get_bible_permalink($refStr)
-	{
-		return get_option('home') . '/?bible_ref=' . $refStr;
-	}
-
-	function bfox_get_bible_link($refStr)
-	{
-		$permalink = bfox_get_bible_permalink($refStr);
-		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
-	}
-
-	function bfox_get_ref_menu($refStr, $header = true)
-	{
-		$home_dir = get_option('home');
-		$admin_dir = $home_dir . '/wp-admin';
-
-		if (defined('WP_ADMIN'))
-			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
-		else
-			$page_url = "{$home_dir}/?";
-
-		$menu = '';
-		$refs = array(bfox_parse_ref($refStr));
-
-		// Add bible tracking data
-		global $user_ID;
-		get_currentuserinfo();
-		if (0 < $user_ID)
-		{
-			if ($header) $menu .= bfox_get_dates_last_viewed_str($refs, false) . '<br/>';
-			$menu .= bfox_get_dates_last_viewed_str($refs, true);
-			$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
-		}
-		else $menu .= "<a href=\"$home_dir/wp-login.php\">Login</a> to track your bible reading<br/>";
-
-		// Scripture navigation links
-		if ($header)
-		{
-			$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
-			$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
-			$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
-		}
-
-		// Write about this passage
-		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
-
-		return '<center>' . $menu . '</center>';
-	}
-
-	function bfox_get_next_refs($refs, $action)
-	{
-		// Determine if we need to modify the refs using a next/previous action
-		$next_factor = 0;
-		if ('next' == $action) $next_factor = 1;
-		else if ('previous' == $action) $next_factor = -1;
-		else if ('mark_read' == $action)
-		{
-			$next_factor = 0;
-			bfox_update_table_read_history($refs, true);
-		}
-
-		// Modify the refs for the next factor
-		if (0 != $next_factor)
-		{
-			$newRefs = array();
-			foreach ($refs as $ref) $newRefs[] = bfox_get_ref_next($ref, $next_factor);
-			$refs = $newRefs;
-			unset($newRefs);
-		}
-
-		return $refs;
-	}
-*/
 ?>

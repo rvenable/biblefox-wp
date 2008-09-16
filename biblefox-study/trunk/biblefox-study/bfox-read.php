@@ -5,6 +5,7 @@
 		require_once('bfox-history.php');
 		
 		global $wpdb;
+		global $bfox_history;
 		
 		// Get all enabled translations
 		$translations = $wpdb->get_results("SELECT id, short_name FROM " . BFOX_TRANSLATIONS_TABLE . " WHERE is_enabled = TRUE ORDER BY is_default DESC");
@@ -19,22 +20,21 @@
 		
 		// Create a list of bible references to show
 		// If the user passed a list through the GET parameter use that
-		$reflistStr = trim($_GET['ref']);
-		if ($reflistStr == '')
+		$refStr = trim($_GET['ref']);
+		if ($refStr == '')
 		{
 			// If there are no GET references then get the last viewed references
-			$refs = bfox_get_last_viewed_refs();
+			list($refs) = $bfox_history->get_refs_array();
 		}
 		else
 		{
 			// Create a list of references from the passed in GET param
-			$reflist = bfox_parse_reflist($reflistStr);
-			$refs = array();
-			foreach ($reflist as $refStr) $refs[] = bfox_parse_ref($refStr);
+			$refs = new BibleRefs;
+			$refs->push_string($refStr);
 		}
 		
 		// If we don't have any refs, show Genesis 1
-		if (0 == count($refs)) $refs[] = bfox_parse_ref('Genesis 1');
+		if (0 == $refs->get_count()) $refs->push_string('Genesis 1');
 		$refs = bfox_get_next_refs($refs, $_GET['bfox_action']);
 		
 	?>
@@ -61,12 +61,11 @@
 
 <?php
 		// If we have at least one scripture reference
-		if (0 < count($refs))
+		if (0 < $refs->get_count())
 		{
-			foreach ($refs as $ref) $refStrs[] = bfox_get_refstr($ref);
-			$refStr = implode('; ', $refStrs);
+			$refStr = $refs->get_string();
 			echo "<h2>$refStr</h2>";
-			echo bfox_get_ref_menu($refStr, true);
+			echo bfox_get_ref_menu($refs, true);
 			
 			$post_ids = bfox_get_posts_for_refs($refs);
 			if (0 < count($post_ids))
@@ -80,11 +79,11 @@
 			}
 			
 			// Output all the scripture references
-			foreach ($refs as $ref) bfox_echo_scripture($trans_id, $ref);
-			echo bfox_get_ref_menu($refStr, false);
+			bfox_echo_scripture($trans_id, $refs);
+			echo bfox_get_ref_menu($refs, false);
 			
 			// Update the read history to show that we viewed these scriptures
-			bfox_update_table_read_history($refs);
+			$bfox_history->update($refs);
 		}
 		echo "</div>";
 	}
