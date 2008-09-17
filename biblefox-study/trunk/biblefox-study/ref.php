@@ -1,6 +1,7 @@
 <?php
 	define('BFOX_UNIQUE_ID_PART_SIZE', 8);
 	define('BFOX_UNIQUE_ID_MASK', 0xFF);
+	define('BFOX_UNIQUE_ID_MAX', 256);
 
 	function bfox_get_book_name($book_id)
 	{
@@ -16,6 +17,44 @@
 		if (isset($query))
 			return $wpdb->get_var($query);
 		return false;
+	}
+
+	/*
+	 This class is used to represent a bible reference as a 3 integer vector: book, chapter, verse
+	 */
+	class BibleRefVector
+	{
+		function BibleRefVector($vector)
+		{
+			$this->update($vector);
+		}
+
+		function update($vector)
+		{
+			if (is_array($vector))
+			{
+				$this->values = $vector;
+				$this->value = 0;
+				$count = count($vector);
+				for ($index = 0; $index < $count; $index++)
+					$this->value = ($this->value << BFOX_UNIQUE_ID_PART_SIZE) + ($vector[$index] % BFOX_UNIQUE_ID_MAX);
+			}
+			else
+			{
+				$this->value = $vector;
+				$this->values = array(0, 0, 0);
+				for ($index = count($this->values) - 1; 0 <= $index; $index--)
+				{
+					$this->values[$index] = $vector % BFOX_UNIQUE_ID_MAX;
+					$vector = $vector >> BFOX_UNIQUE_ID_PART_SIZE;
+				}
+			}
+
+			// Set easy to use keys for the book, chapter and verse
+			$this->values['book'] = $this->values[0];
+			$this->values['chapter'] = $this->values[1];
+			$this->values['verse'] = $this->values[2];
+		}
 	}
 
 	/*
@@ -55,7 +94,7 @@
 			if ((BFOX_UNIQUE_ID_MASK == $verse2) || ($verse1 == $verse2))
 				$verse2 = 0;
 
-			$this->set($book_id, $chapter1, $verse1, $chapter2, $verse1);
+			$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
 		}
 		
 		function set_by_string($str)
@@ -236,24 +275,6 @@
 			$this->str = $str;
 			return $this->str;
 		}
-
-		// Increments the parsed bible reference
-		function increment($factor = 1)
-		{
-			// NOTE: Currently the function only considers how many chapters are in the ref
-			// It will need to consider how many verses as well
-			// Also, it doesn't currently handle moving on to the next book of the bible
-
-			// Calculate how much we should increment our chapter numbers
-			$chapDiff = $this->chapter2 - $this->chapter1;
-			$chapInc = 1;
-			if (0 < $chapDiff) $chapInc = $chapDiff;
-			$chapInc *= $factor;
-
-			// Increment the chapters
-			if (isset($this->chapter1)) $this->chapter1 += $chapInc;
-			if (isset($this->chapter2)) $this->chapter2 += $chapInc;
-		}
 	}
 
 	/*
@@ -261,11 +282,43 @@
 	 */
 	class BibleRefSingle
 	{
-		private $unique_ids = array(0, 0);
+		function BibleRefSingle($value)
+		{
+			$this->update($value);
+		}
+
+		function update($value)
+		{
+			unset($this->cache);
+
+			if (is_string($value))
+			{
+				$this->cache['parsed'] = new BibleRefParsed;
+				$this->cache['parsed']->set_by_string($value);
+				$unique_ids = $this->cache['parsed']->get_unique_ids();
+			}
+			else if (is_array($value))
+			{
+				$unique_ids = $value;
+			}
+			
+			if (isset($unique_ids))
+			{
+				$this->vectors = array(new BibleRefVector($unique_ids[0]),
+									   new BibleRefVector($unique_ids[1]));
+			}
+		}
+
+		function is_valid()
+		{
+			if ((0 < $this->vectors[0]->value) && ($this->vectors[0]->value <= $this->vectors[1]->value))
+				return true;
+			return false;
+		}
 
 		function get_unique_ids()
 		{
-			return $this->unique_ids;
+			return array($this->vectors[0]->value, $this->vectors[1]->value);
 		}
 
 		function get_string()
@@ -276,43 +329,20 @@
 		// Returns the parsed array form of the bible reference
 		function get_parsed()
 		{
-			if (isset($this->parsed))
-				return $this->parsed;
-
-			$this->parsed = new BibleRefParsed;
-			$this->parsed->set_by_unique_ids($this->unique_ids);
-			return $this->parsed;
-		}
-
-		function set_by_unique_ids($unique_ids)
-		{
-			// The unique ids are valid only if the first is greater than 0 and the second is greater than (or equal to) the first
-			if ((0 < $unique_ids[0]) && ($unique_ids[0] <= $unique_ids[1]))
+			if (!isset($this->cache['parsed']))
 			{
-				$this->unique_ids = $unique_ids;
-				return true;
+				$this->cache['parsed'] = new BibleRefParsed;
+				$this->cache['parsed']->set_by_unique_ids($this->get_unique_ids());
 			}
-			return false;
-		}
 
-		function set_by_parsed(BibleRefParsed $parsed)
-		{
-			$this->parsed = $parsed;
-			return $this->set_by_unique_ids($this->parsed->get_unique_ids());
-		}
-		
-		function set_by_string($str)
-		{
-			$parsed = new BibleRefParsed;
-			$parsed->set_by_string($str);
-			return $this->set_by_parsed($parsed);
+			return $this->cache['parsed'];
 		}
 
 		// Returns an SQL expression for comparing this bible reference against one unique id column
 		function sql_where($col1 = 'unique_id')
 		{
 			global $wpdb;
-			return $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $this->unique_ids[0], $this->unique_ids[1]);
+			return $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $this->vectors[0]->value, $this->vectors[1]->value);
 		}
 
 		// Returns an SQL expression for comparing this bible reference against two unique id columns
@@ -335,20 +365,51 @@
 			global $wpdb;
 			return $wpdb->prepare("((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
 								    ((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
-								  $this->unique_ids[1], $this->unique_ids[0], $this->unique_ids[1],
-								  $this->unique_ids[0], $this->unique_ids[0], $this->unique_ids[1]);
+								  $this->vectors[1]->value, $this->vectors[0]->value, $this->vectors[1]->value,
+								  $this->vectors[0]->value, $this->vectors[0]->value, $this->vectors[1]->value);
 		}
 
+		// Increments the bible reference by a given factor
 		function increment($factor = 1)
 		{
-			$parsed = $this->get_parsed();
-			$parsed->increment($factor);
-			return $this->set_by_parsed($parsed);
+			// Only increment if we are not looking at an entire book
+			if (0 != $this->vectors[0]->values['chapter'])
+			{
+				// Get the difference between chapters
+				$diff = $this->vectors[1]->values['chapter'] - $this->vectors[0]->values['chapter'];
+
+				// If the chapter difference is 0, and there is no specified verse
+				// Then we must be viewing one single chapter, so our chapter difference should be 1
+				if ((0 == $diff) && (0 == $this->vectors[0]->values['verse']))
+					$diff = 1;
+
+				$chapter_inc = 0;
+				$verse_inc = 0;
+
+				// If we have a chapter difference then set the chapter increment,
+				// otherwise try to set a verse increment
+				if (0 < $diff) $chapter_inc = $diff * $factor;
+				else
+				{
+					$diff = $this->vectors[1]->values['verse'] - $this->vectors[0]->values['verse'];
+					$verse_inc = (1 + $diff) * $factor;
+				}
+
+				// If we have a chapter or verse increment,
+				// Then update our BibleRef with incremented vectors
+				if ((0 != $chapter_inc) || (0 != $verse_inc))
+				{
+					$inc = new BibleRefVector(array(0, $chapter_inc, $verse_inc));
+					$vector1 = new BibleRefVector($inc->value + $this->vectors[0]->value);
+					$vector2 = new BibleRefVector($inc->value + $this->vectors[1]->value);
+					$this->update(array($vector1->value, $vector2->value));
+				}
+			}
 		}
 	}
 
 	/*
-	 This class is a wrapper aroung BibleRefSingle to store it in an array
+	 This class is a wrapper around BibleRefSingle to store it in an array
 	 */
 	class BibleRefs
 	{
@@ -397,8 +458,8 @@
 			$count = 0;
 			foreach ($unique_id_sets as $unique_ids)
 			{
-				$ref = new BibleRefSingle;
-				if ($ref->set_by_unique_ids($unique_ids))
+				$ref = new BibleRefSingle($unique_ids);
+				if ($ref->is_valid())
 				{
 					$this->refs[] = $ref;
 					$count++;
@@ -413,8 +474,8 @@
 			$refstrs = preg_split("/[\n,;]/", trim($str));
 			foreach ($refstrs as $refstr)
 			{
-				$ref = new BibleRefSingle;
-				if ($ref->set_by_string($refstr))
+				$ref = new BibleRefSingle($refstr);
+				if ($ref->is_valid())
 				{
 					$this->refs[] = $ref;
 					$count++;
