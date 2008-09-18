@@ -8,6 +8,7 @@
 	 */
 
 	// Global array for storing bible references used in a search
+	global $bfox_bible_refs;
 	$bfox_bible_refs = new BibleRefs;
 
 	// Returns whether the current query is a bible reference query
