@@ -55,7 +55,7 @@
 			$sets = array();
 			foreach ($results as $result)
 			{
-				$sets[$result->period_id][$result->ref_id] = array($result->verse_start, $result->verse_start);
+				$sets[$result->period_id][$result->ref_id] = array($result->verse_start, $result->verse_end);
 			}
 
 			$plan_refs_array = array();
@@ -67,6 +67,20 @@
 			}
 
 			return $plan_refs_array;
+		}
+
+		function get_plan_ids()
+		{
+			global $wpdb;
+			$plan_ids = $wpdb->get_col("SELECT plan_id from $this->table_name GROUP BY plan_id");
+			if (is_array($plan_ids)) return $plan_ids;
+			return array();
+		}
+
+		function delete($plan_id)
+		{
+			global $wpdb;
+			$wpdb->query($wpdb->prepare("DELETE FROM $this->table_name WHERE plan_id = %d", $plan_id));
 		}
 	}
 

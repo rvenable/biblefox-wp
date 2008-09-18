@@ -50,6 +50,9 @@ How Fast?<br/>
 	{
 		global $bfox_plan;
 
+		if (($_GET['action'] == 'delete') && isset($_GET['plan_id']))
+			$bfox_plan->delete($_GET['plan_id']);
+
 		if($_GET['hidden_field'] == 'Y')
 		{
 			$text = (string) $_GET['books'];
@@ -63,14 +66,21 @@ How Fast?<br/>
 //			$sections = bfox_get_sections_slow($text, $section_size);
 		}
 		echo "<div class=\"wrap\">";
-		echo "<h2>View Reading Plan</h2>";
-		unset($sections);
-		$sections = $bfox_plan->get(1);
-		$index = 1;
-		foreach ($sections as $section)
+		echo "<h2>View Reading Plan</h2><br/>";
+		$plan_ids = $bfox_plan->get_plan_ids();
+		foreach ($plan_ids as $plan_id)
 		{
-			echo "<br/>$index: " . $section->get_string();
-			$index++;
+			$page = BFOX_PLAN_SUBPAGE;
+			$url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
+			echo "<strong>Plan $plan_id</strong> (<a href=\"$url\">remove</a>)<br/>";
+			$sections = $bfox_plan->get($plan_id);
+			$index = 1;
+			foreach ($sections as $section)
+			{
+				echo "$index: " . $section->get_string() . "<br/>";
+				$index++;
+			}
+			echo "<br/>";
 		}
 		echo "</div>";
 		
