@@ -18,8 +18,6 @@
 	// Uncomment for testing DB queries
 	define('DIEONDBERROR', 'die!');
 	
-	require_once("bfox-include.php");
-
 	function bfox_study_menu()
 	{
 		$min_user_level = 8;
@@ -93,6 +91,8 @@
 	
 	function bfox_study_init()
 	{
+		require_once("bfox-include.php");
+		
 		add_action('admin_menu', 'bfox_study_menu');
 
 		bfox_query_init();

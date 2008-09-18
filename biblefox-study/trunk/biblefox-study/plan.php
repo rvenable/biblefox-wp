@@ -90,6 +90,7 @@
 		}
 	}
 
+	global $bfox_plan;
 	$bfox_plan = new Plan();
 
 ?>
