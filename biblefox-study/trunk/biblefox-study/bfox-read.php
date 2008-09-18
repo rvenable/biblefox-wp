@@ -20,7 +20,7 @@
 		
 		// Create a list of bible references to show
 		// If the user passed a list through the GET parameter use that
-		$refStr = trim($_GET['ref']);
+		$refStr = trim($_GET['bible_ref']);
 		if ($refStr == '')
 		{
 			// If there are no GET references then get the last viewed references
@@ -29,10 +29,9 @@
 		else
 		{
 			// Create a list of references from the passed in GET param
-			$refs = new BibleRefs;
-			$refs->push_string($refStr);
+			$refs = new BibleRefs($refStr);
 		}
-		
+
 		// If we don't have any refs, show Genesis 1
 		if (0 == $refs->get_count()) $refs->push_string('Genesis 1');
 		$refs = bfox_get_next_refs($refs, $_GET['bfox_action']);

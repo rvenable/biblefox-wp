@@ -19,6 +19,26 @@
 		return false;
 	}
 
+	function bfox_get_chapters($first_verse, $last_verse)
+	{
+		global $wpdb;
+		
+		// TODO: We need to let the user pick their own version
+		// Use the default translation until we add user input for this value
+		$version_id = bfox_get_default_version();
+		$table_name = bfox_get_verses_table_name($version_id);
+		
+		$query = $wpdb->prepare("SELECT chapter_id
+								FROM $table_name
+								WHERE unique_id >= %d
+								AND unique_id <= %d
+								AND chapter_id != 0
+								GROUP BY chapter_id",
+								$first_verse,
+								$last_verse);
+		return $wpdb->get_col($query);
+	}
+	
 	function bfox_get_passage_size($first_verse, $last_verse, $group_by = '')
 	{
 		global $wpdb;
@@ -38,7 +58,10 @@
 								$group_by",
 								$first_verse,
 								$last_verse);
-		return $wpdb->get_var($query);
+		$size = $wpdb->get_var($query);
+
+		if (0 < $size) return $size;
+		return 0;
 	}
 
 	/*
@@ -360,6 +383,11 @@
 			return $this->cache['parsed'];
 		}
 
+		function get_book_id()
+		{
+			return $this->vectors[0]->value['book'];
+		}
+
 		// Returns an SQL expression for comparing this bible reference against one unique id column
 		function sql_where($col1 = 'unique_id')
 		{
@@ -432,14 +460,18 @@
 		function get_size(BibleRefVector $size_vector)
 		{
 			if (0 != $size_vector->values['chapter'])
-				return bfox_get_passage_size($this, 'chapter_id');
+				return bfox_get_passage_size($this->vectors[0]->value, $this->vectors[1]->value, 'chapter_id');
 			if (0 != $size_vector->values['verse'])
-				return bfox_get_passage_size($this);
+				return bfox_get_passage_size($this->vectors[0]->value, $this->vectors[1]->value);
 			return 0;
 		}
 
 		function shift(BibleRefVector $size_vector)
 		{
+			// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
+			// It ended up being much slower however, since it is doing way too many DB queries
+			// The DB queries are called by $this->get_size()
+
 			$verse_size = 0;
 
 			// Try to use the chapter size first
@@ -457,18 +489,18 @@
 			// Otherwise we have to partition off a portion of this bible ref
 			if ($this->get_size($size_vector) <= $size)
 			{
-				$shifted = clone $ref;
+				$shifted = clone $this;
 				$this->update();
 			}
 			else
 			{
 				// The new shifted value should be of size $size_vector
-				$shifted = new BibleRefSingle(array($this->vector[0]->value,
-													$this->vector[0]->value + $size_vector->value - 1));
+				$shifted = new BibleRefSingle(array($this->vectors[0]->value,
+													$this->vectors[0]->value + $size_vector->value - 1));
 
 				// This bible ref gets whatever remains
-				$this->update(array($this->vector[0]->value + $size_vector->value,
-									$this->vector[1]->value));
+				$this->update(array($this->vectors[0]->value + $size_vector->value,
+									$this->vectors[1]->value));
 			}
 			return $shifted;
 		}
@@ -479,7 +511,19 @@
 	 */
 	class BibleRefs
 	{
-		private $refs = array();
+		private $refs;
+
+		function BibleRefs($value = 0)
+		{
+			$this->refs = array();
+			if (is_string($value)) $this->push_string($value);
+			else if (is_array($value)) $this->push_sets($value);
+		}
+
+		function is_valid()
+		{
+			return (0 < count($this->refs));
+		}
 
 		// Returns the internal array of BibleRefSingles converted to an
 		// array of BibleRefs where each element has just one BibleRefSingle
@@ -569,8 +613,12 @@
 			foreach ($this->refs as &$ref) $ref->increment($factor);
 		}
 
-		function shift_refs(BibleRefVector $size_vector)
+		function shift(BibleRefVector $size_vector)
 		{
+			// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
+			// It ended up being much slower however, since it is doing way too many DB queries
+			// The DB queries are called by $this->get_size()
+
 			// Try to use the chapter size first
 			$size = $size_vector->values['chapter'];
 			if (0 != $size) $size_vector->update(array(0, $size, 0));
@@ -603,6 +651,82 @@
 			}
 
 			return $shifted;
+		}
+
+		function get_sections($size)
+		{
+			// NOTE: This function was supposed to be replaced by using the shift() functions, but they were too slow
+			// It is currently being hacked to work with the new BibleRefs system
+
+			$sections = array();
+			$period = 0;
+			$section = 0;
+			$remainder = 0;
+			$remainderStr = "";
+			foreach ($this->refs as $ref)
+			{
+				$unique_ids = $ref->get_unique_ids();
+				$chapters = bfox_get_chapters($unique_ids[0], $unique_ids[1]);
+				$num_chapters = count($chapters);
+				$num_sections = (int) floor(($num_chapters + $remainder) / $size);
+
+				$tmpRef = array();
+				$tmpRef['book_id'] = $ref->get_book_id();
+				$chapter1_index = 0;
+				$chapter2_index = $size - $remainder - 1;
+				for ($index = 0; $index < $num_sections; $index++)
+				{
+					$tmpRefStr = "";
+					if (($index == 0) && ($remainder > 0))
+					{
+						$tmpRefStr .= "$remainderStr, ";
+						$remainderStr = "";
+						$remainder = 0;
+					}
+					
+					$tmpRef['chapter1'] = $chapters[$chapter1_index];
+					if ($chapter2_index > $chapter1_index)
+						$tmpRef['chapter2'] = $chapters[$chapter2_index];
+					else $tmpRef['chapter2'] = 0;
+
+					// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
+					// work well with the new BibleRefs system
+					$tmpRefParsed = new BibleRefParsed;
+					$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
+					$tmpRefStr .= $tmpRefParsed->get_string();
+
+					$sections[] = $tmpRefStr;
+					
+					$chapter1_index = $chapter2_index + 1;
+					$chapter2_index = $chapter1_index + $size - 1;
+				}
+				
+				if ($chapter1_index < $num_chapters)
+				{
+					$remainder += $num_chapters - $chapter1_index;
+					$chapter2_index = $num_chapters - 1;
+					
+					$tmpRef['chapter1'] = $chapters[$chapter1_index];
+					if ($chapter2_index > $chapter1_index)
+						$tmpRef['chapter2'] = $chapters[$chapter2_index];
+					else $tmpRef['chapter2'] = 0;
+					
+					if ($remainderStr != "")
+						$remainderStr .= ", ";
+
+					// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
+					// work well with the new BibleRefs system
+					$tmpRefParsed = new BibleRefParsed;
+					$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
+					$remainderStr .= $tmpRefParsed->get_string();
+				}
+			}
+			if ($remainderStr != "")
+				$sections[] = $remainderStr;
+			
+			$sectionRefs = array();
+			foreach ($sections as $section) $sectionRefs[] = new BibleRefs($section);
+			return $sectionRefs;
 		}
 	}
 

@@ -28,7 +28,7 @@ How Fast?<br/>
 	function bfox_get_sections($text, $size)
 	{
 		$reflist = bfox_parse_reflist($text);
-
+		
 		$sections = array();
 		$period = 0;
 		$section = 0;
@@ -40,7 +40,7 @@ How Fast?<br/>
 			$chapters = bfox_get_chapters($ref);
 			$num_chapters = count($chapters);
 			$num_sections = (int) floor(($num_chapters + $remainder) / $size);
-
+			
 			$tmpRef['book_name'] = $ref['book_name'];
 			$chapter1_index = 0;
 			$chapter2_index = $size - $remainder - 1;
@@ -53,29 +53,29 @@ How Fast?<br/>
 					$remainderStr = "";
 					$remainder = 0;
 				}
-
+				
 				$tmpRef['chapter1'] = $chapters[$chapter1_index];
 				if ($chapter2_index > $chapter1_index)
 					$tmpRef['chapter2'] = $chapters[$chapter2_index];
 				else $tmpRef['chapter2'] = 0;
-
+				
 				$tmpRefStr .= bfox_get_refstr($tmpRef);
 				$sections[] = $tmpRefStr;
-
+				
 				$chapter1_index = $chapter2_index + 1;
 				$chapter2_index = $chapter1_index + $size - 1;
 			}
-
+			
 			if ($chapter1_index < $num_chapters)
 			{
 				$remainder += $num_chapters - $chapter1_index;
 				$chapter2_index = $num_chapters - 1;
-
+				
 				$tmpRef['chapter1'] = $chapters[$chapter1_index];
 				if ($chapter2_index > $chapter1_index)
 					$tmpRef['chapter2'] = $chapters[$chapter2_index];
 				else $tmpRef['chapter2'] = 0;
-
+				
 				if ($remainderStr != "")
 					$remainderStr .= ", ";
 				$remainderStr .= bfox_get_refstr($tmpRef);
@@ -87,6 +87,25 @@ How Fast?<br/>
 		return $sections;
 	}
 	
+	function bfox_get_sections_slow($text, $size)
+	{
+		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
+		// It ended up being much slower however, since it is doing way too many DB queries
+		// The DB queries are called by $this->get_size()
+		$refs = new BibleRefs($text);
+		$size_vector = new BibleRefVector(array(0, $size, 0));
+
+		$sections = array();
+		while ($refs->is_valid())
+		{
+			$shifted_refs = $refs->shift($size_vector);
+			if ($shifted_refs->is_valid())
+				$sections[] = $shifted_refs;
+		}
+
+		return $sections;
+	}
+	
 	function bfox_create_plan()
 	{
 		if($_GET['hidden_field'] == 'Y')
@@ -95,13 +114,16 @@ How Fast?<br/>
 			$period_length = (string) $_GET['frequency'];
 			$section_size = (int) $_GET['num_chapters'];
 			if ($section_size == 0) $section_size = 1;
-			
-			$sections = bfox_get_sections($text, $section_size);
+
+			$refs = new BibleRefs($text);
+			$sections = $refs->get_sections($section_size);
+//			$sections = bfox_get_sections_slow($text, $section_size);
+			echo "c:" . count($sections) . "<br/>";
 			
 			$index = 1;
 			foreach ($sections as $section)
 			{
-				echo "<br/>$period_length $index: $section";
+				echo "<br/>$period_length $index: " . $section->get_string();
 				$index++;
 			}
 		}

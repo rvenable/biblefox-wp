@@ -26,29 +26,6 @@
 		echo $content;
 	}
 	
-	function bfox_get_chapters($ref)
-	{
-		global $wpdb;
-
-		// TODO: We need to let the user pick their own version
-		// Use the default translation until we add user input for this value
-		$version_id = bfox_get_default_version();
-
-		$range = bfox_get_unique_id_range($ref);
-
-		$table_name = bfox_get_verses_table_name($version_id);
-		
-		$query = $wpdb->prepare("SELECT chapter_id
-								FROM $table_name
-								WHERE unique_id >= %d
-								AND unique_id <= %d
-								AND chapter_id != 0
-								GROUP BY chapter_id",
-								$range[0],
-								$range[1]);
-		return $wpdb->get_col($query);
-	}
-
 	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
 	{
 		$begin = $table_name . '.' . $verse_begin;
