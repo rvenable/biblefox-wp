@@ -19,6 +19,28 @@
 		return false;
 	}
 
+	function bfox_get_passage_size($first_verse, $last_verse, $group_by = '')
+	{
+		global $wpdb;
+
+		if ('' != $group_by) $group_by = 'GROUP BY ' . $group_by;
+		
+		// TODO: We need to let the user pick their own version
+		// Use the default translation until we add user input for this value
+		$version_id = bfox_get_default_version();
+		$table_name = bfox_get_verses_table_name($version_id);
+		
+		$query = $wpdb->prepare("SELECT COUNT(*)
+								FROM $table_name
+								WHERE unique_id >= %d
+								AND unique_id <= %d
+								AND chapter_id != 0
+								$group_by",
+								$first_verse,
+								$last_verse);
+		return $wpdb->get_var($query);
+	}
+
 	/*
 	 This class is used to represent a bible reference as a 3 integer vector: book, chapter, verse
 	 */
@@ -282,12 +304,12 @@
 	 */
 	class BibleRefSingle
 	{
-		function BibleRefSingle($value)
+		function BibleRefSingle($value = array(0, 0))
 		{
 			$this->update($value);
 		}
 
-		function update($value)
+		function update($value = array(0, 0))
 		{
 			unset($this->cache);
 
@@ -406,6 +428,50 @@
 				}
 			}
 		}
+
+		function get_size(BibleRefVector $size_vector)
+		{
+			if (0 != $size_vector->values['chapter'])
+				return bfox_get_passage_size($this, 'chapter_id');
+			if (0 != $size_vector->values['verse'])
+				return bfox_get_passage_size($this);
+			return 0;
+		}
+
+		function shift(BibleRefVector $size_vector)
+		{
+			$verse_size = 0;
+
+			// Try to use the chapter size first
+			$size = $size_vector->values['chapter'];
+			if (0 != $size) $size_vector->update(array(0, $size, 0));
+			else
+			{
+				// If the chapter size was set to 0, try to use the verse size instead
+				$size = $size_vector->values['verse'];
+				$size_vector->update(array(0, 0, $size));
+			}
+
+			// If the size of $this is less or equal to the target size,
+			// Then we shift everything off of this,
+			// Otherwise we have to partition off a portion of this bible ref
+			if ($this->get_size($size_vector) <= $size)
+			{
+				$shifted = clone $ref;
+				$this->update();
+			}
+			else
+			{
+				// The new shifted value should be of size $size_vector
+				$shifted = new BibleRefSingle(array($this->vector[0]->value,
+													$this->vector[0]->value + $size_vector->value - 1));
+
+				// This bible ref gets whatever remains
+				$this->update(array($this->vector[0]->value + $size_vector->value,
+									$this->vector[1]->value));
+			}
+			return $shifted;
+		}
 	}
 
 	/*
@@ -501,6 +567,42 @@
 		function increment($factor = 1)
 		{
 			foreach ($this->refs as &$ref) $ref->increment($factor);
+		}
+
+		function shift_refs(BibleRefVector $size_vector)
+		{
+			// Try to use the chapter size first
+			$size = $size_vector->values['chapter'];
+			if (0 != $size) $size_vector->update(array(0, $size, 0));
+			else
+			{
+				// If the chapter size was set to 0, try to use the verse size instead
+				$size = $size_vector->values['verse'];
+				$size_vector->update(array(0, 0, $size));
+			}
+
+			// Create a new BibleRefs instance to hold all the shifted values
+			$shifted = new BibleRefs;
+
+			// Shift each ref in $this->refs until we run out of refs or our size quota is reached
+			while ((0 < $size) && (0 < count($this->refs)))
+			{
+				// Shift the first ref in $this->refs
+				$shifted_ref = $this->refs[0]->shift($size_vector);
+
+				// If the shifted ref is valid,
+				// Then push it onto our new BibleRefs and update our size quota
+				if ($shifted_ref->is_valid())
+				{
+					$shifted->push_sets(array($shifted_ref->get_unique_ids()));
+					$size -= $shifted_ref->get_size($size_vector);
+				}
+
+				// If the first ref is no longer valid, get rid of it
+				if (!$this->refs[0]->is_valid()) array_shift($this->refs);
+			}
+
+			return $shifted;
 		}
 	}
 
