@@ -2,8 +2,6 @@
 
 	function bfox_read_menu()
 	{
-		require_once('bfox-history.php');
-		
 		global $wpdb;
 		global $bfox_history;
 		

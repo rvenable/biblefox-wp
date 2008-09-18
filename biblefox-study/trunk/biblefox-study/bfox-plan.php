@@ -107,7 +107,6 @@ How Fast?<br/>
 
 	function bfox_get_special_page_plan()
 	{
-		require_once("bfox-history.php");
 		$content = '';
 
 		// Get the recently read scriptures

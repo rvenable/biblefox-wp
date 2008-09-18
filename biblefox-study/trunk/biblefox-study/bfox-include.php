@@ -10,9 +10,13 @@
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");
 	require_once("plan.php");
+
+	// BibleRefs class
 	require_once("ref.php");
+
+	// Include files which need BibleRefs
 	require_once("bibletext.php");
-	require_once("bfox-history.php");
+	require_once("history.php");
 	require_once("bfox-query.php");
 
 	?>
