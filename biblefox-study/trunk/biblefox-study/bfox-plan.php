@@ -56,7 +56,6 @@ How Fast?<br/>
 			$refs = new BibleRefs($text);
 			$sections = $refs->get_sections($section_size);
 //			$sections = bfox_get_sections_slow($text, $section_size);
-			echo "c:" . count($sections) . "<br/>";
 			
 			$index = 1;
 			foreach ($sections as $section)

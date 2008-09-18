@@ -385,7 +385,7 @@
 
 		function get_book_id()
 		{
-			return $this->vectors[0]->value['book'];
+			return $this->vectors[0]->values['book'];
 		}
 
 		// Returns an SQL expression for comparing this bible reference against one unique id column
@@ -655,21 +655,22 @@
 
 		function get_sections($size)
 		{
-			$reflist = bfox_parse_reflist($text);
+			// NOTE: This function was supposed to be replaced by using the shift() functions, but they were too slow
+			// It is currently being hacked to work with the new BibleRefs system
 			
 			$sections = array();
 			$period = 0;
 			$section = 0;
 			$remainder = 0;
 			$remainderStr = "";
-			foreach ($reflist as $refStr)
+			foreach ($this->refs as $ref)
 			{
-				$ref = bfox_parse_ref($refStr);
-				$chapters = bfox_get_chapters($ref);
+				$unique_ids = $ref->get_unique_ids();
+				$chapters = bfox_get_chapters($unique_ids[0], $unique_ids[1]);
 				$num_chapters = count($chapters);
 				$num_sections = (int) floor(($num_chapters + $remainder) / $size);
 				
-				$tmpRef['book_name'] = $ref['book_name'];
+				$tmpRef['book_id'] = $ref->get_book_id();
 				$chapter1_index = 0;
 				$chapter2_index = $size - $remainder - 1;
 				for ($index = 0; $index < $num_sections; $index++)
@@ -687,7 +688,12 @@
 						$tmpRef['chapter2'] = $chapters[$chapter2_index];
 					else $tmpRef['chapter2'] = 0;
 					
-					$tmpRefStr .= bfox_get_refstr($tmpRef);
+					// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
+					// work well with the new BibleRefs system
+					$tmpRefParsed = new BibleRefParsed;
+					$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
+					$tmpRefStr .= $tmpRefParsed->get_string();
+					
 					$sections[] = $tmpRefStr;
 					
 					$chapter1_index = $chapter2_index + 1;
@@ -706,13 +712,20 @@
 					
 					if ($remainderStr != "")
 						$remainderStr .= ", ";
-					$remainderStr .= bfox_get_refstr($tmpRef);
+					
+					// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
+					// work well with the new BibleRefs system
+					$tmpRefParsed = new BibleRefParsed;
+					$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
+					$remainderStr .= $tmpRefParsed->get_string();
 				}
 			}
 			if ($remainderStr != "")
 				$sections[] = $remainderStr;
 			
-			return $sections;
+			$sectionRefs = array();
+			foreach ($sections as $section) $sectionRefs[] = new BibleRefs($section);
+			return $sectionRefs;
 		}
 	}
 
