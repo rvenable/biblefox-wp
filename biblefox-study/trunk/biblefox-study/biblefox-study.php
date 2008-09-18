@@ -71,7 +71,6 @@
 	function bfox_plan()
 	{
 		require("bfox-plan.php");
-		echo "<h2>Design a Reading Plan</h2>";
 		bfox_create_plan();
 	}
 	

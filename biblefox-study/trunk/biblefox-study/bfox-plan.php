@@ -7,7 +7,8 @@
 		$section_size = (int) $_GET['num_chapters'];
 		
 	?>
-<h4>Create a Reading Plan</h4>
+<div class="wrap">
+<h2>Create a Reading Plan</h2>
 <form action="admin.php" method="get">
 <input type="hidden" name="page" value="<?php echo BFOX_PLAN_SUBPAGE; ?>">
 <input type="hidden" name="hidden_field" value="Y">
@@ -22,6 +23,7 @@ How Fast?<br/>
 </select>
 <input type="submit" class="button" />
 </form>
+</div>
 <?php
 	}
 	
@@ -46,6 +48,8 @@ How Fast?<br/>
 	
 	function bfox_create_plan()
 	{
+		global $bfox_plan;
+
 		if($_GET['hidden_field'] == 'Y')
 		{
 			$text = (string) $_GET['books'];
@@ -55,15 +59,20 @@ How Fast?<br/>
 
 			$refs = new BibleRefs($text);
 			$sections = $refs->get_sections($section_size);
+			$bfox_plan->insert($sections);
 //			$sections = bfox_get_sections_slow($text, $section_size);
-			
-			$index = 1;
-			foreach ($sections as $section)
-			{
-				echo "<br/>$period_length $index: " . $section->get_string();
-				$index++;
-			}
 		}
+		echo "<div class=\"wrap\">";
+		echo "<h2>View Reading Plan</h2>";
+		unset($sections);
+		$sections = $bfox_plan->get(1);
+		$index = 1;
+		foreach ($sections as $section)
+		{
+			echo "<br/>$index: " . $section->get_string();
+			$index++;
+		}
+		echo "</div>";
 		
 		bfox_create_plan_menu();
 	}
