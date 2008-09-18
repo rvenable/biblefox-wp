@@ -58,9 +58,15 @@
 				$sets[$result->period_id][$result->ref_id] = array($result->verse_start, $result->verse_end);
 			}
 
+			// Sort the $sets array by its keys (period_id) so that it is in the proper order
+			ksort($sets);
+
 			$plan_refs_array = array();
 			foreach ($sets as $unique_ids)
 			{
+				// Sort the $unique_ids array by its keys (ref_id) so that it is in the proper order
+				ksort($unique_ids);
+
 				$refs = new BibleRefs($unique_ids);
 				if ($refs->is_valid())
 					$plan_refs_array[] = $refs;
