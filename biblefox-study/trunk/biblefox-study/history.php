@@ -42,7 +42,7 @@
 		{
 			global $wpdb;
 			$refs = new BibleRefs;
-			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = %s", $time), ARRAY_N));
+			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = CAST(%s as DATETIME)", $time), ARRAY_N));
 			return $refs;
 		}
 		
