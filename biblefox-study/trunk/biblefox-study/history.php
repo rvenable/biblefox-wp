@@ -73,7 +73,7 @@
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
 					$this->create_table();
 				else
-				{
+/*				{
 					// Get all the history ids which are inside this ref (viewed only)
 					$times = $this->get_ref_history_times($refs, 0, false, true);
 
@@ -81,7 +81,7 @@
 					// Otherwise, we should just get a new id
 					if (0 < count($times))
 						$wpdb->query("DELETE FROM $this->table_name WHERE " . $this->sql_array_expression('time', $times));
-				}
+				}*/
 
 				$values = array();
 				foreach ($refs->get_sets() as $unique_ids)
