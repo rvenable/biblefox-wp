@@ -17,11 +17,12 @@
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
 			
 			$sql = "CREATE TABLE $this->table_name (
-			id int,
+			id bigint(20) unsigned NOT NULL auto_increment,
 			verse_start int,
 			verse_end int,
 			time datetime,
-			is_read boolean
+			is_read boolean,
+			PRIMARY KEY  (id)
 			);";
 			
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -54,7 +55,6 @@
 			if (isset($this->table_name))
 			{
 				global $wpdb;
-				$id = 1;
 				
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
 					$this->create_table();
@@ -66,18 +66,15 @@
 					// If we found history ids inside this ref, then we should remove them (and reuse one of their ids)
 					// Otherwise, we should just get a new id
 					if (0 < count($ids))
-					{
 						$wpdb->query("DELETE FROM $this->table_name WHERE " . $this->sql_array_expression('id', $ids));
-						$id = $ids[0];
-					}
-					else $id = 1 + $wpdb->get_var("SELECT MAX(id) FROM $this->table_name");
 				}
 
+				$values = array();
 				foreach ($refs->get_sets() as $unique_ids)
-				{
-					$insert = $wpdb->prepare("INSERT INTO $this->table_name (id, verse_start, verse_end, time, is_read) VALUES (%d, %d, %d, NOW(), %d)", $id, $unique_ids[0], $unique_ids[1], $is_read);
-					$wpdb->query($insert);
-				}
+					$values[] = $wpdb->prepare("(%d, %d, NOW(), %d)", $unique_ids[0], $unique_ids[1], $is_read);
+
+				if (0 < count($values))
+					$wpdb->query("INSERT INTO $this->table_name (verse_start, verse_end, time, is_read) VALUES " . implode(', ', $values));
 			}
 		}
 
@@ -93,7 +90,7 @@
 				if ($read) $where_read = 'WHERE is_read = TRUE';
 				
 				// Get all the history ids for this user
-				$ids = $wpdb->get_col("SELECT id FROM $this->table_name $where_read GROUP BY id ORDER BY time DESC");
+				$ids = $wpdb->get_col("SELECT id FROM $this->table_name $where_read ORDER BY time DESC");
 				
 				// Create an array of reference strings
 				if (0 < count($ids))
@@ -132,7 +129,7 @@
 				if ($max) $limit = $wpdb->prepare("LIMIT %d", $max);
 				
 				// Get all the history ids for this user
-				$ids = $wpdb->get_col("SELECT id FROM $this->table_name WHERE $where_read $where_ref GROUP BY id ORDER BY time DESC $limit");
+				$ids = $wpdb->get_col("SELECT id FROM $this->table_name WHERE $where_read $where_ref ORDER BY time DESC $limit");
 			}
 			
 			return $ids;
