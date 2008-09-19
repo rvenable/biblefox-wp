@@ -38,6 +38,14 @@
 			return $refs;
 		}
 
+		function get_refs_for_time($time)
+		{
+			global $wpdb;
+			$refs = new BibleRefs;
+			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = %s", $time), ARRAY_N));
+			return $refs;
+		}
+		
 		// TODO: This function should go in a general SQL utility area
 		function sql_array_expression($column, $vals)
 		{
@@ -58,7 +66,7 @@
 				
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
 					$this->create_table();
-				else
+/*				else
 				{
 					// Get all the history ids which are inside this ref (viewed only)
 					$ids = $this->get_ref_history_ids($refs, 0, false, true);
@@ -67,7 +75,7 @@
 					// Otherwise, we should just get a new id
 					if (0 < count($ids))
 						$wpdb->query("DELETE FROM $this->table_name WHERE " . $this->sql_array_expression('id', $ids));
-				}
+				}*/
 
 				$values = array();
 				foreach ($refs->get_sets() as $unique_ids)
@@ -90,17 +98,17 @@
 				if ($read) $where_read = 'WHERE is_read = TRUE';
 				
 				// Get all the history ids for this user
-				$ids = $wpdb->get_col("SELECT id FROM $this->table_name $where_read ORDER BY time DESC");
+				$times = $wpdb->get_col("SELECT time FROM $this->table_name $where_read GROUP BY time DESC");
 				
 				// Create an array of reference strings
-				if (0 < count($ids))
+				if (0 < count($times))
 				{
 					$index = 0;
-					foreach ($ids as $id)
+					foreach ($times as $time)
 					{
 						if ($index < $max)
 						{
-							$refs_array[] = $this->get_refs_for_id($id);
+							$refs_array[] = $this->get_refs_for_time($time);
 							$index++;
 						}
 					}
@@ -110,11 +118,11 @@
 			return $refs_array;
 		}
 		
-		function get_ref_history_ids(BibleRefs $refs, $max = 0, $read = false, $inside = false)
+		function get_ref_history_times(BibleRefs $refs, $max = 0, $read = false, $inside = false)
 		{
 			global $wpdb;
 			
-			$ids = array();
+			$times = array();
 			if ((isset($this->table_name)) && ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") == $this->table_name))
 			{
 				// Add a where clause for is_read
@@ -129,16 +137,16 @@
 				if ($max) $limit = $wpdb->prepare("LIMIT %d", $max);
 				
 				// Get all the history ids for this user
-				$ids = $wpdb->get_col("SELECT id FROM $this->table_name WHERE $where_read $where_ref ORDER BY time DESC $limit");
+				$times = $wpdb->get_col("SELECT time FROM $this->table_name WHERE $where_read $where_ref GROUP BY time DESC $limit");
 			}
 			
-			return $ids;
+			return $times;
 		}
 		
-		function get_date_for_id($id)
+		function get_date_for_time($time)
 		{
 			global $wpdb;
-			return $wpdb->get_var($wpdb->prepare("SELECT DATE(time) FROM $this->table_name WHERE id = %d LIMIT 1", $id));
+			return $wpdb->get_var($wpdb->prepare("SELECT DATE(%s)", $time));
 		}
 		
 		function get_special_url($read)
@@ -148,15 +156,15 @@
 		
 		function get_dates_str(BibleRefs $refs, $read = false)
 		{
-			list($id) = $this->get_ref_history_ids($refs, 1, $read);
+			list($time) = $this->get_ref_history_times($refs, 1, $read);
 			
 			if ($read) $read_str = 'read';
 			else $read_str = 'viewed';
 			$read_link = "<a href=\"" . $this->get_special_url($read) . "\">$read_str</a>";
 			
-			if (isset($id))
+			if (isset($time))
 			{
-				$date = $this->get_date_for_id($id);
+				$date = $this->get_date_for_time($time);
 				$str = "You last $read_link this scripture on $date";
 			}
 			else $str = "You have not previously $read_link this scripture";

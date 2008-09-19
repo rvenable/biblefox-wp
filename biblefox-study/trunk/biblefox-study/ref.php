@@ -566,13 +566,16 @@
 		function push_sets($unique_id_sets)
 		{
 			$count = 0;
-			foreach ($unique_id_sets as $unique_ids)
+			if (is_array($unique_id_sets))
 			{
-				$ref = new BibleRefSingle($unique_ids);
-				if ($ref->is_valid())
+				foreach ($unique_id_sets as $unique_ids)
 				{
-					$this->refs[] = $ref;
-					$count++;
+					$ref = new BibleRefSingle($unique_ids);
+					if ($ref->is_valid())
+					{
+						$this->refs[] = $ref;
+						$count++;
+					}
 				}
 			}
 			return $count;
