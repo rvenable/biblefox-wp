@@ -54,8 +54,14 @@
 			if (!is_array($vals)) $vals = array($vals);
 
 			$exprs = array();
-			foreach ($vals as $val) $exprs[] = $wpdb->prepare("$column = %d", $val);
-			return '(' . implode(' OR ', $vals) . ')';
+			foreach ($vals as $val)
+			{
+				if (is_string($val)) $type = '%s';
+				else $type = '%d';
+				
+				$exprs[] = $wpdb->prepare("$column = $type", $val);
+			}
+			return '(' . implode(' OR ', $exprs) . ')';
 		}
 
 		function update(BibleRefs $refs, $is_read = false)
@@ -66,16 +72,16 @@
 				
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
 					$this->create_table();
-/*				else
+				else
 				{
 					// Get all the history ids which are inside this ref (viewed only)
-					$ids = $this->get_ref_history_ids($refs, 0, false, true);
+					$times = $this->get_ref_history_times($refs, 0, false, true);
 
 					// If we found history ids inside this ref, then we should remove them (and reuse one of their ids)
 					// Otherwise, we should just get a new id
-					if (0 < count($ids))
-						$wpdb->query("DELETE FROM $this->table_name WHERE " . $this->sql_array_expression('id', $ids));
-				}*/
+					if (0 < count($times))
+						$wpdb->query("DELETE FROM $this->table_name WHERE " . $this->sql_array_expression('time', $times));
+				}
 
 				$values = array();
 				foreach ($refs->get_sets() as $unique_ids)
@@ -126,18 +132,19 @@
 			if ((isset($this->table_name)) && ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") == $this->table_name))
 			{
 				// Add a where clause for is_read
-				if ($read) $where_read = '(is_read = TRUE) AND ';
+				if ($read) $where_read = 'AND (is_read = TRUE)';
 
 				// If $inside is set, then we only want verses that are inside of $refs
 				// Otherwise, we want any verses which overlap this one
-				if ($inside) $where_ref = $refs->sql_where("$this->table_name.verse_start") . ' AND ' . $refs->sql_where("$this->table_name.verse_end");
-				else $where_ref = $refs->sql_where2("$this->table_name.verse_start", "$this->table_name.verse_end");
+				if ($inside) $having_ref = 'HAVING ' . $refs->sql_where("MIN($this->table_name.verse_start)") . ' AND ' . $refs->sql_where("MAX($this->table_name.verse_end)");
+				else $where_ref = 'AND ' . $refs->sql_where2("$this->table_name.verse_start", "$this->table_name.verse_end");
 
 				// Only use the limit if we set a max value
 				if ($max) $limit = $wpdb->prepare("LIMIT %d", $max);
 				
 				// Get all the history ids for this user
-				$times = $wpdb->get_col("SELECT time FROM $this->table_name WHERE $where_read $where_ref GROUP BY time DESC $limit");
+				$select = "SELECT time FROM $this->table_name WHERE 1=1 $where_read $where_ref GROUP BY time DESC $having_ref $limit";
+				$times = $wpdb->get_col($select);
 			}
 			
 			return $times;
