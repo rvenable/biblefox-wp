@@ -17,6 +17,7 @@
 
 	// Uncomment for testing DB queries
 	define('DIEONDBERROR', 'die!');
+	$wpdb->show_errors(true);
 	
 	function bfox_study_menu()
 	{

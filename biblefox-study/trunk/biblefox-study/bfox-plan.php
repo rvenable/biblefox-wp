@@ -48,10 +48,15 @@ How Fast?<br/>
 	
 	function bfox_create_plan()
 	{
-		global $bfox_plan;
+		global $bfox_plan, $bfox_plan_progress;
 
-		if (($_GET['action'] == 'delete') && isset($_GET['plan_id']))
-			$bfox_plan->delete($_GET['plan_id']);
+		if (isset($_GET['plan_id']))
+		{
+			if ($_GET['action'] == 'delete')
+				$bfox_plan->delete($_GET['plan_id']);
+			else if ($_GET['action'] == 'use_personal')
+				$bfox_plan_progress->copy_plan($_GET['plan_id']);
+		}
 
 		if($_GET['hidden_field'] == 'Y')
 		{
@@ -66,13 +71,14 @@ How Fast?<br/>
 //			$sections = bfox_get_sections_slow($text, $section_size);
 		}
 		echo "<div class=\"wrap\">";
-		echo "<h2>View Reading Plan</h2><br/>";
+		echo "<h2>Available Reading Plans</h2><br/>";
 		$plan_ids = $bfox_plan->get_plan_ids();
 		foreach ($plan_ids as $plan_id)
 		{
 			$page = BFOX_PLAN_SUBPAGE;
-			$url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
-			echo "<strong>Plan $plan_id</strong> (<a href=\"$url\">remove</a>)<br/>";
+			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
+			$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan_id";
+			echo "<strong>Plan $plan_id</strong> (<a href=\"$delete_url\">remove</a>) (<a href=\"$personal_url\">use this plan</a>)<br/>";
 			$sections = $bfox_plan->get($plan_id);
 			$index = 1;
 			foreach ($sections as $section)

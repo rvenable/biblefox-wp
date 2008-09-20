@@ -7,6 +7,8 @@
 	{
 		protected $table_name;
 
+		function get_table_name() { return $this->table_name; }
+
 		function get($plan_id, $where_additional = '')
 		{
 			global $wpdb;
@@ -143,11 +145,31 @@
 
 		function get_plan($plan_id, $is_original = true)
 		{
-			return get($plan_id, ' AND is_original = ' . $is_original ? 'TRUE' : 'FALSE');
+			return $this->get($plan_id, ' AND is_original = ' . $is_original ? 'TRUE' : 'FALSE');
 		}
 
-		function copy_plan($blog_id, $plan_id)
+		function copy_plan($plan_id)
 		{
+			if (isset($this->table_name))
+			{
+				// NOTE: This function currently uses the current blog id, which should be sufficient
+				global $wpdb, $bfox_plan;
+				$src_table = $bfox_plan->get_table_name();
+				
+				if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
+					$this->create_table();
+				
+				if ($wpdb->get_var("SHOW TABLES LIKE '$src_table'") == $src_table)
+				{
+					$prefix = "INSERT INTO $this->table_name (plan_id, period_id, ref_id, verse_start, verse_end, is_read, is_original)
+							SELECT $src_table.plan_id, $src_table.period_id, $src_table.ref_id, $src_table.verse_start, $src_table.verse_end, FALSE, ";
+					$postfix = $wpdb->prepare("FROM $src_table WHERE plan_id = %d", $plan_id);
+					$insert_original = $prefix . " TRUE "  . $postfix;
+					$insert_copy     = $prefix . " FALSE " . $postfix;
+					$wpdb->query($insert_original);
+					$wpdb->query($insert_copy);
+				}
+			}
 		}
 
 		function mark_as_read(BibleRefs $refs)
