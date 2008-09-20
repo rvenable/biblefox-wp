@@ -45,6 +45,35 @@ How Fast?<br/>
 
 		return $sections;
 	}
+
+	function bfox_blog_reading_plans()
+	{
+		global $bfox_plan;
+		$plan_ids = $bfox_plan->get_plan_ids();
+		foreach ($plan_ids as $plan_id)
+		{
+			$page = BFOX_PLAN_SUBPAGE;
+			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
+			$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan_id";
+			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>] [<a href=\"$personal_url\">use this plan</a>]<br/>";
+			$sections = $bfox_plan->get_plan_list($plan_id);
+			echo "<br/>";
+		}
+	}
+	
+	function bfox_user_reading_plans()
+	{
+		global $bfox_plan_progress;
+		$plan_ids = $bfox_plan_progress->get_plan_ids();
+		foreach ($plan_ids as $plan_id)
+		{
+			$page = BFOX_PLAN_SUBPAGE;
+			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
+			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>]<br/>";
+			$sections = $bfox_plan_progress->get_plan_list($plan_id);
+			echo "<br/>";
+		}
+	}
 	
 	function bfox_create_plan()
 	{
@@ -70,24 +99,15 @@ How Fast?<br/>
 			$bfox_plan->insert($sections);
 //			$sections = bfox_get_sections_slow($text, $section_size);
 		}
+
+		echo "<div class=\"wrap\">";
+		echo "<h2>User Reading Plans</h2><br/>";
+		bfox_user_reading_plans();
+		echo "</div>";
+
 		echo "<div class=\"wrap\">";
 		echo "<h2>Available Reading Plans</h2><br/>";
-		$plan_ids = $bfox_plan->get_plan_ids();
-		foreach ($plan_ids as $plan_id)
-		{
-			$page = BFOX_PLAN_SUBPAGE;
-			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
-			$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan_id";
-			echo "<strong>Plan $plan_id</strong> (<a href=\"$delete_url\">remove</a>) (<a href=\"$personal_url\">use this plan</a>)<br/>";
-			$sections = $bfox_plan->get($plan_id);
-			$index = 1;
-			foreach ($sections as $section)
-			{
-				echo "$index: " . $section->get_string() . "<br/>";
-				$index++;
-			}
-			echo "<br/>";
-		}
+		bfox_blog_reading_plans();
 		echo "</div>";
 		
 		bfox_create_plan_menu();

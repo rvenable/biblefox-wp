@@ -50,6 +50,17 @@
 			global $wpdb;
 			$wpdb->query($wpdb->prepare("DELETE FROM $this->table_name WHERE plan_id = %d", $plan_id));
 		}
+
+		function get_plan_list($plan_id)
+		{
+			$sections = $this->get($plan_id);
+			$index = 1;
+			foreach ($sections as $section)
+			{
+				echo "$index: " . $section->get_string() . "<br/>";
+				$index++;
+			}
+		}
 	}
 
 	/*
