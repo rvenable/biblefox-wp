@@ -9,7 +9,9 @@
 	 */
 
 	define(BFOX_FILE, __FILE__);
-	define(BFOX_READ_SUBPAGE, __FILE__);
+	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
+//	define(BFOX_ADMIN_FILE, __FILE__);
+	define(BFOX_READ_SUBPAGE, 'bfox-read');
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
@@ -23,20 +25,20 @@
 	function bfox_study_menu()
 	{
 		$min_user_level = 8;
-		add_menu_page('Study the Bible', 'Study', 0, __FILE__, 'bfox_read');
-		add_submenu_page(__FILE__, 'Track your progress', 'Progress', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
-		add_submenu_page(__FILE__, 'Read the Bible', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+		add_menu_page('Study the Bible', 'Study', 0, BFOX_ADMIN_FILE, 'bfox_progress');
+		add_submenu_page(BFOX_ADMIN_FILE, 'Track your progress', 'Progress', 0, BFOX_ADMIN_FILE, 'bfox_progress');
+		add_submenu_page(BFOX_ADMIN_FILE, 'Read the Bible', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 
 		// Editing the Reading Plan is only for Editors (level 7)
-		add_submenu_page(__FILE__, 'Design a Reading Plan', 'Plan', 7, BFOX_PLAN_SUBPAGE, 'bfox_plan');
+		add_submenu_page(BFOX_ADMIN_FILE, 'Design a Reading Plan', 'Plan', 7, BFOX_PLAN_SUBPAGE, 'bfox_plan');
 
-		//add_submenu_page(__FILE__, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
+		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 
 		// These menu pages are only for the site admin
 		if (is_site_admin())
 		{
-			add_submenu_page(__FILE__, 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
-			add_submenu_page(__FILE__, 'Biblefox Setup', 'Setup', 10, BFOX_SETUP_SUBPAGE, 'bfox_setup');
+			add_submenu_page(BFOX_ADMIN_FILE, 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
+			add_submenu_page(BFOX_ADMIN_FILE, 'Biblefox Setup', 'Setup', 10, BFOX_SETUP_SUBPAGE, 'bfox_setup');
 		}
 
 		add_action('edit_form_advanced', 'bfox_edit_form_advanced');
