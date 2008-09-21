@@ -27,10 +27,11 @@
 			return $plan_refs_array;
 		}
 
-		function get_plan_refs($plan_id)
+		function get_plan_refs($plan_id, $max_unread = -1)
 		{
 			global $wpdb;
-			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->table_name WHERE plan_id = %d", $plan_id));
+			$wpdb->show_errors(true);
+			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->table_name WHERE plan_id = %d $this->order_by", $plan_id));
 
 			$original_sets = array();
 			$read_sets = array();
@@ -47,6 +48,7 @@
 					else
 						$unread_sets[$result->period_id][$result->ref_id] = $set;
 				}
+				if ($max_unread == count($unread_sets)) break;
 			}
 			
 			$group = array();
@@ -70,17 +72,18 @@
 			$wpdb->query($wpdb->prepare("DELETE FROM $this->table_name WHERE plan_id = %d", $plan_id));
 		}
 
-		function get_plan_list($plan_id)
+		function get_plan_list($plan_id, $max_unread = 3, $skip_read = true)
 		{
-			$refs_object = $this->get_plan_refs($plan_id);
+			$refs_object = $this->get_plan_refs($plan_id, $max_unread);
 			foreach ($refs_object->original as $period_id => $original)
 			{
+				if ($skip_read && isset($refs_object->read[$period_id]) && !isset($refs_object->unread[$period_id])) continue;
 				$index = $period_id + 1;
-				echo "$index: " . $original->get_string();
+				echo "Reading $index: " . $original->get_link();
 				if (isset($refs_object->unread[$period_id]))
 				{
 					if (isset($refs_object->read[$period_id]))
-						echo " (You still need to read " . $refs_object->unread[$period_id]->get_string() . ")";
+						echo " (You still need to read " . $refs_object->unread[$period_id]->get_link() . ")";
 					else
 						echo " (Unread)";
 				}
@@ -160,7 +163,7 @@
 			if (0 < $user_ID) $this->table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_plan_progress";
 			else unset($this->table_name);
 
-			$this->where_additional = '';
+			$this->order_by = 'ORDER BY period_id ASC, ref_id ASC, is_original DESC, is_read DESC';
 		}
 
 		private function create_table()
@@ -217,7 +220,6 @@
 
 			foreach ($refs->get_sets() as $unique_ids)
 			{
-				echo "yoyo<br/>";
 				$read_start = $unique_ids[0];
 				$read_end = $unique_ids[1];
 				
@@ -297,8 +299,6 @@
 							if (isset($unread2))
 								$insert .= $wpdb->prepare(", (%d, %d, %d, %d, %d, FALSE, FALSE)", $plan->plan_id, $plan->period_id, $plan->ref_id, $unread2[0], $unread2[1]);
 						}
-						echo "U:" . $update . "<br/>";
-						echo "I:" . $insert . "<br/>";
 						$wpdb->query($update);
 						$wpdb->query($insert);
 					}

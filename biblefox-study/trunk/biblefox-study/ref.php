@@ -558,6 +558,26 @@
 			return count($this->refs);
 		}
 
+		function get_url()
+		{
+			$home_dir = get_option('home');
+			$admin_dir = $home_dir . '/wp-admin';
+			
+			if (defined('WP_ADMIN'))
+				$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
+			else
+				$page_url = "{$home_dir}/?";
+
+			return $page_url . 'bible_ref=' . $this->get_string();
+		}
+		
+		function get_link()
+		{
+			$url = $this->get_url();
+			$refStr = $this->get_string();
+			return "<a href=\"$url\" title=\"$refStr\">$refStr</a>";
+		}
+		
 		function push_ref_single(BibleRefSingle $ref)
 		{
 			$this->refs[] = $ref;

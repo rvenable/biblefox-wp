@@ -90,8 +90,11 @@
 				if (0 < count($values))
 					$wpdb->query("INSERT INTO $this->table_name (verse_start, verse_end, time, is_read) VALUES " . implode(', ', $values));
 				
-				global $bfox_plan_progress;
-				$bfox_plan_progress->mark_as_read($refs);
+				if ($is_read)
+				{
+					global $bfox_plan_progress;
+					$bfox_plan_progress->mark_as_read($refs);
+				}
 			}
 		}
 
