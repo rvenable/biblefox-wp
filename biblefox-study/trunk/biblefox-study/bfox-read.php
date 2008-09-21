@@ -31,6 +31,7 @@
 		}
 
 		// If we don't have any refs, show Genesis 1
+		if (!isset($refs)) $refs = new BibleRefs('Genesis 1');
 		if (0 == $refs->get_count()) $refs->push_string('Genesis 1');
 		$refs = bfox_get_next_refs($refs, $_GET['bfox_action']);
 		
