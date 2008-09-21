@@ -51,7 +51,7 @@
 	}
 	echo '</select>';
 	?>
-<input type="text" id="post-search-input" name="ref" value="<?php echo $reflistStr; ?>" />
+<input type="text" id="post-search-input" name="bible_ref" value="<?php echo $reflistStr; ?>" />
 <input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
 </p>
 </form>

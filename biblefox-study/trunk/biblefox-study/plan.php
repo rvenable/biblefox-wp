@@ -9,10 +9,10 @@
 
 		function get_table_name() { return $this->table_name; }
 
-		function get($plan_id, $where_additional = '')
+		function get($plan_id)
 		{
 			global $wpdb;
-			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->table_name WHERE plan_id = %d $where_additional", $plan_id));
+			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->table_name WHERE plan_id = %d $this->where_additional", $plan_id));
 
 			$sets = array();
 			foreach ($results as $result)
@@ -128,6 +128,8 @@
 			global $user_ID;
 			if (0 < $user_ID) $this->table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_plan_progress";
 			else unset($this->table_name);
+
+			$this->where_additional = '';
 		}
 
 		private function create_table()
@@ -156,7 +158,8 @@
 
 		function get_plan($plan_id, $is_original = true)
 		{
-			return $this->get($plan_id, ' AND is_original = ' . $is_original ? 'TRUE' : 'FALSE');
+			$this->where_additional = ' AND is_original = ' . $is_original ? 'TRUE' : 'FALSE';
+			return $this->get($plan_id);
 		}
 
 		function copy_plan($plan_id)
@@ -185,8 +188,11 @@
 
 		function mark_as_read(BibleRefs $refs)
 		{
+			global $wpdb;
+
 			foreach ($refs->get_sets() as $unique_ids)
 			{
+				echo "yoyo<br/>";
 				$read_start = $unique_ids[0];
 				$read_end = $unique_ids[1];
 				
@@ -268,6 +274,8 @@
 						}
 						echo "U:" . $update . "<br/>";
 						echo "I:" . $insert . "<br/>";
+						$wpdb->query($update);
+						$wpdb->query($insert);
 					}
 				}
 			}
