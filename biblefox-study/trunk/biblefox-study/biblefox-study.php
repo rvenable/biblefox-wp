@@ -13,6 +13,7 @@
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
+	define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	// Uncomment for testing DB queries
@@ -23,6 +24,7 @@
 	{
 		$min_user_level = 8;
 		add_menu_page('Study the Bible', 'Study', 0, __FILE__, 'bfox_read');
+		add_submenu_page(__FILE__, 'Track your progress', 'Progress', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
 		add_submenu_page(__FILE__, 'Read the Bible', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 
 		// Editing the Reading Plan is only for Editors (level 7)
@@ -61,6 +63,12 @@
 		bfox_form_edit_bible_refs();
 	}
 
+	function bfox_progress()
+	{
+		require_once("bfox-plan.php");
+		bfox_progress_page();
+	}
+	
 	function bfox_read()
 	{
 		require_once("bfox-read.php");

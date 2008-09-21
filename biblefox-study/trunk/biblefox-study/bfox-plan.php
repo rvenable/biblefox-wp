@@ -55,7 +55,7 @@ How Fast?<br/>
 			$page = BFOX_PLAN_SUBPAGE;
 			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
 			$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan_id";
-			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>] [<a href=\"$personal_url\">use this plan</a>]<br/>";
+			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>] [<a href=\"$personal_url\">track your progress</a>]<br/>";
 			$sections = $bfox_plan->get_plan_list($plan_id);
 			echo "<br/>";
 		}
@@ -74,7 +74,25 @@ How Fast?<br/>
 			echo "<br/>";
 		}
 	}
-	
+
+	function bfox_progress_page()
+	{
+		echo "<div class=\"wrap\">";
+		echo "<h2>Your Bible Studies</h2><br/>";
+		global $user_ID;
+		$blogs = get_blogs_of_user($user_ID);
+		foreach ($blogs as $blog_id => $blog_info)
+		{
+			echo $blog_info->blogname . "<br/>";
+		}
+		echo "</div>";
+
+		echo "<div class=\"wrap\">";
+		echo "<h2>User Reading Plans</h2><br/>";
+		bfox_user_reading_plans();
+		echo "</div>";
+	}
+
 	function bfox_create_plan()
 	{
 		global $bfox_plan, $bfox_plan_progress;
@@ -99,11 +117,6 @@ How Fast?<br/>
 			$bfox_plan->insert($sections);
 //			$sections = bfox_get_sections_slow($text, $section_size);
 		}
-
-		echo "<div class=\"wrap\">";
-		echo "<h2>User Reading Plans</h2><br/>";
-		bfox_user_reading_plans();
-		echo "</div>";
 
 		echo "<div class=\"wrap\">";
 		echo "<h2>Available Reading Plans</h2><br/>";
