@@ -9,32 +9,51 @@
 
 		function get_table_name() { return $this->table_name; }
 
-		function get($plan_id)
+		function convert_plan_sets_to_refs($sets)
 		{
-			global $wpdb;
-			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->table_name WHERE plan_id = %d $this->where_additional", $plan_id));
-
-			$sets = array();
-			foreach ($results as $result)
-			{
-				$sets[$result->period_id][$result->ref_id] = array($result->verse_start, $result->verse_end);
-			}
-
 			// Sort the $sets array by its keys (period_id) so that it is in the proper order
 			ksort($sets);
-
+			
 			$plan_refs_array = array();
-			foreach ($sets as $unique_ids)
+			foreach ($sets as $period_id => $unique_ids)
 			{
 				// Sort the $unique_ids array by its keys (ref_id) so that it is in the proper order
 				ksort($unique_ids);
-
+				
 				$refs = new BibleRefs($unique_ids);
 				if ($refs->is_valid())
-					$plan_refs_array[] = $refs;
+					$plan_refs_array[$period_id] = $refs;
 			}
-
 			return $plan_refs_array;
+		}
+
+		function get_plan_refs($plan_id)
+		{
+			global $wpdb;
+			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->table_name WHERE plan_id = %d", $plan_id));
+
+			$original_sets = array();
+			$read_sets = array();
+			$unread_sets = array();
+			foreach ($results as $result)
+			{
+				$set = array($result->verse_start, $result->verse_end);
+				if (!isset($result->is_original) || $result->is_original)
+					$original_sets[$result->period_id][$result->ref_id] = $set;
+				else
+				{
+					if ($result->is_read)
+						$read_sets[$result->period_id][$result->ref_id] = $set;
+					else
+						$unread_sets[$result->period_id][$result->ref_id] = $set;
+				}
+			}
+			
+			$group = array();
+			$group['original'] = $this->convert_plan_sets_to_refs($original_sets);
+			if (0 < count($read_sets)) $group['read'] = $this->convert_plan_sets_to_refs($read_sets);
+			if (0 < count($unread_sets)) $group['unread'] = $this->convert_plan_sets_to_refs($unread_sets);
+			return (object) $group;
 		}
 
 		function get_plan_ids()
@@ -53,12 +72,24 @@
 
 		function get_plan_list($plan_id)
 		{
-			$sections = $this->get($plan_id);
-			$index = 1;
-			foreach ($sections as $section)
+			$refs_object = $this->get_plan_refs($plan_id);
+			foreach ($refs_object->original as $period_id => $original)
 			{
-				echo "$index: " . $section->get_string() . "<br/>";
-				$index++;
+				$index = $period_id + 1;
+				echo "$index: " . $original->get_string();
+				if (isset($refs_object->unread[$period_id]))
+				{
+					if (isset($refs_object->read[$period_id]))
+						echo " (You still need to read " . $refs_object->unread[$period_id]->get_string() . ")";
+					else
+						echo " (Unread)";
+				}
+				else
+				{
+					if (isset($refs_object->read[$period_id]))
+						echo " (Finished!)";
+				}
+				echo "<br/>";
 			}
 		}
 	}
@@ -154,12 +185,6 @@
 				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
-		}
-
-		function get_plan($plan_id, $is_original = true)
-		{
-			$this->where_additional = ' AND is_original = ' . $is_original ? 'TRUE' : 'FALSE';
-			return $this->get($plan_id);
 		}
 
 		function copy_plan($plan_id)
@@ -267,10 +292,10 @@
 						{
 							$insert = $wpdb->prepare("INSERT INTO $this->table_name
 													 (plan_id, period_id, ref_id, verse_start, verse_end, is_read, is_original)
-													 VALUES (%d, %d, %d, %d, %d, TRUE, FALSE)",
+													 VALUES (%d, %d, %d, %d, %d, FALSE, FALSE)",
 													 $plan->plan_id, $plan->period_id, $plan->ref_id, $unread1[0], $unread1[1]);
 							if (isset($unread2))
-								$insert .= $wpdb->prepare(", (%d, %d, %d, %d, %d, TRUE, FALSE)", $plan->plan_id, $plan->period_id, $plan->ref_id, $unread2[0], $unread2[1]);
+								$insert .= $wpdb->prepare(", (%d, %d, %d, %d, %d, FALSE, FALSE)", $plan->plan_id, $plan->period_id, $plan->ref_id, $unread2[0], $unread2[1]);
 						}
 						echo "U:" . $update . "<br/>";
 						echo "I:" . $insert . "<br/>";
