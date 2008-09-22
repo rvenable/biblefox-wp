@@ -10,24 +10,6 @@
 
 		function get_data_table_name() { return $this->data_table_name; }
 
-		function convert_plan_sets_to_refs($sets)
-		{
-			// Sort the $sets array by its keys (period_id) so that it is in the proper order
-			ksort($sets);
-			
-			$plan_refs_array = array();
-			foreach ($sets as $period_id => $unique_ids)
-			{
-				// Sort the $unique_ids array by its keys (ref_id) so that it is in the proper order
-				ksort($unique_ids);
-				
-				$refs = new BibleRefs($unique_ids);
-				if ($refs->is_valid())
-					$plan_refs_array[$period_id] = $refs;
-			}
-			return $plan_refs_array;
-		}
-
 		function get_plan_refs($plan_id, $max_unread = -1)
 		{
 			$group = array();
@@ -38,24 +20,38 @@
 			{
 				global $wpdb;
 				$wpdb->show_errors(true);
-				$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->data_table_name WHERE plan_id = %d $this->order_by", $plan_id));
-				
+				$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->data_table_name
+															 WHERE plan_id = %d
+															 ORDER BY period_id ASC, ref_id ASC, verse_start ASC",
+															 $plan_id));
+
+				// NOTE: This function can be optimized by keeping the sets and only making BibleRefs once we have moved on to a new period_id
 				$read_sets = array();
 				$unread_sets = array();
 				foreach ($results as $result)
 				{
-					$set = array($result->verse_start, $result->verse_end);
+					$set = array(array($result->verse_start, $result->verse_end));
 					
 					if (isset($result->is_read) && $result->is_read)
-						$read_sets[$result->period_id][$result->ref_id] = $set;
+					{
+						if (!isset($read_sets[$result->period_id]))
+							$read_sets[$result->period_id] = new BibleRefs($set);
+						else
+							$read_sets[$result->period_id]->push_sets($set);
+					}
 					else
-						$unread_sets[$result->period_id][$result->ref_id] = $set;
+					{
+						if (!isset($unread_sets[$result->period_id]))
+							$unread_sets[$result->period_id] = new BibleRefs($set);
+						else
+							$unread_sets[$result->period_id]->push_sets($set);
+					}
 					
 					if ($max_unread == count($unread_sets)) break;
 				}
 				
-				if (0 < count($read_sets)) $group['read'] = $this->convert_plan_sets_to_refs($read_sets);
-				if (0 < count($unread_sets)) $group['unread'] = $this->convert_plan_sets_to_refs($unread_sets);
+				$group['read'] = $read_sets;
+				$group['unread'] = $unread_sets;
 			}
 
 			return (object) $group;
@@ -277,8 +273,6 @@
 				unset($this->plan_table_name);
 				unset($this->data_table_name);
 			}
-
-			$this->order_by = 'ORDER BY period_id ASC, ref_id ASC, is_read DESC';
 		}
 
 		private function create_tables()
