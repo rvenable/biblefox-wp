@@ -10,50 +10,57 @@
 
 		function get_data_table_name() { return $this->data_table_name; }
 
-		function get_plan_refs($plan_id, $max_unread = -1)
+		function get_plan_refs($plan_id)
 		{
-			$group = array();
-			$group['read'] = array();
-			$group['unread'] = array();
+			$read = array();
+			$unread = array();
 			
 			if (isset($this->data_table_name))
 			{
 				global $wpdb;
-				$wpdb->show_errors(true);
+
+				// Get an ordered array of all the plan data for this plan
 				$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->data_table_name
 															 WHERE plan_id = %d
 															 ORDER BY period_id ASC, ref_id ASC, verse_start ASC",
 															 $plan_id));
 
-				// NOTE: This function can be optimized by keeping the sets and only making BibleRefs once we have moved on to a new period_id
-				$read_sets = array();
+				// For each line of plan data, organize it into BibleRefs according to its period ID
 				$unread_sets = array();
+				$read_sets = array();
 				foreach ($results as $result)
 				{
-					$set = array(array($result->verse_start, $result->verse_end));
-					
+					// If we have a new period ID
+					// Then we should update any BibleRef information for the old period ID and begin using the new period ID
+					if (!isset($period_id) || ($period_id != $result->period_id))
+					{
+						// If an old period ID is set, then we need to convert its set info to BibleRefs
+						if (isset($period_id))
+						{
+							if (0 < count($unread_sets)) $unread[$period_id] = new BibleRefs($unread_sets);
+							if (0 < count($read_sets)) $read[$period_id] = new BibleRefs($read_sets);
+							$unread_sets = array();
+							$read_sets = array();
+						}
+						$period_id = $result->period_id;
+					}
+
+					// This verse set is either read or unread
 					if (isset($result->is_read) && $result->is_read)
-					{
-						if (!isset($read_sets[$result->period_id]))
-							$read_sets[$result->period_id] = new BibleRefs($set);
-						else
-							$read_sets[$result->period_id]->push_sets($set);
-					}
+						$read_sets[] = array($result->verse_start, $result->verse_end);
 					else
-					{
-						if (!isset($unread_sets[$result->period_id]))
-							$unread_sets[$result->period_id] = new BibleRefs($set);
-						else
-							$unread_sets[$result->period_id]->push_sets($set);
-					}
-					
-					if ($max_unread == count($unread_sets)) break;
+						$unread_sets[] = array($result->verse_start, $result->verse_end);
 				}
+
+				// Convert any remaining sets to BibleRefs
+				if (0 < count($unread_sets)) $unread[$period_id] = new BibleRefs($unread_sets);
+				if (0 < count($read_sets)) $read[$period_id] = new BibleRefs($read_sets);
 				
-				$group['read'] = $read_sets;
-				$group['unread'] = $unread_sets;
 			}
 
+			$group = array();
+			$group['read'] = $read;
+			$group['unread'] = $unread;
 			return (object) $group;
 		}
 
