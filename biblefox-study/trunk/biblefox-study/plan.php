@@ -228,38 +228,23 @@
 			}
 		}
 
-		function get_plan_list($plan_id, $max_unread = 0, $skip_read = false)
+		function get_plan_list($plan_id)
 		{
 			$orig_refs_object = $this->get_plan_refs($plan_id);
+			$plan_list = array();
+			$plan_list['original'] = $orig_refs_object->unread;
 			
 			// Get the plan progress for the current user
 			global $bfox_plan_progress;
 			$user_plan_id = $bfox_plan_progress->get_plan_id($this->blog_id, $plan_id);
 			if (isset($user_plan_id))
-				$refs_object = $bfox_plan_progress->get_plan_refs($user_plan_id);
-			
-			$unread_count = 0;
-			foreach ($orig_refs_object->unread as $period_id => $original)
 			{
-				if ($skip_read && isset($refs_object->read[$period_id]) && !isset($refs_object->unread[$period_id])) continue;
-				$index = $period_id + 1;
-				echo "Reading $index: " . $original->get_link();
-				if (isset($refs_object->unread[$period_id]))
-				{
-					if (isset($refs_object->read[$period_id]))
-						echo " (You still need to read " . $refs_object->unread[$period_id]->get_link() . ")";
-					else
-						echo " (Unread)";
-					$unread_count++;
-					if ($unread_count == $max_unread) break;
-				}
-				else
-				{
-					if (isset($refs_object->read[$period_id]))
-						echo " (Finished!)";
-				}
-				echo "<br/>";
+				$refs_object = $bfox_plan_progress->get_plan_refs($user_plan_id);
+				$plan_list['unread'] = $refs_object->unread;
+				$plan_list['read'] = $refs_object->read;
 			}
+
+			return (object) $plan_list;
 		}
 	}
 

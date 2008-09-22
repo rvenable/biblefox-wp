@@ -48,6 +48,32 @@ How Fast?<br/>
 		return $sections;
 	}
 
+	function bfox_echo_plan_list($plan_list, $skip_read = false)
+	{
+		$unread_count = 0;
+		foreach ($plan_list->original as $period_id => $original)
+		{
+			if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
+			$index = $period_id + 1;
+			echo "Reading $index: " . $original->get_link();
+			if (isset($plan_list->unread[$period_id]))
+			{
+				if (isset($plan_list->read[$period_id]))
+					echo " (You still need to read " . $plan_list->unread[$period_id]->get_link() . ")";
+				else
+					echo " (Unread)";
+				$unread_count++;
+				if ($unread_count == $max_unread) break;
+			}
+			else
+			{
+				if (isset($plan_list->read[$period_id]))
+					echo " (Finished!)";
+			}
+			echo "<br/>";
+		}
+	}
+	
 	function bfox_blog_reading_plans($plans, $can_edit = false)
 	{
 		global $bfox_plan;
@@ -56,11 +82,15 @@ How Fast?<br/>
 			$page = BFOX_PLAN_SUBPAGE;
 			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
 			$track_url = "admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
+			$plan_list = $bfox_plan->get_plan_list($plan->id);
+
 			echo "<h3>$plan->name</h3><p>";
 			if (isset($plan->summary) && ('' != $plan->summary)) echo $plan->summary . '<br/>';
-			if ($can_edit) echo "[<a href=\"$delete_url\">remove</a>] ";
-			echo "[<a href=\"$track_url\">track your progress</a>]</p>";
-			$sections = $bfox_plan->get_plan_list($plan->id);
+			if ($can_edit) echo "(<a href=\"$delete_url\">remove</a>) ";
+			if (!isset($plan_list->read) && !isset($plan_list->unread))
+				echo "(<a href=\"$track_url\">track your progress</a>)";
+			echo '</p>';
+			bfox_echo_plan_list($plan_list);
 			echo "<br/>";
 		}
 	}
