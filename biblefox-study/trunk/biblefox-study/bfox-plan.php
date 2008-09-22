@@ -113,8 +113,9 @@ How Fast?<br/>
 			if ($section_size == 0) $section_size = 1;
 
 			$refs = new BibleRefs($text);
-			$sections = $refs->get_sections($section_size);
-			$bfox_plan->insert($sections);
+			$plan = array();
+			$plan['refs_array'] = $refs->get_sections($section_size);
+			$bfox_plan->add_new_plan((object) $plan);
 //			$sections = bfox_get_sections_slow($text, $section_size);
 		}
 
