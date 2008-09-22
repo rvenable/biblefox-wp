@@ -12,8 +12,8 @@
 
 		function get_plan_refs($plan_id)
 		{
-			$read = array();
 			$unread = array();
+			$read = array();
 			
 			if (isset($this->data_table_name))
 			{
@@ -47,9 +47,15 @@
 
 					// This verse set is either read or unread
 					if (isset($result->is_read) && $result->is_read)
+					{
 						$read_sets[] = array($result->verse_start, $result->verse_end);
+						$last_read = $period_id;
+					}
 					else
+					{
 						$unread_sets[] = array($result->verse_start, $result->verse_end);
+						if (!isset($first_unread)) $first_unread = $period_id;
+					}
 				}
 
 				// Convert any remaining sets to BibleRefs
@@ -59,8 +65,10 @@
 			}
 
 			$group = array();
-			$group['read'] = $read;
 			$group['unread'] = $unread;
+			$group['read'] = $read;
+			$group['first_unread'] = $first_unread;
+			$group['last_read'] = $last_read;
 			return (object) $group;
 		}
 
@@ -72,12 +80,13 @@
 			return array();
 		}
 
-		function get_plans()
+		function get_plans($plan_id = -1)
 		{
 			if (isset($this->plan_table_name))
 			{
 				global $wpdb;
-				$plans = $wpdb->get_results("SELECT * from $this->plan_table_name");
+				if (-1 != $plan_id) $where = $wpdb->prepare('WHERE id = %d', $plan_id);
+				$plans = $wpdb->get_results("SELECT * from $this->plan_table_name $where");
 			}
 
 			if (is_array($plans)) return $plans;

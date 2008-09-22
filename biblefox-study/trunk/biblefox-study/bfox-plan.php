@@ -48,44 +48,27 @@ How Fast?<br/>
 		return $sections;
 	}
 
-	function bfox_blog_reading_plans($can_edit = false)
+	function bfox_blog_reading_plans($plans, $can_edit = false)
 	{
 		global $bfox_plan;
-		$plans = $bfox_plan->get_plans();
-		if (0 < count($plans))
+		foreach ($plans as $plan)
 		{
-			echo "This Bible Study Blog has the following Reading Plans:";
-			foreach ($plans as $plan)
-			{
-				$page = BFOX_PLAN_SUBPAGE;
-				$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
-				$personal_url = "admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
-				echo "<h3>$plan->name</h3><p>";
-				if (isset($plan->summary) && ('' != $plan->summary)) echo $plan->summary . '<br/>';
-				if ($can_edit) echo "[<a href=\"$delete_url\">remove</a>] ";
-				echo "[<a href=\"$personal_url\">track your progress</a>]</p>";
-				$sections = $bfox_plan->get_plan_list($plan->id);
-				echo "<br/>";
-			}
-		}
-		else
-		{
-			echo "This Bible Study Blog has no bible reading plans.<br/>";
+			$page = BFOX_PLAN_SUBPAGE;
+			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
+			$track_url = "admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
+			echo "<h3>$plan->name</h3><p>";
+			if (isset($plan->summary) && ('' != $plan->summary)) echo $plan->summary . '<br/>';
+			if ($can_edit) echo "[<a href=\"$delete_url\">remove</a>] ";
+			echo "[<a href=\"$track_url\">track your progress</a>]</p>";
+			$sections = $bfox_plan->get_plan_list($plan->id);
+			echo "<br/>";
 		}
 	}
 	
 	function bfox_user_reading_plans($blogs)
 	{
 		global $bfox_plan_progress;
-		$plan_ids = $bfox_plan_progress->get_plan_ids();
-		foreach ($plan_ids as $plan_id)
-		{
-			$page = BFOX_PLAN_SUBPAGE;
-			$delete_url = $blog_url . "page=$page&amp;action=delete&amp;plan_id=$plan_id";
-			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>]<br/>";
-//			$sections = bfox_plan_progress->get_plan_list($plan_id);
-			echo "<br/>";
-		}
+		$plan_url_base = 'admin.php?page=' . BFOX_PLAN_SUBPAGE . '&amp;';
 
 		foreach ($blogs as $blog_id => $blog_info)
 		{
@@ -98,11 +81,23 @@ How Fast?<br/>
 			{
 				foreach ($blog_plans as $plan)
 				{
-					echo "<strong>$plan->name</strong>: ";
-					if ($last && $next)
-						echo "You last read __ and should next read __.<br/>";
+					$plan_url = $plan_url_base . 'plan_id=' . $plan->id . '&amp;';
+					echo "<strong>$plan->name</strong> (<a href=\"$plan_url\">view plan</a>)<br/><i>$plan->summary</i><br/>";
+					$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
+					if (isset($progress_plan_id))
+					{
+						$refs_object = $bfox_plan_progress->get_plan_refs($progress_plan_id);
+						if (isset($refs_object->last_read))
+							echo 'The furthest you have read is ' . $refs_object->read[$refs_object->last_read]->get_link() . '.<br/>';
+						if (isset($refs_object->first_unread))
+							echo 'You should read ' . $refs_object->unread[$refs_object->first_unread]->get_link() . ' next.<br/>';
+					}
 					else
-						echo "Not tracked. You can choose to follow this reading plan.<br/>";
+					{
+						$track_url = $plan_url . 'action=track&amp;';
+						echo "Not tracked. You can choose to <a href=\"$track_url\">follow this reading plan</a>.<br/>";
+					}
+					echo '<br/>';
 				}
 			}
 			else
@@ -151,6 +146,22 @@ How Fast?<br/>
 		// Only level 7 users can edit/create plans
 		$can_edit = current_user_can(7);
 
+		if($can_edit && ($_GET['hidden_field'] == 'Y'))
+		{
+			$text = (string) $_GET['books'];
+			$period_length = (string) $_GET['frequency'];
+			$section_size = (int) $_GET['num_chapters'];
+			if ($section_size == 0) $section_size = 1;
+			
+			$refs = new BibleRefs($text);
+			$plan = array();
+			$plan['refs_array'] = $refs->get_sections($section_size);
+			$plan['name'] = (string) $_GET['plan_name'];
+			$plan['summary'] = (string) $_GET['plan_summary'];
+			$bfox_plan->add_new_plan((object) $plan);
+			//			$sections = bfox_get_sections_slow($text, $section_size);
+		}
+		
 		if (isset($_GET['plan_id']))
 		{
 			if ($_GET['action'] == 'delete')
@@ -159,27 +170,33 @@ How Fast?<br/>
 			}
 			else if ($_GET['action'] == 'track')
 				$bfox_plan_progress->track_plan($blog_id, $_GET['plan_id']);
-		}
 
-		if($can_edit && ($_GET['hidden_field'] == 'Y'))
-		{
-			$text = (string) $_GET['books'];
-			$period_length = (string) $_GET['frequency'];
-			$section_size = (int) $_GET['num_chapters'];
-			if ($section_size == 0) $section_size = 1;
-
-			$refs = new BibleRefs($text);
-			$plan = array();
-			$plan['refs_array'] = $refs->get_sections($section_size);
-			$plan['name'] = (string) $_GET['plan_name'];
-			$plan['summary'] = (string) $_GET['plan_summary'];
-			$bfox_plan->add_new_plan((object) $plan);
-//			$sections = bfox_get_sections_slow($text, $section_size);
+			$display_plans = $bfox_plan->get_plans($_GET['plan_id']);
 		}
 
 		echo "<div class=\"wrap\">";
-		echo "<h2>Available Reading Plans</h2><br/>";
-		bfox_blog_reading_plans($can_edit);
+		if (0 < count($display_plans))
+		{
+			$plan_url_base = 'admin.php?page=' . BFOX_PLAN_SUBPAGE . '&amp;';
+			echo "<h2>View Reading Plan</h2><br/>";
+			echo "You have selected the following Reading Plan: (<a href=\"$plan_url_base\">view all</a>)";
+			bfox_blog_reading_plans($display_plans, $can_edit);
+		}
+		else
+		{
+			$display_plans = $bfox_plan->get_plans();
+
+			echo "<h2>Available Reading Plans</h2><br/>";
+			if (0 < count($display_plans))
+			{
+				echo "This Bible Study Blog has the following Reading Plans:";
+				bfox_blog_reading_plans($display_plans, $can_edit);
+			}
+			else
+			{
+				echo "This Bible Study Blog has no bible reading plans.<br/>";
+			}
+		}
 		echo "</div>";
 
 		if ($can_edit) bfox_create_plan_menu();
