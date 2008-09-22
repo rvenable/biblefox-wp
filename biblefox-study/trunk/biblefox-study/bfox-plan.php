@@ -12,6 +12,8 @@
 <form action="admin.php" method="get">
 <input type="hidden" name="page" value="<?php echo BFOX_PLAN_SUBPAGE; ?>">
 <input type="hidden" name="hidden_field" value="Y">
+Title: <input type="text" size="10" maxlength="128" name="plan_name" value=""> <br/>
+Summary: <input type="text" size="10" maxlength="128" name="plan_summary" value=""> <br/>
 Which books?<br/>
 <textarea rows="5" cols="20" wrap="physical" name="books"><?php echo $text; ?></textarea><br/>
 How Fast?<br/>
@@ -169,6 +171,8 @@ How Fast?<br/>
 			$refs = new BibleRefs($text);
 			$plan = array();
 			$plan['refs_array'] = $refs->get_sections($section_size);
+			$plan['name'] = (string) $_GET['plan_name'];
+			$plan['summary'] = (string) $_GET['plan_summary'];
 			$bfox_plan->add_new_plan((object) $plan);
 //			$sections = bfox_get_sections_slow($text, $section_size);
 		}

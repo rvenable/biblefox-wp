@@ -190,11 +190,11 @@
 					$plan_id = 1 + $wpdb->get_var("SELECT MAX(id) FROM $this->plan_table_name");
 				
 				// Update the plan table
-				$name = 'Plan ' . $plan_id;
-				$summary = 'Simple Reading Plan';
-				$frequency = 0;
-				$frequency_size = 0;
-				$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name (id, name, summary, start_date, frequency, frequency_size) VALUES (%d, %s, %s, NOW(), %d, %d)", $plan_id, $name, $summary, $frequency, $frequency_size);
+				if (!isset($plan->name) || ('' == $plan->name)) $plan->name = 'Plan ' . $plan_id;
+				$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name
+										 (id, name, summary, start_date, frequency, frequency_size)
+										 VALUES (%d, %s, %s, NOW(), %d, %d)",
+										 $plan_id, $plan->name, $plan->summary, 0, 0);
 				$wpdb->query($insert);
 
 				// Update the data table
