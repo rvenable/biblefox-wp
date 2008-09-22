@@ -61,35 +61,73 @@ How Fast?<br/>
 		}
 	}
 	
-	function bfox_user_reading_plans()
+	function bfox_user_reading_plans($blogs)
 	{
 		global $bfox_plan_progress;
 		$plan_ids = $bfox_plan_progress->get_plan_ids();
 		foreach ($plan_ids as $plan_id)
 		{
 			$page = BFOX_PLAN_SUBPAGE;
-			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
+			$delete_url = $blog_url . "page=$page&amp;action=delete&amp;plan_id=$plan_id";
 			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>]<br/>";
 			$sections = $bfox_plan_progress->get_plan_list($plan_id);
+			echo "<br/>";
+		}
+
+		foreach ($blogs as $blog_id => $blog_info)
+		{
+			$blog_url = $blog_info->siteurl . '/wp-admin/admin.php?';
+			$plan_url = $blog_url . 'page=' . BFOX_PLAN_SUBPAGE;
+			echo "<strong><a href=\"$plan_url\">$blog_info->blogname</a></strong> - ";
+			//$blog_plan = new PlanSource($blog_id);
+			$blog_plans = array();// $blog_plan->get_plans();
+			if (0 < count($blog_plans))
+			{
+				foreach ($blog_plans as $plan)
+				{
+					echo $plan->name;
+					if ($last && $next)
+						echo " You last read __ and should next read __.<br/>";
+					else
+						echo "Not tracked. You can choose to follow this reading plan.<br/>";
+				}
+			}
+			else
+			{
+				echo "This Bible Study Blog currently has no reading plans. You should create one. <br/>";
+			}
 			echo "<br/>";
 		}
 	}
 
 	function bfox_progress_page()
 	{
-		echo "<div class=\"wrap\">";
-		echo "<h2>Your Bible Studies</h2><br/>";
 		global $user_ID;
 		$blogs = get_blogs_of_user($user_ID);
-		foreach ($blogs as $blog_id => $blog_info)
+
+		echo "<div class=\"wrap\">";
+		echo "<h2>Bible Study Blogs</h2>";
+		if (0 < count($blogs))
 		{
-			echo $blog_info->blogname . "<br/>";
+			echo "You are a part of the following Bible Study Blogs:<br/>";
+			echo "<ul>";
+			foreach ($blogs as $blog_id => $blog_info)
+				echo "<li>$blog_info->blogname</li>";
+			echo "</ul>";
 		}
+		echo "You can always create a new Bible Study Blog. <br/>";
 		echo "</div>";
 
 		echo "<div class=\"wrap\">";
-		echo "<h2>User Reading Plans</h2><br/>";
-		bfox_user_reading_plans();
+		echo "<h2>Reading Plans</h2><br/>";
+		if (0 < count($blogs))
+		{
+			bfox_user_reading_plans($blogs);
+		}
+		else
+		{
+			echo "You need to be part of a Bible Study Blog to have a reading plan. Feel free to join one or create your own.<br/>";
+		}
 		echo "</div>";
 	}
 
