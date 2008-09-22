@@ -46,18 +46,29 @@ How Fast?<br/>
 		return $sections;
 	}
 
-	function bfox_blog_reading_plans()
+	function bfox_blog_reading_plans($can_edit = false)
 	{
 		global $bfox_plan;
-		$plan_ids = $bfox_plan->get_plan_ids();
-		foreach ($plan_ids as $plan_id)
+		$plans = $bfox_plan->get_plans();
+		if (0 < count($plans))
 		{
-			$page = BFOX_PLAN_SUBPAGE;
-			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan_id";
-			$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan_id";
-			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>] [<a href=\"$personal_url\">track your progress</a>]<br/>";
-			$sections = $bfox_plan->get_plan_list($plan_id);
-			echo "<br/>";
+			echo "This Bible Study Blog has the following Reading Plans:";
+			foreach ($plans as $plan)
+			{
+				$page = BFOX_PLAN_SUBPAGE;
+				$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
+				$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan->id";
+				echo "<h3>$plan->name</h3><p>";
+				if (isset($plan->summary) && ('' != $plan->summary)) echo $plan->summary . '<br/>';
+				if ($can_edit) echo "[<a href=\"$delete_url\">remove</a>] ";
+				echo "[<a href=\"$personal_url\">track your progress</a>]</p>";
+				$sections = $bfox_plan->get_plan_list($plan->id);
+				echo "<br/>";
+			}
+		}
+		else
+		{
+			echo "This Bible Study Blog has no bible reading plans.<br/>";
 		}
 	}
 	
@@ -135,15 +146,20 @@ How Fast?<br/>
 	{
 		global $bfox_plan, $bfox_plan_progress;
 
+		// Only level 7 users can edit/create plans
+		$can_edit = current_user_can(7);
+
 		if (isset($_GET['plan_id']))
 		{
 			if ($_GET['action'] == 'delete')
-				$bfox_plan->delete($_GET['plan_id']);
+			{
+				if ($can_edit) $bfox_plan->delete($_GET['plan_id']);
+			}
 			else if ($_GET['action'] == 'use_personal')
 				$bfox_plan_progress->copy_plan($_GET['plan_id']);
 		}
 
-		if($_GET['hidden_field'] == 'Y')
+		if($can_edit && ($_GET['hidden_field'] == 'Y'))
 		{
 			$text = (string) $_GET['books'];
 			$period_length = (string) $_GET['frequency'];
@@ -159,10 +175,10 @@ How Fast?<br/>
 
 		echo "<div class=\"wrap\">";
 		echo "<h2>Available Reading Plans</h2><br/>";
-		bfox_blog_reading_plans();
+		bfox_blog_reading_plans($can_edit);
 		echo "</div>";
-		
-		bfox_create_plan_menu();
+
+		if ($can_edit) bfox_create_plan_menu();
 	}
 
 	function bfox_get_recent_scriptures_output($max = 1, $read = false)
