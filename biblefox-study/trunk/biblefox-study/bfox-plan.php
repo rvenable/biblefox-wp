@@ -78,16 +78,16 @@ How Fast?<br/>
 		{
 			$blog_url = $blog_info->siteurl . '/wp-admin/admin.php?';
 			$plan_url = $blog_url . 'page=' . BFOX_PLAN_SUBPAGE;
-			echo "<strong><a href=\"$plan_url\">$blog_info->blogname</a></strong> - ";
-			//$blog_plan = new PlanSource($blog_id);
-			$blog_plans = array();// $blog_plan->get_plans();
+			echo "<strong><a href=\"$plan_url\">$blog_info->blogname</a></strong><br/>";
+			$blog_plan = new PlanBlog($blog_id);
+			$blog_plans = $blog_plan->get_plans();
 			if (0 < count($blog_plans))
 			{
 				foreach ($blog_plans as $plan)
 				{
-					echo $plan->name;
+					echo "<strong>$plan->name</strong>: ";
 					if ($last && $next)
-						echo " You last read __ and should next read __.<br/>";
+						echo "You last read __ and should next read __.<br/>";
 					else
 						echo "Not tracked. You can choose to follow this reading plan.<br/>";
 				}

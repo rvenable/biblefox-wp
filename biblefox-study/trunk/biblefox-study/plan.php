@@ -5,6 +5,7 @@
 	 */
 	class Plan
 	{
+		protected $plan_table_name;
 		protected $data_table_name;
 
 		function get_data_table_name() { return $this->data_table_name; }
@@ -66,10 +67,25 @@
 			return array();
 		}
 
+		function get_plans()
+		{
+			if (isset($this->plan_table_name))
+			{
+				global $wpdb;
+				$plans = $wpdb->get_results("SELECT * from $this->plan_table_name");
+			}
+
+			if (is_array($plans)) return $plans;
+			return array();
+		}
+
 		function delete($plan_id)
 		{
 			global $wpdb;
-			$wpdb->query($wpdb->prepare("DELETE FROM $this->data_table_name WHERE plan_id = %d", $plan_id));
+			if (isset($this->data_table_name))
+				$wpdb->query($wpdb->prepare("DELETE FROM $this->data_table_name WHERE plan_id = %d", $plan_id));
+			if (isset($this->plan_table_name))
+				$wpdb->query($wpdb->prepare("DELETE FROM $this->plan_table_name WHERE id = %d", $plan_id));
 		}
 
 		function get_plan_list($plan_id, $max_unread = 3, $skip_read = true)
@@ -100,13 +116,16 @@
 	/*
 	 Class for managing the plans stored on a per blog basis, which are used as the source for plans used by individuals
 	 */
-	class PlanSource extends Plan
+	class PlanBlog extends Plan
 	{
-		function PlanSource()
+		protected $user_table_name;
+
+		function PlanBlog($blog_id = 0)
 		{
-			$this->plan_table_name = BFOX_BLOG_TABLE_PREFIX . 'reading_plan';
-			$this->data_table_name = BFOX_BLOG_TABLE_PREFIX . 'reading_plan_data';
-			$this->user_table_name = BFOX_BLOG_TABLE_PREFIX . 'reading_plan_users';
+			$prefix = bfox_get_blog_table_prefix($blog_id);
+			$this->plan_table_name = $prefix . 'reading_plan';
+			$this->data_table_name = $prefix . 'reading_plan_data';
+			$this->user_table_name = $prefix . 'reading_plan_users';
 		}
 
 		private function create_tables()
@@ -171,7 +190,7 @@
 					$plan_id = 1 + $wpdb->get_var("SELECT MAX(id) FROM $this->plan_table_name");
 				
 				// Update the plan table
-				$name = 'Plan $plan_id';
+				$name = 'Plan ' . $plan_id;
 				$summary = 'Simple Reading Plan';
 				$frequency = 0;
 				$frequency_size = 0;
@@ -362,7 +381,7 @@
 	}
 
 	global $bfox_plan;
-	$bfox_plan = new PlanSource();
+	$bfox_plan = new PlanBlog();
 	global $bfox_plan_progress;
 	$bfox_plan_progress = new PlanProgress();
 
