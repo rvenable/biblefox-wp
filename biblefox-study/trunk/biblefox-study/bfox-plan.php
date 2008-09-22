@@ -59,7 +59,7 @@ How Fast?<br/>
 			{
 				$page = BFOX_PLAN_SUBPAGE;
 				$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
-				$personal_url = "admin.php?page=$page&amp;action=use_personal&amp;plan_id=$plan->id";
+				$personal_url = "admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
 				echo "<h3>$plan->name</h3><p>";
 				if (isset($plan->summary) && ('' != $plan->summary)) echo $plan->summary . '<br/>';
 				if ($can_edit) echo "[<a href=\"$delete_url\">remove</a>] ";
@@ -83,7 +83,7 @@ How Fast?<br/>
 			$page = BFOX_PLAN_SUBPAGE;
 			$delete_url = $blog_url . "page=$page&amp;action=delete&amp;plan_id=$plan_id";
 			echo "<strong>Plan $plan_id</strong> [<a href=\"$delete_url\">remove</a>]<br/>";
-			$sections = $bfox_plan_progress->get_plan_list($plan_id);
+//			$sections = bfox_plan_progress->get_plan_list($plan_id);
 			echo "<br/>";
 		}
 
@@ -146,7 +146,7 @@ How Fast?<br/>
 
 	function bfox_create_plan()
 	{
-		global $bfox_plan, $bfox_plan_progress;
+		global $bfox_plan, $bfox_plan_progress, $blog_id;
 
 		// Only level 7 users can edit/create plans
 		$can_edit = current_user_can(7);
@@ -157,8 +157,8 @@ How Fast?<br/>
 			{
 				if ($can_edit) $bfox_plan->delete($_GET['plan_id']);
 			}
-			else if ($_GET['action'] == 'use_personal')
-				$bfox_plan_progress->copy_plan($_GET['plan_id']);
+			else if ($_GET['action'] == 'track')
+				$bfox_plan_progress->track_plan($blog_id, $_GET['plan_id']);
 		}
 
 		if($can_edit && ($_GET['hidden_field'] == 'Y'))

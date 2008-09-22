@@ -30,32 +30,34 @@
 
 		function get_plan_refs($plan_id, $max_unread = -1)
 		{
-			global $wpdb;
-			$wpdb->show_errors(true);
-			$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->data_table_name WHERE plan_id = %d $this->order_by", $plan_id));
-
-			$original_sets = array();
-			$read_sets = array();
-			$unread_sets = array();
-			foreach ($results as $result)
+			$group = array();
+			$group['read'] = array();
+			$group['unread'] = array();
+			
+			if (isset($this->data_table_name))
 			{
-				$set = array($result->verse_start, $result->verse_end);
-				if (!isset($result->is_original) || $result->is_original)
-					$original_sets[$result->period_id][$result->ref_id] = $set;
-				else
+				global $wpdb;
+				$wpdb->show_errors(true);
+				$results = $wpdb->get_results($wpdb->prepare("SELECT * from $this->data_table_name WHERE plan_id = %d $this->order_by", $plan_id));
+				
+				$read_sets = array();
+				$unread_sets = array();
+				foreach ($results as $result)
 				{
-					if ($result->is_read)
+					$set = array($result->verse_start, $result->verse_end);
+					
+					if (isset($result->is_read) && $result->is_read)
 						$read_sets[$result->period_id][$result->ref_id] = $set;
 					else
 						$unread_sets[$result->period_id][$result->ref_id] = $set;
+					
+					if ($max_unread == count($unread_sets)) break;
 				}
-				if ($max_unread == count($unread_sets)) break;
+				
+				if (0 < count($read_sets)) $group['read'] = $this->convert_plan_sets_to_refs($read_sets);
+				if (0 < count($unread_sets)) $group['unread'] = $this->convert_plan_sets_to_refs($unread_sets);
 			}
-			
-			$group = array();
-			$group['original'] = $this->convert_plan_sets_to_refs($original_sets);
-			if (0 < count($read_sets)) $group['read'] = $this->convert_plan_sets_to_refs($read_sets);
-			if (0 < count($unread_sets)) $group['unread'] = $this->convert_plan_sets_to_refs($unread_sets);
+
 			return (object) $group;
 		}
 
@@ -87,30 +89,6 @@
 			if (isset($this->plan_table_name))
 				$wpdb->query($wpdb->prepare("DELETE FROM $this->plan_table_name WHERE id = %d", $plan_id));
 		}
-
-		function get_plan_list($plan_id, $max_unread = 3, $skip_read = true)
-		{
-			$refs_object = $this->get_plan_refs($plan_id, $max_unread);
-			foreach ($refs_object->original as $period_id => $original)
-			{
-				if ($skip_read && isset($refs_object->read[$period_id]) && !isset($refs_object->unread[$period_id])) continue;
-				$index = $period_id + 1;
-				echo "Reading $index: " . $original->get_link();
-				if (isset($refs_object->unread[$period_id]))
-				{
-					if (isset($refs_object->read[$period_id]))
-						echo " (You still need to read " . $refs_object->unread[$period_id]->get_link() . ")";
-					else
-						echo " (Unread)";
-				}
-				else
-				{
-					if (isset($refs_object->read[$period_id]))
-						echo " (Finished!)";
-				}
-				echo "<br/>";
-			}
-		}
 	}
 
 	/*
@@ -119,10 +97,15 @@
 	class PlanBlog extends Plan
 	{
 		protected $user_table_name;
+		protected $blog_id;
 
-		function PlanBlog($blog_id = 0)
+		function PlanBlog($local_blog_id = 0)
 		{
-			$prefix = bfox_get_blog_table_prefix($blog_id);
+			global $blog_id;
+			if (0 == $local_blog_id) $local_blog_id = $blog_id;
+			$this->blog_id = $local_blog_id;
+
+			$prefix = bfox_get_blog_table_prefix($this->blog_id);
 			$this->plan_table_name = $prefix . 'reading_plan';
 			$this->data_table_name = $prefix . 'reading_plan_data';
 			$this->user_table_name = $prefix . 'reading_plan_users';
@@ -176,6 +159,15 @@
 			}
 		}
 
+		function add_user_to_plan($plan_id, $user_id)
+		{
+			if (isset($this->user_table_name))
+			{
+				global $wpdb;
+				$wpdb->query($wpdb->prepare("INSERT INTO $this->user_table_name (plan_id, user) VALUES (%d, %d)", $plan_id, $user_id));
+			}
+		}
+
 		function add_new_plan($plan)
 		{
 			if (isset($this->plan_table_name))
@@ -223,6 +215,40 @@
 				}
 			}
 		}
+
+		function get_plan_list($plan_id, $max_unread = 0, $skip_read = false)
+		{
+			$orig_refs_object = $this->get_plan_refs($plan_id);
+			
+			// Get the plan progress for the current user
+			global $bfox_plan_progress;
+			$user_plan_id = $bfox_plan_progress->get_plan_id($this->blog_id, $plan_id);
+			if (isset($user_plan_id))
+				$refs_object = $bfox_plan_progress->get_plan_refs($user_plan_id);
+			
+			$unread_count = 0;
+			foreach ($orig_refs_object->unread as $period_id => $original)
+			{
+				if ($skip_read && isset($refs_object->read[$period_id]) && !isset($refs_object->unread[$period_id])) continue;
+				$index = $period_id + 1;
+				echo "Reading $index: " . $original->get_link();
+				if (isset($refs_object->unread[$period_id]))
+				{
+					if (isset($refs_object->read[$period_id]))
+						echo " (You still need to read " . $refs_object->unread[$period_id]->get_link() . ")";
+					else
+						echo " (Unread)";
+					$unread_count++;
+					if ($unread_count == $max_unread) break;
+				}
+				else
+				{
+					if (isset($refs_object->read[$period_id]))
+						echo " (Finished!)";
+				}
+				echo "<br/>";
+			}
+		}
 	}
 
 	/*
@@ -230,23 +256,51 @@
 	 */
 	class PlanProgress extends Plan
 	{
+		protected $user_id;
+
 		function PlanProgress()
 		{
 			global $user_ID;
-			if (0 < $user_ID) $this->data_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_plan_progress";
-			else unset($this->data_table_name);
+			if (0 < $user_ID)
+			{
+				$this->plan_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_reading_plan";
+				$this->data_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_reading_plan_progress";
+				$this->user_id = $user_ID;
 
-			$this->order_by = 'ORDER BY period_id ASC, ref_id ASC, is_original DESC, is_read DESC';
+				// If the table doesn't exist, create it
+				global $wpdb;
+				if ($wpdb->get_var("SHOW TABLES LIKE '$this->plan_table_name'") != $this->plan_table_name)
+					$this->create_tables();
+			}
+			else
+			{
+				unset($this->plan_table_name);
+				unset($this->data_table_name);
+			}
+
+			$this->order_by = 'ORDER BY period_id ASC, ref_id ASC, is_read DESC';
 		}
 
-		private function create_table()
+		private function create_tables()
 		{
+			// Note this function creates the table with dbDelta() which apparently has some pickiness
+			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+			
+			$sql = '';
+			
+			if (isset($this->plan_table_name))
+			{
+				$sql .= "CREATE TABLE $this->plan_table_name (
+				id bigint(20) unsigned NOT NULL auto_increment,
+				blog_id int,
+				original_plan_id int,
+				PRIMARY KEY  (id)
+				);";
+			}
+			
 			if (isset($this->data_table_name))
 			{
-				// Note this function creates the table with dbDelta() which apparently has some pickiness
-				// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-				
-				$sql = "CREATE TABLE $this->data_table_name (
+				$sql .= "CREATE TABLE $this->data_table_name (
 				id bigint(20) unsigned NOT NULL auto_increment,
 				plan_id int,
 				period_id int,
@@ -254,36 +308,67 @@
 				verse_start int,
 				verse_end int,
 				is_read boolean,
-				is_original boolean,
 				PRIMARY KEY  (id)
 				);";
-				
-				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-				dbDelta($sql);
+			}
+			
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql);
+		}
+
+		function track_plan($blog_id, $original_plan_id)
+		{
+			if (isset($this->plan_table_name))
+			{
+				global $wpdb;
+
+				// Add this user to the blog's plan records
+				$bfox_plan = new PlanBlog($blog_id);
+				$bfox_plan->add_user_to_plan($original_plan_id, $this->user_id);
+
+				// Update the plan table
+				$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name
+										 (blog_id, original_plan_id)
+										 VALUES (%d, %d)",
+										 $blog_id, $original_plan_id);
+
+				// Insert and get the plan ID
+				$wpdb->show_errors(true);
+				$wpdb->query($insert);
+				$plan_id = $wpdb->insert_id;
+
+				// Update the data table
+				if (isset($plan_id) && isset($this->data_table_name))
+				{
+					global $wpdb;
+					$src_table = $bfox_plan->get_data_table_name();
+					
+					if ($wpdb->get_var("SHOW TABLES LIKE '$src_table'") == $src_table)
+					{
+						$insert = $wpdb->prepare("INSERT INTO $this->data_table_name
+												 (plan_id, period_id, ref_id, verse_start, verse_end, is_read)
+												 SELECT %d, $src_table.period_id, $src_table.ref_id, $src_table.verse_start, $src_table.verse_end, FALSE
+												 FROM $src_table
+												 WHERE plan_id = %d",
+												 $plan_id,
+												 $original_plan_id);
+						$wpdb->query($insert);
+					}
+				}
 			}
 		}
 
-		function copy_plan($plan_id)
+		function get_plan_id($blog_id, $original_plan_id)
 		{
-			if (isset($this->data_table_name))
+			if (isset($this->plan_table_name))
 			{
-				// NOTE: This function currently uses the current blog id, which should be sufficient
-				global $wpdb, $bfox_plan;
-				$src_table = $bfox_plan->get_data_table_name();
-				
-				if ($wpdb->get_var("SHOW TABLES LIKE '$this->data_table_name'") != $this->data_table_name)
-					$this->create_table();
-				
-				if ($wpdb->get_var("SHOW TABLES LIKE '$src_table'") == $src_table)
-				{
-					$prefix = "INSERT INTO $this->data_table_name (plan_id, period_id, ref_id, verse_start, verse_end, is_read, is_original)
-							SELECT $src_table.plan_id, $src_table.period_id, $src_table.ref_id, $src_table.verse_start, $src_table.verse_end, FALSE, ";
-					$postfix = $wpdb->prepare("FROM $src_table WHERE plan_id = %d", $plan_id);
-					$insert_original = $prefix . " TRUE "  . $postfix;
-					$insert_copy     = $prefix . " FALSE " . $postfix;
-					$wpdb->query($insert_original);
-					$wpdb->query($insert_copy);
-				}
+				global $wpdb;
+				return $wpdb->get_var($wpdb->prepare("SELECT id
+													 FROM $this->plan_table_name
+													 WHERE blog_id = %d
+													 AND original_plan_id = %d",
+													 $blog_id,
+													 $original_plan_id));
 			}
 		}
 
@@ -300,8 +385,7 @@
 				// or where both the start and end verse are inside of the unique ids
 				$select = $wpdb->prepare("SELECT *
 										 FROM $this->data_table_name
-										 WHERE is_original = FALSE
-										 AND is_read = FALSE
+										 WHERE is_read = FALSE
 										 AND ((%d BETWEEN verse_start AND verse_end)
 										   OR (%d BETWEEN verse_start AND verse_end)
 										   OR (%d < verse_start AND %d > verse_end))",
@@ -366,11 +450,11 @@
 						if (isset($unread1))
 						{
 							$insert = $wpdb->prepare("INSERT INTO $this->data_table_name
-													 (plan_id, period_id, ref_id, verse_start, verse_end, is_read, is_original)
-													 VALUES (%d, %d, %d, %d, %d, FALSE, FALSE)",
+													 (plan_id, period_id, ref_id, verse_start, verse_end, is_read)
+													 VALUES (%d, %d, %d, %d, %d, FALSE)",
 													 $plan->plan_id, $plan->period_id, $plan->ref_id, $unread1[0], $unread1[1]);
 							if (isset($unread2))
-								$insert .= $wpdb->prepare(", (%d, %d, %d, %d, %d, FALSE, FALSE)", $plan->plan_id, $plan->period_id, $plan->ref_id, $unread2[0], $unread2[1]);
+								$insert .= $wpdb->prepare(", (%d, %d, %d, %d, %d, FALSE)", $plan->plan_id, $plan->period_id, $plan->ref_id, $unread2[0], $unread2[1]);
 						}
 						$wpdb->query($update);
 						$wpdb->query($insert);
