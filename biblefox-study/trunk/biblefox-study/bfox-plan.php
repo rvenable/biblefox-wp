@@ -132,7 +132,7 @@ How Fast?<br/>
 			}
 			else
 			{
-				echo "This Bible Study Blog currently has no reading plans. You should create one. <br/>";
+				echo "This Bible Study Blog currently has no reading plans.<br/>";
 			}
 			echo "<br/>";
 		}
@@ -150,10 +150,11 @@ How Fast?<br/>
 			echo "You are a part of the following Bible Study Blogs:<br/>";
 			echo "<ul>";
 			foreach ($blogs as $blog_id => $blog_info)
-				echo "<li>$blog_info->blogname</li>";
+				echo "<li><a href=\"{$blog_info->siteurl}/wp-admin/\">$blog_info->blogname</a></li>";
 			echo "</ul>";
 		}
-		echo "You can always create a new Bible Study Blog. <br/>";
+		$home_dir = get_option('home');
+		echo "You can always <a href=\"{$home_dir}/wp-signup.php\">create a new Bible Study Blog</a>. <br/>";
 		echo "</div>";
 
 		echo "<div class=\"wrap\">";
