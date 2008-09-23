@@ -21,7 +21,7 @@
 	// Uncomment for testing DB queries
 	define('DIEONDBERROR', 'die!');
 	$wpdb->show_errors(true);
-	
+
 	function bfox_study_menu()
 	{
 		$min_user_level = 8;
@@ -115,5 +115,23 @@
 
 	add_action('init', 'bfox_study_init');
 	register_activation_hook(__FILE__, 'bfox_activate');
-	
+
+	// Kill the dashboard by redirecting index.php to admin.php
+	function bfox_redirect_dashboard()
+	{
+		// Check the global $pagenow variable
+		// This var is set in wp-include/vars.php, which is called in wp-settings.php, in between creation of mu-plugins and regular plugins
+
+		// If this is an admin screen and $pagenow says that we are at index.php, change it to use admin.php
+		// And set the page to the My Progress page
+		global $pagenow;
+		if (is_admin() && ('index.php' == $pagenow))
+		{
+			$pagenow = 'admin.php';
+			if (!isset($_GET['page'])) $_GET['page'] = 'biblefox-study/biblefox-study.php';
+		}
+	}
+	// Redirect the dashboard after loading all plugins (all plugins are finished loading shortly after the necessary $pagenow var is created)
+	add_action('plugins_loaded', 'bfox_redirect_dashboard');
+
 ?>
