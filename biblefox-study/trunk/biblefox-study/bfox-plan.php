@@ -98,7 +98,6 @@ How Fast?<br/>
 	function bfox_user_reading_plans($blogs)
 	{
 		global $bfox_plan_progress;
-		$plan_url_base = 'admin.php?page=' . BFOX_PLAN_SUBPAGE . '&amp;';
 
 		foreach ($blogs as $blog_id => $blog_info)
 		{
@@ -111,7 +110,7 @@ How Fast?<br/>
 			{
 				foreach ($blog_plans as $plan)
 				{
-					$plan_url = $plan_url_base . 'plan_id=' . $plan->id . '&amp;';
+					$plan_url .= '&amp;plan_id=' . $plan->id . '&amp;';
 					echo "<strong>$plan->name</strong> (<a href=\"$plan_url\">view plan</a>)<br/><i>$plan->summary</i><br/>";
 					$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
 					if (isset($progress_plan_id))
