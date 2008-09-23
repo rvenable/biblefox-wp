@@ -146,7 +146,7 @@
 				summary text,
 				start_date datetime,
 				frequency int,
-				frequency_size int
+				frequency_size int,
 				PRIMARY KEY  (id)
 				);";
 			}
