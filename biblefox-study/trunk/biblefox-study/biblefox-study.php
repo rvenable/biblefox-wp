@@ -32,8 +32,8 @@
 
 		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 
-		// These menu pages are only for the site admin
-		if (is_site_admin())
+		// These menu pages are only for the site admin and only on the main blog site
+		if (is_site_admin() && is_main_blog())
 		{
 			add_submenu_page(BFOX_ADMIN_FILE, 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
 			add_submenu_page(BFOX_ADMIN_FILE, 'Biblefox Setup', 'Setup', 10, BFOX_SETUP_SUBPAGE, 'bfox_setup');
