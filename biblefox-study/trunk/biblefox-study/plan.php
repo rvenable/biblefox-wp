@@ -10,6 +10,14 @@
 
 		function get_data_table_name() { return $this->data_table_name; }
 
+		function are_tables_installed()
+		{
+			global $wpdb;
+			return ((!isset($this->plan_table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->plan_table_name'") == $this->plan_table_name)) &&
+					(!isset($this->data_table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->data_table_name'") == $this->data_table_name)) &&
+					(!isset($this->user_table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->user_table_name'") == $this->user_table_name)));
+		}
+		
 		function get_plan_refs($plan_id)
 		{
 			$unread = array();
@@ -123,7 +131,7 @@
 			$this->user_table_name = $prefix . 'reading_plan_users';
 		}
 
-		private function create_tables()
+		function create_tables()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
@@ -133,12 +141,13 @@
 			if (isset($this->plan_table_name))
 			{
 				$sql .= "CREATE TABLE $this->plan_table_name (
-				id int,
+				id bigint(20) unsigned NOT NULL auto_increment,
 				name varchar(128),
 				summary text,
 				start_date datetime,
 				frequency int,
 				frequency_size int
+				PRIMARY KEY  (id)
 				);";
 			}
 			
@@ -185,21 +194,21 @@
 			if (isset($this->plan_table_name))
 			{
 				global $wpdb;
-				$plan_id = 1;
 				
 				// If the table doesn't exist, create it
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->plan_table_name'") != $this->plan_table_name)
 					$this->create_tables();
-				else
-					$plan_id = 1 + $wpdb->get_var("SELECT MAX(id) FROM $this->plan_table_name");
 				
 				// Update the plan table
 				if (!isset($plan->name) || ('' == $plan->name)) $plan->name = 'Plan ' . $plan_id;
 				$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name
-										 (id, name, summary, start_date, frequency, frequency_size)
-										 VALUES (%d, %s, %s, NOW(), %d, %d)",
-										 $plan_id, $plan->name, $plan->summary, 0, 0);
+										 (name, summary, start_date, frequency, frequency_size)
+										 VALUES (%s, %s, NOW(), %d, %d)",
+										 $plan->name, $plan->summary, 0, 0);
+
+				// Insert and get the plan ID
 				$wpdb->query($insert);
+				$plan_id = $wpdb->insert_id;
 
 				// Update the data table
 				$this->insert($plan_id, $plan->refs_array);
@@ -255,14 +264,15 @@
 	{
 		protected $user_id;
 
-		function PlanProgress()
+		function PlanProgress($user_id = 0)
 		{
 			global $user_ID;
-			if (0 < $user_ID)
+			if (0 == $user_id) $user_id = $user_ID;
+			if (0 < $user_id)
 			{
-				$this->plan_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_reading_plan";
-				$this->data_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_reading_plan_progress";
-				$this->user_id = $user_ID;
+				$this->plan_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_id}_reading_plan";
+				$this->data_table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_id}_reading_plan_progress";
+				$this->user_id = $user_id;
 
 				// If the table doesn't exist, create it
 				global $wpdb;
@@ -276,7 +286,7 @@
 			}
 		}
 
-		private function create_tables()
+		function create_tables()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
@@ -328,7 +338,6 @@
 										 $blog_id, $original_plan_id);
 
 				// Insert and get the plan ID
-				$wpdb->show_errors(true);
 				$wpdb->query($insert);
 				$plan_id = $wpdb->insert_id;
 

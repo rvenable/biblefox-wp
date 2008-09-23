@@ -4,29 +4,39 @@
 	{
 		private $table_name;
 
-		function History()
+		function History($user_id = 0)
 		{
 			global $user_ID;
-			if (0 < $user_ID) $this->table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_ID}_read_history";
+			if (0 == $user_id) $user_id = $user_ID;
+			if (0 < $user_id) $this->table_name = BFOX_BASE_TABLE_PREFIX . "u{$user_id}_read_history";
 			else unset($this->table_name);
 		}
 
-		private function create_table()
+		function are_tables_installed()
+		{
+			global $wpdb;
+			return (!isset($this->table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") == $this->table_name));
+		}
+		
+		function create_tables()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-			
-			$sql = "CREATE TABLE $this->table_name (
-			id bigint(20) unsigned NOT NULL auto_increment,
-			verse_start int,
-			verse_end int,
-			time datetime,
-			is_read boolean,
-			PRIMARY KEY  (id)
-			);";
-			
-			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-			dbDelta($sql);
+
+			if (isset($this->table_name))
+			{
+				$sql = "CREATE TABLE $this->table_name (
+				id bigint(20) unsigned NOT NULL auto_increment,
+				verse_start int,
+				verse_end int,
+				time datetime,
+				is_read boolean,
+				PRIMARY KEY  (id)
+				);";
+				
+				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+				dbDelta($sql);
+			}
 		}
 		
 		// Returns BibleRefs for a given history id
@@ -71,7 +81,7 @@
 				global $wpdb;
 				
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
-					$this->create_table();
+					$this->create_tables();
 				else
 /*				{
 					// Get all the history ids which are inside this ref (viewed only)

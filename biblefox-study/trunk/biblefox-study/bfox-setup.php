@@ -1,6 +1,44 @@
 <?php
 	define('BFOX_SETUP_DIR', dirname(__FILE__) . "/setup");
 	
+	function bfox_upgrade_all_tables()
+	{
+		// Get the blogs using a WPMU function (from wpmu-functions.php)
+		$blogs = get_blog_list();
+		foreach ($blogs as $blog)
+		{
+			echo "<strong>Upgrading Blog {$blog['blog_id']}...</strong><br/>";
+
+			$plan = new PlanBlog($blog['blog_id']);
+			if ($plan->are_tables_installed())
+			{
+				echo "Upgrading Plan<br/>";
+				$plan->create_tables();
+			}
+		}
+		
+		global $wpdb;
+		$users = $wpdb->get_col("SELECT ID FROM $wpdb->users");
+		foreach ($users as $user_id)
+		{
+			echo "<strong>Upgrading User $user_id...</strong><br/>";
+
+			$history = new History($user_id);
+			if ($history->are_tables_installed())
+			{
+				echo "Upgrading History<br/>";
+				$history->create_tables();
+			}
+			
+			$plan = new PlanProgress($user_id);
+			if ($plan->are_tables_installed())
+			{
+				echo "Upgrading Plan Progress<br/>";
+				$plan->create_tables();
+			}
+		}
+	}
+
 	function bfox_create_books_table()
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
@@ -166,6 +204,7 @@
 	{
 		bfox_fill_books_table();
 		bfox_fill_synonyms_table();
+		bfox_upgrade_all_tables();
 	}
 	
 ?>
