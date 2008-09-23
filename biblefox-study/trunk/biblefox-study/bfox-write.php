@@ -17,7 +17,7 @@
 		dbDelta($sql);
 	}
 
-	function bfox_set_post_bible_refs($post_id, $refs)
+	function bfox_set_post_bible_refs($post_id, BibleRefs $refs)
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
@@ -30,9 +30,9 @@
 			$wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE post_id = %d", $post_id));
 
 		$ref_order = 0;
-		foreach ($refs as $ref)
+		$sets = $refs->get_sets();
+		foreach ($sets as $range)
 		{
-			$range = bfox_get_unique_id_range($ref);
 			$insert = $wpdb->prepare("INSERT INTO $table_name (post_id, ref_order, verse_begin, verse_end) VALUES (%d, %d, %d, %d)", $post_id, $ref_order, $range[0], $range[1]);
 			$wpdb->query($insert);
 			$ref_order++;

@@ -47,10 +47,8 @@
 	{
 		$refStr = $_POST['bible_ref'];
 
-		$refs = array();
-		$reflist = bfox_parse_reflist($refStr);
-		foreach($reflist as $ref) $refs[] = bfox_parse_ref($ref);
-		if ((0 != $post_id) && (0 < count($refs)))
+		$refs = new BibleRefs($refStr);
+		if ((0 != $post_id) && (0 < $refs->get_count()))
 		{
 			require_once("bfox-write.php");
 			bfox_set_post_bible_refs($post_id, $refs);
