@@ -203,18 +203,11 @@
 	function bfox_the_content($content)
 	{
 		global $post;
+
+		// If this post have bible references, mention them at the beginning of the post
 		$refs = bfox_get_post_bible_refs($post->ID);
-		if (0 < count($refs))
-		{
-			$refStrs = '';
-			foreach ($refs as $ref)
-			{
-				$refStr = bfox_get_refstr($ref);
-				if ('' != $refStrs) $refStrs .= ', ';
-				$refStrs .= bfox_get_bible_link($refStr);
-			}
-			$content = '<p>Scriptures Referenced: ' . $refStrs . '</p>' . $content;
-		}
+		if (0 < $refs->get_count()) $content = '<p>Scriptures Referenced: ' . $refs->get_links() . '</p>' . $content;
+
 		return $content;
 	}
 

@@ -48,10 +48,7 @@
 		{
 			global $post_ID;
 			$refs = bfox_get_post_bible_refs($post_ID);
-			if (0 < count($refs))
-				$refStr = bfox_get_reflist_str($refs);
-			else
-				$refStr = '';
+			$refStr = $refs->get_string();
 		}
 
 		// Create the form

@@ -64,6 +64,23 @@
 		return 0;
 	}
 
+	function bfox_format_ref_url($ref_str)
+	{
+		$home_dir = get_option('home');
+		
+		if (is_admin())
+			$page_url = $home_dir . '/wp-admin/admin.php?page=' . BFOX_READ_SUBPAGE . '&';
+		else
+			$page_url = $home_dir . '/?';
+		
+		return $page_url . 'bible_ref=' . $ref_str;
+	}
+	
+	function bfox_format_ref_link($ref_str)
+	{
+		return '<a href="' . bfox_format_ref_url($ref_str) . '" title="' . $ref_str . '">' . $ref_str . '</a>';
+	}
+	
 	/*
 	 This class is used to represent a bible reference as a 3 integer vector: book, chapter, verse
 	 */
@@ -560,22 +577,19 @@
 
 		function get_url()
 		{
-			$home_dir = get_option('home');
-			$admin_dir = $home_dir . '/wp-admin';
-			
-			if (defined('WP_ADMIN'))
-				$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
-			else
-				$page_url = "{$home_dir}/?";
-
-			return $page_url . 'bible_ref=' . $this->get_string();
+			return bfox_format_ref_url($this->get_string());
 		}
-		
+
 		function get_link()
 		{
-			$url = $this->get_url();
-			$refStr = $this->get_string();
-			return "<a href=\"$url\" title=\"$refStr\">$refStr</a>";
+			return bfox_format_ref_link($this->get_string());
+		}
+		
+		function get_links()
+		{
+			$links = array();
+			foreach ($this->refs as $ref) $links[] = bfox_format_ref_link($ref->get_string());
+			return implode('; ', $links);
 		}
 		
 		function push_ref_single(BibleRefSingle $ref)
