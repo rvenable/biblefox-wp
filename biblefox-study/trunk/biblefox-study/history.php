@@ -183,7 +183,7 @@
 			
 			if ($read) $read_str = 'read';
 			else $read_str = 'viewed';
-			$read_link = "<a href=\"" . $this->get_special_url($read) . "\">$read_str</a>";
+			$read_link = "<a href=\"" . $this->get_special_url($read) . "#recent_{$read_str}\">$read_str</a>";
 			
 			if (isset($time))
 			{

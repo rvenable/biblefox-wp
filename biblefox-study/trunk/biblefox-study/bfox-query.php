@@ -180,6 +180,24 @@
 				$posts[] = ((object) bfox_get_special_page_plan());
 			}
 		}
+		else if (is_home())
+		{
+			require_once('bfox-plan.php');
+			// Add the blog progress page to the front of the posts
+			$content = bfox_get_reading_plan_status();
+			if ('' != $content)
+			{
+				$new_post = array();
+				$new_post['post_title'] = 'Reading Plan Status';
+				$new_post['post_content'] = $content;
+				$new_post['post_type'] = 'special';
+				$new_post['post_date'] = current_time('mysql', false);
+				$new_post['post_date_gmt'] = current_time('mysql', true);
+				
+				// Append the new posts onto the beginning of the post list
+				$posts = array_merge(array((object) $new_post), $posts);
+			}
+		}
 
 		return $posts;
 	}
@@ -249,8 +267,8 @@
 
 	function bfox_the_author($author)
 	{
-		global $post;
-		if ('bible_ref' == $post->post_type) $author = 'Biblefox.com';
+		global $post, $current_site;
+		if (('bible_ref' == $post->post_type) || ('special' == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
 		return $author;
 	}
 

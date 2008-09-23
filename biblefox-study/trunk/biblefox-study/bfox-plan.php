@@ -50,49 +50,77 @@ How Fast?<br/>
 
 	function bfox_echo_plan_list($plan_list, $skip_read = false)
 	{
+		$content = '';
 		$unread_count = 0;
 		foreach ($plan_list->original as $period_id => $original)
 		{
 			if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
 			$index = $period_id + 1;
-			echo "Reading $index: " . $original->get_link();
+			$content .= "Reading $index: " . $original->get_link();
 			if (isset($plan_list->unread[$period_id]))
 			{
 				if (isset($plan_list->read[$period_id]))
-					echo " (You still need to read " . $plan_list->unread[$period_id]->get_link() . ")";
+					$content .= " (You still need to read " . $plan_list->unread[$period_id]->get_link() . ")";
 				else
-					echo " (Unread)";
+					$content .= " (Unread)";
 				$unread_count++;
 				if ($unread_count == $max_unread) break;
 			}
 			else
 			{
 				if (isset($plan_list->read[$period_id]))
-					echo " (Finished!)";
+					$content .= " (Finished!)";
 			}
-			echo "<br/>";
+			$content .= "<br/>";
 		}
+		return $content;
 	}
 	
 	function bfox_blog_reading_plans($plans, $can_edit = false)
 	{
 		global $bfox_plan;
+		$content = '';
 		foreach ($plans as $plan)
 		{
 			$page = BFOX_PLAN_SUBPAGE;
-			$delete_url = "admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
-			$track_url = "admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
+			$admin_dir = get_option('home') . '/wp-admin';
+			$delete_url = "$admin_dir/admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
+			$track_url = "$admin_dir/admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
 			$plan_list = $bfox_plan->get_plan_list($plan->id);
 
-			echo "<h3>$plan->name</h3><p>";
-			if (isset($plan->summary) && ('' != $plan->summary)) echo $plan->summary . '<br/>';
-			if ($can_edit) echo "(<a href=\"$delete_url\">remove</a>) ";
+			$content .= "<h3>$plan->name</h3><p>";
+			if (isset($plan->summary) && ('' != $plan->summary)) $content .= $plan->summary . '<br/>';
+			if ($can_edit) $content .= "(<a href=\"$delete_url\">remove</a>) ";
 			if (!isset($plan_list->read) && !isset($plan_list->unread))
-				echo "(<a href=\"$track_url\">track your progress</a>)";
-			echo '</p>';
-			bfox_echo_plan_list($plan_list);
-			echo "<br/>";
+				$content .= "(<a href=\"$track_url\">track your progress</a>)";
+			$content .= '</p>';
+			$content .= bfox_echo_plan_list($plan_list);
+			$content .= "<br/>";
 		}
+		return $content;
+	}
+	
+	function bfox_get_reading_plan_status()
+	{
+		global $bfox_plan;
+		$plans = $bfox_plan->get_plans();
+		$content = '';
+		if (0 < count($plans))
+		{
+			// HACK: hacky way to get a url
+			global $bfox_history;
+			$url = $bfox_history->get_special_url(false);
+
+			$content .= 'This Bible Study Blog is currently following these reading plans:<br/>';
+			foreach ($plans as $plan)
+			{
+				$content .= "<strong><a href=\"$url\">$plan->name</a></strong>";
+				if (isset($plan->summary) && ('' != $plan->summary)) $content .= ': ' .$plan->summary;
+				$content .= '<br/>';
+			}
+		}
+
+		return $content;
 	}
 	
 	function bfox_user_reading_plans($blogs)
@@ -215,7 +243,7 @@ How Fast?<br/>
 			$plan_url_base = 'admin.php?page=' . BFOX_PLAN_SUBPAGE . '&amp;';
 			echo "<h2>View Reading Plan</h2><br/>";
 			echo "You have selected the following Reading Plan: (<a href=\"$plan_url_base\">view all</a>)";
-			bfox_blog_reading_plans($display_plans, $can_edit);
+			echo bfox_blog_reading_plans($display_plans, $can_edit);
 		}
 		else
 		{
@@ -225,7 +253,7 @@ How Fast?<br/>
 			if (0 < count($display_plans))
 			{
 				echo "This Bible Study Blog has the following Reading Plans:";
-				bfox_blog_reading_plans($display_plans, $can_edit);
+				echo bfox_blog_reading_plans($display_plans, $can_edit);
 			}
 			else
 			{
@@ -246,7 +274,8 @@ How Fast?<br/>
 		if (0 < count($refs_array))
 		{
 			$read_str = $read? 'Read' : 'Viewed';
-			$output .= "<h3>Recently $read_str Scriptures</h3>";
+			$lc_read_str = strtolower($read_str);
+			$output .= "<h3>Recently $read_str Scriptures<a name=\"recent_{$lc_read_str}\"></a></h3>";
 			foreach ($refs_array as $refs)
 			{
 				$output .= bfox_get_bible_link($refs->get_string()) . '<br/>';
@@ -258,6 +287,10 @@ How Fast?<br/>
 	function bfox_get_special_page_plan()
 	{
 		$content = '';
+
+		// Get the plans for this bible blog
+		global $bfox_plan;
+		$content .= bfox_blog_reading_plans($bfox_plan->get_plans());
 
 		// Get the recently read scriptures
 		$content .= bfox_get_recent_scriptures_output(10, true);
