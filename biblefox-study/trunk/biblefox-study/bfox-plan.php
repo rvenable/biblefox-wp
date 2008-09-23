@@ -140,7 +140,10 @@ How Fast?<br/>
 	function bfox_progress_page()
 	{
 		global $user_ID;
+		// Get the bible study blogs for the current user
 		$blogs = get_blogs_of_user($user_ID);
+		// The main biblefox blog does not count as a bible study blog
+		unset($blogs[1]);
 
 		echo "<div class=\"wrap\">";
 		echo "<h2>Bible Study Blogs</h2>";
@@ -152,6 +155,8 @@ How Fast?<br/>
 				echo "<li><a href=\"{$blog_info->siteurl}/wp-admin/\">$blog_info->blogname</a></li>";
 			echo "</ul>";
 		}
+		else
+			echo "You are not yet a part of any Bible Study Blogs.<br/><br/>";
 		$home_dir = get_option('home');
 		echo "You can always <a href=\"{$home_dir}/wp-signup.php\">create a new Bible Study Blog</a>. <br/>";
 		echo "</div>";
