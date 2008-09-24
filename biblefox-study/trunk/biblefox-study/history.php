@@ -48,11 +48,11 @@
 			return $refs;
 		}
 
-		function get_refs_for_time($time)
+		function get_refs_for_time($time, $read)
 		{
 			global $wpdb;
 			$refs = new BibleRefs;
-			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = CAST(%s as DATETIME)", $time), ARRAY_N));
+			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = CAST(%s as DATETIME) AND is_read = %d", $time, $read), ARRAY_N));
 			return $refs;
 		}
 		
@@ -130,7 +130,7 @@
 					{
 						if ($index < $max)
 						{
-							$refs_array[] = $this->get_refs_for_time($time);
+							$refs_array[] = $this->get_refs_for_time($time, $read);
 							$index++;
 						}
 					}
