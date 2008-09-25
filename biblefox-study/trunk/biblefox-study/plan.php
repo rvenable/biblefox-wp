@@ -18,6 +18,15 @@
 					(!isset($this->user_table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->user_table_name'") == $this->user_table_name)));
 		}
 		
+		function get_plan_text($plan_id)
+		{
+			$refs = $this->get_plan_refs($plan_id);
+			$text = '';
+			foreach ($refs->unread as $refs)
+				$text .= $refs->get_string() . "\n";
+			return $text;
+		}
+
 		function get_plan_refs($plan_id)
 		{
 			$unread = array();
@@ -101,11 +110,16 @@
 			return array();
 		}
 
+		function delete_plan_data($plan_id)
+		{
+			if (isset($this->data_table_name))
+				$wpdb->query($wpdb->prepare("DELETE FROM $this->data_table_name WHERE plan_id = %d", $plan_id));
+		}
+
 		function delete($plan_id)
 		{
 			global $wpdb;
-			if (isset($this->data_table_name))
-				$wpdb->query($wpdb->prepare("DELETE FROM $this->data_table_name WHERE plan_id = %d", $plan_id));
+			$this->delete_plan_data($plan_id);
 			if (isset($this->plan_table_name))
 				$wpdb->query($wpdb->prepare("DELETE FROM $this->plan_table_name WHERE id = %d", $plan_id));
 		}
@@ -189,6 +203,18 @@
 			}
 		}
 
+		function get_plan_users($plan_id)
+		{
+			if (isset($this->user_table_name))
+			{
+				global $wpdb;
+				$users = $wpdb->get_col($wpdb->prepare("SELECT user FROM $this->user_table_name WHERE plan_id = %d", $plan_id));
+			}
+
+			if (is_array($users)) return $users;
+			return array();
+		}
+		
 		function add_new_plan($plan)
 		{
 			if (isset($this->plan_table_name))
@@ -211,11 +237,68 @@
 				$plan_id = $wpdb->insert_id;
 
 				// Update the data table
-				$this->insert($plan_id, $plan->refs_array);
+				$this->insert_refs_array($plan_id, $plan->refs_array);
 			}
 		}
 
-		function insert($plan_id, $plan_refs_array)
+		function edit_plan($plan)
+		{
+			if (isset($this->plan_table_name) && isset($plan->id))
+			{
+				global $wpdb;
+
+				// Update the plan table
+				$set_array = array();
+				if (isset($plan->name)) $set_array[] = $wpdb->prepare('name = %s', $plan->name);
+				if (isset($plan->summary)) $set_array[] = $wpdb->prepare('summary = %s', $plan->summary);
+				if (isset($plan->start_date)) $set_array[] = $wpdb->prepare('start_date = CAST(%s as DATETIME)', $plan->start_date);
+				if (isset($plan->frequency)) $set_array[] = $wpdb->prepare('frequency = %d', $plan->frequency);
+				if (isset($plan->frequency_size)) $set_array[] = $wpdb->prepare('frequency_size = %d', $plan->frequency_size);
+
+				$wpdb->show_errors(true);
+				if (0 < count($set_array))
+				{
+					$wpdb->query($wpdb->prepare("UPDATE $this->plan_table_name
+												SET " . implode(', ', $set_array) .
+												" WHERE id = %d",
+												$plan->id));
+				}
+
+				// If we changed the bible refs, we need to update the data table
+				if (isset($plan->refs_array))
+				{
+					// Delete any old ref data in the data table
+					$this->delete_plan_data($plan->id);
+
+					// Update the data table with the new refs
+					$this->insert_refs_array($plan->id, $plan->refs_array);
+
+					// Get all the users which are tracking this plan
+					$users = $this->get_plan_users($plan->id);
+
+					// For each user, correct their tracking data
+					foreach ($users as $user)
+					{
+						$progress = new PlanProgress($user);
+						$user_plan_id = $progress->get_plan_id($this->blog_id, $plan->id);
+
+						// Get the references which this user has already marked as read
+						$refs = $progress->get_plan_refs($user_plan_id);
+
+						// Delete all their old tracking data
+						$progress->delete($user_plan_id);
+
+						// Set the user to track the plan again
+						$user_plan_id = $progress->track_plan($this->blog_id, $plan_id);
+						
+						// For each scripture they had read previously, mark as read again
+						foreach ($refs->read as $refs) $progress->mark_as_read($refs, $user_plan_id);
+					}
+				}
+			}
+		}
+		
+		function insert_refs_array($plan_id, $plan_refs_array)
 		{
 			if (isset($this->data_table_name))
 			{
@@ -359,6 +442,9 @@
 						$wpdb->query($insert);
 					}
 				}
+
+				// Return the newly inserted plan id
+				return $plan_id;
 			}
 		}
 
@@ -376,9 +462,10 @@
 			}
 		}
 
-		function mark_as_read(BibleRefs $refs)
+		function mark_as_read(BibleRefs $refs, $plan_id = NULL)
 		{
 			global $wpdb;
+			if (!is_null($plan_id)) $plan_where = $wpdb->prepare('plan_id = %d AND', $plan_id);
 
 			foreach ($refs->get_sets() as $unique_ids)
 			{
@@ -389,7 +476,7 @@
 				// or where both the start and end verse are inside of the unique ids
 				$select = $wpdb->prepare("SELECT *
 										 FROM $this->data_table_name
-										 WHERE is_read = FALSE
+										 WHERE $plan_where is_read = FALSE
 										 AND ((%d BETWEEN verse_start AND verse_end)
 										   OR (%d BETWEEN verse_start AND verse_end)
 										   OR (%d < verse_start AND %d > verse_end))",

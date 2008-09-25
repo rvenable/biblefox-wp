@@ -1,31 +1,39 @@
 <?php
 
-	function bfox_create_plan_menu()
+	function bfox_edit_plan_menu($plan = NULL)
 	{
-		$text = (string) $_GET['books'];
-		$period_length = (string) $_GET['frequency'];
-		$section_size = (int) $_GET['num_chapters'];
-		
+		if (!is_null($plan))
+		{
+			global $bfox_plan;
+			$title = $plan->name;
+			$summary = $plan->summary;
+			$text = $bfox_plan->get_plan_text($plan->id);
+			$section_size = $plan->frequency;
+			$plan_id = $plan->id;
+			$header = 'Edit Reading Plan';
+			$action_str = 'Edit';
+			$text_box_info = 'Edit the sections in your plan. <br/> Each line is a different section of your reading plan.';
+		}
+		else
+		{
+			$header = 'Create a Reading Plan';
+			$action_str = 'Create';
+			$text_box_info = 'Which passages of the bible would you like to read? <br/> Type the passages below: ';
+		}
 	?>
-<div class="wrap">
-<h2>Create a Reading Plan</h2>
+<h2><?php echo $header; ?></h2>
 <form action="admin.php" method="get">
 <input type="hidden" name="page" value="<?php echo BFOX_PLAN_SUBPAGE; ?>">
 <input type="hidden" name="hidden_field" value="Y">
-Title: <input type="text" size="10" maxlength="128" name="plan_name" value=""> <br/>
-Summary: <input type="text" size="10" maxlength="128" name="plan_summary" value=""> <br/>
-Which books?<br/>
-<textarea rows="5" cols="20" wrap="physical" name="books"><?php echo $text; ?></textarea><br/>
-How Fast?<br/>
-<input type="text" size="10" maxlength="40" name="num_chapters" value="<?php echo $section_size; ?>"> chapters per
-<select name="frequency" value="<?php echo $period_length; ?>">
-<option>day</option>
-<option>week</option>
-<option>month</option>
-</select>
-<input type="submit" class="button" />
+<input type="hidden" name="plan_id" value="<?php echo $plan_id; ?>">
+Title: <input type="text" size="20" maxlength="128" name="plan_name" value="<?php echo $title; ?>"> <br/>
+Summary: <input type="text" size="20" maxlength="128" name="plan_summary" value="<?php echo $summary; ?>"> <br/> <br/>
+<?php echo $text_box_info; ?><br/>
+<textarea rows="5" cols="40" wrap="physical" name="books"><?php echo $text; ?></textarea><br/> <br/>
+How fast will you read this plan?<br/>
+<input type="text" size="10" maxlength="40" name="num_chapters" value="<?php echo $section_size; ?>"> chapters per period <br/> <br/>
+<input type="submit" value="<?php echo $action_str; ?> Plan" class="button" />
 </form>
-</div>
 <?php
 	}
 	
@@ -211,18 +219,26 @@ How Fast?<br/>
 
 		if($can_edit && ($_GET['hidden_field'] == 'Y'))
 		{
-			$text = (string) $_GET['books'];
-			$period_length = (string) $_GET['frequency'];
-			$section_size = (int) $_GET['num_chapters'];
-			if ($section_size == 0) $section_size = 1;
-			
-			$refs = new BibleRefs($text);
 			$plan = array();
-			$plan['refs_array'] = $refs->get_sections($section_size);
-			$plan['name'] = (string) $_GET['plan_name'];
-			$plan['summary'] = (string) $_GET['plan_summary'];
-			$bfox_plan->add_new_plan((object) $plan);
-			//			$sections = bfox_get_sections_slow($text, $section_size);
+			if (isset($_GET['plan_name'])) $plan['name'] = (string) $_GET['plan_name'];
+			if (isset($_GET['plan_summary'])) $plan['summary'] = (string) $_GET['plan_summary'];
+
+			if (isset($_GET['plan_id']) && ('' != $_GET['plan_id']))
+			{
+				$plan['id'] = (int) $_GET['plan_id'];
+				$bfox_plan->edit_plan((object) $plan);
+			}
+			else
+			{
+				$text = (string) $_GET['books'];
+				$period_length = (string) $_GET['frequency'];
+				$section_size = (int) $_GET['num_chapters'];
+				if ($section_size == 0) $section_size = 1;
+
+				$refs = new BibleRefs($text);
+				$plan['refs_array'] = $refs->get_sections($section_size);
+				$bfox_plan->add_new_plan((object) $plan);
+			}
 		}
 		
 		if (isset($_GET['plan_id']))
@@ -244,6 +260,9 @@ How Fast?<br/>
 			echo "<h2>View Reading Plan</h2><br/>";
 			echo "You have selected the following Reading Plan: (<a href=\"$plan_url_base\">view all</a>)";
 			echo bfox_blog_reading_plans($display_plans, $can_edit);
+
+			if ($can_edit)
+				foreach ($display_plans as $plan) bfox_edit_plan_menu($plan);
 		}
 		else
 		{
@@ -259,10 +278,11 @@ How Fast?<br/>
 			{
 				echo "This Bible Study Blog has no bible reading plans.<br/>";
 			}
+
+			if ($can_edit) bfox_edit_plan_menu();
 		}
 		echo "</div>";
 
-		if ($can_edit) bfox_create_plan_menu();
 	}
 
 	function bfox_get_recent_scriptures_output($max = 1, $read = false)
