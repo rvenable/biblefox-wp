@@ -43,7 +43,12 @@
 		
 		$equation = bfox_get_posts_equation_for_refs($refs);
 		if ('' != $equation)
-			return $wpdb->get_col("SELECT post_id FROM $table_name WHERE $equation GROUP BY post_id");
+			return $wpdb->get_col("SELECT post_id
+								  FROM $table_name
+								  INNER JOIN $wpdb->posts
+								  ON $table_name.post_id = $wpdb->posts.ID
+								  WHERE $wpdb->posts.post_type = 'post'
+								  AND $equation");
 		
 		return array();
 	}
