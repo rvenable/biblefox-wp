@@ -7,10 +7,6 @@
 		http://codex.wordpress.org/Query_Overview
 	 */
 
-	// Global array for storing bible references used in a search
-	global $bfox_bible_refs;
-	$bfox_bible_refs = new BibleRefs;
-
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
 	{
@@ -73,15 +69,34 @@
 		else if (is_bfox_bible_ref())
 			$refStrs = $vars['bible_ref'];
 
-		$refs = new BibleRefs;
-		$refs->push_string($refStrs);
-		
+		// Global array for storing bible references used in a search
+		global $bfox_bible_refs;
+		$bfox_bible_refs = new BibleRefs($refStrs);
+
+		/*
+		 Problem:
+		 WP appears to use the WP_Query class as if it were a singleton, even though it is not and is even instantiated more than once.
+
+		 Because hooks which modify a query don't pass a reference to the query, the hook functions must rely on global functions to
+		 return info about the query (such as is_home() or is_page()). These functions, however, only return information about the global
+		 instance of WP_Query, leading to unintended results when there are multiple instances of WP_Query (such as for the Recent Posts widget).
+
+		 The real solution should be to pass the instance to each hook/filter function. Until that happens this hack must be in place.
+
+		 HACK:
+		 Keep a global bfox var to remember the most recent instance of WP_Query.
+		 This can be compared against global $wp_query to see if the current instance is the main query (ie. ($bfox_recent_wp_query === $wp_query))
+		 
+		 Also note that we are using the $GLOBALS array here to save the reference to the query
+		  (see the warning on http://nz.php.net/manual/en/language.references.whatdo.php )
+		 */
+		$GLOBALS['bfox_recent_wp_query'] =& $wp_query;
+
 		// If we have refs, check for any needed ref modifications
-		if (0 < $refs->get_count())
+		if (0 < $bfox_bible_refs->get_count())
 		{
 			// Save the refs in a global variable
-			global $bfox_bible_refs;
-			$bfox_bible_refs = bfox_get_next_refs($refs, $vars['bfox_action']);
+			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars['bfox_action']);
 		}
 	}
 
@@ -142,60 +157,65 @@
 	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
-		global $bfox_bible_refs;
-		if (0 < $bfox_bible_refs->get_count())
-		{
-			// If there are bible references, then we should display them as posts
-			// So we create an array of posts with scripture and add that to the current array of posts
-			$new_posts = array();
-			foreach ($bfox_bible_refs->get_refs_array() as $ref)
-			{
-				$new_post = array();
-				$refStr = $ref->get_string();
-				$new_post['post_title'] = $refStr;
-				$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
-				$new_post['bible_ref_str'] = $refStr;
-				$new_post['post_type'] = 'bible_ref';
-				$new_post['post_date'] = current_time('mysql', false);
-				$new_post['post_date_gmt'] = current_time('mysql', true);
-				$new_posts[] = ((object) $new_post);
-			}
+		global $bfox_bible_refs, $bfox_recent_wp_query, $wp_query;
 
-			// Update the read history to show that we viewed these scriptures
-			global $bfox_history;
-			$bfox_history->update($bfox_bible_refs);
-
-			// Append the new posts onto the beginning of the post list
-			$posts = array_merge($new_posts, $posts);
-		}
-		else if (is_bfox_special())
+		// If we are using the global instance of WP_Query
+		if ($bfox_recent_wp_query === $wp_query)
 		{
-			global $wp_query;
-			// If this is a special page, then we need to add the content ourselves
-			$posts = array();
-			$page = $wp_query->query_vars['bfox_special'];
-			if ('plan' == $page)
+			if (0 < $bfox_bible_refs->get_count())
 			{
-				require_once("bfox-plan.php");
-				$posts[] = ((object) bfox_get_special_page_plan());
-			}
-		}
-		else if (is_home())
-		{
-			require_once('bfox-plan.php');
-			// Add the blog progress page to the front of the posts
-			$content = bfox_get_reading_plan_status();
-			if ('' != $content)
-			{
-				$new_post = array();
-				$new_post['post_title'] = 'Reading Plan Status';
-				$new_post['post_content'] = $content;
-				$new_post['post_type'] = 'special';
-				$new_post['post_date'] = current_time('mysql', false);
-				$new_post['post_date_gmt'] = current_time('mysql', true);
+				// If there are bible references, then we should display them as posts
+				// So we create an array of posts with scripture and add that to the current array of posts
+				$new_posts = array();
+				foreach ($bfox_bible_refs->get_refs_array() as $ref)
+				{
+					$new_post = array();
+					$refStr = $ref->get_string();
+					$new_post['post_title'] = $refStr;
+					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
+					$new_post['bible_ref_str'] = $refStr;
+					$new_post['post_type'] = 'bible_ref';
+					$new_post['post_date'] = current_time('mysql', false);
+					$new_post['post_date_gmt'] = current_time('mysql', true);
+					$new_posts[] = ((object) $new_post);
+				}
+				
+				// Update the read history to show that we viewed these scriptures
+				global $bfox_history;
+				$bfox_history->update($bfox_bible_refs);
 				
 				// Append the new posts onto the beginning of the post list
-				$posts = array_merge(array((object) $new_post), $posts);
+				$posts = array_merge($new_posts, $posts);
+			}
+			else if (is_bfox_special())
+			{
+				global $wp_query;
+				// If this is a special page, then we need to add the content ourselves
+				$posts = array();
+				$page = $wp_query->query_vars['bfox_special'];
+				if ('plan' == $page)
+				{
+					require_once("bfox-plan.php");
+					$posts[] = ((object) bfox_get_special_page_plan());
+				}
+			}
+			else if (is_home())
+			{
+				require_once('bfox-plan.php');
+				// Add the blog progress page to the front of the posts
+				$content = bfox_get_reading_plan_status();
+				if ('' != $content)
+				{
+					$new_post = array();
+					$new_post['post_title'] = 'Reading Plan Status';
+					$new_post['post_content'] = $content;
+					$new_post['post_type'] = 'special';
+					$new_post['post_date'] = current_time('mysql', false);
+					$new_post['post_date_gmt'] = current_time('mysql', true);
+					
+					// Append the new posts onto the beginning of the post list
+					$posts = array_merge(array((object) $new_post), $posts);
+				}
 			}
 		}
 
