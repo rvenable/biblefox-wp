@@ -19,4 +19,17 @@
 	require_once("history.php");
 	require_once("bfox-query.php");
 
+	// Returns the bible study blogs for a given user
+	// Should be used in place of get_blogs_of_user() because the main biblefox.com blog should not count
+	function bfox_get_bible_study_blogs($user_id)
+	{
+		// Get the blogs for the user
+		$blogs = get_blogs_of_user($user_id);
+
+		// The main biblefox blog does not count as a bible study blog
+		unset($blogs[1]);
+
+		return $blogs;
+	}
+
 	?>

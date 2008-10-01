@@ -179,9 +179,7 @@ How fast will you read this plan?<br/>
 	{
 		global $user_ID;
 		// Get the bible study blogs for the current user
-		$blogs = get_blogs_of_user($user_ID);
-		// The main biblefox blog does not count as a bible study blog
-		unset($blogs[1]);
+		$blogs = bfox_get_bible_study_blogs($user_ID);
 
 		echo "<div class=\"wrap\">";
 		echo "<h2>Bible Study Blogs</h2>";
