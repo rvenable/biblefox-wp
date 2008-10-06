@@ -42,14 +42,17 @@
 	// Function for creating the form field to edit a post's bible references
 	function bfox_form_edit_bible_refs()
 	{
+		$refs = new BibleRefs;
 		if (isset($_GET['bible_ref']))
-			$refStr = $_GET['bible_ref'];
-		else
+			$refs->push_string($_GET['bible_ref']);
+		
+		if (!$refs->is_valid())
 		{
 			global $post_ID;
 			$refs = bfox_get_post_bible_refs($post_ID);
-			$refStr = $refs->get_string();
 		}
+
+		$refStr = $refs->get_string();
 
 		// Create the form
 	?>
@@ -57,6 +60,8 @@
 <h3><?php _e('Scripture References'); ?></h3>
 <div class="inside">
 <input name="bible_ref" type="text" size="25" id="bible_ref" value="<?php echo attribute_escape($refStr); ?>" />
+<br/>
+<?php echo bfox_get_ref_content($refs); ?>
 </div>
 </div>
 <?php
