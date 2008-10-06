@@ -260,21 +260,31 @@ How fast will you read this plan?<br/>
 			if (isset($_GET['plan_id']) && ('' != $_GET['plan_id']))
 			{
 				$plan['id'] = (int) $_GET['plan_id'];
-				$text = (string) $_GET['books'];
+				$text = (string) trim($_GET['books']);
 
-				// NOTE: this old_text to new text comparison is not yet working
-				$old_text = $bfox_plan->get_plan_text($plan['id']);
-				if (trim($text) != trim($old_text))
+				$old_refs = $bfox_plan->get_plan_refs($plan['id']);
+				$sections = explode("\n", $text);
+				$plan['refs_array'] = array();
+
+				$index = 0;
+				$is_edited = false;
+				foreach ($sections as $section)
 				{
-					$sections = explode("\n", $text);
-					$plan['refs_array'] = array();
-					foreach ($sections as $section)
-					{
-						$refs = new BibleRefs($section);
-						if ($refs->is_valid()) $plan['refs_array'][] = $refs;
-					}
-				}
+					$section = trim($section);
 
+					// Determine if the text we got from input is different from the text already saved for this plan
+					if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
+						$is_edited = true;
+
+					$refs = new BibleRefs($section);
+					if ($refs->is_valid()) $plan['refs_array'][] = $refs;
+					$index++;
+				}
+				
+				// If we didn't actually make any changes to the refs_array then there is no need to send it
+				if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
+					unset($plan['refs_array']);
+				
 				$bfox_plan->edit_plan((object) $plan);
 			}
 			else
