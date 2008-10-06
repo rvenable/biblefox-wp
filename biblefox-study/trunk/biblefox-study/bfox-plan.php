@@ -260,6 +260,21 @@ How fast will you read this plan?<br/>
 			if (isset($_GET['plan_id']) && ('' != $_GET['plan_id']))
 			{
 				$plan['id'] = (int) $_GET['plan_id'];
+				$text = (string) $_GET['books'];
+
+				// NOTE: this old_text to new text comparison is not yet working
+				$old_text = $bfox_plan->get_plan_text($plan['id']);
+				if (trim($text) != trim($old_text))
+				{
+					$sections = explode("\n", $text);
+					$plan['refs_array'] = array();
+					foreach ($sections as $section)
+					{
+						$refs = new BibleRefs($section);
+						if ($refs->is_valid()) $plan['refs_array'][] = $refs;
+					}
+				}
+
 				$bfox_plan->edit_plan((object) $plan);
 			}
 			else

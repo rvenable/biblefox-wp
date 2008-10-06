@@ -118,8 +118,10 @@
 
 		function delete_plan_data($plan_id)
 		{
+			global $wpdb;
 			if (isset($this->data_table_name))
 				$wpdb->query($wpdb->prepare("DELETE FROM $this->data_table_name WHERE plan_id = %d", $plan_id));
+			unset($this->cache['plan_refs'][$plan_id]);
 		}
 
 		function delete($plan_id)
@@ -205,7 +207,8 @@
 			if (isset($this->user_table_name))
 			{
 				global $wpdb;
-				$wpdb->query($wpdb->prepare("INSERT INTO $this->user_table_name (plan_id, user) VALUES (%d, %d)", $plan_id, $user_id));
+				if ($wpdb->get_var($wpdb->prepare("SELECT user FROM $this->user_table_name WHERE plan_id = %d AND user = %d", $plan_id, $user_id)) != $user_id)
+					$wpdb->query($wpdb->prepare("INSERT INTO $this->user_table_name (plan_id, user) VALUES (%d, %d)", $plan_id, $user_id));
 			}
 		}
 
@@ -214,7 +217,7 @@
 			if (isset($this->user_table_name))
 			{
 				global $wpdb;
-				$users = $wpdb->get_col($wpdb->prepare("SELECT user FROM $this->user_table_name WHERE plan_id = %d", $plan_id));
+				$users = $wpdb->get_col($wpdb->prepare("SELECT user FROM $this->user_table_name WHERE plan_id = %d GROUP BY user", $plan_id));
 			}
 
 			if (is_array($users)) return $users;
@@ -286,19 +289,7 @@
 					foreach ($users as $user)
 					{
 						$progress = new PlanProgress($user);
-						$user_plan_id = $progress->get_plan_id($this->blog_id, $plan->id);
-
-						// Get the references which this user has already marked as read
-						$refs = $progress->get_plan_refs($user_plan_id);
-
-						// Delete all their old tracking data
-						$progress->delete($user_plan_id);
-
-						// Set the user to track the plan again
-						$user_plan_id = $progress->track_plan($this->blog_id, $plan_id);
-						
-						// For each scripture they had read previously, mark as read again
-						foreach ($refs->read as $refs) $progress->mark_as_read($refs, $user_plan_id);
+						$progress->track_plan($this->blog_id, $plan->id);
 					}
 				}
 			}
@@ -420,15 +411,30 @@
 				$bfox_plan = new PlanBlog($blog_id);
 				$bfox_plan->add_user_to_plan($original_plan_id, $this->user_id);
 
-				// Update the plan table
-				$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name
-										 (blog_id, original_plan_id)
-										 VALUES (%d, %d)",
-										 $blog_id, $original_plan_id);
+				// Check if we are already tracking this plan
+				// If we aren't, then we should begin tracking it
+				// If we are, then we should delete the old data (but remember what we have already read)
+				$plan_id = $this->get_plan_id($blog_id, $original_plan_id);
+				if (!isset($plan_id))
+				{
+					// Update the plan table
+					$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name
+											 (blog_id, original_plan_id)
+											 VALUES (%d, %d)",
+											 $blog_id, $original_plan_id);
+					
+					// Insert and get the plan ID
+					$wpdb->query($insert);
+					$plan_id = $wpdb->insert_id;
+				}
+				else
+				{
+					// Get the references which this user has already marked as read
+					$old_refs = $this->get_plan_refs($plan_id);
 
-				// Insert and get the plan ID
-				$wpdb->query($insert);
-				$plan_id = $wpdb->insert_id;
+					// Delete all their old tracking data
+					$this->delete_plan_data($plan_id);
+				}
 
 				// Update the data table
 				if (isset($plan_id) && isset($this->data_table_name))
@@ -448,6 +454,10 @@
 						$wpdb->query($insert);
 					}
 				}
+				
+				// For each scripture they had read previously, mark as read again
+				if (isset($old_refs))
+					foreach ($old_refs->read as $refs) $this->mark_as_read($refs, $plan_id);
 
 				// Return the newly inserted plan id
 				return $plan_id;
@@ -544,6 +554,7 @@
 					if (isset($read))
 					{
 						$update = $wpdb->prepare("UPDATE $this->data_table_name SET is_read = TRUE, verse_start = %d, verse_end = %d WHERE id = %d", $read[0], $read[1], $plan->id);
+						$wpdb->query($update);
 						if (isset($unread1))
 						{
 							$insert = $wpdb->prepare("INSERT INTO $this->data_table_name
@@ -552,10 +563,12 @@
 													 $plan->plan_id, $plan->period_id, $plan->ref_id, $unread1[0], $unread1[1]);
 							if (isset($unread2))
 								$insert .= $wpdb->prepare(", (%d, %d, %d, %d, %d, FALSE)", $plan->plan_id, $plan->period_id, $plan->ref_id, $unread2[0], $unread2[1]);
+							$wpdb->query($insert);
 						}
-						$wpdb->query($update);
-						$wpdb->query($insert);
 					}
+					unset($read);
+					unset($unread1);
+					unset($unread2);
 				}
 			}
 		}
