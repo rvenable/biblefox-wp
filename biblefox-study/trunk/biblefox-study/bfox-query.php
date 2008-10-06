@@ -7,6 +7,10 @@
 		http://codex.wordpress.org/Query_Overview
 	 */
 
+	define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
+	define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
+	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
+
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
 	{
@@ -36,9 +40,9 @@
 	function bfox_queryvars($qvars)
 	{
 		// Add a query variable for bible references
-		$qvars[] = 'bible_ref';
-		$qvars[] = 'bfox_special';
-		$qvars[] = 'bfox_action';
+		$qvars[] = BFOX_QUERY_VAR_BIBLE_REF;
+		$qvars[] = BFOX_QUERY_VAR_SPECIAL;
+		$qvars[] = BFOX_QUERY_VAR_ACTION;
 		return $qvars;
 	}
 
@@ -48,11 +52,12 @@
 		$wp_query->is_bfox_bible_ref = false;
 		$wp_query->is_bfox_special = false;
 
+		global $bfox_specials;
+		$bfox_specials->setup_query(&$wp_query);
+
 		// Set whether this query is a bible reference
-		if (isset($wp_query->query_vars['bible_ref']))
+		if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
 			$wp_query->is_bfox_bible_ref = true;
-		else if (isset($wp_query->query_vars['bfox_special']))
-			$wp_query->is_bfox_special = true;
 
 		// Don't use the home page for certain queries
 		if ($wp_query->is_bfox_bible_ref || $wp_query->is_bfox_special)
@@ -67,7 +72,7 @@
 		if (is_search())
 			$refStrs = $vars['s'];
 		else if (is_bfox_bible_ref())
-			$refStrs = $vars['bible_ref'];
+			$refStrs = $vars[BFOX_QUERY_VAR_BIBLE_REF];
 
 		// Global array for storing bible references used in a search
 		global $bfox_bible_refs;
@@ -96,7 +101,7 @@
 		if (0 < $bfox_bible_refs->get_count())
 		{
 			// Save the refs in a global variable
-			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars['bfox_action']);
+			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars[BFOX_QUERY_VAR_ACTION]);
 		}
 	}
 
@@ -174,7 +179,7 @@
 					$new_post['post_title'] = $refStr;
 					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
 					$new_post['bible_ref_str'] = $refStr;
-					$new_post['post_type'] = 'bible_ref';
+					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
 					$new_posts[] = ((object) $new_post);
@@ -187,21 +192,16 @@
 				// Append the new posts onto the beginning of the post list
 				$posts = array_merge($new_posts, $posts);
 			}
-			else if (is_bfox_special())
+
+			// If this is a special page, then we need to add the content ourselves
+			if (is_bfox_special())
 			{
-				global $wp_query;
-				// If this is a special page, then we need to add the content ourselves
-				$posts = array();
-				$page = $wp_query->query_vars['bfox_special'];
-				if ('plan' == $page)
-				{
-					require_once("bfox-plan.php");
-					$posts[] = ((object) bfox_get_special_page_plan());
-				}
+				global $bfox_specials;
+				$bfox_specials->add_to_posts(&$posts, $wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL]);
 			}
-			else if (is_home())
+			
+			if (is_home())
 			{
-				require_once('bfox-plan.php');
 				// Add the blog progress page to the front of the posts
 				$content = bfox_get_reading_plan_status();
 				if ('' != $content)
@@ -209,7 +209,7 @@
 					$new_post = array();
 					$new_post['post_title'] = 'Reading Plan Status';
 					$new_post['post_content'] = $content;
-					$new_post['post_type'] = 'special';
+					$new_post['post_type'] = BFOX_QUERY_VAR_SPECIAL;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
 					
@@ -288,7 +288,7 @@
 	function bfox_the_author($author)
 	{
 		global $post, $current_site;
-		if (('bible_ref' == $post->post_type) || ('special' == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
+		if ((BFOX_QUERY_VAR_BIBLE_REF == $post->post_type) || (BFOX_QUERY_VAR_SPECIAL == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
 		return $author;
 	}
 

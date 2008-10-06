@@ -63,7 +63,6 @@
 
 	function bfox_progress()
 	{
-		require_once("bfox-plan.php");
 		bfox_progress_page();
 	}
 	
@@ -75,7 +74,6 @@
 
 	function bfox_plan()
 	{
-		require("bfox-plan.php");
 		bfox_create_plan();
 	}
 	
@@ -103,6 +101,7 @@
 		add_action('admin_menu', 'bfox_study_menu');
 
 		bfox_query_init();
+		bfox_widgets_init();
 	}
 	
 	function bfox_activate()

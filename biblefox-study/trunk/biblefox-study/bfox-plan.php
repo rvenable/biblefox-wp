@@ -132,11 +132,45 @@ How fast will you read this plan?<br/>
 
 		return $content;
 	}
-	
+
+	function bfox_get_user_next_readings(PlanBlog $blog_plan, $plan_url, $blog_id)
+	{
+		global $bfox_plan_progress;
+		$blog_plans = $blog_plan->get_plans();
+		$content = '';
+		if (0 < count($blog_plans))
+		{
+			foreach ($blog_plans as $plan)
+			{
+				$content .= "<strong>$plan->name</strong><br/>";
+				$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
+				if (isset($progress_plan_id))
+				{
+					$refs_object = $bfox_plan_progress->get_plan_refs($progress_plan_id);
+					if (isset($refs_object->last_read))
+						$content .= 'The furthest you have read is ' . $refs_object->read[$refs_object->last_read]->get_link() . '.<br/>';
+					if (isset($refs_object->first_unread))
+						$content .= 'You should read ' . $refs_object->unread[$refs_object->first_unread]->get_link() . ' next.<br/>';
+				}
+				else
+				{
+					$track_url = $plan_url . 'action=track&amp;';
+					$content .= "Not tracked. You can choose to <a href=\"$track_url\">follow this reading plan</a>.<br/>";
+				}
+				$content .= '<br/>';
+			}
+		}
+		else
+		{
+			$content .= "This Bible Study Blog currently has no reading plans.<br/>";
+		}
+		return $content;
+	}
+
 	function bfox_user_reading_plans($blogs)
 	{
 		global $bfox_plan_progress;
-
+		
 		foreach ($blogs as $blog_id => $blog_info)
 		{
 			$blog_url = $blog_info->siteurl . '/wp-admin/admin.php?';
@@ -174,7 +208,7 @@ How fast will you read this plan?<br/>
 			echo "<br/>";
 		}
 	}
-
+	
 	function bfox_progress_page()
 	{
 		global $user_ID;
@@ -302,27 +336,6 @@ How fast will you read this plan?<br/>
 			}
 		}
 		return $output;
-	}
-
-	function bfox_get_special_page_plan()
-	{
-		$content = '';
-
-		// Get the plans for this bible blog
-		global $bfox_plan;
-		$content .= bfox_blog_reading_plans($bfox_plan->get_plans());
-
-		// Get the recently read scriptures
-		$content .= bfox_get_recent_scriptures_output(10, true);
-
-		// Get the recently viewed scriptures
-		$content .= bfox_get_recent_scriptures_output(10, false);
-
-		$special_page = array();
-		$special_page['post_title'] = 'Reading Plan';
-		$special_page['post_content'] = $content;
-		$special_page['post_type'] = 'page';
-		return $special_page;
 	}
 
 ?>

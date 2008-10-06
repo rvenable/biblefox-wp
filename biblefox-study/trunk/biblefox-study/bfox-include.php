@@ -18,6 +18,8 @@
 	require_once("bibletext.php");
 	require_once("history.php");
 	require_once("bfox-query.php");
+	require_once('special.php');
+	require_once('bfox-widgets.php');
 
 	// Returns the bible study blogs for a given user
 	// Should be used in place of get_blogs_of_user() because the main biblefox.com blog should not count
