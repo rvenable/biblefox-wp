@@ -29,6 +29,9 @@
 
 		function get_plan_refs($plan_id)
 		{
+			// Return the cache if it is set
+			if (isset($this->cache['plan_refs'][$plan_id])) return $this->cache['plan_refs'][$plan_id];
+
 			$unread = array();
 			$read = array();
 			
@@ -66,7 +69,7 @@
 					if (isset($result->is_read) && $result->is_read)
 					{
 						$read_sets[] = array($result->verse_start, $result->verse_end);
-						$last_read = $period_id;
+						if (!isset($first_unread)) $last_read = $period_id;
 					}
 					else
 					{
@@ -86,7 +89,10 @@
 			$group['read'] = $read;
 			$group['first_unread'] = $first_unread;
 			$group['last_read'] = $last_read;
-			return (object) $group;
+
+			// Cache the group off
+			$this->cache['plan_refs'][$plan_id] = (object) $group;
+			return $this->cache['plan_refs'][$plan_id];
 		}
 
 		function get_plan_ids()
