@@ -60,27 +60,38 @@ How fast will you read this plan?<br/>
 	{
 		$content = '';
 		$unread_count = 0;
+		$content .= '<table width="100%" style="text-align:left">
+		<tr>
+		<th width="10%">Index</th>
+		<th width="25%">Passage</th>
+		<th width="20%">Target Date</th>
+		<th width="45%">My Progress</th>
+		</tr>';
 		foreach ($plan_list->original as $period_id => $original)
 		{
+			$content .= '<tr>';
 			if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
 			$index = $period_id + 1;
-			$content .= "Reading $index: " . $original->get_link();
+			$content .= '<td>' . $index . '</td><td>' . $original->get_link() . '</td>';
+			$content .= '<td></td><td>';
 			if (isset($plan_list->unread[$period_id]))
 			{
 				if (isset($plan_list->read[$period_id]))
-					$content .= " (You still need to read " . $plan_list->unread[$period_id]->get_link() . ")";
+					$content .= 'You still need to read ' . $plan_list->unread[$period_id]->get_link();
 				else
-					$content .= " (Unread)";
+					$content .= 'Unread';
 				$unread_count++;
 				if ($unread_count == $max_unread) break;
 			}
 			else
 			{
 				if (isset($plan_list->read[$period_id]))
-					$content .= " (Finished!)";
+					$content .= 'Finished';
 			}
-			$content .= "<br/>";
+			$content .= '</td>';
+			$content .= '</tr>';
 		}
+		$content .= '</table>';
 		return $content;
 	}
 	
