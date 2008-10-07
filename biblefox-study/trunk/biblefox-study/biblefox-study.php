@@ -11,7 +11,6 @@
 	define(BFOX_FILE, __FILE__);
 	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
 //	define(BFOX_ADMIN_FILE, __FILE__);
-	define(BFOX_READ_SUBPAGE, 'bfox-read');
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
@@ -27,7 +26,6 @@
 		$min_user_level = 8;
 		add_menu_page('Study the Bible', 'Study', 0, BFOX_ADMIN_FILE, 'bfox_progress');
 		add_submenu_page(BFOX_ADMIN_FILE, 'Track my progress', 'My Progress', 0, BFOX_ADMIN_FILE, 'bfox_progress');
-		add_submenu_page(BFOX_ADMIN_FILE, 'Read the Bible', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 		add_submenu_page(BFOX_ADMIN_FILE, 'Reading Plans', 'Reading Plans', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
 
 		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
@@ -66,12 +64,6 @@
 		bfox_progress_page();
 	}
 	
-	function bfox_read()
-	{
-		require_once("bfox-read.php");
-		bfox_read_menu();
-	}
-
 	function bfox_plan()
 	{
 		bfox_create_plan();

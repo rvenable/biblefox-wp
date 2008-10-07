@@ -84,11 +84,7 @@
 		$home_dir = get_option('home');
 		$admin_dir = $home_dir . '/wp-admin';
 		$refStr = $refs->get_string();
-
-		if (defined('WP_ADMIN'))
-			$page_url = "{$admin_dir}/admin.php?page=" . BFOX_READ_SUBPAGE . "&";
-		else
-			$page_url = "{$home_dir}/?";
+		$page_url = $refs->get_url();
 
 		$menu = '';
 
@@ -100,7 +96,7 @@
 			global $bfox_history;
 			if ($header) $menu .= $bfox_history->get_dates_str($refs, false) . '<br/>';
 			$menu .= $bfox_history->get_dates_str($refs, true);
-			$menu .= " (<a href=\"{$page_url}bible_ref=$refStr&bfox_action=mark_read\">Mark as read</a>)<br/>";
+			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)<br/>';
 		}
 		else $menu .= "<a href=\"$home_dir/wp-login.php\">Login</a> to track your bible reading<br/>";
 
@@ -108,8 +104,8 @@
 		if ($header)
 		{
 			$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
-			$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=previous\">Previous</a> | ";
-			$menu .= "<a href=\"{$page_url}bible_ref=$refStr&bfox_action=next\">Next</a><br/>";
+			$menu .= '<a href="' . $page_url . '&bfox_action=previous">Previous</a> | ';
+			$menu .= '<a href="' . $page_url . '&bfox_action=next">Next</a><br/>';
 		}
 
 		// Write about this passage

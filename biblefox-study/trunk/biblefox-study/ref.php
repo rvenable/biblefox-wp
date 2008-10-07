@@ -66,14 +66,7 @@
 
 	function bfox_format_ref_url($ref_str)
 	{
-		$home_dir = get_option('home');
-		
-		if (is_admin())
-			$page_url = $home_dir . '/wp-admin/admin.php?page=' . BFOX_READ_SUBPAGE . '&';
-		else
-			$page_url = $home_dir . '/?';
-		
-		return $page_url . 'bible_ref=' . $ref_str;
+		return get_option('home') . '/?bible_ref=' . $ref_str;
 	}
 	
 	function bfox_format_ref_link($ref_str)
