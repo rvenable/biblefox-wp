@@ -36,6 +36,72 @@ How fast will you read this plan?<br/>
 </form>
 <?php
 	}
+
+	function bfox_plan_schedule_menu()
+	{
+		$header = 'Schedule';
+	?>
+<h2><?php echo $header; ?></h2>
+<form action="admin.php" method="get">
+How many readings at a time?<br/>
+<input type="text" size="10" maxlength="40" name="num_chapters" value="<?php echo $section_size; ?>"> readings at at time.<br/><br/>
+How often will you be reading this plan?<br/>
+<table>
+
+<tr>
+<td><input type="radio" name="frequency" value="day"></td>
+<td>Daily</td>
+<td>
+<table width="100%">
+<tr><td colspan="7">Which days of the week?</td><tr>
+<tr>
+<td><input type="checkbox" name="dayofweek" value="1">Sun</td>
+<td><input type="checkbox" name="dayofweek" value="2">Mon</td>
+<td><input type="checkbox" name="dayofweek" value="3">Tue</td>
+<td><input type="checkbox" name="dayofweek" value="4">Wed</td>
+<td><input type="checkbox" name="dayofweek" value="5">Thu</td>
+<td><input type="checkbox" name="dayofweek" value="6">Fri</td>
+<td><input type="checkbox" name="dayofweek" value="7">Sat</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td><input type="radio" name="frequency" value="week"></td>
+<td>Weekly</td>
+<td>
+<table width="100%">
+<tr><td colspan="7">Which day of the week?</td><tr>
+<tr>
+<td><input type="radio" name="dayofweek" value="1">Sun</td>
+<td><input type="radio" name="dayofweek" value="2">Mon</td>
+<td><input type="radio" name="dayofweek" value="3">Tue</td>
+<td><input type="radio" name="dayofweek" value="4">Wed</td>
+<td><input type="radio" name="dayofweek" value="5">Thu</td>
+<td><input type="radio" name="dayofweek" value="6">Fri</td>
+<td><input type="radio" name="dayofweek" value="7">Sat</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td><input type="radio" name="frequency" value="month"></td>
+<td>Monthly</td>
+<td>
+<table width="100%">
+<tr><td>Which days of the month?</td><tr>
+<tr><td><input type="text" size="40" maxlength="40" name="num_chapters" value=""></td></tr>
+</table>
+</td>
+</tr>
+</table>
+
+<input type="submit" value="<?php echo $action_str; ?> Plan" class="button" />
+</form>
+<?php
+	}
 	
 	function bfox_get_sections_slow($text, $size)
 	{

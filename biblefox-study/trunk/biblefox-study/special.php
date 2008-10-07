@@ -89,14 +89,7 @@
 			}
 			else
 			{
-				$content = '';
-				foreach ($plans as $plan)
-				{
-					$view_url = $this->get_url_reading_plans($plan->id);
-					$content .= '<a href="' . $view_url . '">' . $plan->name . '</a> - ';
-					if (isset($plan->summary) && ('' != $plan->summary)) $content .= $plan->summary;
-					$content .= '<br/>';
-				}
+				$content = bfox_plan_summaries($blog_id);
 			}
 			
 			$page = array();
