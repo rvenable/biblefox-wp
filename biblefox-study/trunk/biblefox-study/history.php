@@ -174,7 +174,7 @@
 		
 		function get_special_url($read)
 		{
-			return get_option('home') . '/?bfox_special=plan';
+			return get_option('home') . '/?bfox_special=my_history';
 		}
 		
 		function get_dates_str(BibleRefs $refs, $read = false)

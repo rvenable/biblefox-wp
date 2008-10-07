@@ -8,9 +8,10 @@
 		{
 			$this->pages =
 			array(
-				  'reading_plans' => array('title' => 'Reading Plans', 'type' => 'post', 'desc' => 'View the reading plans for this bible study'),
+				  'reading_plans' => array('title' => 'Reading Plans', 'type' => 'page', 'desc' => 'View the reading plans for this bible study'),
 //				  'current_reading' => array('title' => 'Current Reading', 'type' => 'post', 'desc' => 'View the current reading for this bible study'),
-				  'my_reading' => array('title' => 'My Reading', 'type' => 'post', 'desc' => 'View your current reading for this bible study')
+				  'my_reading' => array('title' => 'My Reading', 'type' => 'post', 'desc' => 'View your current reading for this bible study'),
+				  'my_history' => array('title' => 'My Passage History', 'type' => 'page', 'desc' => 'View the history of scriptures you have viewed and read')
 				  );
 			global $current_blog;
 			foreach ($this->pages as $base => &$page)
@@ -98,12 +99,6 @@
 				}
 			}
 			
-			// Get the recently read scriptures
-			$content .= bfox_get_recent_scriptures_output(10, true);
-			
-			// Get the recently viewed scriptures
-			$content .= bfox_get_recent_scriptures_output(10, false);
-			
 			$page = array();
 			$page['post_content'] = $content;
 			return $page;
@@ -113,6 +108,21 @@
 		{
 			$page = array();
 			$page['post_content'] = bfox_plan_summaries($blog_id);
+			return $page;
+		}
+
+		function get_my_history()
+		{
+			$content = '';
+
+			// Get the recently read scriptures
+			$content .= bfox_get_recent_scriptures_output(10, true);
+			
+			// Get the recently viewed scriptures
+			$content .= bfox_get_recent_scriptures_output(10, false);
+			
+			$page = array();
+			$page['post_content'] = $content;
 			return $page;
 		}
 		
