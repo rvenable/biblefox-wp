@@ -180,20 +180,19 @@ How fast will you read this plan?<br/>
 
 	function bfox_user_reading_plans($blogs)
 	{
-		global $bfox_plan_progress;
+		global $bfox_plan_progress, $bfox_specials;
 		
 		foreach ($blogs as $blog_id => $blog_info)
 		{
-			$blog_url = $blog_info->siteurl . '/wp-admin/admin.php?';
-			$plan_url = $blog_url . 'page=' . BFOX_PLAN_SUBPAGE;
-			echo "<strong><a href=\"$plan_url\">$blog_info->blogname</a></strong><br/>";
+			$blog_url = $blog_info->siteurl . '/wp-admin/';
+			echo "<strong><a href=\"$blog_url\">$blog_info->blogname</a></strong><br/>";
 			$blog_plan = new PlanBlog($blog_id);
 			$blog_plans = $blog_plan->get_plans();
 			if (0 < count($blog_plans))
 			{
 				foreach ($blog_plans as $plan)
 				{
-					$plan_url .= '&amp;plan_id=' . $plan->id . '&amp;';
+					$plan_url = $bfox_specials->get_url_reading_plans($plan->id);
 					echo "<strong>$plan->name</strong> (<a href=\"$plan_url\">view plan</a>)<br/><i>$plan->summary</i><br/>";
 					$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
 					if (isset($progress_plan_id))
@@ -206,7 +205,7 @@ How fast will you read this plan?<br/>
 					}
 					else
 					{
-						$track_url = $plan_url . 'action=track&amp;';
+						$track_url = $bfox_specials->get_url_reading_plans($plan->id, 'track');
 						echo "Not tracked. You can choose to <a href=\"$track_url\">follow this reading plan</a>.<br/>";
 					}
 					echo '<br/>';
@@ -255,12 +254,17 @@ How fast will you read this plan?<br/>
 		echo "</div>";
 	}
 
+	function bfox_can_user_edit_plans()
+	{
+		// Only level 7 users can edit/create plans
+		return current_user_can(7);
+	}
+
 	function bfox_create_plan()
 	{
 		global $bfox_plan, $bfox_plan_progress, $blog_id;
 
-		// Only level 7 users can edit/create plans
-		$can_edit = current_user_can(7);
+		$can_edit = bfox_can_user_edit_plans();
 
 		if($can_edit && ($_GET['hidden_field'] == 'Y'))
 		{

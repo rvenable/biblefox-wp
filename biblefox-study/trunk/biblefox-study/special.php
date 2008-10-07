@@ -21,6 +21,14 @@
 			}
 		}
 
+		function get_url_reading_plans($plan_id = null, $action = null)
+		{
+			$url = $this->pages['reading_plans']['url'];
+			if (null != $plan_id) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
+			if (null != $action) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
+			return $url;
+		}
+
 		function setup_query_my_reading($wp_query)
 		{
 			global $bfox_plan, $bfox_plan_progress, $blog_id;
@@ -42,6 +50,13 @@
 					}
 				}
 			}
+		}
+
+		function setup_query_reading_plans($wp_query)
+		{
+			global $blog_id, $bfox_plan_progress;
+			if ('track' == $wp_query->query_vars[BFOX_QUERY_VAR_ACTION])
+				$bfox_plan_progress->track_plan($blog_id, $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID]);
 		}
 
 		function setup_query($wp_query)
@@ -66,7 +81,22 @@
 			
 			// Get the plans for this bible blog
 			global $bfox_plan;
-			$content .= bfox_blog_reading_plans($bfox_plan->get_plans($args[BFOX_QUERY_VAR_PLAN_ID]));
+			$plans = $bfox_plan->get_plans($args[BFOX_QUERY_VAR_PLAN_ID]);
+			if (isset($args[BFOX_QUERY_VAR_PLAN_ID]))
+			{
+				$content .= bfox_blog_reading_plans($plans, bfox_can_user_edit_plans());
+			}
+			else
+			{
+				$content = '';
+				foreach ($plans as $plan)
+				{
+					$view_url = $this->get_url_reading_plans($plan->id);
+					$content .= '<a href="' . $view_url . '">' . $plan->name . '</a> - ';
+					if (isset($plan->summary) && ('' != $plan->summary)) $content .= $plan->summary;
+					$content .= '<br/>';
+				}
+			}
 			
 			// Get the recently read scriptures
 			$content .= bfox_get_recent_scriptures_output(10, true);
