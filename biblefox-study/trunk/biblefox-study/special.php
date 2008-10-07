@@ -111,9 +111,8 @@
 		
 		function get_my_reading()
 		{
-			global $bfox_plan, $blog_id;
 			$page = array();
-			$page['post_content'] = bfox_get_user_next_readings($bfox_plan, '', $blog_id);
+			$page['post_content'] = bfox_plan_summaries($blog_id);
 			return $page;
 		}
 		
