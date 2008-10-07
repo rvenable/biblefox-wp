@@ -10,6 +10,7 @@
 	define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
 	define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
 	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
+	define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
 
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
@@ -43,6 +44,7 @@
 		$qvars[] = BFOX_QUERY_VAR_BIBLE_REF;
 		$qvars[] = BFOX_QUERY_VAR_SPECIAL;
 		$qvars[] = BFOX_QUERY_VAR_ACTION;
+		$qvars[] = BFOX_QUERY_VAR_PLAN_ID;
 		return $qvars;
 	}
 
@@ -197,7 +199,7 @@
 			if (is_bfox_special())
 			{
 				global $bfox_specials;
-				$bfox_specials->add_to_posts(&$posts, $wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL]);
+				$bfox_specials->add_to_posts(&$posts, $wp_query->query_vars);
 			}
 			
 			if (is_home())

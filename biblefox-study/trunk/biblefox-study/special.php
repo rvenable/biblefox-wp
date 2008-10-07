@@ -56,16 +56,17 @@
 
 				return true;
 			}
+
 			return false;
 		}
 
-		function get_reading_plans()
+		function get_reading_plans($args = array())
 		{
 			$content = '';
 			
 			// Get the plans for this bible blog
 			global $bfox_plan;
-			$content .= bfox_blog_reading_plans($bfox_plan->get_plans());
+			$content .= bfox_blog_reading_plans($bfox_plan->get_plans($args[BFOX_QUERY_VAR_PLAN_ID]));
 			
 			// Get the recently read scriptures
 			$content .= bfox_get_recent_scriptures_output(10, true);
@@ -86,12 +87,13 @@
 			return $page;
 		}
 		
-		function add_to_posts($posts, $page_name)
+		function add_to_posts($posts, $args = array())
 		{
+			$page_name = $args[BFOX_QUERY_VAR_SPECIAL];
 			if (isset($this->pages[$page_name]))
 			{
 				$func = $this->pages[$page_name]['content_cb'];
-				if (is_callable($func)) $page = call_user_func($func);
+				if (is_callable($func)) $page = call_user_func($func, $args);
 				else $page = array();
 				
 				$page['post_title'] = $this->pages[$page_name]['title'];
