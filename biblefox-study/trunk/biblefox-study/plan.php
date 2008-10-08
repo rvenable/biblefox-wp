@@ -574,10 +574,129 @@
 			}
 		}
 	}
+	
+	class PlanSchedule
+	{
+		private $table_name;
+		private $blog_id;
+		private static $frequency = array('day', 'week', 'month');
+		private static $frequency_index;// = array_flip(self::$frequency);
+		
+		function PlanSchedule()
+		{
+			self::$frequency_index = array_flip(self::$frequency);
+			$this->table_name = BFOX_BASE_TABLE_PREFIX . 'plan_schedules';
+		}
+		
+		function create_tables()
+		{
+			// Note this function creates the table with dbDelta() which apparently has some pickiness
+			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+			
+			$sql = '';
+			
+			if (isset($this->table_name))
+			{
+				$sql .= "CREATE TABLE $this->plan_table_name (
+				id bigint(20) unsigned NOT NULL auto_increment,
+				blog_id int,
+				plan_id int,
+				start_date varchar(16),
+				readings_per_period int,
+				frequency int,
+				frequency_options varchar(256),
+				PRIMARY KEY  (id)
+				);";
+			}
+
+			if ('' != $sql)
+			{
+				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+				dbDelta($sql);
+			}
+		}
+
+		function add_schedule($schedule)
+		{
+			global $wpdb;
+			$insert = $wpdb->prepare("INSERT INTO
+									 $this->table_name (blog_id, plan_id, start_date, readings_per_period, frequency, frequency_options)
+									 VALUES (%d, %d, %s, %d, %d, %s)",
+									 $schedule['blog_id'],
+									 $schedule['plan_id'],
+									 $schedule['start_date'],
+									 $schedule['readings_per_period'],
+									 $schedule['frequency'],
+									 $schedule['frequency_options']);
+			$wpdb->query($insert);
+		}
+
+		function edit_schedule($schedule_id, $schedule)
+		{
+			$update = $wpdb->prepare("REPLACE INTO
+									 $this->table_name (id, blog_id, plan_id, start_date, readings_per_period, frequency, frequency_options)
+									 VALUES (%d, %d, %d, %s, %d, %d, %s)",
+									 $schedule_id,
+									 $schedule['blog_id'],
+									 $schedule['plan_id'],
+									 $schedule['start_date'],
+									 $schedule['readings_per_period'],
+									 $schedule['frequency'],
+									 $schedule['frequency_options']);
+			$wpdb->query($update);
+		}
+
+		function get_schedules($blog_id, $plan_id = NULL)
+		{
+			$select = $wpdb->prepare("SELECT * FROM $this->table_name WHERE blog_id = %d", $blog_id);
+			if (isset($plan_id)) $select .= $wpdb->prepare(" AND plan_id = %d", $plan_id);
+
+			$results = $wpdb->get_results($select);
+
+			if (isset($results)) return $results;
+			return array();
+		}
+
+		function get_dates($schedule, $count = 0, $start = 0)
+		{
+			$dates = array();
+			$schedule['frequency'] = 'day';
+			$schedule['start_date'] = '10/8/08';
+			$schedule['frequency_options'] = '056';
+
+			if ('day' == $schedule['frequency'])
+			{
+				//checkdate()
+				$date = date_create($schedule['start_date']);
+//				echo '0:' . $date->format('w') . '<br/>';
+				for ($index = 0; $index < $count + $start; $index++)
+				{
+					if ((0 < $index) || (FALSE === strstr($schedule['frequency_options'], $date->format('w'))))
+					{
+//						echo '3:' . $index . '<br/>';
+						// Increment the date until
+						$inc_count = 0;
+						do {
+							$date->modify('+1 day');
+//							echo 'y0:' . $date->format('r') . '<br/>';
+							$inc_count++;
+						} while ((FALSE === strstr($schedule['frequency_options'], $date->format('w'))) &&
+								 ($inc_count < 7));
+					}
+
+					if ($index >= $start) $dates[] = clone($date);
+				}
+			}
+			foreach ($dates as $date) echo 'date:' . $date->format('r') . '<br/>';
+		}
+	}
 
 	global $bfox_plan;
 	$bfox_plan = new PlanBlog();
 	global $bfox_plan_progress;
 	$bfox_plan_progress = new PlanProgress();
+//	global $bfox_schedule;
+//	$bfox_schedule = new PlanSchedule();
+//	$bfox_schedule->get_dates(array(), 5, 0);
 
 ?>
