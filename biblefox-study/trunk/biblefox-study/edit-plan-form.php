@@ -2,7 +2,7 @@
 if ( ! empty($plan_id) ) {
 	$heading = __('Edit Reading Plan');
 	$submit_text = __('Edit Reading Plan');
-	$form = '<form name="editplan" id="editplan" method="post" action="' . $bfox_page_url . '" class="validate">';
+	$form = '<form name="editplan" id="editplan" method="post" action="" class="validate">';
 	$action = 'editedplan';
 	$nonce_action = 'update-reading-plan-' . $plan_id;
 	$passage_help_text = __('Which passages of the bible would you like to read?<br/>
@@ -23,7 +23,7 @@ if ( ! empty($plan_id) ) {
 } else {
 	$heading = __('Add Reading Plan');
 	$submit_text = __('Add Reading Plan');
-	$form = '<form name="addplan" id="addplan" method="post" action="' . $bfox_page_url . '" class="add:the-list: validate">';
+	$form = '<form name="addplan" id="addplan" method="post" action="" class="add:the-list: validate">';
 	$action = 'addplan';
 	$nonce_action = 'add-reading-plan';
 	$passage_help_text = __('Which passages of the bible would you like to read?<br/>
@@ -37,6 +37,7 @@ if ( ! empty($plan_id) ) {
 <h2><?php echo $heading ?></h2>
 <div id="ajax-response"></div>
 <?php echo $form ?>
+<input type="hidden" name="page" value="<?php echo BFOX_MANAGE_PLAN_SUBPAGE; ?>" />
 <input type="hidden" name="action" value="<?php echo $action ?>" />
 <input type="hidden" name="plan_id" value="<?php echo $plan_id ?>" />
 <?php wp_nonce_field($nonce_action); ?>

@@ -6,28 +6,36 @@ $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 
 // NOTE: I don't know why the wp_reset_vars() call isn't setting action properly (maybe its because I am in a plugin page?)
 //wp_reset_vars(array('action', 'cat'));
-$action = $_GET['action'];
+if (isset($_POST['action'])) $action = $_POST['action'];
+else if (isset($_GET['action'])) $action = $_GET['action'];
 
 if ( isset($_GET['deleteit']) && isset($_GET['delete']) )
 	$action = 'bulk-delete';
 
 switch($action) {
 
-case 'addcat':
+case 'addplan':
 
-	check_admin_referer('add-category');
+	check_admin_referer('add-reading-plan');
 
 	if ( !current_user_can('manage_categories') )
 		wp_die(__('Cheatin&#8217; uh?'));
 
-	if( wp_insert_category($_POST ) ) {
-		wp_redirect('categories.php?message=1#addcat');
-	} else {
-		wp_redirect('categories.php?message=4#addcat');
-	}
+	$refs = new BibleRefs((string) $_POST['plan_passages']);
+	$section_size = (int) $_POST['plan_chapters'];
+	if ($section_size == 0) $section_size = 1;
+
+	$plan = array();
+	$plan['name'] = (string) $_POST['plan_name'];
+	$plan['summary'] = (string) $_POST['plan_description'];
+	$plan['refs_array'] = $refs->get_sections($section_size);
+	$bfox_plan->add_new_plan((object) $plan);
+	wp_redirect($bfox_page_url . '&message=1');
+
 	exit;
 break;
 
+/* Not supporting 'delete' yet (but 'bulk-delete' works)
 case 'delete':
 	$cat_ID = (int) $_GET['cat_ID'];
 	check_admin_referer('delete-category_' .  $cat_ID);
@@ -47,6 +55,7 @@ case 'delete':
 	exit;
 
 break;
+ */
 
 case 'bulk-delete':
 	check_admin_referer('bulk-reading-plans');
@@ -73,17 +82,46 @@ case 'edit':
 
 break;
 
-case 'editedcat':
-	$cat_ID = (int) $_POST['cat_ID'];
-	check_admin_referer('update-category_' . $cat_ID);
+case 'editedplan':
+	$plan_id = (int) $_POST['plan_id'];
+	check_admin_referer('update-reading-plan-' . $plan_id);
 
 	if ( !current_user_can('manage_categories') )
 		wp_die(__('Cheatin&#8217; uh?'));
 
-	if ( wp_update_category($_POST) )
-		wp_redirect('categories.php?message=3');
-	else
-		wp_redirect('categories.php?message=5');
+	$old_refs = $bfox_plan->get_plan_refs($plan_id);
+	$text = trim((string) $_POST['plan_passages']);
+	$sections = explode("\n", $text);
+
+	$plan = array();
+	$plan['id'] = $plan_id;
+	$plan['name'] = (string) $_POST['plan_name'];
+	$plan['summary'] = (string) $_POST['plan_description'];
+	$plan['refs_array'] = array();
+
+	// Create the refs array
+	$index = 0;
+	$is_edited = false;
+	foreach ($sections as $section)
+	{
+		$section = trim($section);
+		
+		// Determine if the text we got from input is different from the text already saved for this plan
+		if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
+			$is_edited = true;
+		
+		$refs = new BibleRefs($section);
+		if ($refs->is_valid()) $plan['refs_array'][] = $refs;
+		$index++;
+	}
+	
+	// If we didn't actually make any changes to the refs_array then there is no need to send it
+	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
+		unset($plan['refs_array']);
+	
+	$bfox_plan->edit_plan((object) $plan);
+	
+	wp_redirect($bfox_page_url . '&message=3');
 
 	exit;
 break;
@@ -100,11 +138,11 @@ wp_enqueue_script('admin-forms');
 
 require_once ('admin-header.php');
 
-$messages[1] = __('Category added.');
-$messages[2] = __('Category deleted.');
-$messages[3] = __('Category updated.');
-$messages[4] = __('Category not added.');
-$messages[5] = __('Category not updated.');
+$messages[1] = __('Reading Plan added.');
+$messages[2] = __('Reading Plan deleted.');
+$messages[3] = __('Reading Plan updated.');
+$messages[4] = __('Reading Plan not added.');
+$messages[5] = __('Reading Plan not updated.');
 ?>
 
 <?php if (isset($_GET['message'])) : ?>
@@ -114,6 +152,7 @@ endif; ?>
 
 <div class="wrap">
 <form id="posts-filter" action="" method="get">
+<input type="hidden" name="page" value="<?php echo BFOX_MANAGE_PLAN_SUBPAGE; ?>">
 <?php if ( current_user_can('manage_categories') ) : ?>
 	<h2><?php printf(__('Manage Reading Plans (<a href="%s">add new</a>)'), '#addplan') ?> </h2>
 <?php else : ?>
