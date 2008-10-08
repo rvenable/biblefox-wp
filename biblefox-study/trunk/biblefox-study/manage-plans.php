@@ -14,6 +14,17 @@ if ( isset($_GET['deleteit']) && isset($_GET['delete']) )
 
 switch($action) {
 
+case 'edit-schedule':
+	$schedule_id = (int) $_GET['schedule_id'];
+	// NOTE: fall through intended
+case 'addnew-schedule':
+	
+	require_once ('admin-header.php');
+	$plan_id = (int) $_GET['plan_id'];
+	include('edit-plan-schedule-form.php');
+	
+	break;
+
 case 'addplan':
 
 	check_admin_referer('add-reading-plan');
@@ -192,7 +203,7 @@ endif; ?>
 		echo '<td><a class="row-title" href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
 			attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a>';
 		echo '<td>' . $plan->summary . '</td>';
-		echo '<td>Add a schedule</td>';
+		echo '<td><a href="' . $bfox_page_url . '&amp;action=addnew-schedule&amp;plan_id=' . $plan->id . '">Add a schedule</a></td>';
 		echo '</tr>';
 	}
 ?>

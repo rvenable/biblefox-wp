@@ -38,8 +38,8 @@ if ( ! empty($plan_id) ) {
 <div id="ajax-response"></div>
 <?php echo $form ?>
 <input type="hidden" name="page" value="<?php echo BFOX_MANAGE_PLAN_SUBPAGE; ?>" />
-<input type="hidden" name="action" value="<?php echo $action ?>" />
-<input type="hidden" name="plan_id" value="<?php echo $plan_id ?>" />
+<input type="hidden" name="action" value="<?php echo $action; ?>" />
+<input type="hidden" name="plan_id" value="<?php echo $plan_id; ?>" />
 <?php wp_nonce_field($nonce_action); ?>
 	<table class="form-table">
 		<tr class="form-field form-required">
@@ -60,7 +60,7 @@ if ( ! empty($plan_id) ) {
 <?php if (empty($plan_id)) : ?>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="plan_chapters"><?php _e('Chapters Per Reading') ?></label></th>
-			<td><input name="plan_chapters" id="plan_chapters" type="text" value="1" size="4" /><br />
+			<td><input name="plan_chapters" id="plan_chapters" type="text" value="1" size="4" maxlength="4" /><br />
 			<?php _e('Set the number of chapters to read at a time. The passages specified in the "Passages" section will be divided into readings based on how large this number is. If this is not set, it will default to one chapter per reading.'); ?></td>
 		</tr>
 <?php endif; ?>
