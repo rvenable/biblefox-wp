@@ -4,11 +4,9 @@ require_once('admin.php');
 global $bfox_plan;
 $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 
-// TODO: I don't know what these are for
-$title = __('Reading Plans');
-$parent_file = 'admin.php';
-
-wp_reset_vars(array('action', 'cat'));
+// NOTE: I don't know why the wp_reset_vars() call isn't setting action properly (maybe its because I am in a plugin page?)
+//wp_reset_vars(array('action', 'cat'));
+$action = $_GET['action'];
 
 if ( isset($_GET['deleteit']) && isset($_GET['delete']) )
 	$action = 'bulk-delete';
@@ -70,9 +68,8 @@ break;
 case 'edit':
 
 	require_once ('admin-header.php');
-	$cat_ID = (int) $_GET['cat_ID'];
-	$category = get_category_to_edit($cat_ID);
-	include('edit-category-form.php');
+	$plan_id = (int) $_GET['plan_id'];
+	include('edit-plan-form.php');
 
 break;
 
@@ -118,7 +115,7 @@ endif; ?>
 <div class="wrap">
 <form id="posts-filter" action="" method="get">
 <?php if ( current_user_can('manage_categories') ) : ?>
-	<h2><?php printf(__('Manage Reading Plans (<a href="%s">add new</a>)'), '#addcat') ?> </h2>
+	<h2><?php printf(__('Manage Reading Plans (<a href="%s">add new</a>)'), '#addplan') ?> </h2>
 <?php else : ?>
 	<h2><?php _e('Manage Reading Plans') ?> </h2>
 <?php endif; ?>
@@ -170,7 +167,7 @@ endif; ?>
 
 <?php if ( current_user_can('manage_categories') ) : ?>
 
-<?php include('edit-category-form.php'); ?>
+<?php include('edit-plan-form.php'); ?>
 
 <?php endif; ?>
 
