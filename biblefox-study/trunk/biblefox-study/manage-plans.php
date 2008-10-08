@@ -1,8 +1,12 @@
 <?php
 require_once('admin.php');
 
-$title = __('Categories');
-$parent_file = 'edit.php';
+global $bfox_plan;
+$bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
+
+// TODO: I don't know what these are for
+$title = __('Reading Plans');
+$parent_file = 'admin.php';
 
 wp_reset_vars(array('action', 'cat'));
 
@@ -47,19 +51,13 @@ case 'delete':
 break;
 
 case 'bulk-delete':
-	check_admin_referer('bulk-categories');
+	check_admin_referer('bulk-reading-plans');
 
 	if ( !current_user_can('manage_categories') )
-		wp_die( __('You are not allowed to delete categories.') );
+		wp_die( __('You are not allowed to delete reading plans.') );
 
-	foreach ( (array) $_GET['delete'] as $cat_ID ) {
-		$cat_name = get_catname($cat_ID);
-
-		// Don't delete the default cats.
-		if ( $cat_ID == get_option('default_category') )
-			wp_die(sprintf(__("Can&#8217;t delete the <strong>%s</strong> category: this is the default one"), $cat_name));
-
-		wp_delete_category($cat_ID);
+	foreach ( (array) $_GET['delete'] as $plan_id ) {
+		$bfox_plan->delete($plan_id);
 	}
 
 	$sendback = wp_get_referer();
@@ -120,42 +118,18 @@ endif; ?>
 <div class="wrap">
 <form id="posts-filter" action="" method="get">
 <?php if ( current_user_can('manage_categories') ) : ?>
-	<h2><?php printf(__('Manage Categories (<a href="%s">add new</a>)'), '#addcat') ?> </h2>
+	<h2><?php printf(__('Manage Reading Plans (<a href="%s">add new</a>)'), '#addcat') ?> </h2>
 <?php else : ?>
-	<h2><?php _e('Manage Categories') ?> </h2>
+	<h2><?php _e('Manage Reading Plans') ?> </h2>
 <?php endif; ?>
-
-<p id="post-search">
-	<label class="hidden" for="post-search-input"><?php _e('Search Categories'); ?>:</label>
-	<input type="text" id="post-search-input" name="s" value="<?php echo attribute_escape(stripslashes($_GET['s'])); ?>" />
-	<input type="submit" value="<?php _e( 'Search Categories' ); ?>" class="button" />
-</p>
 
 <br class="clear" />
 
 <div class="tablenav">
 
-<?php
-$pagenum = absint( $_GET['pagenum'] );
-if ( empty($pagenum) )
-	$pagenum = 1;
-if( !$catsperpage || $catsperpage < 0 )
-	$catsperpage = 20;
-
-$page_links = paginate_links( array(
-	'base' => add_query_arg( 'pagenum', '%#%' ),
-	'format' => '',
-	'total' => ceil(wp_count_terms('category') / $catsperpage),
-	'current' => $pagenum
-));
-
-if ( $page_links )
-	echo "<div class='tablenav-pages'>$page_links</div>";
-?>
-
 <div class="alignleft">
 <input type="submit" value="<?php _e('Delete'); ?>" name="deleteit" class="button-secondary delete" />
-<?php wp_nonce_field('bulk-categories'); ?>
+<?php wp_nonce_field('bulk-reading-plans'); ?>
 </div>
 
 <br class="clear" />
@@ -169,34 +143,32 @@ if ( $page_links )
 		<th scope="col" class="check-column"><input type="checkbox" /></th>
         <th scope="col"><?php _e('Name') ?></th>
         <th scope="col"><?php _e('Description') ?></th>
-        <th scope="col" class="num"><?php _e('Posts') ?></th>
+        <th scope="col"><?php _e('Schedules') ?></th>
 	</tr>
 	</thead>
 	<tbody id="the-list" class="list:cat">
 <?php
-cat_rows(0, 0, 0, $pagenum, $catsperpage);
+	$plans = $bfox_plan->get_plans();
+	foreach ($plans as $plan)
+	{
+		echo '<tr id="reading-plan-' . $plan->id . '" class="alternate">';
+		echo '<th scope="row" class="check-column"> <input type="checkbox" name="delete[]" value="' . $plan->id . '" /></th>';
+		echo '<td><a class="row-title" href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
+			attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a>';
+		echo '<td>' . $plan->summary . '</td>';
+		echo '<td>Add a schedule</td>';
+		echo '</tr>';
+	}
 ?>
 	</tbody>
 </table>
 </form>
 
-<div class="tablenav">
-
-<?php
-if ( $page_links )
-	echo "<div class='tablenav-pages'>$page_links</div>";
-?>
-<br class="clear" />
-</div>
 <br class="clear" />
 
 </div>
 
 <?php if ( current_user_can('manage_categories') ) : ?>
-<div class="wrap">
-<p><?php printf(__('<strong>Note:</strong><br />Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the category <strong>%s</strong>.'), apply_filters('the_category', get_catname(get_option('default_category')))) ?></p>
-<p><?php printf(__('Categories can be selectively converted to tags using the <a href="%s">category to tag converter</a>.'), 'admin.php?import=wp-cat2tag') ?></p>
-</div>
 
 <?php include('edit-category-form.php'); ?>
 
