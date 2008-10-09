@@ -1,7 +1,7 @@
 <?php
 require_once('admin.php');
 
-global $bfox_plan;
+global $bfox_plan, $bfox_schedule, $blog_id;
 $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 
 // NOTE: I don't know why the wp_reset_vars() call isn't setting action properly (maybe its because I am in a plugin page?)
@@ -23,7 +23,36 @@ case 'addnew-schedule':
 	$plan_id = (int) $_GET['plan_id'];
 	include('edit-plan-schedule-form.php');
 	
-	break;
+break;
+
+case 'editedschedule':
+	$schedule = array();
+	$schedule['id'] = $_POST['schedule_id'];
+
+	$referer = 'update-reading-schedule-' . $schedule['id'];
+	$message = '13';
+	// NOTE: fall through intended
+case 'addschedule':
+
+	if (!isset($referer)) $referer = 'add-reading-schedule';
+	check_admin_referer($referer);
+
+	if ( !current_user_can('manage_categories') )
+		wp_die(__('Cheatin&#8217; uh?'));
+
+	if (!isset($schedule)) $schedule = array();
+	if (!isset($message)) $message = '11';
+	$schedule['blog_id'] = $blog_id;
+	$schedule['plan_id'] = $_POST['plan_id'];
+	$schedule['start_date'] = '10/8/08';
+	$schedule['readings_per_period'] = $_POST['schedule_readings_per_period'];
+	$schedule['frequency'] = $bfox_schedule->frequency[$_POST['schedule_frequency']];
+	$schedule['frequency_options'] = $_POST['schedule_frequency_options'];
+	$bfox_schedule->update_schedule($schedule);
+	wp_redirect($bfox_page_url . '&message=' . $message);
+
+	exit;
+break;
 
 case 'addplan':
 
@@ -154,6 +183,8 @@ $messages[2] = __('Reading Plan deleted.');
 $messages[3] = __('Reading Plan updated.');
 $messages[4] = __('Reading Plan not added.');
 $messages[5] = __('Reading Plan not updated.');
+$messages[11] = __('Reading Plan Schedule added.');
+$messages[13] = __('Reading Plan Schedule updated.');
 ?>
 
 <?php if (isset($_GET['message'])) : ?>
@@ -196,6 +227,7 @@ endif; ?>
 	<tbody id="the-list" class="list:cat">
 <?php
 	$plans = $bfox_plan->get_plans();
+	$schedules = $bfox_schedule->get_schedules($blog_id);
 	foreach ($plans as $plan)
 	{
 		echo '<tr id="reading-plan-' . $plan->id . '" class="alternate">';
@@ -203,7 +235,11 @@ endif; ?>
 		echo '<td><a class="row-title" href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
 			attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a>';
 		echo '<td>' . $plan->summary . '</td>';
-		echo '<td><a href="' . $bfox_page_url . '&amp;action=addnew-schedule&amp;plan_id=' . $plan->id . '">Add a schedule</a></td>';
+		echo '<td>';
+		foreach ($schedules as $schedule)
+			if ($schedule['plan_id'] == $plan->id)
+				echo $schedule['start_date'] . ' (<a href="' . $bfox_page_url . '&amp;action=edit-schedule&amp;schedule_id=' . $schedule['id'] . '">Edit</a>)<br/>';
+		echo '<a href="' . $bfox_page_url . '&amp;action=addnew-schedule&amp;plan_id=' . $plan->id . '">Add a schedule</a></td>';
 		echo '</tr>';
 	}
 ?>

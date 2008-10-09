@@ -124,6 +124,12 @@ How often will you be reading this plan?<br/>
 
 	function bfox_echo_plan_list($plan_list, $skip_read = false)
 	{
+		if (isset($plan_list->schedule))
+		{
+			global $bfox_schedule;
+			$dates = $bfox_schedule->get_dates($plan_list->schedule, count($plan_list->original));
+		}
+
 		$content = '';
 		$unread_count = 0;
 		$content .= '<table width="100%" style="text-align:left">
@@ -139,7 +145,9 @@ How often will you be reading this plan?<br/>
 			if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
 			$index = $period_id + 1;
 			$content .= '<td>' . $index . '</td><td>' . $original->get_link() . '</td>';
-			$content .= '<td></td><td>';
+			$content .= '<td>';
+			if (isset($dates[$period_id])) $content .= $dates[$period_id]->format('F d, Y');
+			$content .= '</td><td>';
 			if (isset($plan_list->unread[$period_id]))
 			{
 				if (isset($plan_list->read[$period_id]))

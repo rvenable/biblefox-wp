@@ -578,14 +578,18 @@
 	class PlanSchedule
 	{
 		private $table_name;
-		private $blog_id;
-		private static $frequency = array('day', 'week', 'month');
-		private static $frequency_index;// = array_flip(self::$frequency);
+		public $frequency = array('day', 'week', 'month');
 		
 		function PlanSchedule()
 		{
-			self::$frequency_index = array_flip(self::$frequency);
+			$this->frequency = array_merge($this->frequency, array_flip($this->frequency));
+
 			$this->table_name = BFOX_BASE_TABLE_PREFIX . 'plan_schedules';
+
+			// If the table doesn't exist, create it
+			global $wpdb;
+			if ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") != $this->table_name)
+				$this->create_tables();
 		}
 		
 		function create_tables()
@@ -597,7 +601,7 @@
 			
 			if (isset($this->table_name))
 			{
-				$sql .= "CREATE TABLE $this->plan_table_name (
+				$sql .= "CREATE TABLE $this->table_name (
 				id bigint(20) unsigned NOT NULL auto_increment,
 				blog_id int,
 				plan_id int,
@@ -616,69 +620,64 @@
 			}
 		}
 
-		function add_schedule($schedule)
+		function update_schedule($schedule)
 		{
 			global $wpdb;
-			$insert = $wpdb->prepare("INSERT INTO
-									 $this->table_name (blog_id, plan_id, start_date, readings_per_period, frequency, frequency_options)
-									 VALUES (%d, %d, %s, %d, %d, %s)",
+			$columns = 'blog_id, plan_id, start_date, readings_per_period, frequency, frequency_options';
+			$values = $wpdb->prepare('%d, %d, %s, %d, %d, %s',
 									 $schedule['blog_id'],
 									 $schedule['plan_id'],
 									 $schedule['start_date'],
 									 $schedule['readings_per_period'],
 									 $schedule['frequency'],
 									 $schedule['frequency_options']);
-			$wpdb->query($insert);
-		}
 
-		function edit_schedule($schedule_id, $schedule)
-		{
-			$update = $wpdb->prepare("REPLACE INTO
-									 $this->table_name (id, blog_id, plan_id, start_date, readings_per_period, frequency, frequency_options)
-									 VALUES (%d, %d, %d, %s, %d, %d, %s)",
-									 $schedule_id,
-									 $schedule['blog_id'],
-									 $schedule['plan_id'],
-									 $schedule['start_date'],
-									 $schedule['readings_per_period'],
-									 $schedule['frequency'],
-									 $schedule['frequency_options']);
-			$wpdb->query($update);
+			// If the schedule id is set, then we should replace
+			// Otherwise we should insert
+			if (isset($schedule['id']))
+				$query = $wpdb->prepare("REPLACE INTO $this->table_name (id, $columns) VALUES (%d, $values)", $schedule['id']);
+			else
+				$query = "INSERT INTO $this->table_name ($columns) VALUES ($values)";
+
+			$wpdb->query($query);
 		}
 
 		function get_schedules($blog_id, $plan_id = NULL)
 		{
+			global $wpdb;
 			$select = $wpdb->prepare("SELECT * FROM $this->table_name WHERE blog_id = %d", $blog_id);
 			if (isset($plan_id)) $select .= $wpdb->prepare(" AND plan_id = %d", $plan_id);
 
-			$results = $wpdb->get_results($select);
+			$results = $wpdb->get_results($select . ' ORDER BY plan_id', ARRAY_A);
 
 			if (isset($results)) return $results;
 			return array();
 		}
 
+		function get_schedule($schedule_id)
+		{
+			global $wpdb;
+			return $wpdb->get_row($wpdb->prepare("SELECT * FROM $this->table_name WHERE id = %d", $schedule_id), ARRAY_A);
+		}
+		
 		function get_dates($schedule, $count = 0, $start = 0)
 		{
 			$dates = array();
-			$schedule['frequency'] = 'day';
-			$schedule['start_date'] = '10/8/08';
-			$schedule['frequency_options'] = '056';
 
-			if ('day' == $schedule['frequency'])
+			if ($this->frequency['day'] == $schedule['frequency'])
 			{
 				//checkdate()
+				if ('' == $schedule['frequency_options']) $schedule['frequency_options'] = '0123456';
+
 				$date = date_create($schedule['start_date']);
-//				echo '0:' . $date->format('w') . '<br/>';
 				for ($index = 0; $index < $count + $start; $index++)
 				{
 					if ((0 < $index) || (FALSE === strstr($schedule['frequency_options'], $date->format('w'))))
 					{
-//						echo '3:' . $index . '<br/>';
 						// Increment the date until
 						$inc_count = 0;
 						do {
 							$date->modify('+1 day');
-//							echo 'y0:' . $date->format('r') . '<br/>';
 							$inc_count++;
 						} while ((FALSE === strstr($schedule['frequency_options'], $date->format('w'))) &&
 								 ($inc_count < 7));
@@ -687,7 +686,7 @@
 					if ($index >= $start) $dates[] = clone($date);
 				}
 			}
-			foreach ($dates as $date) echo 'date:' . $date->format('r') . '<br/>';
+			return $dates;
 		}
 	}
 
@@ -695,8 +694,7 @@
 	$bfox_plan = new PlanBlog();
 	global $bfox_plan_progress;
 	$bfox_plan_progress = new PlanProgress();
-//	global $bfox_schedule;
-//	$bfox_schedule = new PlanSchedule();
-//	$bfox_schedule->get_dates(array(), 5, 0);
+	global $bfox_schedule;
+	$bfox_schedule = new PlanSchedule();
 
 ?>
