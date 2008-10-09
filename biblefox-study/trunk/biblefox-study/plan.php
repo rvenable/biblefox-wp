@@ -248,6 +248,8 @@
 
 				// Update the data table
 				$this->insert_refs_array($plan_id, $plan->refs_array);
+
+				return $plan_id;
 			}
 		}
 
@@ -635,11 +637,18 @@
 			// If the schedule id is set, then we should replace
 			// Otherwise we should insert
 			if (isset($schedule['id']))
+			{
 				$query = $wpdb->prepare("REPLACE INTO $this->table_name (id, $columns) VALUES (%d, $values)", $schedule['id']);
+				$wpdb->query($query);
+			}
 			else
+			{
 				$query = "INSERT INTO $this->table_name ($columns) VALUES ($values)";
+				$wpdb->query($query);
+				$schedule['id'] = $wpdb->insert_id;
+			}
 
-			$wpdb->query($query);
+			return $schedule['id'];
 		}
 
 		function get_schedules($blog_id, $plan_id = NULL)

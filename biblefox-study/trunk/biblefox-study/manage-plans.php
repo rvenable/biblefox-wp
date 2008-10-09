@@ -50,8 +50,8 @@ case 'addschedule':
 	$schedule['readings_per_period'] = $_POST['schedule_readings_per_period'];
 	$schedule['frequency'] = $bfox_schedule->frequency[$_POST['schedule_frequency']];
 	$schedule['frequency_options'] = $_POST['schedule_frequency_options'];
-	$bfox_schedule->update_schedule($schedule);
-	wp_redirect($bfox_page_url . '&message=' . $message);
+	$schedule_id = $bfox_schedule->update_schedule($schedule);
+	wp_redirect($bfox_page_url . '&action=edit-schedule&schedule_id=' . $schedule_id . '&message=' . $message);
 
 	exit;
 break;
@@ -71,8 +71,8 @@ case 'addplan':
 	$plan['name'] = (string) $_POST['plan_name'];
 	$plan['summary'] = (string) $_POST['plan_description'];
 	$plan['refs_array'] = $refs->get_sections($section_size);
-	$bfox_plan->add_new_plan((object) $plan);
-	wp_redirect($bfox_page_url . '&message=1');
+	$plan_id = $bfox_plan->add_new_plan((object) $plan);
+	wp_redirect($bfox_page_url . '&action=edit&plan_id=' . $plan_id . '&message=1');
 
 	exit;
 break;
@@ -163,7 +163,7 @@ case 'editedplan':
 	
 	$bfox_plan->edit_plan((object) $plan);
 	
-	wp_redirect($bfox_page_url . '&message=3');
+	wp_redirect($bfox_page_url . '&action=edit&plan_id=' . $plan_id . '&message=3');
 
 	exit;
 break;
@@ -180,13 +180,9 @@ wp_enqueue_script('admin-forms');
 
 require_once ('admin-header.php');
 
-$messages[1] = __('Reading Plan added.');
 $messages[2] = __('Reading Plan deleted.');
-$messages[3] = __('Reading Plan updated.');
 $messages[4] = __('Reading Plan not added.');
 $messages[5] = __('Reading Plan not updated.');
-$messages[11] = __('Reading Plan Schedule added.');
-$messages[13] = __('Reading Plan Schedule updated.');
 ?>
 
 <?php if (isset($_GET['message'])) : ?>
@@ -253,13 +249,10 @@ endif; ?>
 
 </div>
 
-<?php if ( current_user_can('manage_categories') ) : ?>
-
-<?php include('edit-plan-form.php'); ?>
-
-<?php endif; ?>
-
 <?php
+	if ( current_user_can('manage_categories') )
+		include('edit-plan-form.php');
+
 break;
 }
 

@@ -1,4 +1,13 @@
 <?php
+
+$messages[1] = __('Reading Plan added.');
+$messages[3] = __('Reading Plan updated.');
+
+if (isset($_GET['message'])) : ?>
+<div id="message" class="updated fade"><p><?php echo $messages[$_GET['message']]; ?></p></div>
+<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+endif;
+
 if ( ! empty($plan_id) ) {
 	$heading = __('Edit Reading Plan');
 	$submit_text = __('Edit Reading Plan');

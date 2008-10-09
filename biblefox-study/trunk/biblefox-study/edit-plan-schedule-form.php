@@ -1,5 +1,13 @@
 <?php
 
+$messages[11] = __('Reading Plan Schedule added.');
+$messages[13] = __('Reading Plan Schedule updated.');
+
+if (isset($_GET['message'])) : ?>
+<div id="message" class="updated fade"><p><?php echo $messages[$_GET['message']]; ?></p></div>
+<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+endif;
+
 global $bfox_plan, $bfox_schedule;
 if (isset($schedule_id))
 {
@@ -44,6 +52,7 @@ if (isset($plan_id) && isset($schedule_id)) {
 	$schedule['frequency'] = $bfox_schedule->frequency['day'];
 	unset($plan);
 }
+
 ?>
 
 <div class="wrap">
