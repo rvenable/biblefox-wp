@@ -659,32 +659,38 @@
 			global $wpdb;
 			return $wpdb->get_row($wpdb->prepare("SELECT * FROM $this->table_name WHERE id = %d", $schedule_id), ARRAY_A);
 		}
-		
-		function get_dates($schedule, $count = 0, $start = 0)
-		{
-			$dates = array();
 
+		function is_valid_date($date, $schedule)
+		{
+			$is_valid = TRUE;
 			if ($this->frequency['day'] == $schedule['frequency'])
 			{
-				//checkdate()
 				if ('' == $schedule['frequency_options']) $schedule['frequency_options'] = '0123456';
+				$is_valid = !(FALSE === strstr($schedule['frequency_options'], $date->format('w')));
+			}
+			return $is_valid;
+		}
 
-				$date = date_create($schedule['start_date']);
-				for ($index = 0; $index < $count + $start; $index++)
+		function get_dates($schedule, $count = 0, $start = 0)
+		{
+			$frequency_str = $this->frequency[$schedule['frequency']];
+			$dates = array();
+			$date = date_create($schedule['start_date']);
+			for ($index = 0; $index < $count + $start; $index++)
+			{
+				if ((0 < $index) || !$this->is_valid_date($date, $schedule))
 				{
-					if ((0 < $index) || (FALSE === strstr($schedule['frequency_options'], $date->format('w'))))
+					// Increment the date until
+					$inc_count = 0;
+					do
 					{
-						// Increment the date until
-						$inc_count = 0;
-						do {
-							$date->modify('+1 day');
-							$inc_count++;
-						} while ((FALSE === strstr($schedule['frequency_options'], $date->format('w'))) &&
-								 ($inc_count < 7));
+						$date->modify('+1 ' . $frequency_str);
+						$inc_count++;
 					}
-
-					if ($index >= $start) $dates[] = clone($date);
+					while (!$this->is_valid_date($date, $schedule) && ($inc_count < 7));
 				}
+				
+				if ($index >= $start) $dates[] = clone($date);
 			}
 			return $dates;
 		}
