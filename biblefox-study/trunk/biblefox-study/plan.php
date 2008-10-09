@@ -320,20 +320,23 @@
 			}
 		}
 
-		function get_plan_list($plan_id)
+		function get_plan_list($plan_id, $add_progress = TRUE)
 		{
 			$orig_refs_object = $this->get_plan_refs($plan_id);
 			$plan_list = array();
 			$plan_list['original'] = $orig_refs_object->unread;
 			
-			// Get the plan progress for the current user
-			global $bfox_plan_progress;
-			$user_plan_id = $bfox_plan_progress->get_plan_id($this->blog_id, $plan_id);
-			if (isset($user_plan_id))
+			if ($add_progress)
 			{
-				$refs_object = $bfox_plan_progress->get_plan_refs($user_plan_id);
-				$plan_list['unread'] = $refs_object->unread;
-				$plan_list['read'] = $refs_object->read;
+				// Get the plan progress for the current user
+				global $bfox_plan_progress;
+				$user_plan_id = $bfox_plan_progress->get_plan_id($this->blog_id, $plan_id);
+				if (isset($user_plan_id))
+				{
+					$refs_object = $bfox_plan_progress->get_plan_refs($user_plan_id);
+					$plan_list['unread'] = $refs_object->unread;
+					$plan_list['read'] = $refs_object->read;
+				}
 			}
 
 			return (object) $plan_list;

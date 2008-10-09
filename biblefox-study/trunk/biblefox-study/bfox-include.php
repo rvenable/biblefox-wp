@@ -33,5 +33,26 @@
 
 		return $blogs;
 	}
+	
+	function bfox_divide_into_cols($array, $max_cols, $height_threshold = 0)
+	{
+		$count = count($array);
+		if (0 < $count)
+		{
+			
+			// The height_threshold is so that we don't divide into too many columns for small arrays
+			// So, for instance, if we have 3 max columns and 5 array elements, and a threshold of 5, we shouldn't
+			// divide that into 3 short columns, but one column of 5
+			if (0 == $height_threshold)
+				$cols = $max_cols;
+			else
+				$cols = ceil($count / $height_threshold);
+			
+			if ($cols > $max_cols) $cols = $max_cols;
+			
+			$array = array_chunk($array, ceil($count / $cols), TRUE);
+		}
+		return $array;
+	}
 
 	?>

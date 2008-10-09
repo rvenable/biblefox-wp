@@ -25,7 +25,7 @@ if ( ! empty($plan_id) ) {
 	// Output the reading plan at the top of the page
 	echo '<div class="wrap">';
 	echo '<h2>' . __('View Reading Plan') . '</h2><br/>';
-	$plan_list = $bfox_plan->get_plan_list($plan->id);
+	$plan_list = $bfox_plan->get_plan_list($plan->id, FALSE);
 	echo bfox_echo_plan_list($plan_list);
 	echo '</div>';
 	

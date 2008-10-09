@@ -34,7 +34,7 @@ if (isset($plan_id) && isset($schedule_id)) {
 	// Output the reading schedule at the top of the page
 	echo '<div class="wrap">';
 	echo '<h2>' . __('View Reading Schedule') . '</h2><br/>';
-	$plan_list = $bfox_plan->get_plan_list($plan->id);
+	$plan_list = $bfox_plan->get_plan_list($plan->id, FALSE);
 	$plan_list->schedule = $schedule;
 	echo bfox_echo_plan_list($plan_list);
 	echo '</div>';
