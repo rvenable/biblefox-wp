@@ -18,6 +18,7 @@ if (isset($plan_id) && isset($schedule_id)) {
 	$action = 'editedschedule';
 	$nonce_action = 'update-reading-schedule-' . $schedule_id;
 	$readings_per_period = $schedule['readings_per_period'];
+	$start_date = $schedule['start_date'];
 
 	list($plan) = $bfox_plan->get_plans($plan_id);
 	$passages = $bfox_plan->get_plan_text($plan_id);
@@ -37,6 +38,8 @@ if (isset($plan_id) && isset($schedule_id)) {
 	$action = 'addschedule';
 	$nonce_action = 'add-reading-schedule';
 	$readings_per_period = 1;
+	$now = date_create('now');
+	$start_date = $now->format('m/d/Y');
 	$schedule = array();
 	$schedule['frequency'] = $bfox_schedule->frequency['day'];
 	unset($plan);
@@ -52,6 +55,11 @@ if (isset($plan_id) && isset($schedule_id)) {
 <input type="hidden" name="plan_id" value="<?php echo $plan_id ?>" />
 <?php wp_nonce_field($nonce_action); ?>
 	<table class="form-table">
+		<tr class="form-field form-required">
+			<th scope="row" valign="top"><label for="schedule_start_date"><?php _e('Start Date') ?></label></th>
+			<td><input name="schedule_start_date" id="schedule_start_date" type="text" value="<?php echo $start_date; ?>" size="10" maxlength="20" /><br />
+			<?php _e('Set the date at which this schedule will begin.'); ?></td>
+		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="schedule_readings_per_period"><?php _e('How many readings at a time?') ?></label></th>
 			<td><input name="schedule_readings_per_period" id="schedule_readings_per_period" type="text" value="<?php echo $readings_per_period; ?>" size="4" maxlength="4" /><br />

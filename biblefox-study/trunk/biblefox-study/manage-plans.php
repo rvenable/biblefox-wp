@@ -44,7 +44,9 @@ case 'addschedule':
 	if (!isset($message)) $message = '11';
 	$schedule['blog_id'] = $blog_id;
 	$schedule['plan_id'] = $_POST['plan_id'];
-	$schedule['start_date'] = '10/8/08';
+	$date = date_create($_POST['schedule_start_date']);
+	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
+	$schedule['start_date'] = $date->format('m/d/Y');
 	$schedule['readings_per_period'] = $_POST['schedule_readings_per_period'];
 	$schedule['frequency'] = $bfox_schedule->frequency[$_POST['schedule_frequency']];
 	$schedule['frequency_options'] = $_POST['schedule_frequency_options'];
