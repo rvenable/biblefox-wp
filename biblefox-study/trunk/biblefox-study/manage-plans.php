@@ -137,8 +137,8 @@ case 'editedplan':
 
 	$plan = array();
 	$plan['id'] = $plan_id;
-	$plan['name'] = (string) $_POST['plan_name'];
-	$plan['summary'] = (string) $_POST['plan_description'];
+	$plan['name'] = stripslashes($_POST['plan_name']);
+	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = array();
 
 	// Create the refs array

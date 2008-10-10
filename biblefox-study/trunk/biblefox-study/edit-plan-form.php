@@ -58,7 +58,7 @@ if ( ! empty($plan_id) ) {
 		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="plan_description"><?php _e('Description') ?></label></th>
-			<td><textarea name="plan_description" id="plan_description" rows="5" cols="50" style="width: 97%;"><?php echo wp_specialchars($plan->summary); ?></textarea><br />
+			<td><textarea name="plan_description" id="plan_description" rows="5" cols="50" style="width: 97%;"><?php echo attribute_escape($plan->summary); ?></textarea><br />
             <?php _e('The description is not prominent by default, however some themes may show it.'); ?></td>
 		</tr>
 		<tr class="form-field form-required">
