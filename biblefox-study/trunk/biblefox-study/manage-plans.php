@@ -221,8 +221,7 @@ endif; ?>
 
 <p><strong>Note:</strong><br/>
 <strong>Reading Plans</strong> are an important part of most Biblefox Bible Study Blogs.<br/>
-By creating a reading plan, you can structure the order in which you read the Bible.</p>
-<p>Also, you can add <strong>Reading Schedules</strong> to organize when you will read the scripture!</p>
+By creating a reading plan, you can structure what scriptures you read and when you read them!</p>
 
 </div>
 
