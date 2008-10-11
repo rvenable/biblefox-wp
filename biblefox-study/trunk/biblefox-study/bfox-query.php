@@ -69,11 +69,15 @@
 	// Function for doing any preparation before doing the post query
 	function bfox_pre_get_posts($wp_query)
 	{
+		// HACK: This special page stuff should really happen in bfox_parse_query, but WP won't call that func if is_home(), so we have to do it here
+		global $bfox_specials;
+		if ($wp_query->is_home) $bfox_specials->do_home(&$wp_query);
+		
 		$vars = $wp_query->query_vars;
-
-		if (is_search())
+		
+		if ($wp_query->is_search)
 			$refStrs = $vars['s'];
-		else if (is_bfox_bible_ref())
+		else if ($wp_query->is_bfox_bible_ref)
 			$refStrs = $vars[BFOX_QUERY_VAR_BIBLE_REF];
 
 		// Global array for storing bible references used in a search
@@ -201,7 +205,8 @@
 				global $bfox_specials;
 				$bfox_specials->add_to_posts(&$posts, $wp_query->query_vars);
 			}
-			
+
+			/*
 			if (is_home())
 			{
 				// Add the blog progress page to the front of the posts
@@ -219,6 +224,7 @@
 					$posts = array_merge(array((object) $new_post), $posts);
 				}
 			}
+			 */
 		}
 
 		return $posts;

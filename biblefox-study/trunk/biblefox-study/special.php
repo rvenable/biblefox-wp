@@ -8,8 +8,8 @@
 		{
 			$this->pages =
 			array(
-				  'reading_plans' => array('title' => 'Reading Plans', 'type' => 'page', 'desc' => 'View the reading plans for this bible study'),
 				  'current_reading' => array('title' => 'Current Reading', 'type' => 'post', 'desc' => 'View the current reading for this bible study'),
+				  'reading_plans' => array('title' => 'Reading Plans', 'type' => 'page', 'desc' => 'View the reading plans for this bible study'),
 //				  'my_reading' => array('title' => 'My Reading', 'type' => 'post', 'desc' => 'View your current reading for this bible study'),
 				  'my_history' => array('title' => 'My Passage History', 'type' => 'page', 'desc' => 'View the history of scriptures you have viewed and read')
 				  );
@@ -28,6 +28,15 @@
 			if (null != $plan_id) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
 			if (null != $action) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
 			return $url;
+		}
+
+		function do_home($wp_query)
+		{
+			$wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL] = 'current_reading';
+			$this->setup_query(&$wp_query);
+			// Set whether this query is a bible reference
+			if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
+				$wp_query->is_bfox_bible_ref = true;
 		}
 
 		function setup_query_current_reading($wp_query)
