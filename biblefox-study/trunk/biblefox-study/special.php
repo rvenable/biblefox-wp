@@ -32,37 +32,18 @@
 
 		function setup_query_current_reading($wp_query)
 		{
-			global $bfox_plan, $bfox_schedule, $blog_id;
+			global $bfox_plan, $blog_id;
 			$blog_plans = $bfox_plan->get_plans();
 			if (0 < count($blog_plans))
 			{
-				$schedules = $bfox_schedule->get_schedules($blog_id);
-				$schedule = array_pop($schedules);
 				foreach ($blog_plans as $plan)
 				{
-					// Iterate through the schedules to get the current readings
-					while (isset($schedule) && ($schedule['plan_id'] == $plan->id))
+					if (isset($plan->current_reading))
 					{
-						if (!isset($plan_refs))
-						{
-							$plan_refs = $bfox_plan->get_plan_refs($plan->id);
-							$count = count($plan_refs->unread);
-						}
-
-						$dates = $bfox_schedule->get_dates(&$schedule, $count);
-						$current_index = $schedule['past_count'];
-						if (isset($current_index) && ($current_index < $count))
-						{
-							if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]) && ('' != $wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
-								$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= '; ';
-							$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= $plan_refs->unread[$current_index]->get_string();
-						}
-
-						// Get the next schedule
-						$schedule = array_pop($schedules);
+						if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]) && ('' != $wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
+							$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= '; ';
+						$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= $plan->refs[$plan->current_reading]->get_string();
 					}
-
-					unset($plan_refs);
 				}
 			}
 		}

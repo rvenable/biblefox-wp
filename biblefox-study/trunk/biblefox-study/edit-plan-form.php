@@ -8,6 +8,8 @@ if (isset($_GET['message'])) : ?>
 <?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
 endif;
 
+global $bfox_plan;
+
 if ( ! empty($plan_id) ) {
 	$heading = __('Edit Reading Plan');
 	$submit_text = __('Edit Reading Plan');
@@ -17,16 +19,16 @@ if ( ! empty($plan_id) ) {
 	$passage_help_text = __('Which passages of the bible would you like to read?<br/>
 							Edit the passages above to modify your reading plan. Each line is a different reading in the plan.');
 
-	global $bfox_plan;
 
 	list($plan) = $bfox_plan->get_plans($plan_id);
+	$start_date = $plan->start_date;
+	$frequency = $bfox_plan->frequency[$plan->frequency['day']];
 	$passages = $bfox_plan->get_plan_text($plan_id);
 
 	// Output the reading plan at the top of the page
 	echo '<div class="wrap">';
 	echo '<h2>' . __('View Reading Plan') . '</h2><br/>';
-	$plan_list = $bfox_plan->get_plan_list($plan->id, FALSE);
-	echo bfox_echo_plan_list($plan_list);
+	echo bfox_echo_plan($plan);
 	echo '</div>';
 	
 } else {
@@ -35,6 +37,8 @@ if ( ! empty($plan_id) ) {
 	$form = '<form name="addplan" id="addplan" method="post" action="" class="add:the-list: validate">';
 	$action = 'addplan';
 	$nonce_action = 'add-reading-plan';
+	$start_date = date('m/d/Y');
+	$frequency = $bfox_plan->frequency['day'];
 	$passage_help_text = __('Which passages of the bible would you like to read?<br/>
 							Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John".<br/>
 							You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3").');
@@ -73,6 +77,19 @@ if ( ! empty($plan_id) ) {
 			<?php _e('Set the number of chapters to read at a time. The passages specified in the "Passages" section will be divided into readings based on how large this number is. If this is not set, it will default to one chapter per reading.'); ?></td>
 		</tr>
 <?php endif; ?>
+		<tr class="form-field form-required">
+			<th scope="row" valign="top"><label for="schedule_start_date"><?php _e('Start Date') ?></label></th>
+			<td><input name="schedule_start_date" id="schedule_start_date" type="text" value="<?php echo $start_date; ?>" size="10" maxlength="20" /><br />
+			<?php _e('Set the date at which this schedule will begin.'); ?></td>
+		</tr>
+		<tr class="form-field form-required">
+			<th scope="row" valign="top"><label for="schedule_frequency"><?php _e('How often will this plan be read?') ?></label></th>
+			<td>
+				<input type="radio" name="schedule_frequency" id="schedule_frequency_day" value="day" <?php checked($bfox_plan->frequency['day'], $plan->frequency); ?> />Daily<br/>
+				<input type="radio" name="schedule_frequency" id="schedule_frequency_week" value="week" <?php checked($bfox_plan->frequency['week'], $plan->frequency); ?> />Weekly<br/>
+				<input type="radio" name="schedule_frequency" id="schedule_frequency_month" value="month" <?php checked($bfox_plan->frequency['month'], $plan->frequency); ?> />Monthly<br/>
+            <?php echo _e('Will this plan be read daily, weekly, or monthly?'); ?></td>
+		</tr>
 	</table>
 <p class="submit"><input type="submit" class="button" name="submit" value="<?php echo $submit_text ?>" /></p>
 </form>

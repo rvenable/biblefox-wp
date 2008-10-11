@@ -1,7 +1,5 @@
 <?php
 
-$messages[11] = __('Reading Plan Schedule added.');
-$messages[13] = __('Reading Plan Schedule updated.');
 
 if (isset($_GET['message'])) : ?>
 <div id="message" class="updated fade"><p><?php echo $messages[$_GET['message']]; ?></p></div>
@@ -64,24 +62,6 @@ if (isset($plan_id) && isset($schedule_id)) {
 <input type="hidden" name="plan_id" value="<?php echo $plan_id ?>" />
 <?php wp_nonce_field($nonce_action); ?>
 	<table class="form-table">
-		<tr class="form-field form-required">
-			<th scope="row" valign="top"><label for="schedule_start_date"><?php _e('Start Date') ?></label></th>
-			<td><input name="schedule_start_date" id="schedule_start_date" type="text" value="<?php echo $start_date; ?>" size="10" maxlength="20" /><br />
-			<?php _e('Set the date at which this schedule will begin.'); ?></td>
-		</tr>
-		<tr class="form-field">
-			<th scope="row" valign="top"><label for="schedule_readings_per_period"><?php _e('How many readings at a time?') ?></label></th>
-			<td><input name="schedule_readings_per_period" id="schedule_readings_per_period" type="text" value="<?php echo $readings_per_period; ?>" size="4" maxlength="4" /><br />
-			<?php _e('Set the number of readings to read at a time.'); ?></td>
-		</tr>
-		<tr class="form-field form-required">
-			<th scope="row" valign="top"><label for="schedule_frequency"><?php _e('How often will this plan be read?') ?></label></th>
-			<td>
-				<input type="radio" name="schedule_frequency" id="schedule_frequency_day" value="day" <?php checked($bfox_schedule->frequency['day'], $schedule['frequency']); ?> />Daily<br/>
-				<input type="radio" name="schedule_frequency" id="schedule_frequency_week" value="week" <?php checked($bfox_schedule->frequency['week'], $schedule['frequency']); ?> />Weekly<br/>
-				<input type="radio" name="schedule_frequency" id="schedule_frequency_month" value="month" <?php checked($bfox_schedule->frequency['month'], $schedule['frequency']); ?> />Monthly<br/>
-            <?php echo _e('Will this plan be read daily, weekly, or monthly?'); ?></td>
-		</tr>
 	</table>
 <p class="submit"><input type="submit" class="button" name="submit" value="<?php echo $submit_text ?>" /></p>
 </form>

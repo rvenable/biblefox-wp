@@ -14,6 +14,7 @@
 			{
 				echo "Upgrading Plan<br/>";
 				$plan->create_tables();
+				$plan->reset_end_dates();
 			}
 		}
 		

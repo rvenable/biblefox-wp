@@ -44,12 +44,6 @@ case 'addschedule':
 	if (!isset($message)) $message = '11';
 	$schedule['blog_id'] = $blog_id;
 	$schedule['plan_id'] = $_POST['plan_id'];
-	$date = date_create($_POST['schedule_start_date']);
-	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
-	$schedule['start_date'] = $date->format('m/d/Y');
-	$schedule['readings_per_period'] = $_POST['schedule_readings_per_period'];
-	$schedule['frequency'] = $bfox_schedule->frequency[$_POST['schedule_frequency']];
-	$schedule['frequency_options'] = $_POST['schedule_frequency_options'];
 	$schedule_id = $bfox_schedule->update_schedule($schedule);
 	wp_redirect($bfox_page_url . '&action=edit-schedule&schedule_id=' . $schedule_id . '&message=' . $message);
 
@@ -67,10 +61,16 @@ case 'addplan':
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
 
+	$date = date_create($_POST['schedule_start_date']);
+	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
+
 	$plan = array();
 	$plan['name'] = (string) $_POST['plan_name'];
 	$plan['summary'] = (string) $_POST['plan_description'];
 	$plan['refs_array'] = $refs->get_sections($section_size);
+	$plan['start_date'] = $date->format('m/d/Y');
+	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
+	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
 	$plan_id = $bfox_plan->add_new_plan((object) $plan);
 	wp_redirect($bfox_page_url . '&action=edit&plan_id=' . $plan_id . '&message=1');
 
@@ -135,12 +135,18 @@ case 'editedplan':
 	$text = trim((string) $_POST['plan_passages']);
 	$sections = explode("\n", $text);
 
+	$date = date_create($_POST['schedule_start_date']);
+	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
+	
 	$plan = array();
 	$plan['id'] = $plan_id;
 	$plan['name'] = stripslashes($_POST['plan_name']);
 	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = array();
-
+	$plan['start_date'] = $date->format('m/d/Y');
+	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
+	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
+		
 	// Create the refs array
 	$index = 0;
 	$is_edited = false;
@@ -158,8 +164,8 @@ case 'editedplan':
 	}
 	
 	// If we didn't actually make any changes to the refs_array then there is no need to send it
-	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
-		unset($plan['refs_array']);
+/*	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
+		unset($plan['refs_array']);*/
 	
 	$bfox_plan->edit_plan((object) $plan);
 	
@@ -225,7 +231,6 @@ endif; ?>
 	<tbody id="the-list" class="list:cat">
 <?php
 	$plans = $bfox_plan->get_plans();
-	$schedules = $bfox_schedule->get_schedules($blog_id);
 	foreach ($plans as $plan)
 	{
 		echo '<tr id="reading-plan-' . $plan->id . '" class="alternate">';
@@ -233,11 +238,7 @@ endif; ?>
 		echo '<td><a class="row-title" href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
 			attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a>';
 		echo '<td>' . $plan->summary . '</td>';
-		echo '<td>';
-		foreach ($schedules as $schedule)
-			if ($schedule['plan_id'] == $plan->id)
-				echo $schedule['start_date'] . ' (<a href="' . $bfox_page_url . '&amp;action=edit-schedule&amp;schedule_id=' . $schedule['id'] . '">Edit</a>)<br/>';
-		echo '<a href="' . $bfox_page_url . '&amp;action=addnew-schedule&amp;plan_id=' . $plan->id . '">Add a schedule</a></td>';
+		echo '<td>' . $plan->start_date . ' - ' . $plan->end_date . '</td>';
 		echo '</tr>';
 	}
 ?>

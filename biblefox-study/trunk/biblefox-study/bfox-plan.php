@@ -122,16 +122,14 @@ How often will you be reading this plan?<br/>
 		return $sections;
 	}
 
-	function bfox_echo_plan_list($plan_list, $skip_read = false)
+	function bfox_echo_plan($plan, $skip_read = false)
 	{
 		// Divide the plan into 3 columns
-		$originals = bfox_divide_into_cols($plan_list->original, 3, 5);
+		$originals = bfox_divide_into_cols($plan->refs, 3, 5);
 		
 		$headers = '<th width="1*"></th><th width="10*">Passage</th>';
-		if (isset($plan_list->schedule))
+		if (isset($plan->dates))
 		{
-			global $bfox_schedule;
-			$dates = $bfox_schedule->get_dates($plan_list->schedule, count($plan_list->original));
 			$headers .= '<th width="5*">Date</th>';
 		}
 
@@ -152,10 +150,10 @@ How often will you be reading this plan?<br/>
 				if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
 				$index = $period_id + 1;
 				$content .= '<td style="text-align:center">' . $index . '</td><td>' . $original->get_link() . '</td>';
-				if (isset($dates))
+				if (isset($plan->dates))
 				{
 					$content .= '<td>';
-					if (isset($dates[$period_id])) $content .= $dates[$period_id]->format('M d, Y');
+					if (isset($plan->dates[$period_id])) $content .= $plan->dates[$period_id]->format('M d, Y');
 					if (isset($plan_list->unread) || isset($plan_list->read))
 					{
 						$content .= '</td><td>';
@@ -193,14 +191,13 @@ How often will you be reading this plan?<br/>
 			$page = BFOX_MANAGE_PLAN_SUBPAGE;
 			$admin_dir = get_option('home') . '/wp-admin';
 			$view_url = "$admin_dir/admin.php?page=$page&amp;action=edit&amp;plan_id=$plan->id";
-			$plan_list = $bfox_plan->get_plan_list($plan->id);
 
 			$content .= "<strong>$plan->name</strong>";
 			if ($can_edit) $content .= " (<a href=\"$view_url\">edit</a>)";
 			$content .= '<p>';
 			if (isset($plan->summary) && ('' != $plan->summary)) $content .= $plan->summary . '<br/>';
 			$content .= '</p>';
-			$content .= bfox_echo_plan_list($plan_list);
+			$content .= bfox_echo_plan($plan);
 			$content .= "<br/>";
 		}
 		return $content;
