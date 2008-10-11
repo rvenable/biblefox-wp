@@ -578,6 +578,62 @@
 				}
 			}
 		}
+
+		/*
+		function get_read_status($plan_refs, $read_refs)
+		{
+			/*
+			 $plan_refs ordered by start, end
+			 $read_refs ordered by start and there can't have overlapping references
+			 
+			 a1,a2
+			 skip all that end before a1
+			 everything else that starts before or at a2 overlaps
+
+			 everything else that ends before or at a2 overlaps
+			 everything else that ends after a2 overlaps if it starts before or at a2
+			 while 
+			$read_ref = array_pop($read_refs);
+			$start_index = 0;
+			$end_index = 0;
+			$count = count($read_refs);
+			foreach ($plan_refs as $plan_ref)
+			{
+				// Skip every passage that ends before the reading starts
+				while (($start_index < $count) && ($read_refs[$start_index]->end < $plan_ref->end)) $start_index++;
+				while (($end_index < $count) && ($read_refs[$end_index]->start <= $plan_ref->end)) $end_index++;
+				$unread_start = $plan_ref->start;
+				$unread_end = $plan_ref->end;
+				for ($index = $start_index; $index < $end_index; $index++)
+				{
+					$new_read_ref = new BibleRefs;
+					if ($unread_start < $read_refs[$index]->start)
+					{
+						$new_unread_ref = new BibleRefs;
+						$new_unread_ref->start = $unread_start;
+						$new_unread_ref->end = $read_refs[$index]->start - 1;
+						$divs[] = $new_unread_ref;
+						
+						$new_read_ref->start = $read_refs[$index]->start;
+					}
+					else
+					{
+						$new_read_ref->start = $unread_start;
+					}
+
+					$new_read_ref->end = $read_refs[$index]->end;
+					$new_read_ref->date = $read_refs[$index]->date;
+					$unread_start = $new_read_ref->end + 1;
+					$divs[] = $new_read_ref;
+				}
+				foreach (
+				if ($plan_start < $read_start)
+				{
+					if ($plan_end < $read_start)
+				}
+			}
+		}
+		 */
 	}
 	
 	class PlanSchedule

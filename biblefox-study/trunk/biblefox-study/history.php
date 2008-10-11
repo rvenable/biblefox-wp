@@ -194,6 +194,95 @@
 			
 			return $str;
 		}
+
+		/*
+		function get_flat_history_sets(DateTime $start_time)
+		{
+			global $wpdb;
+
+			// The sets of read verses should be ordered by priority, with the big guys (higher priority) coming before smaller guys
+			$sets = $wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end, time
+													  FROM $this->table_name
+													  WHERE time >= CAST(%s as DATETIME)
+													  AND is_read = %d
+													  ORDER BY time DESC",
+													  $start_time->format('c'),
+													  $read));
+
+			$count = count($sets);
+
+			for ($big_index = 0; $big_index < $count; $big_index++)
+			{
+				// Big guys eat small guys, so
+				// For each guy smaller than this big guy, see if we can eat anything
+				for ($small_index = $big_index + 1; $small_index < $count; $small_index++)
+				{
+					$big_start = $sets[$big_index]->verse_start;
+					$big_end = $sets[$big_index]->verse_end;
+					$small_start = $sets[$small_index]->verse_start;
+					$small_end = $sets[$small_index]->verse_end;
+
+					$uneaten = array($small_start, $small_end);
+					
+					// If the big guy starts before or where the small guy starts
+					// Then the big guy might eat the first portion of the small guy
+					// Otherwise, we should see if the big guy eats later portions
+					if ($big_start <= $small_start)
+					{
+						// If the big guy ends after the small guy starts
+						// Then some of the small guy will be eaten
+						// Otherwise, the big guy won't eat any of the small guy
+						if ($big_end >= $small_start)
+							$uneaten = array($big_end + 1, $small_end);
+					}
+					else
+					{
+						// Because the big guy doesn't start before or when the small guy starts
+						// If the big guy starts before or when the small guy ends
+						// Then some of the small guy will be eaten
+						if ($big_start <= $small_end)
+						{
+							$uneaten = array($small_start, $big_start - 1);
+							
+							// If the big guy ends before the small guy ends
+							// Then only a middle portion of the small guy will be eaten,
+							//   so there will be two uneaten portions (the small guy will be split in two)
+							if ($big_end < $small_end)
+								$uneaten2 = array($big_end + 1, $small_end);
+						}
+					}
+					
+					// Set the small guy to the uneaten values
+					$sets[$small_index]->verse_start = $uneaten[0];
+					$sets[$small_index]->verse_end = $uneaten[1];
+
+					// Add uneaten2 to the end of the sets
+					if (isset($uneaten2))
+					{
+						$new_set = $sets[$small_index];
+						$new_set->verse_start = $uneaten2[0];
+						$new_set->verse_end = $uneaten2[1];
+						unset($uneaten2);
+						
+						$sets[] = $new_set;
+					}
+				}
+
+				// Recalculate the count because we might have added new small guys
+				$count = count($sets);
+			}
+
+			// Sort the sets by verse_start
+			function verse_start_cmp($a, $b)
+			{
+				if ($a->verse_start == $b->verse_start) return 0;
+				return ($a->verse_start < $b->verse_start) ? -1 : 1;
+			}
+			usort($sets, array($this, 'verse_start_cmp'));
+
+			return $sets;
+		}
+		 */
 	}
 
 	global $bfox_history;
