@@ -117,7 +117,7 @@
 					{
 						$refs = $this->get_plan_refs($plan->id);
 						$plan->refs = $refs->unread;
-						$plan->dates = $this->get_dates(&$plan, count($plan->refs));
+						$plan->dates = $this->get_dates($plan, count($plan->refs));
 					}
 				}
 			}
@@ -394,7 +394,7 @@
 			return $is_valid;
 		}
 		
-		function get_dates($plan, $count = 0, $start = 0)
+		function get_dates(&$plan, $count = 0, $start = 0)
 		{
 			$now = time();
 			

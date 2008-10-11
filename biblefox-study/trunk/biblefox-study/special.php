@@ -30,10 +30,10 @@
 			return $url;
 		}
 
-		function do_home($wp_query)
+		function do_home(&$wp_query)
 		{
 			$wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL] = 'current_reading';
-			$this->setup_query(&$wp_query);
+			$this->setup_query($wp_query);
 			// Set whether this query is a bible reference
 			if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
 				$wp_query->is_bfox_bible_ref = true;
@@ -66,7 +66,7 @@
 		}
 		 */
 
-		function setup_query($wp_query)
+		function setup_query(&$wp_query)
 		{
 			$page_name = $wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL];
 			if (isset($this->pages[$page_name]))
@@ -153,7 +153,7 @@
 			return $page;
 		}
 		
-		function add_to_posts($posts, $args = array())
+		function add_to_posts(&$posts, $args = array())
 		{
 			$page_name = $args[BFOX_QUERY_VAR_SPECIAL];
 			if (isset($this->pages[$page_name]))

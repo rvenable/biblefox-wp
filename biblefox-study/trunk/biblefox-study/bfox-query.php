@@ -55,7 +55,7 @@
 		$wp_query->is_bfox_special = false;
 
 		global $bfox_specials;
-		$bfox_specials->setup_query(&$wp_query);
+		$bfox_specials->setup_query($wp_query);
 
 		// Set whether this query is a bible reference
 		if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
@@ -71,7 +71,7 @@
 	{
 		// HACK: This special page stuff should really happen in bfox_parse_query, but WP won't call that func if is_home(), so we have to do it here
 		global $bfox_specials;
-		if ($wp_query->is_home) $bfox_specials->do_home(&$wp_query);
+		if ($wp_query->is_home) $bfox_specials->do_home($wp_query);
 		
 		$vars = $wp_query->query_vars;
 		
@@ -203,7 +203,7 @@
 			if (is_bfox_special())
 			{
 				global $bfox_specials;
-				$bfox_specials->add_to_posts(&$posts, $wp_query->query_vars);
+				$bfox_specials->add_to_posts($posts, $wp_query->query_vars);
 			}
 
 			/*
