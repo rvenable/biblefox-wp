@@ -190,19 +190,15 @@ How often will you be reading this plan?<br/>
 		$content = '';
 		foreach ($plans as $plan)
 		{
-			$page = BFOX_PLAN_SUBPAGE;
+			$page = BFOX_MANAGE_PLAN_SUBPAGE;
 			$admin_dir = get_option('home') . '/wp-admin';
-			$delete_url = "$admin_dir/admin.php?page=$page&amp;action=delete&amp;plan_id=$plan->id";
-			$view_url = "$admin_dir/admin.php?page=$page&amp;plan_id=$plan->id";
-			$track_url = "$admin_dir/admin.php?page=$page&amp;action=track&amp;plan_id=$plan->id";
+			$view_url = "$admin_dir/admin.php?page=$page&amp;action=edit&amp;plan_id=$plan->id";
 			$plan_list = $bfox_plan->get_plan_list($plan->id);
 
-			$content .= "<h3>$plan->name</h3><p>";
+			$content .= "<strong>$plan->name</strong>";
+			if ($can_edit) $content .= " (<a href=\"$view_url\">edit</a>)";
+			$content .= '<p>';
 			if (isset($plan->summary) && ('' != $plan->summary)) $content .= $plan->summary . '<br/>';
-//			if ($can_edit) $content .= "(<a href=\"$delete_url\">remove</a>) ";
-			if ($can_edit) $content .= "(<a href=\"$view_url\">edit</a>) ";
-			if (!isset($plan_list->read) && !isset($plan_list->unread))
-				$content .= "(<a href=\"$track_url\">track your progress</a>)";
 			$content .= '</p>';
 			$content .= bfox_echo_plan_list($plan_list);
 			$content .= "<br/>";

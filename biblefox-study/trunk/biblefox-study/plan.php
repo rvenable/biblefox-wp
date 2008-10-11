@@ -320,7 +320,7 @@
 			}
 		}
 
-		function get_plan_list($plan_id, $add_progress = TRUE)
+		function get_plan_list($plan_id, $add_progress = FALSE)
 		{
 			$orig_refs_object = $this->get_plan_refs($plan_id);
 			$plan_list = array();
