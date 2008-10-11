@@ -1,7 +1,7 @@
 <?php
 require_once('admin.php');
 
-global $bfox_plan, $bfox_schedule, $blog_id;
+global $bfox_plan, $blog_id;
 $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 
 // NOTE: I don't know why the wp_reset_vars() call isn't setting action properly (maybe its because I am in a plugin page?)
@@ -13,42 +13,6 @@ if ( isset($_GET['deleteit']) && isset($_GET['delete']) )
 	$action = 'bulk-delete';
 
 switch($action) {
-
-case 'edit-schedule':
-	$schedule_id = (int) $_GET['schedule_id'];
-	// NOTE: fall through intended
-case 'addnew-schedule':
-	
-	require_once ('admin-header.php');
-	$plan_id = (int) $_GET['plan_id'];
-	include('edit-plan-schedule-form.php');
-	
-break;
-
-case 'editedschedule':
-	$schedule = array();
-	$schedule['id'] = $_POST['schedule_id'];
-
-	$referer = 'update-reading-schedule-' . $schedule['id'];
-	$message = '13';
-	// NOTE: fall through intended
-case 'addschedule':
-
-	if (!isset($referer)) $referer = 'add-reading-schedule';
-	check_admin_referer($referer);
-
-	if ( !current_user_can('manage_categories') )
-		wp_die(__('Cheatin&#8217; uh?'));
-
-	if (!isset($schedule)) $schedule = array();
-	if (!isset($message)) $message = '11';
-	$schedule['blog_id'] = $blog_id;
-	$schedule['plan_id'] = $_POST['plan_id'];
-	$schedule_id = $bfox_schedule->update_schedule($schedule);
-	wp_redirect($bfox_page_url . '&action=edit-schedule&schedule_id=' . $schedule_id . '&message=' . $message);
-
-	exit;
-break;
 
 case 'addplan':
 
