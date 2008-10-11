@@ -146,14 +146,25 @@ How often will you be reading this plan?<br/>
 			$content .= '<td valign="top"><table width="100%" style="text-align:left"><tr>' . $headers . '</tr>';
 			foreach ($original_array as $period_id => $original)
 			{
-				$content .= '<tr>';
+				if (isset($plan->current_reading) && ($period_id == $plan->current_reading))
+				{
+					$strong1 .= '<strong>';
+					$strong2 .= '</strong>';
+				}
+				else
+				{
+					unset($strong1);
+					unset($strong2);
+				}
+
+				$content .= '<tr border="1">';
 				if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
 				$index = $period_id + 1;
-				$content .= '<td style="text-align:center">' . $index . '</td><td>' . $original->get_link() . '</td>';
+				$content .= '<td style="text-align:center">' . $index . '</td><td>' . $strong1 . $original->get_link() . $strong2 . '</td>';
 				if (isset($plan->dates))
 				{
 					$content .= '<td>';
-					if (isset($plan->dates[$period_id])) $content .= $plan->dates[$period_id]->format('M d, Y');
+					if (isset($plan->dates[$period_id])) $content .= $strong1 . $plan->dates[$period_id]->format('M d, Y') . $strong2;
 					if (isset($plan_list->unread) || isset($plan_list->read))
 					{
 						$content .= '</td><td>';
@@ -240,7 +251,7 @@ How often will you be reading this plan?<br/>
 			{
 				$plan_url = $bfox_specials->get_url_reading_plans($plan->id);
 				$content .= "<strong>$plan->name</strong> (<a href=\"$plan_url\">view plan</a>)<br/><i>$plan->summary</i><br/>";
-				$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
+/*				$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
 				if (isset($progress_plan_id))
 				{
 					$refs_object = $bfox_plan_progress->get_plan_refs($progress_plan_id);
@@ -253,6 +264,14 @@ How often will you be reading this plan?<br/>
 				{
 					$track_url = $bfox_specials->get_url_reading_plans($plan->id, 'track');
 					$content .= 'Not tracked. You can choose to <a href="' . $track_url . '">follow this reading plan</a>.<br/>';
+				}*/
+				if (isset($plan->current_reading))
+				{
+					$content .= 'The current reading is ' . $plan->refs[$plan->current_reading]->get_link() . '<br/>';
+				}
+				else
+				{
+					if (isset($plan->next_reading)) $content .= 'This plan has not yet started<br/>';
 				}
 				$content .= '<br/>';
 			}

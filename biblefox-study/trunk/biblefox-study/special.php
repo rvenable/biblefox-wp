@@ -10,7 +10,7 @@
 			array(
 				  'reading_plans' => array('title' => 'Reading Plans', 'type' => 'page', 'desc' => 'View the reading plans for this bible study'),
 				  'current_reading' => array('title' => 'Current Reading', 'type' => 'post', 'desc' => 'View the current reading for this bible study'),
-				  'my_reading' => array('title' => 'My Reading', 'type' => 'post', 'desc' => 'View your current reading for this bible study'),
+//				  'my_reading' => array('title' => 'My Reading', 'type' => 'post', 'desc' => 'View your current reading for this bible study'),
 				  'my_history' => array('title' => 'My Passage History', 'type' => 'page', 'desc' => 'View the history of scriptures you have viewed and read')
 				  );
 			global $current_blog;
@@ -94,6 +94,29 @@
 			return $page;
 		}
 		
+		function get_current_reading($wp_query)
+		{
+			global $bfox_plan, $blog_id;
+			$content = '<table width="100%">';
+			$blog_plans = $bfox_plan->get_plans();
+			if (0 < count($blog_plans))
+			{
+				foreach ($blog_plans as $plan)
+				{
+					if (isset($plan->current_reading))
+					{
+						$url = $this->get_url_reading_plans($plan->id);
+						$content .= '<tr><td><a href="' . $url . '">' . $plan->name . '</a></td><td>' . $plan->refs[$plan->current_reading]->get_link() . '</td></tr>';
+					}
+				}
+			}
+			$content .= '</table>';
+
+			$page = array();
+			$page['post_content'] = $content;
+			return $page;
+		}
+
 		function get_my_reading()
 		{
 			$page = array();

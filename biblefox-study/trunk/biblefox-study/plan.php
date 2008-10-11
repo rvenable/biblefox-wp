@@ -117,7 +117,7 @@
 					{
 						$refs = $this->get_plan_refs($plan->id);
 						$plan->refs = $refs->unread;
-						$plan->dates = $this->get_dates($plan, count($plan->refs));
+						$plan->dates = $this->get_dates(&$plan, count($plan->refs));
 					}
 				}
 			}
@@ -417,7 +417,11 @@
 				
 				if ($index >= $start)
 				{
-					if (!isset($plan->past_count) && ($time < (int) $date->format('U'))) $plan->past_count = $index;
+					if ($now < (int) $date->format('U'))
+					{
+						if (!isset($plan->next_reading)) $plan->next_reading = $index;
+						if (!isset($plan->current_reading) && (0 <= $index - 1)) $plan->current_reading = $index - 1;
+					}
 					$dates[] = clone($date);
 				}
 			}
