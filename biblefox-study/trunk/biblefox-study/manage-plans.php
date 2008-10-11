@@ -57,7 +57,7 @@ case 'addplan':
 	if ( !current_user_can('manage_categories') )
 		wp_die(__('Cheatin&#8217; uh?'));
 
-	$refs = new BibleRefs((string) $_POST['plan_passages']);
+	$refs = new BibleRefs((string) $_POST['plan_group_passages']);
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
 
@@ -65,8 +65,8 @@ case 'addplan':
 	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
 
 	$plan = array();
-	$plan['name'] = (string) $_POST['plan_name'];
-	$plan['summary'] = (string) $_POST['plan_description'];
+	$plan['name'] = stripslashes($_POST['plan_name']);
+	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = $refs->get_sections($section_size);
 	$plan['start_date'] = $date->format('m/d/Y');
 	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
@@ -135,6 +135,10 @@ case 'editedplan':
 	$text = trim((string) $_POST['plan_passages']);
 	$sections = explode("\n", $text);
 
+	$group_refs = new BibleRefs((string) $_POST['plan_group_passages']);
+	$section_size = (int) $_POST['plan_chapters'];
+	if ($section_size == 0) $section_size = 1;
+		
 	$date = date_create($_POST['schedule_start_date']);
 	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
 	
@@ -166,6 +170,9 @@ case 'editedplan':
 	// If we didn't actually make any changes to the refs_array then there is no need to send it
 /*	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
 		unset($plan['refs_array']);*/
+
+	// Add the group chunk refs to the refs array
+	$plan['refs_array'] = array_merge($plan['refs_array'], $group_refs->get_sections($section_size));
 	
 	$bfox_plan->edit_plan((object) $plan);
 	

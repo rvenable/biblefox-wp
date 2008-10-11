@@ -16,8 +16,7 @@ if ( ! empty($plan_id) ) {
 	$form = '<form name="editplan" id="editplan" method="post" action="" class="validate">';
 	$action = 'editedplan';
 	$nonce_action = 'update-reading-plan-' . $plan_id;
-	$passage_help_text = __('Which passages of the bible would you like to read?<br/>
-							Edit the passages above to modify your reading plan. Each line is a different reading in the plan.');
+	$reading_help_text = __('Edit the passages above to modify your reading plan. Each line is a different reading in the plan.');
 
 
 	list($plan) = $bfox_plan->get_plans($plan_id);
@@ -39,11 +38,15 @@ if ( ! empty($plan_id) ) {
 	$nonce_action = 'add-reading-plan';
 	$start_date = date('m/d/Y');
 	$frequency = $bfox_plan->frequency['day'];
-	$passage_help_text = __('Which passages of the bible would you like to read?<br/>
-							Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John".<br/>
-							You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3").');
 	unset($plan);
 }
+
+$passage_help_text = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
+						<p>You can type passages of the bible in the box, and then set how many chapters you want to read at a time. The passages will be cut into sections and added to your reading plan.</p>
+						<p>Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John".<br/>
+						You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3").<br/>
+						Separate passages can be separated with a comma (\',\'), semicolon (\';\'), or on separate lines.</p>');
+
 ?>
 
 <div class="wrap">
@@ -62,21 +65,9 @@ if ( ! empty($plan_id) ) {
 		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="plan_description"><?php _e('Description') ?></label></th>
-			<td><textarea name="plan_description" id="plan_description" rows="5" cols="50" style="width: 97%;"><?php echo attribute_escape($plan->summary); ?></textarea><br />
-            <?php _e('The description is not prominent by default, however some themes may show it.'); ?></td>
+			<td><textarea name="plan_description" id="plan_description" rows="2" cols="50" style="width: 97%;"><?php echo attribute_escape($plan->summary); ?></textarea><br />
+            <?php _e('Add a short description of your reading plan to let your users know what it is for.'); ?></td>
 		</tr>
-		<tr class="form-field form-required">
-			<th scope="row" valign="top"><label for="plan_passages"><?php _e('Passages') ?></label></th>
-			<td><textarea name="plan_passages" id="plan_passages" rows="10" cols="50" style="width: 97%;" aria-required="true"><?php echo wp_specialchars($passages); ?></textarea><br />
-            <?php echo $passage_help_text; ?></td>
-		</tr>
-<?php if (empty($plan_id)) : ?>
-		<tr class="form-field">
-			<th scope="row" valign="top"><label for="plan_chapters"><?php _e('Chapters Per Reading') ?></label></th>
-			<td><input name="plan_chapters" id="plan_chapters" type="text" value="1" size="4" maxlength="4" /><br />
-			<?php _e('Set the number of chapters to read at a time. The passages specified in the "Passages" section will be divided into readings based on how large this number is. If this is not set, it will default to one chapter per reading.'); ?></td>
-		</tr>
-<?php endif; ?>
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="schedule_start_date"><?php _e('Start Date') ?></label></th>
 			<td><input name="schedule_start_date" id="schedule_start_date" type="text" value="<?php echo $start_date; ?>" size="10" maxlength="20" /><br />
@@ -89,6 +80,19 @@ if ( ! empty($plan_id) ) {
 				<input type="radio" name="schedule_frequency" id="schedule_frequency_week" value="week" <?php checked($bfox_plan->frequency['week'], $plan->frequency); ?> />Weekly<br/>
 				<input type="radio" name="schedule_frequency" id="schedule_frequency_month" value="month" <?php checked($bfox_plan->frequency['month'], $plan->frequency); ?> />Monthly<br/>
             <?php echo _e('Will this plan be read daily, weekly, or monthly?'); ?></td>
+		</tr>
+<?php if (isset($passages)) : ?>
+		<tr class="form-field form-required">
+			<th scope="row" valign="top"><label for="plan_passages"><?php _e('Readings') ?></label></th>
+			<td><textarea name="plan_passages" id="plan_passages" rows="15" cols="50" style="width: 97%;" aria-required="true"><?php echo wp_specialchars($passages); ?></textarea><br />
+            <?php echo $reading_help_text; ?></td>
+		</tr>
+<?php endif; ?>
+		<tr class="form-field form-required">
+			<th scope="row" valign="top"><label for="plan_group_passages"><?php _e('Add Groups of Passages') ?></label></th>
+			<td><textarea name="plan_group_passages" id="plan_group_passages" rows="3" cols="50" style="width: 97%;" aria-required="true"></textarea><br />
+			<input name="plan_chapters" id="plan_chapters" type="text" value="1" size="4" maxlength="4" /> <?php _e('Chapters per reading'); ?><br />
+            <?php echo $passage_help_text; ?></td>
 		</tr>
 	</table>
 <p class="submit"><input type="submit" class="button" name="submit" value="<?php echo $submit_text ?>" /></p>
