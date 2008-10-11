@@ -131,6 +131,12 @@
 			$this->delete_plan_data($plan_id);
 			if (isset($this->plan_table_name))
 				$wpdb->query($wpdb->prepare("DELETE FROM $this->plan_table_name WHERE id = %d", $plan_id));
+			if (isset($this->blog_id))
+			{
+				global $bfox_schedule;
+				$schedules = $bfox_schedule->get_schedules($this->blog_id, $plan_id);
+				$bfox_schedule->delete_schedules($schedules);
+			}
 		}
 	}
 
@@ -728,6 +734,24 @@
 			return $wpdb->get_row($wpdb->prepare("SELECT * FROM $this->table_name WHERE id = %d", $schedule_id), ARRAY_A);
 		}
 
+		function delete_schedules($schedules)
+		{
+			if (!is_array($schedules)) $schedules = array($schedules);
+
+			if (0 < count($schedules))
+			{
+				global $wpdb;
+				$ids = array();
+				foreach ($schedules as $schedule)
+				{
+					if (isset($schedule['id'])) $id = $schedule['id'];
+					else $id = $schedule;
+					if (is_int($id)) $ids[] = $wpdb->prepare('id = %d', $id);
+				}
+				$wpdb->query("DELETE FROM $this->table_name WHERE ", implode(' OR ', $ids));
+			}
+		}
+		
 		function is_valid_date($date, $schedule)
 		{
 			$is_valid = TRUE;
@@ -741,6 +765,8 @@
 
 		function get_dates($schedule, $count = 0, $start = 0)
 		{
+			$now = time();
+
 			$frequency_str = $this->frequency[$schedule['frequency']];
 			$dates = array();
 			$date = date_create($schedule['start_date']);
@@ -758,7 +784,11 @@
 					while (!$this->is_valid_date($date, $schedule) && ($inc_count < 7));
 				}
 				
-				if ($index >= $start) $dates[] = clone($date);
+				if ($index >= $start)
+				{
+					if (!isset($schedule['past_count']) && ($time < (int) $date->format('U'))) $schedule['past_count'] = $index;
+					$dates[] = clone($date);
+				}
 			}
 			return $dates;
 		}
