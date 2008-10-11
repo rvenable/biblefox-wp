@@ -106,10 +106,11 @@
 		function get_current_reading($wp_query)
 		{
 			global $bfox_plan, $blog_id;
-			$content = '<table width="100%">';
+			$content = '';
 			$blog_plans = $bfox_plan->get_plans();
 			if (0 < count($blog_plans))
 			{
+				$content .= '<table width="100%">';
 				foreach ($blog_plans as $plan)
 				{
 					if (isset($plan->current_reading))
@@ -118,8 +119,12 @@
 						$content .= '<tr><td><a href="' . $url . '">' . $plan->name . '</a></td><td>' . $plan->refs[$plan->current_reading]->get_link() . '</td></tr>';
 					}
 				}
+				$content .= '</table>';
 			}
-			$content .= '</table>';
+			else
+			{
+				$content .= __('This blog has no Bible reading plans.');
+			}
 
 			$page = array();
 			$page['post_content'] = $content;
