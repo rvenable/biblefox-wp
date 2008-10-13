@@ -164,7 +164,7 @@ How often will you be reading this plan?<br/>
 				if (isset($plan->dates))
 				{
 					$content .= '<td>';
-					if (isset($plan->dates[$period_id])) $content .= $strong1 . $plan->dates[$period_id]->format('M d, Y') . $strong2;
+					if (isset($plan->dates[$period_id])) $content .= $strong1 . date('M d, Y', $plan->dates[$period_id]) . $strong2;
 					if (isset($plan_list->unread) || isset($plan_list->read))
 					{
 						$content .= '</td><td>';

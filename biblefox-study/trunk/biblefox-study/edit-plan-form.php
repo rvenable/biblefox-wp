@@ -36,7 +36,7 @@ if ( ! empty($plan_id) ) {
 	$form = '<form name="addplan" id="addplan" method="post" action="" class="add:the-list: validate">';
 	$action = 'addplan';
 	$nonce_action = 'add-reading-plan';
-	$start_date = date('m/d/Y');
+	$start_date = date('m/d/Y', current_time('timestamp'));
 	$frequency = $bfox_plan->frequency['day'];
 	unset($plan);
 }

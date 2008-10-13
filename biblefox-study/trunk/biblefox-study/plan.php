@@ -262,9 +262,9 @@
 				// Calculate the end date
 				$dates = $this->get_dates($plan, count($plan->refs_array));
 				if (0 < count($dates))
-					$plan->end_date = $dates[count($dates) - 1]->format('m/d/Y');
+					$plan->end_date = date('m/d/Y', $dates[count($dates) - 1]);
 				else
-					$plan->end_date = date('m/d/Y');
+					$plan->end_date = date('m/d/Y', current_time('timestamp'));
 				
 				// Update the plan table
 				if (!isset($plan->name) || ('' == $plan->name)) $plan->name = 'Plan ' . $plan_id;
@@ -293,9 +293,9 @@
 				// Calculate the end date
 				$dates = $this->get_dates($plan, count($plan->refs_array));
 				if (0 < count($dates))
-					$plan->end_date = $dates[count($dates) - 1]->format('m/d/Y');
+					$plan->end_date = date('m/d/Y', $dates[count($dates) - 1]);
 				else
-					$plan->end_date = date('m/d/Y');
+					$plan->end_date = date('m/d/Y', current_time('timestamp'));
 				
 				// Update the plan table
 				$set_array = array();
@@ -389,18 +389,18 @@
 			if ($this->frequency['day'] == $plan->frequency)
 			{
 				if ('' == $plan->frequency_options) $plan->frequency_options = '0123456';
-				$is_valid = !(FALSE === strstr($plan->frequency_options, $date->format('w')));
+				$is_valid = !(FALSE === strstr($plan->frequency_options, date('w', $date)));
 			}
 			return $is_valid;
 		}
 		
 		function get_dates(&$plan, $count = 0, $start = 0)
 		{
-			$now = time();
+			$now = current_time('timestamp');
 			
 			$frequency_str = $this->frequency[$plan->frequency];
 			$dates = array();
-			$date = date_create($plan->start_date);
+			$date = strtotime($plan->start_date);
 			for ($index = 0; $index < $count + $start; $index++)
 			{
 				if ((0 < $index) || !$this->is_valid_date($date, $plan))
@@ -409,7 +409,7 @@
 					$inc_count = 0;
 					do
 					{
-						$date->modify('+1 ' . $frequency_str);
+						$date = strtotime('+1 ' . $frequency_str, $date);
 						$inc_count++;
 					}
 					while (!$this->is_valid_date($date, $plan) && ($inc_count < 7));
@@ -417,12 +417,12 @@
 				
 				if ($index >= $start)
 				{
-					if ($now < (int) $date->format('U'))
+					if ($now < (int) date('U', $date))
 					{
 						if (!isset($plan->next_reading)) $plan->next_reading = $index;
 						if (!isset($plan->current_reading) && (0 <= $index - 1)) $plan->current_reading = $index - 1;
 					}
-					$dates[] = clone($date);
+					$dates[] = $date;
 				}
 			}
 			return $dates;

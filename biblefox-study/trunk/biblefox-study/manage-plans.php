@@ -25,14 +25,14 @@ case 'addplan':
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
 
-	$date = date_create($_POST['schedule_start_date']);
-	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
+	$start_date = strtotime($_POST['schedule_start_date']);
+	if (!isset($start_date) || (FALSE === $start_date)) $start_date = current_time('timestamp');
 
 	$plan = array();
 	$plan['name'] = stripslashes($_POST['plan_name']);
 	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = $refs->get_sections($section_size);
-	$plan['start_date'] = $date->format('m/d/Y');
+	$plan['start_date'] = date('m/d/Y', $start_date);
 	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
 	$plan_id = $bfox_plan->add_new_plan((object) $plan);
@@ -103,15 +103,15 @@ case 'editedplan':
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
 		
-	$date = date_create($_POST['schedule_start_date']);
-	if (!isset($date) || (FALSE === $date)) $date = date_create('now');
-	
+	$start_date = strtotime($_POST['schedule_start_date']);
+	if (!isset($start_date) || (FALSE === $start_date)) $start_date = current_time('timestamp');
+
 	$plan = array();
 	$plan['id'] = $plan_id;
 	$plan['name'] = stripslashes($_POST['plan_name']);
 	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = array();
-	$plan['start_date'] = $date->format('m/d/Y');
+	$plan['start_date'] = date('m/d/Y', $start_date);
 	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
 		
