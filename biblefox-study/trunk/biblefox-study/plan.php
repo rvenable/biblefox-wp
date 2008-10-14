@@ -396,7 +396,8 @@
 		
 		function get_dates(&$plan, $count = 0, $start = 0)
 		{
-			$now = current_time('timestamp');
+			// Get today according to the local blog settings, formatted as an integer number of seconds
+			$now = (int) date('U', strtotime(bfox_format_local_date('today')));
 			
 			$frequency_str = $this->frequency[$plan->frequency];
 			$dates = array();

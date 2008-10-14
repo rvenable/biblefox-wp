@@ -55,4 +55,45 @@
 		return $array;
 	}
 
+	/*
+	 This function converts a date string to the specified format, using the local timezone
+	 Parameters:
+	 date_str - should be a datetime string acceptable by strtotime()
+		If date_str is not acceptable, 'today' will be used instead
+	 format - should be a format string acceptable by date()
+	 
+	 The function implements workarounds for some shortcomings of the strtotime() function:
+	 Essentially, strtotime() accepts many useful strings such as 'today', 'next tuesday', '10/14/2008', etc.
+	 These strings are calculated using the default timezone (date_default_timezone_get()), which isn't necessarily
+	 the timezone set for the blog. In order to have full support for all those useful strings and still get results in our
+	 desired timezone, we have to temporarily change the timezone, get the timestamp from strtotime(), format it using date(),
+	 then finally reset the timezone back to its original state.
+	 */
+	function bfox_format_local_date($date_str, $format = 'm/d/Y')
+	{
+		// Get the current default timezone because we need to set it back when we are done
+		$tz = date_default_timezone_get();
+		
+		// Get this blog's GMT offset (as an integer because date_default_timezone_set() doesn't support minute increments)
+		$gmt_offset = (int)(get_option('gmt_offset'));
+		
+		// Invert the offset for use in date_default_timezone_set()
+		$gmt_offset *= -1;
+		
+		// If the offset is positive (or 0), add the + to the beginning
+		if ($gmt_offset >= 0) $gmt_offset = '+' . $gmt_offset;
+		
+		// Temporarily set the timezone to the blog's timezone
+		date_default_timezone_set('Etc/GMT' . $gmt_offset);
+		
+		// Get the date string
+		if (($time = strtotime($date_str)) === FALSE) $time = strtotime('today');
+		$date_str = date($format, $time);
+		
+		// Set the timezone back to its previous setting
+		date_default_timezone_set($tz);
+		
+		return $date_str;
+	}
+	
 	?>
