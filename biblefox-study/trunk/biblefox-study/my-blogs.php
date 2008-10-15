@@ -4,6 +4,7 @@ require_once('admin.php');
 global $bfox_plan, $blog_id;
 $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 
+/* Not supporting any actions yet
 // NOTE: I don't know why the wp_reset_vars() call isn't setting action properly (maybe its because I am in a plugin page?)
 //wp_reset_vars(array('action', 'cat'));
 if (isset($_POST['action'])) $action = $_POST['action'];
@@ -38,7 +39,6 @@ case 'addplan':
 	exit;
 break;
 
-/* Not supporting 'delete' yet (but 'bulk-delete' works)
 case 'delete':
 	$cat_ID = (int) $_GET['cat_ID'];
 	check_admin_referer('delete-category_' .  $cat_ID);
@@ -58,7 +58,6 @@ case 'delete':
 	exit;
 
 break;
- */
 
 case 'bulk-delete':
 	check_admin_referer('bulk-reading-plans');
@@ -126,8 +125,8 @@ case 'editedplan':
 	}
 	
 	// If we didn't actually make any changes to the refs_array then there is no need to send it
-/*	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
-		unset($plan['refs_array']);*/
+	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
+		unset($plan['refs_array']);
 
 	// Add the group chunk refs to the refs array
 	$plan['refs_array'] = array_merge($plan['refs_array'], $group_refs->get_sections($section_size));
@@ -145,6 +144,7 @@ if ( !empty($_GET['_wp_http_referer']) ) {
 	 wp_redirect(remove_query_arg(array('_wp_http_referer', '_wpnonce'), stripslashes($_SERVER['REQUEST_URI'])));
 	 exit;
 }
+ */
 
 wp_enqueue_script( 'admin-categories' );
 wp_enqueue_script('admin-forms');
@@ -162,69 +162,81 @@ $messages[5] = __('Reading Plan not updated.');
 endif; ?>
 
 <div class="wrap">
-<form id="posts-filter" action="" method="get">
-<input type="hidden" name="page" value="<?php echo BFOX_MANAGE_PLAN_SUBPAGE; ?>">
-<?php if ( current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) ) : ?>
-	<h2><?php printf(__('Manage Reading Plans (<a href="%s">add new</a>)'), '#addplan') ?> </h2>
-<?php else : ?>
-	<h2><?php _e('Manage Reading Plans') ?> </h2>
-<?php endif; ?>
-
-<br class="clear" />
-
-<div class="tablenav">
-
-<div class="alignleft">
-<input type="submit" value="<?php _e('Delete'); ?>" name="deleteit" class="button-secondary delete" />
-<?php wp_nonce_field('bulk-reading-plans'); ?>
-</div>
-
-<br class="clear" />
-</div>
+	<h2><?php _e('My Bible Studies'); ?> </h2>
 
 <br class="clear" />
 
 <table class="widefat">
 	<thead>
 	<tr>
-		<th scope="col" class="check-column"><input type="checkbox" /></th>
-        <th scope="col"><?php _e('Name') ?></th>
-        <th scope="col"><?php _e('Description') ?></th>
-        <th scope="col"><?php _e('Schedules') ?></th>
+        <th scope="col"><?php _e('My Bible Study Blogs') ?></th>
+		<th scope="col"><?php _e('Options') ?></th>
 	</tr>
 	</thead>
 	<tbody id="the-list" class="list:cat">
 <?php
-	$plans = $bfox_plan->get_plans();
-	foreach ($plans as $plan)
+
+	global $user_ID, $bfox_specials;
+	$blogs = bfox_get_bible_study_blogs($user_ID);
+	
+	foreach ($blogs as $blog_id => $blog)
 	{
-		echo '<tr id="reading-plan-' . $plan->id . '" class="alternate">';
-		echo '<th scope="row" class="check-column"> <input type="checkbox" name="delete[]" value="' . $plan->id . '" /></th>';
-		echo '<td><a class="row-title" href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
-			attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a></td>';
-		echo '<td>' . $plan->summary . '</td>';
-		echo '<td>' . $plan->start_date . ' - ' . $plan->end_date . '</td>';
+		$class = ('alternate' == $class) ? '' : 'alternate';
+		echo '<tr class="' . $class . '">';
+		echo '<td>';
+		echo '<a class="row-title" href="' . $blog->siteurl . '" title="' .
+			attribute_escape(sprintf(__('View "%s"'), $blog->blogname)) . '">' . $blog->blogname . '</a><br/>';
+
+		echo '<table width="100%">';
+		$blog_plan = new PlanBlog($blog_id);
+		$blog_plans = $blog_plan->get_plans();
+		if (0 < count($blog_plans))
+		{
+			foreach ($blog_plans as $plan)
+			{
+				$plan_url = $bfox_specials->get_url_reading_plans($plan->id);
+				$td = '<td style="border:none; padding: 1px 5px 1px 5px;">';
+				echo '<tr>';
+				echo $td . '<a href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
+				attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a>';
+				echo $td . $plan->summary . '</td>';
+//				echo $td . $plan->start_date . ' - ' . $plan->end_date . '</td>';
+				$ref = $plan->refs[$plan->current_reading];
+				if (isset($ref)) $str = $ref->get_link();
+				else $str = '';
+				echo $td . $str . '</td>';
+				unset($ref);
+				echo '</tr>';
+			}
+		}
+		echo '</table></td>';
+		echo '<td>manage</td>';
 		echo '</tr>';
 	}
 ?>
 	</tbody>
 </table>
-</form>
 
 <br class="clear" />
 
 <p><strong>Note:</strong><br/>
-<strong>Reading Plans</strong> are an important part of most Biblefox Bible Study Blogs.<br/>
-By creating a reading plan, you can structure what scriptures you read and when you read them!</p>
+Biblefox is currently in testing, and is not allowing everyone to create new bible studies.</p>
+
+<p>As a tester, you should probably request to join one of the following bible studies. Just click below to go to one of these blogs. Then click the "Join This Blog" button.</p>
+
+<p>
+<ul>
+<li><a href="http://crossroad.biblefox.com">Crossroad</a> - A bible study blog for members of the Crossroad service at Tabernacle Baptist Church in Auckland, New Zealand</li>
+<li><a href="http://liveoak.biblefox.com">Liveoak</a> - A bible study blog for members of Liveoak Bible Church in Austin, Texas</li>
+<li><a href="http://thevine.biblefox.com">The Vine</a> - A bible study blog for members of Liveoak Bible Church's small group - The Vine</li>
+</p>
 
 </div>
 
 <?php
-	if ( current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
-		include('edit-plan-form.php');
-
-break;
+/*
 }
+*/
 
 include('admin-footer.php');
 

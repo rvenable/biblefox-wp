@@ -26,7 +26,7 @@
 	{
 		$min_user_level = 8;
 //		add_menu_page('Study the Bible', 'Study', 0, BFOX_ADMIN_FILE, 'bfox_progress');
-		add_submenu_page('profile.php', 'Track my progress', 'My Progress', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
+		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
 //		add_submenu_page(BFOX_ADMIN_FILE, 'Reading Plans', 'Reading Plans', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
 		add_management_page('Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
@@ -64,7 +64,8 @@
 
 	function bfox_progress()
 	{
-		bfox_progress_page();
+//		bfox_progress_page();
+		include('my-blogs.php');
 	}
 	
 	function bfox_plan()
