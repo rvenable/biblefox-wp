@@ -8,10 +8,11 @@
 		{
 			$this->pages =
 			array(
-				  'current_reading' => array('title' => 'Current Reading', 'type' => 'post', 'desc' => 'View the current reading for this bible study'),
-				  'reading_plans' => array('title' => 'Reading Plans', 'type' => 'page', 'desc' => 'View the reading plans for this bible study'),
-//				  'my_reading' => array('title' => 'My Reading', 'type' => 'post', 'desc' => 'View your current reading for this bible study'),
-				  'my_history' => array('title' => 'My Passage History', 'type' => 'page', 'desc' => 'View the history of scriptures you have viewed and read')
+				  'current_reading' => array('title' => __('Current Readings'), 'type' => 'post', 'desc' => __('View the current readings for this bible study')),
+				  'reading_plans' => array('title' => __('Reading Plans'), 'type' => 'page', 'desc' => __('View the reading plans for this bible study')),
+//				  'my_reading' => array('title' => __('My Reading'), 'type' => 'post', 'desc' => __('View your current reading for this bible study')),
+				  'my_history' => array('title' => __('My Passage History'), 'type' => 'page', 'desc' => __('View the history of scriptures you have viewed and read')),
+				  'join' => array('title' => __('Join this Bible Study'), 'type' => 'page', 'desc' => __('Make a request to join this Bible Study'))
 				  );
 			global $current_blog;
 			foreach ($this->pages as $base => &$page)
@@ -138,6 +139,23 @@
 			return $page;
 		}
 
+		function get_join()
+		{
+			$page = array();
+			$content = <<<CONTENT
+			<p>Would you like to send a message to this blog requesting to join the bible study?</p>
+			<p>Just type a message into the box below, explaining who you are and why you should be added to the bible study group, then hit 'Send Request'.</p>
+			Message:
+			<form>
+			<textarea name="message" rows="5" cols="50" style="width: 100%;"></textarea>
+			<input type="submit" value="Send Request"/>
+			</form>
+CONTENT;
+			
+			$page['post_content'] = $content;
+			return $page;
+		}
+		
 		function get_my_history()
 		{
 			$content = '';
