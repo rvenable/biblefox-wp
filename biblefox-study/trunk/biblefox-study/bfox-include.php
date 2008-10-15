@@ -6,6 +6,8 @@
 	define('BFOX_BOOKS_TABLE', BFOX_BASE_TABLE_PREFIX . 'books');
 	define('BFOX_SYNONYMS_TABLE', BFOX_BASE_TABLE_PREFIX . 'synonyms');
 	define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
+	
+	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");

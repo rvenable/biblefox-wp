@@ -18,7 +18,7 @@ case 'addplan':
 
 	check_admin_referer('add-reading-plan');
 
-	if ( !current_user_can('manage_categories') )
+	if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 		wp_die(__('Cheatin&#8217; uh?'));
 
 	$refs = new BibleRefs((string) $_POST['plan_group_passages']);
@@ -43,7 +43,7 @@ case 'delete':
 	$cat_ID = (int) $_GET['cat_ID'];
 	check_admin_referer('delete-category_' .  $cat_ID);
 
-	if ( !current_user_can('manage_categories') )
+	if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 		wp_die(__('Cheatin&#8217; uh?'));
 
 	$cat_name = get_catname($cat_ID);
@@ -63,7 +63,7 @@ break;
 case 'bulk-delete':
 	check_admin_referer('bulk-reading-plans');
 
-	if ( !current_user_can('manage_categories') )
+	if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 		wp_die( __('You are not allowed to delete reading plans.') );
 
 	foreach ( (array) $_GET['delete'] as $plan_id ) {
@@ -89,7 +89,7 @@ case 'editedplan':
 	$plan_id = (int) $_POST['plan_id'];
 	check_admin_referer('update-reading-plan-' . $plan_id);
 
-	if ( !current_user_can('manage_categories') )
+	if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 		wp_die(__('Cheatin&#8217; uh?'));
 
 	$old_refs = $bfox_plan->get_plan_refs($plan_id);
@@ -164,7 +164,7 @@ endif; ?>
 <div class="wrap">
 <form id="posts-filter" action="" method="get">
 <input type="hidden" name="page" value="<?php echo BFOX_MANAGE_PLAN_SUBPAGE; ?>">
-<?php if ( current_user_can('manage_categories') ) : ?>
+<?php if ( current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) ) : ?>
 	<h2><?php printf(__('Manage Reading Plans (<a href="%s">add new</a>)'), '#addplan') ?> </h2>
 <?php else : ?>
 	<h2><?php _e('Manage Reading Plans') ?> </h2>
@@ -220,7 +220,7 @@ By creating a reading plan, you can structure what scriptures you read and when 
 </div>
 
 <?php
-	if ( current_user_can('manage_categories') )
+	if ( current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 		include('edit-plan-form.php');
 
 break;

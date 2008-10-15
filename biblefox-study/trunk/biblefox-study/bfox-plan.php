@@ -332,7 +332,7 @@ How often will you be reading this plan?<br/>
 	function bfox_can_user_edit_plans()
 	{
 		// Only level 7 users can edit/create plans
-		return current_user_can(7);
+		return current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS);
 	}
 
 	function bfox_create_plan()

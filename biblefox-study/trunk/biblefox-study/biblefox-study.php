@@ -26,10 +26,10 @@
 	{
 		$min_user_level = 8;
 //		add_menu_page('Study the Bible', 'Study', 0, BFOX_ADMIN_FILE, 'bfox_progress');
-//		add_submenu_page(BFOX_ADMIN_FILE, 'Track my progress', 'My Progress', 0, BFOX_ADMIN_FILE, 'bfox_progress');
+		add_submenu_page('profile.php', 'Track my progress', 'My Progress', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
 //		add_submenu_page(BFOX_ADMIN_FILE, 'Reading Plans', 'Reading Plans', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
-		add_management_page('Reading Plans', 'Reading Plans', 0, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
-		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', 0, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
+		add_management_page('Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
+		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 
 		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 
@@ -125,7 +125,7 @@
 		if (is_admin() && ('index.php' == $pagenow))
 		{
 			$pagenow = 'admin.php';
-			if (!isset($_GET['page'])) $_GET['page'] = BFOX_MANAGE_PLAN_SUBPAGE;//'biblefox-study/biblefox-study.php';
+			if (!isset($_GET['page'])) $_GET['page'] = BFOX_PROGRESS_SUBPAGE;
 		}
 	}
 	// Redirect the dashboard after loading all plugins (all plugins are finished loading shortly after the necessary $pagenow var is created)
