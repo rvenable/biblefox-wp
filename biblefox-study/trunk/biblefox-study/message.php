@@ -9,7 +9,7 @@
 			$this->table_name = BFOX_BASE_TABLE_PREFIX . "message";
 
 			// Types of messages
-			$this->types = array('message', 'join_request');
+			$this->types = array('message', 'join_request', 'join_request_reply');
 			$this->types = array_merge($this->types, array_flip($this->types));
 
 			// Join Request Status
@@ -76,9 +76,10 @@
 
 		function send_join_request_reply($reply_to_user_id, $reply_value)
 		{
-			global $user_ID;
+			global $wpdb, $user_ID;
 			if (!is_int($reply_value)) $reply_value = $this->join_request_status[$reply_value];
-			$this->send_message(NULL, $user_ID, $reply_to_user_id, 'join_request_reply', $reply_value);
+			$thread_id = $wpdb->get_var($wpdb->prepare("SELECT id FROM $this->table_name WHERE type = %d AND from_id = %d", $this->types['join_request'], $reply_to_user_id));
+			$this->send_message($thread_id, $user_ID, $reply_to_user_id, 'join_request_reply', $reply_value);
 		}
 		
 		function get_join_requests($user_id = NULL, $blog_id = NULL)
@@ -98,14 +99,14 @@
 				$result->user_id = $result->from_id;
 				$result->blog_id = $result->to_id;
 				$result->status = $this->join_request_status['waiting'];
-				$requests[$result->thread_id] = $result;
+				$requests[$result->id] = $result;
 				$threads[] = $wpdb->prepare('thread_id = %d', $result->id);
 			}
 			
 			if (0 < count($threads))
 			{
 				$select = $wpdb->prepare("SELECT * FROM $this->table_name
-										 WHERE type = %d AND (" . implode(' OR ', $threads) . ") ORDER BY time DESC LIMIT 1",
+										 WHERE type = %d AND (" . implode(' OR ', $threads) . ") ORDER BY time",
 										 $this->types['join_request_reply']);
 				$results = $wpdb->get_results($select);
 				foreach ($results as $result)
@@ -124,19 +125,105 @@
 	function bfox_join_request_menu()
 	{
 		global $blog_id, $bfox_message;
-		$requests = $bfox_message->get_join_requests(NULL, $blog_id);
+		if (isset($_POST['accept_users'])) $reply_value = $bfox_message->join_request_status['accepted'];
+		if (isset($_POST['decline_users'])) $reply_value = $bfox_message->join_request_status['declined'];
 		
+		$requests = $bfox_message->get_join_requests(NULL, $blog_id);
+
+		$waiting = array();
+		foreach ($requests as $id => $request)
+		{
+			if ($bfox_message->join_request_status['waiting'] == $request->status)
+				$waiting[$request->user_id] = $request;
+		}
+
 		if (0 < count($requests))
 		{
 			echo '<div class="wrap">';
-			echo '<h2>' . __('Requests') . '</h2>';
-			echo '<ul>';
-			foreach ($requests as $request)
+			echo '<h2>' . __('User Requests') . '</h2>';
+
+			if (current_user_can(BFOX_USER_LEVEL_MANAGE_USERS) && isset($reply_value))
 			{
-				$user = get_userdata($request->user_id);
-				echo '<li> User ' . $user->user_login . ' (' . $user->user_email . ') requests to join this bible study.</li>';
+				check_admin_referer('bulk-user-requests');
+				$messages = array();
+				foreach ((array) $_POST['select_user'] as $user_id)
+				{
+					if (isset($waiting[$user_id]))
+					{
+						$user = get_userdata($user_id);
+						if ('accepted' == $bfox_message->join_request_status[$reply_value])
+						{
+							$role = $_POST['new_role-' . $user_id];
+							add_user_to_blog($blog_id, $user_id, $role);
+							$messages[] = 'Added new user: ' . $user->user_login . ' (' . $role . ')';
+						}
+						else
+						{
+							$messages[] = 'Declined user: ' . $user->user_login;
+						}
+
+						$bfox_message->send_join_request_reply($user_id, $reply_value);
+						unset($waiting[$user_id]);
+					}
+				}
+				if (0 < count($messages))
+					echo '<br class="clear"/><div id="message" class="updated fade"><p>' . implode('<br/>', $messages) . '</p></div>';
 			}
-			echo '</ul></div>';
+			
+			if (0 < count($waiting))
+			{
+				
+				echo '<p><strong>The following users request to join this bible study:</strong></p>';
+			
+?>
+<form id="posts-filter" action="" method="post">
+<input type="hidden" name="page" value="<?php echo BFOX_PROGRESS_SUBPAGE; ?>">
+
+<div class="tablenav">
+
+<div class="alignleft">
+<input type="submit" value="<?php _e('Accept Selected Users'); ?>" name="accept_users" class="button-secondary" />
+<input type="submit" value="<?php _e('Decline Selected Users'); ?>" name="decline_users" class="button-secondary" />
+<?php wp_nonce_field('bulk-user-requests'); ?>
+</div>
+
+<br class="clear" />
+</div>
+
+<br class="clear" />
+
+<table class="widefat">
+	<thead>
+	<tr>
+		<th scope="col" class="check-column"></th>
+        <th scope="col"><?php _e('User') ?></th>
+		<th scope="col"><?php _e('Email') ?></th>
+		<th scope="col"><?php _e('New Role') ?></th>
+	</tr>
+	</thead>
+	<tbody id="the-list" class="list:cat">
+<?php
+				foreach ($waiting as $request)
+				{
+					$user = get_userdata($request->user_id);
+
+					$class = ('alternate' == $class) ? '' : 'alternate';
+					echo '<tr class="' . $class . '">';
+					echo '<th scope="row" class="check-column"> <input type="checkbox" name="select_user[]" value="' . $user->ID . '" /></th>';
+					echo '<td>' . $user->user_login . '</td>';
+					echo '<td>' . $user->user_email . '</td>';
+					echo '<td><select name="new_role-' . $user->ID . '" id="new_role">';
+					wp_dropdown_roles('author');
+					echo '</select></td>';
+					echo '</tr>';
+				}
+				echo '</table></form><br class="clear"/>';
+			}
+			else
+			{
+				echo '<p><strong>There are no remaining user requests at this time.</strong></p>';
+			}
+			echo '</div>';
 		}
 	}
 
