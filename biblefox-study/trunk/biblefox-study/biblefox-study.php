@@ -65,6 +65,7 @@
 	function bfox_progress()
 	{
 //		bfox_progress_page();
+		if (current_user_can(BFOX_USER_LEVEL_MANAGE_USERS)) bfox_join_request_menu();
 		include('my-blogs.php');
 	}
 	

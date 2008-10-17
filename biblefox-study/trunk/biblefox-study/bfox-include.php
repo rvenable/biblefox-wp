@@ -6,8 +6,13 @@
 	define('BFOX_BOOKS_TABLE', BFOX_BASE_TABLE_PREFIX . 'books');
 	define('BFOX_SYNONYMS_TABLE', BFOX_BASE_TABLE_PREFIX . 'synonyms');
 	define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
-	
+
+	// User Levels
 	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
+	define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
+
+	// Column Definitions
+	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
 
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");
@@ -19,6 +24,7 @@
 	// Include files which need BibleRefs
 	require_once("bibletext.php");
 	require_once("history.php");
+	require_once('message.php');
 	require_once("bfox-query.php");
 	require_once('special.php');
 	require_once('bfox-widgets.php');
