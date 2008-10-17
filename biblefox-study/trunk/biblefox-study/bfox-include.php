@@ -103,5 +103,12 @@
 		
 		return $date_str;
 	}
+
+	function bfox_wp_mail_from_name($from_name)
+	{
+		if ('WordPress' == $from_name) $from_name = 'Biblefox';
+		return $from_name;
+	}
+	add_filter('wp_mail_from_name', 'bfox_wp_mail_from_name');
 	
 	?>

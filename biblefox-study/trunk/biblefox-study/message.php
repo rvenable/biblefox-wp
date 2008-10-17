@@ -156,10 +156,12 @@
 							$role = $_POST['new_role-' . $user_id];
 							add_user_to_blog($blog_id, $user_id, $role);
 							$messages[] = 'Added new user: ' . $user->user_login . ' (' . $role . ')';
+							wp_mail($user->user_email, sprintf(__('[%s] Request to Join Accepted'), get_option('blogname')), "Hi,\n\nYou have been added to a bible study: '" . get_option( 'blogname' ) . "' at\n" . site_url() . "\n");
 						}
 						else
 						{
 							$messages[] = 'Declined user: ' . $user->user_login;
+							wp_mail($user->user_email, sprintf(__('[%s] Request to Join Declined'), get_option('blogname')), "Hi,\n\nYour request to join this bible study has been declined: '" . get_option( 'blogname' ) . "' at\n" . site_url() . "\n");
 						}
 
 						$bfox_message->send_join_request_reply($user_id, $reply_value);
