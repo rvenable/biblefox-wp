@@ -141,17 +141,35 @@
 
 		function get_join()
 		{
-			$page = array();
-			$content = <<<CONTENT
-			<p>Would you like to send a message to this blog requesting to join the bible study?</p>
-			<p>Just type a message into the box below, explaining who you are and why you should be added to the bible study group, then hit 'Send Request'.</p>
-			Message:
-			<form>
-			<textarea name="message" rows="5" cols="50" style="width: 100%;"></textarea>
-			<input type="submit" value="Send Request"/>
-			</form>
-CONTENT;
+			global $bfox_message, $blog_id, $user_ID;
+			$requests = $bfox_message->get_join_requests($user_ID, $blog_id);
 			
+			if ((0 == count($requests)) && (isset($_POST['send_request'])))
+			{
+				$bfox_message->send_join_request($blog_id);
+				$requests = $bfox_message->get_join_requests($user_ID, $blog_id);
+			}
+
+			if (0 == count($requests))
+			{
+				$content = <<<CONTENT
+					<p>Would you like to send a message to this blog requesting to join the bible study?</p>
+					<form action="" method="post">
+					<input type="submit" value="Send Request" name="send_request"/>
+					</form>
+CONTENT;
+			}
+			else
+			{
+				$request = array_pop($requests);
+				$status = $bfox_message->join_request_status[$request->status];
+				$content = <<<CONTENT
+					<p>Your request has been sent.</p>
+					<p>Status: $status</p>
+CONTENT;
+			}
+			
+			$page = array();
 			$page['post_content'] = $content;
 			return $page;
 		}
