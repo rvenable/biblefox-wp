@@ -210,7 +210,7 @@ endif; ?>
 			}
 		}
 		echo '</table></td>';
-		echo '<td>manage</td>';
+		echo '<td><a href="' . $blog->siteurl . '/wp-admin/">manage</a></td>';
 		echo '</tr>';
 	}
 ?>
