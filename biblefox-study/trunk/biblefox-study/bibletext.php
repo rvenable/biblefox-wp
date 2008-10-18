@@ -94,24 +94,29 @@
 		if (0 < $user_ID)
 		{
 			global $bfox_history;
+			$menu .= '<small>';
 			if ($header) $menu .= $bfox_history->get_dates_str($refs, false) . '<br/>';
 			$menu .= $bfox_history->get_dates_str($refs, true);
 			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)<br/>';
+			$menu .= '<a href="http://www.biblegateway.com/passage/?search=' . $refStr . '&version=31" target="_blank">Read on BibleGateway</a>';
+			$menu .= '</small>';
+			
+			$write_link = '<a href="' . $admin_dir . '/post-new.php?bible_ref=' . $refStr . '">Write about this passage</a>';
 		}
-		else $menu .= "<a href=\"$home_dir/wp-login.php\">Login</a> to track your bible reading<br/>";
+		else $menu .= '<small><a href="' . $home_dir . '/wp-login.php">Login</a> to track your bible reading</small>';
 
 		// Scripture navigation links
 		if ($header)
 		{
-			$menu .= "<a href=\"http://www.biblegateway.com/passage/?search=$refStr&version=31\" target=\"_blank\">Read on BibleGateway</a><br/>";
-			$menu .= '<a href="' . $page_url . '&bfox_action=previous">Previous</a> | ';
-			$menu .= '<a href="' . $page_url . '&bfox_action=next">Next</a><br/>';
+			$menu .= '<table width="100%"><tr>';
+			$menu .= '<td align="left" width="33%"><a href="' . $page_url . '&bfox_action=previous">< Previous</a></td>';
+			$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
+			$menu .= '<td align="right" width="33%"><a href="' . $page_url . '&bfox_action=next">Next ></a></td>';
+			$menu .= '</tr>';
+			$menu .= '</table>';
 		}
 
-		// Write about this passage
-		$menu .= "<a href=\"{$admin_dir}/post-new.php?bible_ref=$refStr\">Write about this passage</a>";
-
-		return '<center>' . $menu . '</center>';
+		return $menu;
 	}
 
 	function bfox_get_next_refs(BibleRefs $refs, $action)

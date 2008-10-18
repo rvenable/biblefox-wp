@@ -188,9 +188,9 @@
 			if (isset($time))
 			{
 				$date = $this->get_date_for_time($time);
-				$str = "You last $read_link this scripture on $date";
+				$str = "You last $read_link " . $refs->get_string() . " on $date";
 			}
-			else $str = "You have not previously $read_link this scripture";
+			else $str = "You have not previously $read_link " . $refs->get_string();
 			
 			return $str;
 		}
