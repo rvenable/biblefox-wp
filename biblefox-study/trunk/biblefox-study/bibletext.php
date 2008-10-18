@@ -108,10 +108,15 @@
 		// Scripture navigation links
 		if ($header)
 		{
+			$next_refs = new BibleRefs($refs->get_sets());
+			$previous_refs = new BibleRefs($refs->get_sets());
+			$next_refs->increment(1);
+			$previous_refs->increment(-1);
+
 			$menu .= '<table width="100%"><tr>';
-			$menu .= '<td align="left" width="33%"><a href="' . $page_url . '&bfox_action=previous">< Previous</a></td>';
+			$menu .= '<td align="left" width="33%"><a href="' . $previous_refs->get_url() . '">< ' . $previous_refs->get_string() . '</a></td>';
 			$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
-			$menu .= '<td align="right" width="33%"><a href="' . $page_url . '&bfox_action=next">Next ></a></td>';
+			$menu .= '<td align="right" width="33%"><a href="' . $next_refs->get_url() . '">' . $next_refs->get_string() . ' ></a></td>';
 			$menu .= '</tr>';
 			$menu .= '</table>';
 		}
