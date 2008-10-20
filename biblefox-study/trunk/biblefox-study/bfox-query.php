@@ -200,6 +200,7 @@
 						$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 						$new_post['post_date'] = current_time('mysql', false);
 						$new_post['post_date_gmt'] = current_time('mysql', true);
+						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
 						$new_posts[] = ((object) $new_post);
 					}
 				}
@@ -249,6 +250,7 @@
 					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
+					$new_post['bfox_permalink'] = bfox_get_bible_permalink($refStr);
 					$new_posts[] = ((object) $new_post);
 				}
 				
@@ -299,8 +301,8 @@
 		{
 			// If the permalink is blank, we should try to make a permalink
 			$post = &get_post($id);
-			if (isset($post->bible_ref_str))
-				$permalink = bfox_get_bible_permalink($post->bible_ref_str);
+			if (isset($post->bfox_permalink))
+				$permalink = $post->bfox_permalink;
 		}
 
 		return $permalink;

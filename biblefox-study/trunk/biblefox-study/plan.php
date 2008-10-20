@@ -394,7 +394,7 @@
 			return $is_valid;
 		}
 		
-		function get_dates(&$plan, $count = 0, $start = 0)
+		function get_dates(&$plan, $count = 0)
 		{
 			// Get today according to the local blog settings, formatted as an integer number of seconds
 			$now = (int) date('U', strtotime(bfox_format_local_date('today')));
@@ -402,7 +402,7 @@
 			$frequency_str = $this->frequency[$plan->frequency];
 			$dates = array();
 			$date = strtotime($plan->start_date);
-			for ($index = 0; $index < $count + $start; $index++)
+			for ($index = 0; $index < $count + 1; $index++)
 			{
 				if ((0 < $index) || !$this->is_valid_date($date, $plan))
 				{
@@ -416,15 +416,14 @@
 					while (!$this->is_valid_date($date, $plan) && ($inc_count < 7));
 				}
 				
-				if ($index >= $start)
+				if ($now < (int) date('U', $date))
 				{
-					if ($now < (int) date('U', $date))
-					{
-						if (!isset($plan->next_reading)) $plan->next_reading = $index;
-						if (!isset($plan->current_reading) && (0 <= $index - 1)) $plan->current_reading = $index - 1;
-					}
-					$dates[] = $date;
+					if (!isset($plan->next_reading)) $plan->next_reading = $index;
+					if (!isset($plan->current_reading) && (0 <= $index - 1)) $plan->current_reading = $index - 1;
 				}
+
+				if ($index < $count)
+					$dates[] = $date;
 			}
 			return $dates;
 		}
