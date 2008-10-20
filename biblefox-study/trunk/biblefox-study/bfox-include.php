@@ -124,7 +124,7 @@
 		else
 			$proto = 'http://';
 
-		$url = 'wp-login.php?redirect_to=' . urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		$old_url = 'redirect_to=' . urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 		
 		// From site_url()
 		$site_url = 'http';
@@ -132,13 +132,13 @@
 
 		// Always use the main blog for login/out
 		global $current_site;
-		$site_url .= '://' . $current_site->domain . $current_site->path . $url;
+		$site_url .= '://' . $current_site->domain . $current_site->path . 'wp-login.php?';
 
 		// From wp_loginout()
 		if (!is_user_logged_in())
-			$link = '<a href="' . $site_url . '">' . __('Log in') . '</a>';
+			$link = '<a href="' . $site_url . $old_url . '">' . __('Log in') . '</a>';
 		else
-			$link = '<a href="' . $site_url . '&action=logout">' . __('Log out') . '</a>';
+			$link = '<a href="' . $site_url . 'action=logout&amp;' . $old_url . '">' . __('Log out') . '</a>';
 
 		return $link;
 	}
