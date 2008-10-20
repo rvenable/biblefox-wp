@@ -110,7 +110,12 @@
 		return $from_name;
 	}
 	add_filter('wp_mail_from_name', 'bfox_wp_mail_from_name');
-	
+
+	/*
+	 This returns a link for logging in or for logging out.
+	 It always goes to the login page for the main blog and redirects back to the page from which it was called.
+	 This gives the whole site a common login place that seamlessly integrates with every blog.
+	 */
 	function bfox_loginout()
 	{
 		// From auth_redirect()
@@ -120,12 +125,20 @@
 			$proto = 'http://';
 
 		$url = 'wp-login.php?redirect_to=' . urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		
+		// From site_url()
+		$site_url = 'http';
+		if (force_ssl_admin()) $site_url .= 's'; // Use https
+
+		// Always use the main blog for login/out
+		global $current_site;
+		$site_url .= '://' . $current_site->domain . $current_site->path . $url;
 
 		// From wp_loginout()
 		if (!is_user_logged_in())
-			$link = '<a href="' . site_url($url, 'login') . '">' . __('Log in') . '</a>';
+			$link = '<a href="' . $site_url . '">' . __('Log in') . '</a>';
 		else
-			$link = '<a href="' . site_url($url . '&action=logout', 'login') . '">' . __('Log out') . '</a>';
+			$link = '<a href="' . $site_url . '&action=logout">' . __('Log out') . '</a>';
 
 		return $link;
 	}
