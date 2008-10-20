@@ -11,6 +11,7 @@
 	define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
 	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
 	define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
+	define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
 
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
@@ -45,6 +46,7 @@
 		$qvars[] = BFOX_QUERY_VAR_SPECIAL;
 		$qvars[] = BFOX_QUERY_VAR_ACTION;
 		$qvars[] = BFOX_QUERY_VAR_PLAN_ID;
+		$qvars[] = BFOX_QUERY_VAR_READING_ID;
 		return $qvars;
 	}
 
@@ -168,13 +170,75 @@
 	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
-		global $bfox_bible_refs, $bfox_recent_wp_query, $wp_query;
+		global $bfox_bible_refs, $bfox_recent_wp_query, $wp_query, $bfox_specials;
 
 		// If we are using the global instance of WP_Query
 		if ($bfox_recent_wp_query === $wp_query)
 		{
-			if (0 < $bfox_bible_refs->get_count())
+			if (isset($wp_query->bfox_plans))
 			{
+				$new_posts = array();
+
+				foreach ($wp_query->bfox_plans as $plan)
+				{
+					foreach ($plan->query_readings as $reading_id)
+					{
+						$title_prefix = $plan->name . ', Reading ' . $reading_id . ': ';
+//						echo $title_prefix;
+//						echo $reading_id;
+						$ref = $plan->refs[$reading_id];
+						$new_post = array();
+						$url_prefix = BFOX_QUERY_VAR_PLAN_ID . '=' . $plan->id . '&' . BFOX_QUERY_VAR_READING_ID . '=';
+						$scripture_links = array();
+						if (isset($plan->refs[$reading_id - 1]))
+							$scripture_links['previous'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id - 1) . '">< ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
+						if (isset($plan->refs[$reading_id + 1]))
+							$scripture_links['next'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id + 1) . '">' . $plan->refs[$reading_id + 1]->get_string() . ' ></a>';
+//						echo '<br/><br/><br/>';
+//						echo var_dump($ref);
+						$refStr = $ref->get_string();
+						$new_post['post_title'] = $title_prefix . $refStr;
+						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
+						$new_post['bible_ref_str'] = $refStr;
+						$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
+						$new_post['post_date'] = current_time('mysql', false);
+						$new_post['post_date_gmt'] = current_time('mysql', true);
+						$new_posts[] = ((object) $new_post);
+					}
+				}
+
+				// Update the read history to show that we viewed these scriptures
+				global $bfox_history;
+				$bfox_history->update($bfox_bible_refs);
+				
+				// Append the new posts onto the beginning of the post list
+				$posts = array_merge($new_posts, $posts);
+
+/*				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
+				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
+				
+				if (isset($plan_id) && isset($reading_id))
+				{
+					list($plan) = $bfox_plan->get_plans($plan_id);
+					if (isset($plan[$reading_id])) $reading = $plan[$reading_id];
+				}
+				
+				// If there are bible references, then we should display them as posts
+				// So we create an array of posts with scripture and add that to the current array of posts*/
+				
+			}
+			else if (0 < $bfox_bible_refs->get_count())
+			{
+				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
+				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
+				
+				if (isset($plan_id) && isset($reading_id))
+				{
+					list($plan) = $bfox_plan->get_plans($plan_id);
+					if (isset($plan[$reading_id])) $reading = $plan[$reading_id];
+					$title = $plan->name . ' - Reading ' . $reading_id . ': ';
+				}
+
 				// If there are bible references, then we should display them as posts
 				// So we create an array of posts with scripture and add that to the current array of posts
 				$new_posts = array();
@@ -182,7 +246,7 @@
 				{
 					$new_post = array();
 					$refStr = $ref->get_string();
-					$new_post['post_title'] = $refStr;
+					$new_post['post_title'] = $title . $refStr;
 					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
 					$new_post['bible_ref_str'] = $refStr;
 					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
@@ -202,7 +266,6 @@
 			// If this is a special page, then we need to add the content ourselves
 			if (is_bfox_special())
 			{
-				global $bfox_specials;
 				$bfox_specials->add_to_posts($posts, $wp_query->query_vars);
 			}
 

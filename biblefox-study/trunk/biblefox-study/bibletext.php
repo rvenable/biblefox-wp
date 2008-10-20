@@ -79,7 +79,7 @@
 		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
 	}
 
-	function bfox_get_ref_menu(BibleRefs $refs, $header = true)
+	function bfox_get_ref_menu(BibleRefs $refs, $header = true, $scripture_links = NULL)
 	{
 		$home_dir = get_option('home');
 		$admin_dir = $home_dir . '/wp-admin';
@@ -108,15 +108,22 @@
 		// Scripture navigation links
 		if ($header)
 		{
-			$next_refs = new BibleRefs($refs->get_sets());
-			$previous_refs = new BibleRefs($refs->get_sets());
-			$next_refs->increment(1);
-			$previous_refs->increment(-1);
+			if (is_null($scripture_links))
+			{
+				$next_refs = new BibleRefs($refs->get_sets());
+				$previous_refs = new BibleRefs($refs->get_sets());
+				$next_refs->increment(1);
+				$previous_refs->increment(-1);
+
+				$scripture_links = array();
+				$scripture_links['next'] = '<a href="' . $next_refs->get_url() . '">' . $next_refs->get_string() . ' >';
+				$scripture_links['previous'] = '<a href="' . $previous_refs->get_url() . '">< ' . $previous_refs->get_string() . '</a>';
+			}
 
 			$menu .= '<table width="100%"><tr>';
-			$menu .= '<td align="left" width="33%"><a href="' . $previous_refs->get_url() . '">< ' . $previous_refs->get_string() . '</a></td>';
+			$menu .= '<td align="left" width="33%">' . $scripture_links['previous'] . '</td>';
 			$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
-			$menu .= '<td align="right" width="33%"><a href="' . $next_refs->get_url() . '">' . $next_refs->get_string() . ' ></a></td>';
+			$menu .= '<td align="right" width="33%">' . $scripture_links['next'] . '</a></td>';
 			$menu .= '</tr>';
 			$menu .= '</table>';
 		}

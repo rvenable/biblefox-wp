@@ -23,11 +23,18 @@
 			}
 		}
 
-		function get_url_reading_plans($plan_id = null, $action = null)
+		function get_url_reading_plans($plan_id = NULL, $action = NULL, $reading_id = NULL)
 		{
-			$url = $this->pages['reading_plans']['url'];
-			if (null != $plan_id) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
-			if (null != $action) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
+			// HACK for when there is a reading id
+			global $current_blog;
+			if (is_null($reading_id))
+				$url = $this->pages['reading_plans']['url'];
+			else
+				$url = $this->pages['current_reading']['url'];
+
+			if (!is_null($plan_id)) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
+			if (!is_null($action)) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
+			if (!is_null($reading_id)) $url .= '&' . BFOX_QUERY_VAR_READING_ID . '=' . $reading_id;
 			return $url;
 		}
 
@@ -43,16 +50,22 @@
 		function setup_query_current_reading($wp_query)
 		{
 			global $bfox_plan, $blog_id;
-			$blog_plans = $bfox_plan->get_plans();
-			if (0 < count($blog_plans))
+			$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID]);
+			if (0 < count($wp_query->bfox_plans))
 			{
-				foreach ($blog_plans as $plan)
+				foreach ($wp_query->bfox_plans as &$plan)
 				{
-					if (isset($plan->current_reading))
+					$plan->query_readings = array();
+					if (isset($wp_query->query_vars[BFOX_QUERY_VAR_READING_ID]))
+						$plan->query_readings[] = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
+					else if (isset($plan->current_reading))
+						$plan->query_readings[] = $plan->current_reading;
+
+					foreach ($plan->query_readings as $reading_id)
 					{
 						if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]) && ('' != $wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
 							$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= '; ';
-						$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= $plan->refs[$plan->current_reading]->get_string();
+						$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= $plan->refs[$reading_id]->get_string();
 					}
 				}
 			}
@@ -117,7 +130,8 @@
 					if (isset($plan->current_reading))
 					{
 						$url = $this->get_url_reading_plans($plan->id);
-						$content .= '<tr><td><a href="' . $url . '">' . $plan->name . '</a></td><td>' . $plan->refs[$plan->current_reading]->get_link() . '</td></tr>';
+						$scripture_link = '<a href="' . $this->get_url_reading_plans($plan->id, NULL, $plan->current_reading) . '">' . $plan->refs[$plan->current_reading]->get_string() . '</a>';
+						$content .= '<tr><td><a href="' . $url . '">' . $plan->name . '</a></td><td>' . $scripture_link . '</td></tr>';
 					}
 				}
 				$content .= '</table>';
