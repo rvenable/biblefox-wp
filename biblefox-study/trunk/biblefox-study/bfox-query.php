@@ -73,7 +73,7 @@
 	{
 		// HACK: This special page stuff should really happen in bfox_parse_query, but WP won't call that func if is_home(), so we have to do it here
 		global $bfox_specials;
-		if ($wp_query->is_home) $bfox_specials->do_home($wp_query);
+		if (($wp_query === $GLOBALS['wp_query']) && ($wp_query->is_home)) $bfox_specials->do_home($wp_query);
 		
 		$vars = $wp_query->query_vars;
 		
