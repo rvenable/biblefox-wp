@@ -194,7 +194,9 @@ endif; ?>
 		{
 			foreach ($blog_plans as $plan)
 			{
-				$plan_url = $bfox_specials->get_url_reading_plans($plan->id);
+				// HACK - lame way of getting the url
+				$plan_url = $bfox_specials->get_url_reading_plans($plan->id, NULL, NULL, $blog->siteurl . '?' . BFOX_QUERY_VAR_SPECIAL . '=reading_plans');
+
 				$td = '<td style="border:none; padding: 1px 5px 1px 5px;"';
 				echo '<tr>';
 				echo $td . ' width="20%"><a href="' . $plan_url . '" title="' .

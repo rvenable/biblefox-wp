@@ -23,14 +23,19 @@
 			}
 		}
 
-		function get_url_reading_plans($plan_id = NULL, $action = NULL, $reading_id = NULL)
+		function get_url_reading_plans($plan_id = NULL, $action = NULL, $reading_id = NULL, $url = NULL)
 		{
-			// HACK for when there is a reading id
-			global $current_blog;
-			if (is_null($reading_id))
-				$url = $this->pages['reading_plans']['url'];
-			else
-				$url = $this->pages['current_reading']['url'];
+			// HACK $url shouldn't be a parameter, i did this because it was easier since
+			// the $this->pages['reading_plans']['url'] has the current blog built in
+			// and thus can't be used for other blogs
+			if (is_null($url))
+			{
+				// HACK for when there is a reading id
+				if (is_null($reading_id))
+					$url = $this->pages['reading_plans']['url'];
+				else
+					$url = $this->pages['current_reading']['url'];
+			}
 
 			if (!is_null($plan_id)) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
 			if (!is_null($action)) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
