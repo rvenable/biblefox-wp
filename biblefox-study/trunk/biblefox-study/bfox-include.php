@@ -131,8 +131,8 @@
 		if (force_ssl_admin()) $site_url .= 's'; // Use https
 
 		// Always use the main blog for login/out
-		global $current_site;
-		$site_url .= '://' . $current_site->domain . $current_site->path . 'wp-login.php?';
+		global $current_blog;
+		$site_url .= '://' . $current_blog->domain . $current_blog->path . 'wp-login.php?';
 
 		// From wp_loginout()
 		if (!is_user_logged_in())
