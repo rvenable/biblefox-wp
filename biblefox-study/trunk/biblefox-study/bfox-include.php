@@ -111,4 +111,23 @@
 	}
 	add_filter('wp_mail_from_name', 'bfox_wp_mail_from_name');
 	
+	function bfox_loginout()
+	{
+		// From auth_redirect()
+		if ( is_ssl() )
+			$proto = 'https://';
+		else
+			$proto = 'http://';
+
+		$url = 'wp-login.php?redirect_to=' . urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+
+		// From wp_loginout()
+		if (!is_user_logged_in())
+			$link = '<a href="' . site_url($url, 'login') . '">' . __('Log in') . '</a>';
+		else
+			$link = '<a href="' . site_url($url . '&action=logout', 'login') . '">' . __('Log out') . '</a>';
+
+		return $link;
+	}
+	
 	?>

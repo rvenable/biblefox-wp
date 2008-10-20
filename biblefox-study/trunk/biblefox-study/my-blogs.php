@@ -226,9 +226,9 @@ Biblefox is currently in testing, and is not allowing everyone to create new bib
 
 <p>
 <ul>
-<li><a href="http://crossroad.biblefox.com">Crossroad</a> - A bible study blog for members of the Crossroad service at Tabernacle Baptist Church in Auckland, New Zealand</li>
-<li><a href="http://liveoak.biblefox.com">Liveoak</a> - A bible study blog for members of Liveoak Bible Church in Austin, Texas</li>
-<li><a href="http://thevine.biblefox.com">The Vine</a> - A bible study blog for members of Liveoak Bible Church's small group - The Vine</li>
+<li><a href="http://crossroad.biblefox.com/?bfox_special=join">Crossroad</a> - A bible study blog for members of the Crossroad service at Tabernacle Baptist Church in Auckland, New Zealand</li>
+<li><a href="http://liveoak.biblefox.com/?bfox_special=join">Liveoak</a> - A bible study blog for members of Liveoak Bible Church in Austin, Texas</li>
+<li><a href="http://thevine.biblefox.com/?bfox_special=join">The Vine</a> - A bible study blog for members of Liveoak Bible Church's small group - The Vine</li>
 </p>
 
 </div>
