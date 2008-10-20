@@ -64,9 +64,9 @@
 		return 0;
 	}
 
-	function bfox_format_ref_url($ref_str)
+	function bfox_format_ref_url($ref_str, $path = '/')
 	{
-		return get_option('home') . '/?bible_ref=' . $ref_str;
+		return get_option('home') . $path . '?bible_ref=' . $ref_str;
 	}
 	
 	function bfox_format_ref_link($ref_str)
@@ -573,6 +573,11 @@
 			return bfox_format_ref_url($this->get_string());
 		}
 
+		function get_write_url()
+		{
+			return bfox_format_ref_url($this->get_string(), '/wp-admin/post-new.php');
+		}
+		
 		function get_link()
 		{
 			return bfox_format_ref_link($this->get_string());
