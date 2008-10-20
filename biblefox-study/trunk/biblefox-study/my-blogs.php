@@ -197,7 +197,7 @@ endif; ?>
 				$plan_url = $bfox_specials->get_url_reading_plans($plan->id);
 				$td = '<td style="border:none; padding: 1px 5px 1px 5px;"';
 				echo '<tr>';
-				echo $td . ' width="20%"><a href="' . $bfox_page_url . '&amp;action=edit&amp;plan_id=' . $plan->id . '" title="' .
+				echo $td . ' width="20%"><a href="' . $plan_url . '" title="' .
 				attribute_escape(sprintf(__('Edit "%s"'), $plan->name)) . '">' . $plan->name . '</a>';
 				echo $td . ' width="60%">' . $plan->summary . '</td>';
 //				echo $td . $plan->start_date . ' - ' . $plan->end_date . '</td>';
