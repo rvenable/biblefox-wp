@@ -34,7 +34,7 @@
 
 			if (!is_null($plan_id)) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
 			if (!is_null($action)) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
-			if (!is_null($reading_id)) $url .= '&' . BFOX_QUERY_VAR_READING_ID . '=' . $reading_id;
+			if (!is_null($reading_id)) $url .= '&' . BFOX_QUERY_VAR_READING_ID . '=' . ($reading_id + 1);
 			return $url;
 		}
 
@@ -57,7 +57,7 @@
 				{
 					$plan->query_readings = array();
 					if (isset($wp_query->query_vars[BFOX_QUERY_VAR_READING_ID]))
-						$plan->query_readings[] = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
+						$plan->query_readings[] = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID] - 1;
 					else if (isset($plan->current_reading))
 						$plan->query_readings[] = $plan->current_reading;
 

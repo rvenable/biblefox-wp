@@ -183,9 +183,7 @@
 				{
 					foreach ($plan->query_readings as $reading_id)
 					{
-						$title_prefix = $plan->name . ', Reading ' . $reading_id . ': ';
-//						echo $title_prefix;
-//						echo $reading_id;
+						$title_prefix = $plan->name . ', Reading ' . ($reading_id + 1) . ': ';
 						$ref = $plan->refs[$reading_id];
 						$new_post = array();
 						$url_prefix = BFOX_QUERY_VAR_PLAN_ID . '=' . $plan->id . '&' . BFOX_QUERY_VAR_READING_ID . '=';
@@ -194,8 +192,7 @@
 							$scripture_links['previous'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id - 1) . '">< ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
 						if (isset($plan->refs[$reading_id + 1]))
 							$scripture_links['next'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id + 1) . '">' . $plan->refs[$reading_id + 1]->get_string() . ' ></a>';
-//						echo '<br/><br/><br/>';
-//						echo var_dump($ref);
+
 						$refStr = $ref->get_string();
 						$new_post['post_title'] = $title_prefix . $refStr;
 						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
