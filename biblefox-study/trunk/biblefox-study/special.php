@@ -9,6 +9,7 @@
 			$this->pages =
 			array(
 				  'current_readings' => array('title' => __('Current Readings'), 'type' => 'post', 'desc' => __('View the current readings for this bible study')),
+				  'recent_readings' => array('title' => __('Recent Readings'), 'type' => 'page', 'desc' => __('View the recent readings for this bible study')),
 				  'reading_plans' => array('title' => __('Reading Plans'), 'type' => 'page', 'desc' => __('View the reading plans for this bible study')),
 //				  'my_reading' => array('title' => __('My Reading'), 'type' => 'post', 'desc' => __('View your current reading for this bible study')),
 				  'my_history' => array('title' => __('My Passage History'), 'type' => 'page', 'desc' => __('View the history of scriptures you have viewed and read')),
@@ -148,6 +149,43 @@
 			return $content;
 		}
 
+		function get_recent_readings($wp_query)
+		{
+			global $bfox_plan, $blog_id;
+			$content = '';
+			$blog_plans = $bfox_plan->get_plans();
+			if (0 < count($blog_plans))
+			{
+				$content .= '<table width="100%">';
+				$content .= '<tr><th>Plan</th><th>Date</th><th>Scripture</th></tr>';
+				foreach ($blog_plans as $plan)
+				{
+					if (isset($plan->current_reading))
+					{
+						$url = $this->get_url_reading_plans($plan->id);
+						$plan_link = '<a href="' . $url . '">' . $plan->name . '</a>';
+
+						$limit = 3;
+						$oldest = $plan->current_reading - $limit + 1;
+						if ($oldest < 0) $oldest = 0;
+						for ($index = $plan->current_reading; $index >= $oldest; $index--)
+						{
+							$scripture_link = '<a href="' . $this->get_url_reading_plans($plan->id, NULL, $index) . '">' . $plan->refs[$index]->get_string() . '</a>';
+							$content .= '<tr><td>' . $plan_link . '</td><td>' . date('M d', $plan->dates[$index]) . '</td><td>' . $scripture_link . '</td></tr>';
+							$plan_link = '';
+						}
+					}
+				}
+				$content .= '</table>';
+			}
+			else
+			{
+				$content .= __('This blog has no Bible reading plans.');
+			}
+			
+			return $content;
+		}
+		
 		function get_my_reading()
 		{
 			global $blog_id;
