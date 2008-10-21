@@ -309,6 +309,21 @@ CONTENT;
 			}
 			return $content;
 		}
+
+		function get_link($page_name, $args = array())
+		{
+			$link = '';
+			if (isset($this->pages[$page_name]))
+			{
+				$url = $this->pages[$page_name]['url'];
+
+				$display = $page_name;
+				if (isset($args[0])) $display = $args[0];
+
+				$link = '<a href="' . $url . '">' . $display . '</a>';
+			}
+			return $link;
+		}
 	}
 
 	global $bfox_specials;

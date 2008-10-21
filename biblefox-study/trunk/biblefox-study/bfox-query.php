@@ -369,8 +369,17 @@
 				else
 				{
 					list($page_name, $param_str) = explode('|', $note_text, 2);
+
 					$params = array();
-					wp_parse_str(str_replace('|', '&', $param_str), $params);
+					$index = 0;
+					$param_str_list = explode('|', $param_str, 2);
+					foreach ($param_str_list as $param_str)
+					{
+						if (FALSE === ($pos = strpos($param_str, '=')))
+							$params[$index++] = $param_str;
+						else
+							$params[substr($param_str, 0, $pos)] = substr($param_str, $pos - strlen($param_str) + 1);
+					}
 
 					if ('content' == $type)
 					{
@@ -380,7 +389,7 @@
 					else if ('link' == $type)
 					{
 						// Replace the note with a link to a special page
-						$replacement = $params[0];//$bfox_specials->get_link($page_name);
+						$replacement = $bfox_specials->get_link($page_name, $params);
 					}
 				}
 				
