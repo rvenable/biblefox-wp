@@ -263,7 +263,8 @@ CONTENT;
 					$ref_str = '';
 					if ($ref->is_valid()) $ref_str = $ref->get_link();
 					$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';
-					$content .= '<tr><td><a href="' . get_permalink($post->ID) . '">' . $post->post_title . '</a></td>';
+					if (0 < $post->comment_count) $comments = ' (' . $post->comment_count . ')';
+					$content .= '<tr><td><a href="' . get_permalink($post->ID) . '">' . $post->post_title . $comments . '</a></td>';
 					$content .= '<td>' . $author . '</td>';
 					$content .= '<td>' . $ref_str . '</td></tr>';
 				}
