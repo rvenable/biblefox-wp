@@ -204,6 +204,7 @@
 							$scripture_links['next'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id + 1) . '">' . $plan->refs[$reading_id + 1]->get_string() . ' ></a>';
 
 						$refStr = $ref->get_string();
+						$new_post['ID'] = -1;
 						$new_post['post_title'] = $title_prefix . $refStr;
 						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
 						$new_post['bible_ref_str'] = $refStr;
@@ -211,6 +212,11 @@
 						$new_post['post_date'] = current_time('mysql', false);
 						$new_post['post_date_gmt'] = current_time('mysql', true);
 						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
+
+						// Turn off comments
+						$new_post['comment_status'] = 'closed';
+						$new_post['ping_status'] = 'closed';
+
 						$new_posts[] = ((object) $new_post);
 					}
 				}
@@ -254,6 +260,7 @@
 				{
 					$new_post = array();
 					$refStr = $ref->get_string();
+					$new_post['ID'] = -1;
 					$new_post['post_title'] = $title . $refStr;
 					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
 					$new_post['bible_ref_str'] = $refStr;
@@ -261,6 +268,11 @@
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
 					$new_post['bfox_permalink'] = bfox_get_bible_permalink($refStr);
+
+					// Turn off comments
+					$new_post['comment_status'] = 'closed';
+					$new_post['ping_status'] = 'closed';
+					
 					$new_posts[] = ((object) $new_post);
 				}
 				
@@ -303,18 +315,10 @@
 	}
 
 	// Function for filtering the output of the_permalink()
-	function bfox_the_permalink($permalink)
+	function bfox_the_permalink($permalink, $post)
 	{
-		// the_permalink() doesn't work for our custom made bible_ref pages,
-		// so we need to manually set up the permalink
-		if ('' == $permalink)
-		{
-			// If the permalink is blank, we should try to make a permalink
-			$post = &get_post($id);
-			if (isset($post->bfox_permalink))
-				$permalink = $post->bfox_permalink;
-		}
-
+		if (isset($post->bfox_permalink))
+			$permalink = $post->bfox_permalink;
 		return $permalink;
 	}
 
@@ -428,7 +432,7 @@
 		add_filter('posts_where', 'bfox_posts_where');
 		add_filter('posts_groupby', 'bfox_posts_groupby');
 		add_filter('the_posts', 'bfox_the_posts');
-		add_filter('the_permalink', 'bfox_the_permalink');
+		add_filter('post_link', 'bfox_the_permalink', 10, 2);
 		add_filter('the_content', 'bfox_the_content');
 		add_filter('the_content', 'bfox_special_syntax');
 		add_filter('the_author', 'bfox_the_author');
