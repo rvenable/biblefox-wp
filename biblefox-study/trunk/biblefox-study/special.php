@@ -12,7 +12,8 @@
 				  'reading_plans' => array('title' => __('Reading Plans'), 'type' => 'page', 'desc' => __('View the reading plans for this bible study')),
 //				  'my_reading' => array('title' => __('My Reading'), 'type' => 'post', 'desc' => __('View your current reading for this bible study')),
 				  'my_history' => array('title' => __('My Passage History'), 'type' => 'page', 'desc' => __('View the history of scriptures you have viewed and read')),
-				  'join' => array('title' => __('Join this Bible Study'), 'type' => 'page', 'desc' => __('Make a request to join this Bible Study'))
+				  'join' => array('title' => __('Join this Bible Study'), 'type' => 'page', 'desc' => __('Make a request to join this bible study')),
+				  'updates' => array('title' => __('Latest Updates'), 'type' => 'page', 'desc' => __('View all the latest updates to this bible study'))
 				  );
 			global $current_blog;
 			foreach ($this->pages as $base => &$page)
@@ -117,9 +118,7 @@
 				$content = bfox_plan_summaries($blog_id);
 			}
 			
-			$page = array();
-			$page['post_content'] = $content;
-			return $page;
+			return $content;
 		}
 		
 		function get_current_reading($wp_query)
@@ -146,16 +145,13 @@
 				$content .= __('This blog has no Bible reading plans.');
 			}
 
-			$page = array();
-			$page['post_content'] = $content;
-			return $page;
+			return $content;
 		}
 
 		function get_my_reading()
 		{
-			$page = array();
-			$page['post_content'] = bfox_plan_summaries($blog_id);
-			return $page;
+			global $blog_id;
+			return bfox_plan_summaries($blog_id);
 		}
 
 		function get_join()
@@ -209,11 +205,10 @@ CONTENT;
 					<p>If you don't have a Biblefox account. You can <a href="$signup">sign up</a> for one for free.</p>
 CONTENT;
 			}
+			//'} stupid comment for xcode to color correctly
 
 			
-			$page = array();
-			$page['post_content'] = $content;
-			return $page;
+			return $content;
 		}
 		
 		function get_my_history()
@@ -226,9 +221,37 @@ CONTENT;
 			// Get the recently viewed scriptures
 			$content .= bfox_get_recent_scriptures_output(10, false);
 			
-			$page = array();
-			$page['post_content'] = $content;
-			return $page;
+			return $content;
+		}
+		
+		function get_updates()
+		{
+			// This function uses an instance of WP_Query to get the latest posts
+			//  (similar to the recent posts widget - see wp_widget_recent_entries())
+
+			$content = '';
+			$r = new WP_Query(array('showposts' => $number, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BFOX_QUERY_VAR_JOIN_BIBLE_REFS => TRUE));
+			if ($r->have_posts())
+			{
+				$content .= '<table width="100%">';
+				$content .= '<tr><th>Post</th><th>Author</th><th>Scriptures</th></tr>';
+				global $post;
+				while ($r->have_posts())
+				{
+					$r->the_post();
+					$ref = new BibleRefs(array(array($post->verse_begin, $post->verse_end)));
+					$ref_str = '';
+					if ($ref->is_valid()) $ref_str = $ref->get_link();
+					$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';
+					$content .= '<tr><td><a href="' . get_permalink($post->ID) . '">' . $post->post_title . '</a></td>';
+					$content .= '<td>' . $author . '</td>';
+					$content .= '<td>' . $ref_str . '</td></tr>';
+				}
+				$content .= '</table>';
+			}
+			wp_reset_query();  // Restore global post data stomped by the_post().
+			
+			return $content;
 		}
 		
 		function add_to_posts(&$posts, $args = array())
@@ -236,9 +259,11 @@ CONTENT;
 			$page_name = $args[BFOX_QUERY_VAR_SPECIAL];
 			if (isset($this->pages[$page_name]))
 			{
+				$page = array();
+
 				$func = $this->pages[$page_name]['content_cb'];
-				if (is_callable($func)) $page = call_user_func($func, $args);
-				else $page = array();
+				if (is_callable($func)) $page['post_content'] = call_user_func($func, $args);
+				else $page['post_content'] = '';
 				
 				$page['post_title'] = $this->pages[$page_name]['title'];
 				$page['post_type'] = $this->pages[$page_name]['type'];
@@ -248,6 +273,17 @@ CONTENT;
 				if ('page' == $page['post_type']) $posts = array((object)$page);
 				else $posts = array_merge(array((object)$page), $posts);
 			}
+		}
+
+		function get_content($page_name, $args = array())
+		{
+			$content = '';
+			if (isset($this->pages[$page_name]))
+			{
+				$func = $this->pages[$page_name]['content_cb'];
+				if (is_callable($func)) $content = call_user_func($func, $args);
+			}
+			return $content;
 		}
 	}
 

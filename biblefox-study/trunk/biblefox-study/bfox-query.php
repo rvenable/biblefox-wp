@@ -12,6 +12,7 @@
 	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
 	define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
 	define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
+	define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
 
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
@@ -116,13 +117,22 @@
 	// Function for modifying the query JOIN statement
 	function bfox_posts_join($join)
 	{
-		global $bfox_bible_refs, $wpdb;
+		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
 		$table_name = BFOX_TABLE_BIBLE_REF;
 
-		if (0 < $bfox_bible_refs->get_count())
+		if ((0 < $bfox_bible_refs->get_count()) || ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS]))
 			$join .= " LEFT JOIN $table_name ON " . $wpdb->posts . ".ID = {$table_name}.post_id ";
 
 		return $join;
+	}
+
+	function bfox_posts_fields($fields)
+	{
+		global $bfox_recent_wp_query;
+		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
+			$fields .= ', ' . BFOX_TABLE_BIBLE_REF . '.* ';
+
+		return $fields;
 	}
 	
 	// Function for modifying the query WHERE statement
@@ -319,38 +329,67 @@
 		return $content;
 	}
 
-	// Function for adding footnotes
-	function bfox_footnotes($data)
+	// Function for adding content based on special syntax
+	function bfox_special_syntax($data)
 	{
-		$footnotes = "";
-		$offset = 0;
-		$index = 0;
-
-		$open = '((';
-		$close = '))';
-
-		// Loop through each footnote
-		while (1 == preg_match("/" . preg_quote($open) . "(.*?)" . preg_quote($close) . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
+		global $bfox_specials;
+		
+		$special_chars = array('footnote' => array('open' => '((', 'close' => '))'),
+							   'content' => array('open' => '{{', 'close' => '}}'),
+							   'link' => array('open' => '[[', 'close' => ']]'));
+		
+		foreach ($special_chars as $type => $type_info)
 		{
-			// Store the match data in more readable variables
-			$offset = (int) $matches[0][1];
-			$pattern = (string) $matches[0][0];
-			$note_text = (string) $matches[1][0];
-			$index++;
-			
-			// Update the footnotes section string
-			$footnotes .= "<li>[<a name=\"footnote_$index\" href=\"#footnote_ref_$index\">$index</a>] $note_text</li>";
-			
-			// Replace the footnote with a link
-			$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\"><sup>$index</sup></a>";
-			$data = substr_replace($data, $replacement, $offset, strlen($pattern));
-			
-			// Skip the rest of the replacement string
-			$offset += strlen($replacement);
+			$offset = 0;
+			$index = 0;
+			$open = $type_info['open'];
+			$close = $type_info['close'];
+
+			// Loop through each special char
+			while (1 == preg_match("/" . preg_quote($open) . "(.*?)" . preg_quote($close) . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
+			{
+				// Store the match data in more readable variables
+				$offset = (int) $matches[0][1];
+				$pattern = (string) $matches[0][0];
+				$note_text = (string) $matches[1][0];
+				$index++;
+				
+				if ('footnote' == $type)
+				{
+					// Update the footnotes section string
+					$footnotes .= "<li>[<a name=\"footnote_$index\" href=\"#footnote_ref_$index\">$index</a>] $note_text</li>";
+
+					// Replace the footnote with a link
+					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\"><sup>$index</sup></a>";
+				}
+				else
+				{
+					$params = explode('|', $note_text);
+					$page_name = array_shift($params);
+
+					if ('content' == $type)
+					{
+						// Replace the note with special content
+						$replacement = $bfox_specials->get_content($page_name, $params);
+					}
+					else if ('link' == $type)
+					{
+						// Replace the note with a link to a special page
+						$replacement = $params[0];//$bfox_specials->get_link($page_name);
+					}
+				}
+				
+
+				// Modify the data with the replacement text
+				$data = substr_replace($data, $replacement, $offset, strlen($pattern));
+				
+				// Skip the rest of the replacement string
+				$offset += strlen($replacement);
+			}
 		}
 		
 		// Add the footnotes section to the end of the data
-		if (0 < $index) $data .= "<h3>Footnotes</h3><ul>" . $footnotes . "</ul>";
+		if (isset($footnotes)) $data .= "<h3>Footnotes</h3><ul>" . $footnotes . "</ul>";
 		
 		return $data;
 	}
@@ -384,12 +423,13 @@
 		add_action('parse_query', 'bfox_parse_query');
 		add_action('pre_get_posts', 'bfox_pre_get_posts');
 		add_filter('posts_join', 'bfox_posts_join');
+		add_filter('posts_fields', 'bfox_posts_fields');
 		add_filter('posts_where', 'bfox_posts_where');
 		add_filter('posts_groupby', 'bfox_posts_groupby');
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('the_permalink', 'bfox_the_permalink');
 		add_filter('the_content', 'bfox_the_content');
-		add_filter('the_content', 'bfox_footnotes');
+		add_filter('the_content', 'bfox_special_syntax');
 		add_filter('the_author', 'bfox_the_author');
 		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 		add_action('template_redirect', 'bfox_template_redirect');
