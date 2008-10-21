@@ -8,7 +8,7 @@
 		{
 			$this->pages =
 			array(
-				  'current_reading' => array('title' => __('Current Readings'), 'type' => 'post', 'desc' => __('View the current readings for this bible study')),
+				  'current_readings' => array('title' => __('Current Readings'), 'type' => 'post', 'desc' => __('View the current readings for this bible study')),
 				  'reading_plans' => array('title' => __('Reading Plans'), 'type' => 'page', 'desc' => __('View the reading plans for this bible study')),
 //				  'my_reading' => array('title' => __('My Reading'), 'type' => 'post', 'desc' => __('View your current reading for this bible study')),
 				  'my_history' => array('title' => __('My Passage History'), 'type' => 'page', 'desc' => __('View the history of scriptures you have viewed and read')),
@@ -35,7 +35,7 @@
 				if (is_null($reading_id))
 					$url = $this->pages['reading_plans']['url'];
 				else
-					$url = $this->pages['current_reading']['url'];
+					$url = $this->pages['current_readings']['url'];
 			}
 
 			if (!is_null($plan_id)) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
@@ -46,14 +46,14 @@
 
 		function do_home(&$wp_query)
 		{
-			$wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL] = 'current_reading';
+			$wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL] = 'current_readings';
 			$this->setup_query($wp_query);
 			// Set whether this query is a bible reference
 			if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
 				$wp_query->is_bfox_bible_ref = true;
 		}
 
-		function setup_query_current_reading($wp_query)
+		function setup_query_current_readings($wp_query)
 		{
 			global $bfox_plan, $blog_id;
 			$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID]);
@@ -121,7 +121,7 @@
 			return $content;
 		}
 		
-		function get_current_reading($wp_query)
+		function get_current_readings($wp_query)
 		{
 			global $bfox_plan, $blog_id;
 			$content = '';
