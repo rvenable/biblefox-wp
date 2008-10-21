@@ -149,9 +149,13 @@
 			return $content;
 		}
 
-		function get_recent_readings($wp_query)
+		function get_recent_readings($args)
 		{
 			global $bfox_plan, $blog_id;
+
+			if (isset($args['limit'])) $limit = $args['limit'];
+			else $limit = 4;
+
 			$content = '';
 			$blog_plans = $bfox_plan->get_plans();
 			if (0 < count($blog_plans))
@@ -165,7 +169,6 @@
 						$url = $this->get_url_reading_plans($plan->id);
 						$plan_link = '<a href="' . $url . '">' . $plan->name . '</a>';
 
-						$limit = 3;
 						$oldest = $plan->current_reading - $limit + 1;
 						if ($oldest < 0) $oldest = 0;
 						for ($index = $plan->current_reading; $index >= $oldest; $index--)

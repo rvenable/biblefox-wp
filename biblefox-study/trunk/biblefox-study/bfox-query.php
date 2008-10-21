@@ -364,8 +364,9 @@
 				}
 				else
 				{
-					$params = explode('|', $note_text);
-					$page_name = array_shift($params);
+					list($page_name, $param_str) = explode('|', $note_text, 2);
+					$params = array();
+					wp_parse_str(str_replace('|', '&', $param_str), $params);
 
 					if ('content' == $type)
 					{
