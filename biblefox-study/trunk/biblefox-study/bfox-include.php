@@ -142,5 +142,22 @@
 
 		return $link;
 	}
+
+	/*
+	 Filter function for allowing page titles to be used in the exclude parameter passed to wp_list_pages()
+	 */
+	function bfox_list_pages_excludes($excludes)
+	{
+		global $wpdb;
+
+		// Convert any string title excludes to a post id
+		// wpdb query from get_page_by_title()
+		foreach ($excludes as &$exclude)
+			if (!is_integer($exclude))
+				$exclude = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type='page'", $exclude ));
+
+		return $excludes;
+	}
+	add_filter('wp_list_pages_excludes', 'bfox_list_pages_excludes');
 	
 	?>
