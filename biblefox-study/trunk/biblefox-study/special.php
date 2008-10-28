@@ -57,6 +57,10 @@
 		function setup_query_current_readings($wp_query)
 		{
 			global $bfox_plan, $blog_id;
+
+			// We don't need to show any special content for current readings, just the bible ref content
+			$wp_query->is_bfox_special = false;
+
 			$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID]);
 			if (0 < count($wp_query->bfox_plans))
 			{
