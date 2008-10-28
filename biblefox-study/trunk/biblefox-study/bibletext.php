@@ -97,8 +97,8 @@
 			$menu .= '<small>';
 			if ($header) $menu .= $bfox_history->get_dates_str($refs, false) . '<br/>';
 			$menu .= $bfox_history->get_dates_str($refs, true);
-			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)<br/>';
-			$menu .= '<a href="http://www.biblegateway.com/passage/?search=' . $refStr . '&version=31" target="_blank">Read on BibleGateway</a>';
+			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)';
+			if ($header) $menu .= '<br/><a href="http://www.biblegateway.com/passage/?search=' . $refStr . '&version=31" target="_blank">Read on BibleGateway</a>';
 			$menu .= '</small>';
 			
 			$write_link = '<a href="' . $admin_dir . '/post-new.php?bible_ref=' . $refStr . '">Write about this passage</a>';
@@ -106,28 +106,25 @@
 		else $menu .= '<small><a href="' . $home_dir . '/wp-login.php">Login</a> to track your bible reading</small>';
 
 		// Scripture navigation links
-		if ($header)
+		if (is_null($scripture_links))
 		{
-			if (is_null($scripture_links))
-			{
-				$next_refs = new BibleRefs($refs->get_sets());
-				$previous_refs = new BibleRefs($refs->get_sets());
-				$next_refs->increment(1);
-				$previous_refs->increment(-1);
-
-				$scripture_links = array();
-				$scripture_links['next'] = '<a href="' . $next_refs->get_url() . '">' . $next_refs->get_string() . ' >';
-				$scripture_links['previous'] = '<a href="' . $previous_refs->get_url() . '">< ' . $previous_refs->get_string() . '</a>';
-			}
-
-			$menu .= '<table width="100%"><tr>';
-			$menu .= '<td align="left" width="33%">' . $scripture_links['previous'] . '</td>';
-			$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
-			$menu .= '<td align="right" width="33%">' . $scripture_links['next'] . '</a></td>';
-			$menu .= '</tr>';
-			$menu .= '</table>';
+			$next_refs = new BibleRefs($refs->get_sets());
+			$previous_refs = new BibleRefs($refs->get_sets());
+			$next_refs->increment(1);
+			$previous_refs->increment(-1);
+			
+			$scripture_links = array();
+			$scripture_links['next'] = '<a href="' . $next_refs->get_url() . '">' . $next_refs->get_string() . ' >';
+			$scripture_links['previous'] = '<a href="' . $previous_refs->get_url() . '">< ' . $previous_refs->get_string() . '</a>';
 		}
-
+		
+		$menu .= '<table width="100%"><tr>';
+		$menu .= '<td align="left" width="33%">' . $scripture_links['previous'] . '</td>';
+		$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
+		$menu .= '<td align="right" width="33%">' . $scripture_links['next'] . '</a></td>';
+		$menu .= '</tr>';
+		$menu .= '</table>';
+		
 		return $menu;
 	}
 
