@@ -197,6 +197,7 @@
 						$new_post = array();
 						$url_prefix = BFOX_QUERY_VAR_PLAN_ID . '=' . $plan->id . '&' . BFOX_QUERY_VAR_READING_ID . '=';
 						$scripture_links = array();
+						$scripture_links['current_url'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
 						if (isset($plan->refs[$reading_id - 1]))
 							$scripture_links['previous'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id - 1) . '">< ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
 						if (isset($plan->refs[$reading_id + 1]))

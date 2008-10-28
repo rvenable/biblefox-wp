@@ -84,7 +84,10 @@
 		$home_dir = get_option('home');
 		$admin_dir = $home_dir . '/wp-admin';
 		$refStr = $refs->get_string();
-		$page_url = $refs->get_url();
+
+		// Use the current_url param if it is passed
+		if (isset($scripture_links['current_url'])) $page_url = $scripture_links['current_url'];
+		else $page_url = $refs->get_url();
 
 		$menu = '';
 
