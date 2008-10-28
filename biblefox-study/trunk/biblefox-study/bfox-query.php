@@ -193,7 +193,6 @@
 				{
 					foreach ($plan->query_readings as $reading_id)
 					{
-						$title_prefix = $plan->name . ', Reading ' . ($reading_id + 1) . ': ';
 						$ref = $plan->refs[$reading_id];
 						$new_post = array();
 						$url_prefix = BFOX_QUERY_VAR_PLAN_ID . '=' . $plan->id . '&' . BFOX_QUERY_VAR_READING_ID . '=';
@@ -205,13 +204,23 @@
 
 						$refStr = $ref->get_string();
 						$new_post['ID'] = -1;
-						$new_post['post_title'] = $title_prefix . $refStr;
+						$new_post['post_title'] = $refStr;
 						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
 						$new_post['bible_ref_str'] = $refStr;
 						$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
-						$new_post['post_date'] = current_time('mysql', false);
-						$new_post['post_date_gmt'] = current_time('mysql', true);
 						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
+						$new_post['bfox_author'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
+
+						// Set the date according to the reading plan if possible, otherwise set it to the current date
+						if (isset($plan->dates[$reading_id]))
+						{
+							$new_post['post_date'] = $new_post['post_date_gmt'] = date('Y-m-d H:i:s', $plan->dates[$reading_id]);
+						}
+						else
+						{
+							$new_post['post_date'] = current_time('mysql', false);
+							$new_post['post_date_gmt'] = current_time('mysql', true);
+						}
 
 						// Turn off comments
 						$new_post['comment_status'] = 'closed';
@@ -411,7 +420,9 @@
 	function bfox_the_author($author)
 	{
 		global $post, $current_site;
-		if ((BFOX_QUERY_VAR_BIBLE_REF == $post->post_type) || (BFOX_QUERY_VAR_SPECIAL == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
+		if (isset($post->bfox_author))
+			$author = $post->bfox_author;
+		else if ((BFOX_QUERY_VAR_BIBLE_REF == $post->post_type) || (BFOX_QUERY_VAR_SPECIAL == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
 		return $author;
 	}
 
