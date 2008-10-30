@@ -14,6 +14,7 @@
 		private $invalid_elements = array();
 		private $element_cbs = array();
 		private $unsupported_elements = array();
+		private $unsupported_stack = array();
 		private $attr_counts = array();
 		private $paragraph_tags = array();
 		private $reader;
@@ -49,7 +50,8 @@
 			$this->element_cbs = array('book' => 'book',
 									   'c' => 'chapter',
 									   'v' => 'verse',
-									   'p' => 'paragraph'
+									   'p' => 'paragraph',
+									   'q' => 'poetry'
 			);
 
 			$hidden_text = array('div', 'class="bible-hidden" style="display:none"');
@@ -57,10 +59,20 @@
 			$this->tag_conv = array('wj' => array('div', 'class="bible-jesus"'),
 									'f' => array('footnote'),
 									'id' => $hidden_text,
-									'h' => $hidden_text
+									'h' => $hidden_text,
+									'usfx' => array('div'), // ignore
+									'ide' => hidden_text,
+									'add' => array('div', 'class="bible-added-words"'),
+									'd' => array('h3'),
+									's' => array('h3'),
 			);
 
 			foreach ($this->tag_conv as $tag => $data) $this->element_cbs[$tag] = 'tag_conv';
+
+			$this->tag_conv_empty = array('b' => array('br'),
+										  );
+			
+			foreach ($this->tag_conv_empty as $tag => $data) $this->element_cbs[$tag] = 'tag_conv_empty';
 
 			$this->load_schema();
 		}
@@ -93,13 +105,18 @@
 
 		function save_verse()
 		{
-			if (!empty($this->vs) && !empty($this->vs['text']) && (15 > count($this->verses)))
+			if (!empty($this->vs) && !empty($this->vs['text']))
 			{
-				// Save the verse
 				$id = 'book'.$this->vs['book'].' '.$this->vs['chapter'].':'.$this->vs['verse'];
-				$this->verses[$id] = $this->vs['text'];
-				$this->vs['text'] = '';
+				if (15 > count($this->verses))
+				{
+					// Save the verse
+					$this->verses[$id] = $this->vs['text'];
+				}
+				while ($element = array_pop($this->unsupported_stack))
+					$this->elements[$element]['example'] = $id . ' ' . $this->vs['text'];
 			}
+			$this->vs['text'] = '';
 		}
 
 		function open_book()
@@ -168,10 +185,44 @@
 			$this->vs['text'] .= "</$tag>";
 		}
 		
+		function open_poetry()
+		{
+			$level = (int) $this->get_attribute('level');
+			
+			if ((1 != $level) && (2 != $level))
+				$this->invalidate_attribute('level');
+			
+			$this->vs['text'] .= '<div class="bible-poetry-level-' . $level . '">';
+		}
+		
+		function close_poetry()
+		{
+			$this->vs['text'] .= '</div>';
+		}
+		
 		function open_tag_conv()
 		{
-			// Ignore the id attribure of the id element
-			if ('id' == $this->element) $this->get_attribute('id');
+			// Ignoring the following attributes
+			switch ($this->element)
+			{
+				case 'id':
+					$this->get_attribute('id');
+					break;
+				case 'usfx':
+					$this->get_attribute('ns0');
+					$this->get_attribute('xsi');
+					$this->get_attribute('noNamespaceSchemaLocation');
+					break;
+				case 'ide':
+					$this->get_attribute('charset');
+					break;
+				case 'f':
+					$this->get_attribute('caller');
+					break;
+				case 's':
+					$this->get_attribute('level');
+					break;
+			}
 			
 			$tag = $this->tag_conv[$this->element][0];
 			$attr = $this->tag_conv[$this->element][1];
@@ -183,6 +234,14 @@
 		{
 			$tag = $this->tag_conv[$this->element][0];
 			$this->vs['text'] .= "</$tag>";
+		}
+		
+		function open_tag_conv_empty()
+		{
+			$tag = $this->tag_conv[$this->element][0];
+			$attr = $this->tag_conv[$this->element][1];
+			if (!empty($attr)) $tag .= ' ' . $attr;
+			$this->vs['text'] .= "<$tag/>";
 		}
 		
 		function get_callback($prefix, $element)
@@ -282,11 +341,12 @@
 
 				if ($is_used && (!$is_supported || $has_unused_attributes))
 				{
-					$str .= "<p><strong>Element:</strong> $element<br/>";
+					$str .= "\n\n<p><strong>Element:</strong> $element<br/>";
 					$str .= $stats['description'] . '<br/>';
 					$str .= '<strong>Supported:</strong> ' . ($is_supported ? 'true' : 'false') . '<br/>';
 					$str .= "<strong>Count:</strong> " . $stats['count'] . "<br/>";
 					if ($is_supported) $str .= 'Unused ' . $this->get_stat_attr_str($stats['unused_attributes']);
+//					$str .= "\n<strong>Example:</strong> " . $stats['example'] . "<br/>";
 					$str .= "</p>";
 				}
 			}
@@ -316,6 +376,7 @@
 
 					$cb = $this->elements[$this->element]['open_callback'];
 					if (is_callable($cb)) call_user_func($cb);
+					else $this->unsupported_stack[] = $this->element;
 
 					$this->clear_attributes($this->element);
 				}
