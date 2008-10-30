@@ -38,10 +38,15 @@
 		{
 			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
 			add_submenu_page('wpmu-admin.php', 'Biblefox Setup', 'Setup', 10, BFOX_SETUP_SUBPAGE, 'bfox_setup');
+			add_submenu_page('wpmu-admin.php', 'Biblefox USFX', 'USFX', 10, 'bfox-usfx', 'bfox_usfx');
 		}
 
 		add_action('edit_form_advanced', 'bfox_edit_form_advanced');
 		add_action('save_post', 'bfox_save_post');
+	}
+	function bfox_usfx()
+	{
+		require('usfx.php');
 	}
 
 	function bfox_save_post($post_id = 0)
