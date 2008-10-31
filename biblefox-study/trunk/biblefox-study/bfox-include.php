@@ -161,4 +161,10 @@
 	}
 	add_filter('wp_list_pages_excludes', 'bfox_list_pages_excludes');
 	
+	function bfox_add_css()
+	{
+		echo '<link rel="stylesheet" href="http://localhost.localdomain/~richard/biblefox/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>';
+	}
+	add_action('wp_head', 'bfox_add_css');
+	
 	?>
