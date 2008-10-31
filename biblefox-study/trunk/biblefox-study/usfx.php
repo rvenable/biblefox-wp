@@ -56,13 +56,13 @@
 
 			$hidden_text = array('div', 'class="bible-hidden" style="display:none"');
 
-			$this->tag_conv = array('wj' => array('div', 'class="bible-jesus"'),
+			$this->tag_conv = array('wj' => array('em', 'class="bible-jesus"'),
 									'f' => array('footnote'),
 									'id' => $hidden_text,
 									'h' => $hidden_text,
 									'usfx' => array('div'), // ignore
 									'ide' => hidden_text,
-									'add' => array('div', 'class="bible-added-words"'),
+									'add' => array('em', 'class="bible-added-words"'),
 									'd' => array('h3'),
 									's' => array('h3'),
 			);
@@ -399,7 +399,7 @@
 				}
 				else if (XMLReader::TEXT == $this->reader->nodeType)
 				{
-					$this->vs['text'] .= $this->reader->value;
+					$this->vs['text'] .= preg_replace('/\s+/', ' ', $this->reader->value);
 				}
 				unset($this->element);
 				unset($this->attributes);
