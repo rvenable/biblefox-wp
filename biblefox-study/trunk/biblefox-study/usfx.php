@@ -133,9 +133,15 @@
 			// Try to get the book's name from the 'id' attribute
 			// If we can't the ID attribute is invalid
 			if ($book_id = bfox_find_book_id($this->get_attribute('id')))
+			{
 				$this->vs['book'] = $book_id;
+				$this->vs['book_name'] = bfox_get_book_name($book_id);
+			}
 			else
+			{
 				$this->invalidate_attribute('id');
+				$this->vs['book_name'] = 'Chapter';
+			}
 
 			$this->vs['chapter'] = 0;
 			$this->vs['verse'] = 0;
@@ -150,6 +156,7 @@
 			
 			$this->vs['chapter']++;
 			$this->vs['verse'] = 0;
+			$this->vs['text'] .= '<p class="bible-chapter-id">' . $this->vs['book_name'] . ' ' . $this->vs['chapter'] . '</p>';
 		}
 		
 		function open_verse()

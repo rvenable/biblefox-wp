@@ -20,3 +20,7 @@ p.bible-psalm-desc {
 	font-style: normal;
 	font-weight: bold;
 }
+
+p.bible-chapter-id {
+	font-weight: bold;
+}
