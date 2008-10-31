@@ -116,7 +116,7 @@
 				while ($element = array_pop($this->unsupported_stack))
 					$this->elements[$element]['example'] = $id . ' ' . $this->vs['text'];
 
-				if (isset($this->table_name))
+				if (isset($this->table_name) && isset($this->vs['book']))
 				{
 					$vector = new BibleRefVector(array($this->vs['book'], $this->vs['chapter'], $this->vs['verse']));
 					bfox_translation_update_verse($this->table_name, $vector, $this->vs['text']);
@@ -128,11 +128,15 @@
 		function open_book()
 		{
 			$this->save_verse();
-			
-			$this->vs['book_name'] = $this->get_attribute('id');
-			if ('BAK' == $this->vs['book_name']) $this->invalidate_attribute('id');
+			unset($this->vs['book']);
 
-			$this->vs['book']++;
+			// Try to get the book's name from the 'id' attribute
+			// If we can't the ID attribute is invalid
+			if ($book_id = bfox_find_book_id($this->get_attribute('id')))
+				$this->vs['book'] = $book_id;
+			else
+				$this->invalidate_attribute('id');
+
 			$this->vs['chapter'] = 0;
 			$this->vs['verse'] = 0;
 		}
