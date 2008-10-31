@@ -1,11 +1,22 @@
-.bible-poetry-level-1 {
+p.bible-poetry-level-1 {
+	margin: 0px;
 }
 
-.bible-poetry-level-2 {
+p.bible-poetry-level-2 {
+	margin: 0px;
 	margin-left: 20px;
+}
+
+p.bible-psalm-desc {
+	font-style: italic;
 }
 
 .bible-jesus {
 	font-style: normal;
 	color: rgb(150, 0, 0);
+}
+
+.bible-verse-id {
+	font-style: normal;
+	font-weight: bold;
 }

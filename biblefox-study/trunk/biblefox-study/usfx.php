@@ -63,7 +63,7 @@
 									'usfx' => array('div'), // ignore
 									'ide' => hidden_text,
 									'add' => array('em', 'class="bible-added-words"'),
-									'd' => array('h3'),
+									'd' => array('p', 'class="bible-psalm-desc"'),
 									's' => array('h3'),
 			);
 
@@ -202,12 +202,12 @@
 			if ((1 != $level) && (2 != $level))
 				$this->invalidate_attribute('level');
 			
-			$this->vs['text'] .= '<div class="bible-poetry-level-' . $level . '">';
+			$this->vs['text'] .= '<p class="bible-poetry-level-' . $level . '">';
 		}
 		
 		function close_poetry()
 		{
-			$this->vs['text'] .= '</div>';
+			$this->vs['text'] .= '</p>';
 		}
 		
 		function open_tag_conv()
