@@ -15,7 +15,8 @@
 				$content .= "$id_text_begin$verse->verse_id$id_text_end";
 			$content .= $verse->verse;
 		}
-		
+
+		$content = bfox_special_syntax($content);
 		return $content;
 	}
 	

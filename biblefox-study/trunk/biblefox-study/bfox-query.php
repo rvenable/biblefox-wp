@@ -349,6 +349,7 @@
 		global $bfox_specials;
 		
 		$special_chars = array('footnote' => array('open' => '((', 'close' => '))'),
+							   'footnote_xml' => array('open' => '<footnote>', 'close' => '</footnote>'),
 							   'content' => array('open' => '{{', 'close' => '}}'),
 							   'link' => array('open' => '[[', 'close' => ']]'));
 		
@@ -359,8 +360,11 @@
 			$open = $type_info['open'];
 			$close = $type_info['close'];
 
+			// XML footnotes function exactly like regular footnotes
+			if ('footnote_xml' == $type) $type = 'footnote';
+			
 			// Loop through each special char
-			while (1 == preg_match("/" . preg_quote($open) . "(.*?)" . preg_quote($close) . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
+			while (1 == preg_match("/" . preg_quote($open, '/') . "(.*?)" . preg_quote($close, '/') . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
 			{
 				// Store the match data in more readable variables
 				$offset = (int) $matches[0][1];
@@ -371,10 +375,10 @@
 				if ('footnote' == $type)
 				{
 					// Update the footnotes section string
-					$footnotes .= "<li>[<a name=\"footnote_$index\" href=\"#footnote_ref_$index\">$index</a>] $note_text</li>";
+					$footnotes .= "<li><a name=\"footnote_$index\" href=\"#footnote_ref_$index\">[$index]</a> $note_text</li>";
 
 					// Replace the footnote with a link
-					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\"><sup>$index</sup></a>";
+					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\" title=\"$note_text\"><sup>[$index]</sup></a>";
 				}
 				else
 				{
