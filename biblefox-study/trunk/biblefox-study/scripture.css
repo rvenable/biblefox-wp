@@ -24,3 +24,7 @@ p.bible-psalm-desc {
 p.bible-chapter-id {
 	font-weight: bold;
 }
+
+br.bible-poetry {
+	display: none; // HACK - WP is adding an unwanted <p> in front of these so we are hiding this until that is fixed
+}

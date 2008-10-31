@@ -69,8 +69,7 @@
 
 			foreach ($this->tag_conv as $tag => $data) $this->element_cbs[$tag] = 'tag_conv';
 
-			$this->tag_conv_empty = array('b' => array('br'),
-										  );
+			$this->tag_conv_empty = array('b' => array('br', 'class="bible-poetry"'));
 			
 			foreach ($this->tag_conv_empty as $tag => $data) $this->element_cbs[$tag] = 'tag_conv_empty';
 
@@ -255,8 +254,8 @@
 		
 		function open_tag_conv_empty()
 		{
-			$tag = $this->tag_conv[$this->element][0];
-			$attr = $this->tag_conv[$this->element][1];
+			$tag = $this->tag_conv_empty[$this->element][0];
+			$attr = $this->tag_conv_empty[$this->element][1];
 			if (!empty($attr)) $tag .= ' ' . $attr;
 			$this->vs['text'] .= "<$tag/>";
 		}
