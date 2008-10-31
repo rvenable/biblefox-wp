@@ -115,6 +115,12 @@
 				}
 				while ($element = array_pop($this->unsupported_stack))
 					$this->elements[$element]['example'] = $id . ' ' . $this->vs['text'];
+
+				if (isset($this->table_name))
+				{
+					$vector = new BibleRefVector(array($this->vs['book'], $this->vs['chapter'], $this->vs['verse']));
+					bfox_translation_update_verse($this->table_name, $vector, $this->vs['text']);
+				}
 			}
 			$this->vs['text'] = '';
 		}
@@ -353,9 +359,10 @@
 			echo $str;
 		}
 
-		function read_file()
+		function read_file($file = NULL)
 		{
-			$this->reader->open(BFOX_TRANSLATIONS_DIR . '/web-usfx.xml');
+			if (empty($file)) $file = BFOX_TRANSLATIONS_DIR . '/web-usfx.xml';
+			$this->reader->open($file);
 			
 			while ($this->reader->read())
 			{
@@ -429,11 +436,21 @@
 		}
 	}
 
-	echo '<div class="wrap">';
-	$usfx = new BfoxUsfx();
-	$usfx->read_file();
-	$usfx->get_stat_str();
-//	echo '<pre>';
-	$usfx->echo_stats();
-	echo '</div>';
+	function bfox_usfx_install($table_name, $file)
+	{
+		$usfx = new BfoxUsfx();
+		$usfx->table_name = $table_name;
+		$usfx->read_file($file);
+	}
+
+	function bfox_usfx_menu()
+	{
+		echo '<div class="wrap">';
+		$usfx = new BfoxUsfx();
+		$usfx->read_file();
+		$usfx->get_stat_str();
+		$usfx->echo_stats();
+		echo '</div>';
+	}
+
 ?>

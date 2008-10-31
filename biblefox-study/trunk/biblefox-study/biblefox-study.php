@@ -44,9 +44,10 @@
 		add_action('edit_form_advanced', 'bfox_edit_form_advanced');
 		add_action('save_post', 'bfox_save_post');
 	}
+
 	function bfox_usfx()
 	{
-		require('usfx.php');
+		bfox_usfx_menu();
 	}
 
 	function bfox_save_post($post_id = 0)

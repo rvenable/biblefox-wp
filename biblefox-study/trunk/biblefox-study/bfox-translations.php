@@ -46,7 +46,7 @@
 		dbDelta($sql);
 	}
 
-	function bfox_create_trans_verses_table($table_name, $verse_size = 0)
+	function bfox_create_trans_verses_table($table_name, $verse_size = 1024)
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
@@ -163,6 +163,31 @@
 		}
 	}
 
+	function bfox_translation_update_verse($table_name, BibleRefVector $vector, $verse_text)
+	{
+		global $wpdb;
+		$sql = $wpdb->prepare("REPLACE INTO $table_name (unique_id, book_id, chapter_id, verse_id, verse)
+							  VALUES (%d, %d, %d, %d, %s)",
+							  $vector->value,
+							  $vector->values['book'],
+							  $vector->values['chapter'],
+							  $vector->values['verse'],
+							  $verse_text
+							  );
+		$wpdb->query($sql);
+	}
+
+	function bfox_install_usfx_file($file_name)
+	{
+		$file = BFOX_TRANSLATIONS_DIR . "/$file_name";
+		$header = array('short_name' => 'WEB', 'long_name' => 'World English Bible');
+		$id = bfox_add_translation($header);
+		$table_name = bfox_get_verses_table_name($id);
+		bfox_create_trans_verses_table($table_name);
+		
+		bfox_usfx_install($table_name, $file);
+	}
+	
 	function bfox_get_bft_files()
 	{
 		$bft_files = array();
@@ -173,6 +198,8 @@
 			while (($file_name = readdir($translations_dir)) !== false)
 			{
 				if (substr($file_name, -4) == '.bft')
+					$bft_files[] = "$file_name";
+				else if (substr($file_name, -4) == '.xml')
 					$bft_files[] = "$file_name";
 			}
 		}
@@ -216,7 +243,10 @@
 		if ('install' == $action)
 		{
 			$file = trim($_GET['file']);
-			bfox_install_bft_file($file);
+			if (substr($file, -4) == '.bft')
+				bfox_install_bft_file($file);
+			else if (substr($file, -4) == '.xml')
+				bfox_install_usfx_file($file);
 		}
 		else if ('delete' == $action)
 		{
