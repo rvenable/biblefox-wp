@@ -161,10 +161,14 @@
 	}
 	add_filter('wp_list_pages_excludes', 'bfox_list_pages_excludes');
 	
-	function bfox_add_css()
+	function bfox_add_head_files()
 	{
-		echo '<link rel="stylesheet" href="http://localhost.localdomain/~richard/biblefox/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>';
+		?>
+<link rel="stylesheet" href="http://localhost.localdomain/~richard/biblefox/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>
+<script type="text/javascript" src="http://localhost.localdomain/~richard/biblefox/wp-content/mu-plugins/biblefox-study/scripture.js"></script>
+<?php
 	}
-	add_action('wp_head', 'bfox_add_css');
+	add_action('wp_head', 'bfox_add_head_files');
+	add_action('admin_head', 'bfox_add_head_files');
 	
 	?>

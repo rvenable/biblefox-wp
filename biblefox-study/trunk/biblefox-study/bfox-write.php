@@ -56,11 +56,22 @@
 
 		// Create the form
 	?>
-<div id="biblerefdiv" class="postbox">
-<h3><?php _e('Scripture References'); ?></h3>
-<div class="inside">
-<input name="bible_ref" type="text" size="25" id="bible_ref" value="<?php echo attribute_escape($refStr); ?>" />
-<br/>
+<p>Adding scripture tags is a simple way to organize your posts around Bible passages.<br/>
+For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag. Once it is tagged, whenever you read Genesis 1 you will see this post!</p>
+
+<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" autocomplete="off" value="" />
+<input type="button" class="button" id="add-bible-ref" value="Add Scripture" tabindex="3" />
+<span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
+
+<input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" autocomplete="off" value="<?php echo attribute_escape($refStr); ?>" />
+<p><div id="bible-ref-checklist"></div></p>
+
+<div id="bible-ref-viewer" class="wp-hidden-children">
+<p><strong>View the Tagged Scripture</strong><br/>
+You can quickly view the scriptures you are tagging below. Use this to reference the scripture while writing your post.<br/>
+You must save your post for theses scriptures to refresh.</p>
+<h4><a id="bible-text-toggle" href="#bible-ref-view" class="hide-if-no-js" tabindex="3"><?php echo $refStr; ?></a></h4>
+<div id="bible-ref-view" class="wp-hidden-child">
 <?php echo bfox_get_ref_content($refs); ?>
 </div>
 </div>
