@@ -163,9 +163,10 @@
 	
 	function bfox_add_head_files()
 	{
+		$url = get_option('siteurl');
 		?>
-<link rel="stylesheet" href="http://localhost.localdomain/~richard/biblefox/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>
-<script type="text/javascript" src="http://localhost.localdomain/~richard/biblefox/wp-content/mu-plugins/biblefox-study/scripture.js"></script>
+<link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>
+<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/scripture.js"></script>
 <?php
 	}
 	add_action('wp_head', 'bfox_add_head_files');
