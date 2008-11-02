@@ -263,7 +263,7 @@ CONTENT;
 				while ($r->have_posts())
 				{
 					$r->the_post();
-					$ref = new BibleRefs(array(array($post->verse_begin, $post->verse_end)));
+					$ref = $post->bible_refs;
 					$ref_str = '';
 					if ($ref->is_valid()) $ref_str = $ref->get_link();
 					$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';

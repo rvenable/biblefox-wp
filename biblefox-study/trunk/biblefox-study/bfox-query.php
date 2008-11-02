@@ -177,6 +177,42 @@
 		return $groupby;
 	}
 
+	// Function for modifying the posts array returned from the actual SQL query
+	function bfox_posts_results($posts)
+	{
+		global $bfox_recent_wp_query;
+
+		// If we joined on the bible refs table, then we might have duplicate posts
+		// We need to collapse all the duplicate posts into one post, and accumulate their bible refs into a bible_ref var in the post array
+		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS] && (0 < count($posts)))
+		{
+			$new_posts = array();
+			$indexes = array();
+			$new_index = 0;
+			foreach ($posts as $post)
+			{
+				$sets = array(array($post->verse_begin, $post->verse_end));
+
+				// If we already found this post, then we just need to add its bible refs to the appropriate post
+				// Otherwise we should add it to our new_posts array
+				if (isset($indexes[$post->ID]))
+				{
+					$index = $indexes[$post->ID];
+					$new_posts[$index]->bible_refs->push_sets($sets);
+				}
+				else
+				{
+					$index = $new_index++;
+					$indexes[$post->ID] = $index;
+					$new_posts[$index] = $post;
+					$new_posts[$index]->bible_refs = new BibleRefs($sets);
+				}
+			}
+			$posts = $new_posts;
+		}
+		return $posts;
+	}
+
 	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
@@ -456,6 +492,7 @@
 		add_filter('posts_fields', 'bfox_posts_fields');
 		add_filter('posts_where', 'bfox_posts_where');
 		add_filter('posts_groupby', 'bfox_posts_groupby');
+		add_filter('posts_results', 'bfox_posts_results');
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('post_link', 'bfox_the_permalink', 10, 2);
 		add_filter('the_content', 'bfox_the_content');
