@@ -248,13 +248,16 @@ CONTENT;
 			return $content;
 		}
 		
-		function get_updates()
+		function get_updates($args)
 		{
 			// This function uses an instance of WP_Query to get the latest posts
 			//  (similar to the recent posts widget - see wp_widget_recent_entries())
 
+			if (isset($args['limit'])) $limit = $args['limit'];
+			else $limit = 4;
+
 			$content = '';
-			$r = new WP_Query(array('showposts' => $number, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BFOX_QUERY_VAR_JOIN_BIBLE_REFS => TRUE));
+			$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BFOX_QUERY_VAR_JOIN_BIBLE_REFS => TRUE));
 			if ($r->have_posts())
 			{
 				$content .= '<table width="100%">';
