@@ -129,8 +129,11 @@
 	function bfox_posts_fields($fields)
 	{
 		global $bfox_recent_wp_query;
+
+		// When we join on bible refs, we want to merge all the bible refs for a single post into that one post
+		// To do this, we use the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
 		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
-			$fields .= ', ' . BFOX_TABLE_BIBLE_REF . '.* ';
+			$fields .= ', GROUP_CONCAT(' . BFOX_TABLE_BIBLE_REF . '.verse_begin) AS verse_begin, GROUP_CONCAT(' . BFOX_TABLE_BIBLE_REF . '.verse_end) AS verse_end';
 
 		return $fields;
 	}
@@ -157,9 +160,9 @@
 	// Function for modifying the query GROUP BY statement
 	function bfox_posts_groupby($groupby)
 	{
-		global $bfox_bible_refs, $wpdb;
+		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
 		
-		if (0 < $bfox_bible_refs->get_count())
+		if ((0 < $bfox_bible_refs->get_count()) || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
 		{
 			// Group on post ID
 			$mygroupby = "{$wpdb->posts}.ID";
@@ -182,33 +185,24 @@
 	{
 		global $bfox_recent_wp_query;
 
-		// If we joined on the bible refs table, then we might have duplicate posts
-		// We need to collapse all the duplicate posts into one post, and accumulate their bible refs into a bible_ref var in the post array
+		// When we joined on bible refs, we had to  merge all the bible refs for a single post into that one post
+		// To do this, we used the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
+		// Now we need to separate the values and create a BibleRef object to store the references
 		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS] && (0 < count($posts)))
 		{
-			$new_posts = array();
-			$indexes = array();
-			$new_index = 0;
-			foreach ($posts as $post)
+			foreach ($posts as &$post)
 			{
-				$sets = array(array($post->verse_begin, $post->verse_end));
-
-				// If we already found this post, then we just need to add its bible refs to the appropriate post
-				// Otherwise we should add it to our new_posts array
-				if (isset($indexes[$post->ID]))
+				$begins = explode(',', $post->verse_begin);
+				$ends = explode(',', $post->verse_end);
+				$sets = array();
+				$index = 0;
+				foreach ($begins as $begin)
 				{
-					$index = $indexes[$post->ID];
-					$new_posts[$index]->bible_refs->push_sets($sets);
+					$end = $ends[$index++];
+					$sets[] = array((int) $begin, (int) $end);
 				}
-				else
-				{
-					$index = $new_index++;
-					$indexes[$post->ID] = $index;
-					$new_posts[$index] = $post;
-					$new_posts[$index]->bible_refs = new BibleRefs($sets);
-				}
+				$post->bible_refs = new BibleRefs($sets);
 			}
-			$posts = $new_posts;
 		}
 		return $posts;
 	}
