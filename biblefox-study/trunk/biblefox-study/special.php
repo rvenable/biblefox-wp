@@ -116,7 +116,7 @@
 			$plans = $bfox_plan->get_plans($args[BFOX_QUERY_VAR_PLAN_ID]);
 			if (isset($args[BFOX_QUERY_VAR_PLAN_ID]))
 			{
-				$content .= bfox_blog_reading_plans($plans, bfox_can_user_edit_plans());
+				$content .= bfox_blog_reading_plans($plans, bfox_can_user_edit_plans(), 2);
 			}
 			else
 			{

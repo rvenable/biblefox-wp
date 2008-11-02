@@ -122,10 +122,10 @@ How often will you be reading this plan?<br/>
 		return $sections;
 	}
 
-	function bfox_echo_plan($plan, $skip_read = false)
+	function bfox_echo_plan($plan, $num_cols = 3, $skip_read = false)
 	{
 		// Divide the plan into 3 columns
-		$originals = bfox_divide_into_cols($plan->refs, 3, 5);
+		$originals = bfox_divide_into_cols($plan->refs, $num_cols, 5);
 		
 		$headers = '<th width="1*"></th><th width="10*">Passage</th>';
 		if (isset($plan->dates))
@@ -164,7 +164,7 @@ How often will you be reading this plan?<br/>
 				if (isset($plan->dates))
 				{
 					$content .= '<td>';
-					if (isset($plan->dates[$period_id])) $content .= $strong1 . date('M d, Y', $plan->dates[$period_id]) . $strong2;
+					if (isset($plan->dates[$period_id])) $content .= $strong1 . date('M d', $plan->dates[$period_id]) . $strong2;
 					if (isset($plan_list->unread) || isset($plan_list->read))
 					{
 						$content .= '</td><td>';
@@ -193,7 +193,7 @@ How often will you be reading this plan?<br/>
 		return $content;
 	}
 	
-	function bfox_blog_reading_plans($plans, $can_edit = false)
+	function bfox_blog_reading_plans($plans, $can_edit = false, $num_cols = 3)
 	{
 		global $bfox_plan;
 		$content = '';
@@ -208,7 +208,7 @@ How often will you be reading this plan?<br/>
 			$content .= '<p>';
 			if (isset($plan->summary) && ('' != $plan->summary)) $content .= $plan->summary . '<br/>';
 			$content .= '</p>';
-			$content .= bfox_echo_plan($plan);
+			$content .= bfox_echo_plan($plan, $num_cols);
 			$content .= "<br/>";
 		}
 		return $content;
