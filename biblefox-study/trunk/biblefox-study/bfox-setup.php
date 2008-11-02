@@ -205,7 +205,7 @@
 	{
 		bfox_fill_books_table();
 		bfox_fill_synonyms_table();
-		bfox_upgrade_all_tables();
+//		bfox_upgrade_all_tables();
 	}
 	
 ?>
