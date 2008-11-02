@@ -9,6 +9,9 @@
 	 */
 
 	define(BFOX_FILE, __FILE__);
+	define(BFOX_DIR, dirname(__FILE__));
+	define(BFOX_TRANSLATIONS_DIR, BFOX_DIR . '/translations');
+
 	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
 //	define(BFOX_ADMIN_FILE, __FILE__);
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');

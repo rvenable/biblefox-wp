@@ -2,10 +2,6 @@
 	/*
 	 Parses a USFX bible translation file to add to our translation DB
 	 */
-	define('BFOX_TRANSLATIONS_DIR', dirname(__FILE__) . "/translations");
-	function bfox_save_verse($table, $book, $chapter, $verse, $text)
-	{
-	}
 
 	class BfoxUsfx
 	{
@@ -79,7 +75,7 @@
 		function load_schema()
 		{
 			$reader = new XMLReader();
-			$reader->open(BFOX_TRANSLATIONS_DIR . '/usfx-2005-09-08.xsd.xml');
+			$reader->open(BFOX_DIR . '/usfx-2005-09-08.xsd.xml');
 			
 			$elements = array();
 			while ($reader->read())

@@ -1,5 +1,4 @@
 <?php
-	define('BFOX_TRANSLATIONS_DIR', dirname(__FILE__) . "/translations");
 	
 	function bfox_get_installed_translations()
 	{
