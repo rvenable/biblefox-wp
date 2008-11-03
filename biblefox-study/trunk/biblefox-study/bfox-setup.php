@@ -3,7 +3,10 @@
 	
 	class BfoxAdminTools
 	{
-		function bfox_upgrade_all_tables()
+		/*
+		 Upgrade function for DB tables
+		 */
+		function upgrade_all_tables()
 		{
 			// Get the blogs using a WPMU function (from wpmu-functions.php)
 			$blogs = get_blog_list();
@@ -41,8 +44,11 @@
 				}
 			}
 		}
-		
-		function bfox_create_books_table()
+
+		/*
+		 Private function to create the books table
+		 */
+		private function create_books_table()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
@@ -57,8 +63,11 @@
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			dbDelta($sql);
 		}
-		
-		function bfox_fill_books_table()
+
+		/*
+		 Creates and then fills the books table with data from setup/books.txt
+		 */
+		function fill_books_table()
 		{
 			global $wpdb;
 			$file = BFOX_SETUP_DIR . "/books.txt";
@@ -68,13 +77,16 @@
 			define(DIEONDBERROR, '');
 			
 			// Create the books table
-			bfox_create_books_table();
+			echo 'Creating Books Table<br/>';
+			$this->create_books_table();
 			
 			// Delete everything in the books table because we want to fill it completely with fresh data
+			echo 'Deleting and previous data in the Books Table<br/>';
 			$sql = $wpdb->prepare("DELETE FROM $table_name");
 			$wpdb->query($sql);
 			
 			// Load the data file into the table using a LOAD DATA statement
+			echo 'Filling the Books Table<br/>';
 			global $wpdb;
 			$sql = $wpdb->prepare("LOAD DATA LOCAL INFILE %s
 								  INTO TABLE $table_name
@@ -85,8 +97,11 @@
 			
 			$wpdb->query($sql);
 		}
-		
-		function bfox_get_book_id_list()
+
+		/*
+		 Private function to get a list of all the book ids in the books table
+		 */
+		private function get_book_id_list()
 		{
 			global $wpdb;
 			$books = $wpdb->get_results("SELECT id, name FROM " . BFOX_BOOKS_TABLE);
@@ -98,8 +113,11 @@
 			}
 			return $book_names;
 		}
-		
-		function bfox_create_synonyms_table()
+
+		/*
+		 Private function to create the synonyms table
+		 */
+		private function create_synonyms_table()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
@@ -115,7 +133,10 @@
 			dbDelta($sql);
 		}
 		
-		function bfox_fill_synonyms_table()
+		/*
+		 Fills the synonyms table with data from setup/syns.txt
+		 */
+		function fill_synonyms_table()
 		{
 			global $wpdb;
 			$file = BFOX_SETUP_DIR . "/syns.txt";
@@ -126,14 +147,15 @@
 			$num_lines = count($lines);
 			
 			// Create the synonyms table
-			bfox_create_synonyms_table();
+			echo 'Creating Synonyms Table<br/>';
+			$this->create_synonyms_table();
 			
 			// Delete everything in the table because we want to fill it completely with fresh data
 			$sql = $wpdb->prepare("DELETE FROM $table_name");
 			$wpdb->query($sql);
 			
 			// Get a list of all the book ids in the books table
-			$book_ids = bfox_get_book_id_list();
+			$book_ids = $this->get_book_id_list();
 			
 			// Start the synonyms off by adding all the book names
 			$syn_array = array();
@@ -206,13 +228,29 @@
 	
 	function bfox_initial_setup()
 	{
+		echo '<div class="wrap"><h2>Admin Tools</h2>';
 		bfox_list_admin_tools();
+		
+		$tool = $_GET['tool'];
+		if (isset($tool))
+		{
+			global $wpdb;
+			$wpdb->show_errors(TRUE);
+
+			echo '<h2>' . $tool . '</h2>';
+			$admin_tools = new BfoxAdminTools();
+			$func = array($admin_tools, $tool);
+			if (is_callable($func)) call_user_func($func);
+
+			$wpdb->show_errors(FALSE);
+		}
+		echo '</div>';
 	}
 
 	function bfox_list_admin_tools()
 	{
 		$tools = get_class_methods('BfoxAdminTools');
-		foreach ($tools as $tool) echo '<a href="">' . $tool . '</a><br/>';
+		foreach ($tools as $tool) echo '<a href="' . bfox_admin_page_url(BFOX_ADMIN_TOOLS_SUBPAGE) . '&amp;tool=' . $tool . '">' . $tool . '</a><br/>';
 	}
 	
 ?>

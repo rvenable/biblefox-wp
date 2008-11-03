@@ -171,5 +171,10 @@
 	}
 	add_action('wp_head', 'bfox_add_head_files');
 	add_action('admin_head', 'bfox_add_head_files');
+
+	function bfox_admin_page_url($page_name)
+	{
+		return get_option('siteurl') . '/wp-admin/admin.php?page=' . $page_name;
+	}
 	
 	?>

@@ -17,13 +17,13 @@
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');
 	define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
-	define(BFOX_SETUP_SUBPAGE, 'bfox-setup');
+	define(BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox-admin-tools');
 	define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	// Uncomment for testing DB queries
-	define('DIEONDBERROR', 'die!');
-	$wpdb->show_errors(true);
+//	define('DIEONDBERROR', 'die!');
+//	$wpdb->show_errors(true);
 
 	function bfox_study_menu()
 	{
@@ -36,11 +36,11 @@
 
 		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 
-		// These menu pages are only for the site admin and only on the main blog site
-		if (is_site_admin() && is_main_blog())
+		// These menu pages are only for the site admin
+		if (is_site_admin())
 		{
 			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
-			add_submenu_page('wpmu-admin.php', 'Biblefox Setup', 'Setup', 10, BFOX_SETUP_SUBPAGE, 'bfox_setup');
+			add_submenu_page('wpmu-admin.php', 'Admin Tools', 'Admin Tools', 10, BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox_admin_tools');
 			add_submenu_page('wpmu-admin.php', 'Biblefox USFX', 'USFX', 10, 'bfox-usfx', 'bfox_usfx');
 		}
 
@@ -99,10 +99,10 @@
 		bfox_translations_page();
 	}
 	
-	function bfox_setup()
+	function bfox_admin_tools()
 	{
-		echo "<h2>Biblefox Setup</h2>";
-		bfox_activate();
+		require_once("bfox-setup.php");
+		bfox_initial_setup();
 	}
 	
 	function bfox_study_init()
@@ -117,12 +117,9 @@
 	
 	function bfox_activate()
 	{
-		require_once("bfox-setup.php");
-		bfox_initial_setup();
 	}
 
 	add_action('init', 'bfox_study_init');
-	register_activation_hook(__FILE__, 'bfox_activate');
 
 	// Kill the dashboard by redirecting index.php to admin.php
 	function bfox_redirect_dashboard()
