@@ -57,6 +57,7 @@
 			id int,
 			name varchar(128),
 			wiki_name varchar(128),
+			short_name varchar(5),
 			PRIMARY KEY  (id)
 			);";
 			
@@ -91,7 +92,7 @@
 			$sql = $wpdb->prepare("LOAD DATA LOCAL INFILE %s
 								  INTO TABLE $table_name
 								  FIELDS TERMINATED BY %s
-								  (id, name, wiki_name)",
+								  (id, name, wiki_name, short_name)",
 								  $file,
 								  $delimiter);
 			
