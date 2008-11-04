@@ -29,15 +29,19 @@
 	function bfox_study_menu()
 	{
 		$min_user_level = 8;
-//		add_menu_page('Study the Bible', 'Study', 0, BFOX_ADMIN_FILE, 'bfox_progress');
 		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
-		if (is_site_admin())
-			add_submenu_page('profile.php', 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 //		add_submenu_page(BFOX_ADMIN_FILE, 'Reading Plans', 'Reading Plans', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
 		add_management_page('Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 
 		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
+
+		if (is_site_admin())
+		{
+			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+			add_submenu_page(BFOX_READ_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+			add_submenu_page(BFOX_READ_SUBPAGE, 'Passage History', 'History', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+		}
 
 		// These menu pages are only for the site admin
 		if (is_site_admin())
