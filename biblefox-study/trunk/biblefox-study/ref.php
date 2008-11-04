@@ -3,13 +3,20 @@
 	define('BFOX_UNIQUE_ID_MASK', 0xFF);
 	define('BFOX_UNIQUE_ID_MAX', 256);
 
-	function bfox_get_book_name($book_id)
+	define(BFOX_REF_FORMAT_NORMAL, 'normal');
+	define(BFOX_REF_FORMAT_SHORT, 'short');
+
+	function bfox_get_book_name($book_id, $format = '')
 	{
 		global $wpdb;
-		$query = $wpdb->prepare("SELECT name FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
+
+		if (BFOX_REF_FORMAT_SHORT == $format) $col = 'short_name';
+		else $col = 'name';
+
+		$query = $wpdb->prepare("SELECT $col FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
 		return $wpdb->get_var($query);
 	}
-
+	
 	function bfox_find_book_id($synonym)
 	{
 		global $wpdb;
@@ -302,16 +309,15 @@
 			return $unique_ids;
 		}
 
-		function get_string()
+		function get_string($format = '')
 		{
-			if (isset($this->str))
-				return $this->str;
-			
-			if (!isset($this->book_name))
-				$this->book_name = bfox_get_book_name($this->book_id);
-			
+			if (empty($format)) $format = 'normal';
+
+			if (isset($this->str[$format]))
+				return $this->str[$format];
+
 			// Create the reference string
-			$str = "$this->book_name";
+			$str = bfox_get_book_name($this->book_id, $format);
 			if (isset($this->chapter1))
 			{
 				$str .= " {$this->chapter1}";
@@ -327,8 +333,8 @@
 					$str .= "-{$this->verse2}";
 			}
 			
-			$this->str = $str;
-			return $this->str;
+			$this->str[$format] = $str;
+			return $this->str[$format];
 		}
 	}
 
@@ -376,9 +382,9 @@
 			return array($this->vectors[0]->value, $this->vectors[1]->value);
 		}
 
-		function get_string()
+		function get_string($format = '')
 		{
-			return $this->get_parsed()->get_string();
+			return $this->get_parsed()->get_string($format);
 		}
 
 		// Returns the parsed array form of the bible reference
@@ -556,10 +562,10 @@
 			return $unique_id_sets;
 		}
 
-		function get_string()
+		function get_string($format = '')
 		{
 			$strs = array();
-			foreach ($this->refs as $ref) $strs[] = $ref->get_string();
+			foreach ($this->refs as $ref) $strs[] = $ref->get_string($format);
 			return implode('; ', $strs);
 		}
 
@@ -578,9 +584,9 @@
 			return bfox_format_ref_url($this->get_string(), '/wp-admin/post-new.php');
 		}
 		
-		function get_link()
+		function get_link($format = '')
 		{
-			return bfox_format_ref_link($this->get_string());
+			return bfox_format_ref_link($this->get_string($format));
 		}
 		
 		function get_links()
