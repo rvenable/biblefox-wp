@@ -83,6 +83,26 @@
 			// Update the read history to show that we viewed these scriptures
 			$bfox_history->update($refs);
 		}
+	echo '<h2>Blog Post Commentaries</h2>';
+	echo '<p><a href="">Write A Post</a></p>';
+	echo '<h3>My Bible Study Blogs</h3><p>View posts from any Biblefox Bible Studies that you have joined or subscribed to.<br/>Check out the list of Commentary Blogs to find some you can subscribe to.<br/><a href="">Add Commentaries</a></p>';
+	echo '<h3>My Friend Commentaries</h3><p>You can see what other users have written about this passage.<br/><a href="">Add Friends</a></p>';
+	echo '<h2>Tools</h2>';
+	echo '<h3>Bible Search</h3><ul><li>Reference</li><li>Text</li><li>Topic</li></ul>';
+	echo '<h3>Random Passage</h3>';
+	echo '<h3>My Reading Plans</h3>';
+	echo '<h3>Create A Reading Plan</h3>';
+	echo '<h3>Side by Side Passages</h3>';
+	echo '<h3>Table of Contents</h3>';
+	echo '<h3>Quick Table of Contents</h3>';
+	echo '<h3>Bible Dictionary</h3>';
+	echo '<h3>Bible Forum</h3>';
+	echo '<h3>Bible Wiki</h3>';
+	echo '<h3>Bible By Email</h3>';
+	echo '<h3>Topical Cross References</h3><p>From the Topical Search</p>';
+	echo '<h3>Hebrew</h3>';
+	echo '<h3>Greek</h3>';
+	
 		echo "</div>";
 	}
 
