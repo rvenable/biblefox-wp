@@ -19,6 +19,7 @@
 	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox-admin-tools');
 	define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
+	define(BFOX_READ_SUBPAGE, 'bfox-read');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	// Uncomment for testing DB queries
@@ -30,6 +31,8 @@
 		$min_user_level = 8;
 //		add_menu_page('Study the Bible', 'Study', 0, BFOX_ADMIN_FILE, 'bfox_progress');
 		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
+		if (is_site_admin())
+			add_submenu_page('profile.php', 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 //		add_submenu_page(BFOX_ADMIN_FILE, 'Reading Plans', 'Reading Plans', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
 		add_management_page('Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
@@ -115,8 +118,10 @@
 		bfox_widgets_init();
 	}
 	
-	function bfox_activate()
+	function bfox_read()
 	{
+		require_once('read.php');
+		bfox_read_menu();
 	}
 
 	add_action('init', 'bfox_study_init');
