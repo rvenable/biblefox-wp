@@ -3,6 +3,28 @@
 	
 	class BfoxAdminTools
 	{
+
+		/*
+		 Private function for echoing DB tables
+		 */
+		private function echo_table($table_name, $cols = NULL)
+		{
+			global $wpdb;
+			$results = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
+			
+			$rows = '';
+			foreach ($results as $row)
+			{
+				if (!is_array($cols)) $cols = array_keys($row);
+				$rows .= '<tr>';
+				foreach ($row as $col) $rows .= '<td>' . $col . '</td>';
+				$rows .= '</tr>';
+			}
+			echo '<table><tr>';
+			foreach ($cols as $col) echo '<th>' . $col . '</th>';
+			echo '</tr>' . $rows . '</table>';
+		}
+		
 		/*
 		 Upgrade function for DB tables
 		 */
@@ -97,6 +119,8 @@
 								  $delimiter);
 			
 			$wpdb->query($sql);
+			
+			$this->echo_table(BFOX_BOOKS_TABLE);
 		}
 
 		/*
@@ -224,7 +248,10 @@
 					if ($unknown != '') echo "$unknown <br/>";
 				}
 			}
+
+			$this->echo_table(BFOX_SYNONYMS_TABLE);
 		}
+
 	}
 	
 	function bfox_initial_setup()
