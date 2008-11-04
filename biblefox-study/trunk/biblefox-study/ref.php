@@ -311,7 +311,7 @@
 
 		function get_string($format = '')
 		{
-			if (empty($format)) $format = 'normal';
+			if (empty($format)) $format = BFOX_REF_FORMAT_NORMAL;
 
 			if (isset($this->str[$format]))
 				return $this->str[$format];
