@@ -252,6 +252,26 @@
 			$this->echo_table(BFOX_SYNONYMS_TABLE);
 		}
 
+		function ref_detect()
+		{
+			$reader = new XMLReader();
+			$reader->open(BFOX_DIR . '/books.html');
+
+			bfox_create_synonym_data();
+			while ($reader->read())
+			{
+				if (XMLReader::TEXT == $reader->nodeType)
+				{
+					echo '<p>' . $reader->value . '</p>';
+					$text = bfox_ref_replace($reader->value);
+					echo '<p>' . $text . '</p>';
+					echo '<br/>';
+				}
+			}
+			$reader->close();
+		}
+		
+		
 	}
 	
 	function bfox_initial_setup()

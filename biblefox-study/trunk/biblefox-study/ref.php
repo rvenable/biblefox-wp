@@ -19,11 +19,43 @@
 	
 	function bfox_find_book_id($synonym)
 	{
-		global $wpdb;
-		$query = $wpdb->prepare("SELECT book_id FROM " . BFOX_SYNONYMS_TABLE . " WHERE synonym LIKE %s", trim($synonym));
-		if (isset($query))
-			return $wpdb->get_var($query);
-		return false;
+		global $wpdb, $bfox_synonyms;
+		$synonym = strtolower($synonym);
+		
+		if (empty($bfox_synonyms)) $book_id = $wpdb->get_var($wpdb->prepare("SELECT book_id FROM " . BFOX_SYNONYMS_TABLE . " WHERE synonym LIKE %s", trim($synonym)));
+		else if (isset($bfox_synonyms[$synonym])) $book_id = $bfox_synonyms[$synonym];
+		
+		if (empty($book_id)) return FALSE;
+		return $book_id;
+	}
+
+	function bfox_create_synonym_data()
+	{
+		global $wpdb, $bfox_synonyms, $bfox_syn_prefix;
+
+		if (empty($bfox_synonyms))
+		{
+			$bfox_synonyms = array();
+			$results = $wpdb->get_results($wpdb->prepare("SELECT synonym, book_id FROM " . BFOX_SYNONYMS_TABLE));
+			foreach ($results as $result)
+			{
+				$bfox_synonyms[$result->synonym] = $result->book_id;
+
+				$words = preg_split('/\s/', $result->synonym, -1, PREG_SPLIT_NO_EMPTY);
+				if (0 < count($words))
+				{
+					$prefix = '';
+					foreach ($words as $word)
+					{
+						if (!empty($prefix)) $prefix .= ' ';
+						$prefix .= $word;
+						$bfox_syn_prefix[$prefix] = TRUE;
+					}
+				}
+			}
+		}
+
+		return $bfox_synonyms;
 	}
 
 	function bfox_get_chapters($first_verse, $last_verse)
@@ -79,6 +111,76 @@
 	function bfox_format_ref_link($ref_str)
 	{
 		return '<a href="' . bfox_format_ref_url($ref_str) . '" title="' . $ref_str . '">' . $ref_str . '</a>';
+	}
+	
+	function bfox_ref_replace($text)
+	{
+		global $bfox_synonyms, $bfox_syn_prefix;
+
+		// Loop throught the text, word by word (where a word is a string of non-whitespace chars)
+		// Check each word to see if it is part of a synonym for a book
+		// If we succesfully match a book then we can look for chapter, verse numbers
+		$offset = 0;
+		$prefixes = array();
+		$bible_refs = array();
+		while (1 == preg_match('/\S+/', $text, $matches, PREG_OFFSET_CAPTURE, $offset))
+		{
+			// Store the match data in more readable variables
+			$offset = (int) $matches[0][1];
+			$pattern = (string) $matches[0][0];
+			$index++;
+
+			// The word might be a portion of book name (ie, a prefix to the book name),
+			// So we need to detect that using the bfox_syn_prefix array, and save those potential book 'prefixes'
+
+			// Handle previous prefixes
+			$new_prefixes = array();
+			if (isset($bfox_synonyms[$pattern])) $book = $pattern;
+			else
+			{
+				foreach ($prefixes as $prefix)
+				{
+					$prefix .= ' ' . $pattern;
+					if (isset($bfox_synonyms[$prefix])) $book = $prefix;
+					else if (isset($bfox_syn_prefix[$prefix])) $new_prefixes[] = $prefix;
+				}
+				if (!isset($book) && isset($bfox_syn_prefix[$pattern])) $new_prefixes[] = $pattern;
+			}
+			$prefixes = $new_prefixes;
+			
+			$offset += strlen($pattern);
+
+			// If we have successfully found a book synonym, then we can see if there are chapter and verse references
+			if (isset($book))
+			{
+				// If we have find a chapter/verse reference, we can see if it is valid
+				if (1 == preg_match('/\s*(\d+)(\s*-\s*\d+)?(\s*:\s*\d+)?(\s*-\s*\d+)?(\s*:\s*\d+)?/', $text, $matches, PREG_OFFSET_CAPTURE, $offset))
+				{
+					$offset = (int) $matches[0][1];
+					$pattern = (string) $matches[0][0];
+					
+					$ref_str = $book . ' ' . $pattern;
+
+					// If this is a valid bible reference, then save it to be replaced later
+					$bible_ref = new BibleRefs($ref_str);
+					if ($bible_ref->is_valid())
+						$bible_refs[$ref_str] = $bible_ref;
+					
+					$offset += strlen($pattern);
+				}
+			}
+			unset($book);
+		}
+
+		// Perform any text replacements
+		foreach ($bible_refs as $replacement => $ref)
+		{
+			$regex = preg_replace('/\s+/', '\s+', preg_quote($replacement));
+			$new_text = '<a href="' . $ref->get_url() . '">' . $replacement . '</a>';
+			$text = preg_replace('/'. $regex. '/', $new_text, $text, 1);
+		}
+
+		return $text;
 	}
 	
 	/*
