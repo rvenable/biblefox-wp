@@ -378,6 +378,9 @@
 	{
 		global $bfox_specials;
 		
+		bfox_create_synonym_data();
+		$data = bfox_process_html_text($data, 'bfox_ref_replace');
+		
 		$special_chars = array('footnote' => array('open' => '((', 'close' => '))'),
 							   'footnote_xml' => array('open' => '<footnote>', 'close' => '</footnote>'),
 							   'content' => array('open' => '{{', 'close' => '}}'),
@@ -408,7 +411,7 @@
 					$footnotes .= "<li><a name=\"footnote_$index\" href=\"#footnote_ref_$index\">[$index]</a> $note_text</li>";
 
 					// Replace the footnote with a link
-					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\" title=\"$note_text\"><sup>[$index]</sup></a>";
+					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\" title=\"" . bfox_html_strip_tags($note_text) . "\"><sup>[$index]</sup></a>";
 				}
 				else
 				{

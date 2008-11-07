@@ -176,5 +176,51 @@
 	{
 		return get_option('siteurl') . '/wp-admin/admin.php?page=' . $page_name;
 	}
+
+	/*
+	 This function takes some html input ($html) and processes its text using the $func callback.
+	 It will skip all html tags and call $func for each chunk of text.
+	 The $func function should take the text as its parameter and return the modified text.
+	 */
+	function bfox_process_html_text($html, $func)
+	{
+		if (!is_callable($func)) return $html;
+
+		$text_start = 0;
+		while (1 == preg_match('/<[^<>]*[^<>\s][^<>]*>/', $html, $matches, PREG_OFFSET_CAPTURE, $text_start))
+		{
+			// Store the match data in more readable variables
+			$text_end = (int) $matches[0][1];
+			$pattern = (string) $matches[0][0];
+			
+			$text_len = $text_end - $text_start;
+			if (0 < $text_len)
+			{
+				// Modify the data with the replacement text
+				$replacement = call_user_func($func, substr($html, $text_start, $text_len));
+				$html = substr_replace($html, $replacement, $text_start, $text_len);
+				
+				// Skip the rest of the replacement string
+				$text_end = $text_start + strlen($replacement);
+			}
+			$text_start = $text_end + strlen($pattern);
+		}
+		
+		$text_len = strlen($html) - $text_start;
+		if (0 < $text_len)
+		{
+			// Modify the data with the replacement text
+			$replacement = call_user_func($func, substr($html, $text_start, $text_len));
+			$html = substr_replace($html, $replacement, $text_start, $text_len);
+		}
+		
+		return $html;
+	}
+
+	// Removes all <tags> from html text
+	function bfox_html_strip_tags($html)
+	{
+		return preg_replace('/<[^<>]*[^<>\s][^<>]*>/', '', $html);
+	}
 	
 	?>
