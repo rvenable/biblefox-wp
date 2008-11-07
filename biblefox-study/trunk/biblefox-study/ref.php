@@ -39,9 +39,10 @@
 			$results = $wpdb->get_results($wpdb->prepare("SELECT synonym, book_id FROM " . BFOX_SYNONYMS_TABLE));
 			foreach ($results as $result)
 			{
-				$bfox_synonyms[$result->synonym] = $result->book_id;
+				$synonym = strtolower($result->synonym);
+				$bfox_synonyms[$synonym] = $result->book_id;
 
-				$words = preg_split('/\s/', $result->synonym, -1, PREG_SPLIT_NO_EMPTY);
+				$words = preg_split('/\s/', $synonym, -1, PREG_SPLIT_NO_EMPTY);
 				if (0 < count($words))
 				{
 					$prefix = '';
@@ -135,16 +136,16 @@
 
 			// Handle previous prefixes
 			$new_prefixes = array();
-			if (isset($bfox_synonyms[$pattern])) $book = $pattern;
+			if (isset($bfox_synonyms[strtolower($pattern)])) $book = $pattern;
 			else
 			{
 				foreach ($prefixes as $prefix)
 				{
 					$prefix .= ' ' . $pattern;
 					if (isset($bfox_synonyms[$prefix])) $book = $prefix;
-					else if (isset($bfox_syn_prefix[$prefix])) $new_prefixes[] = $prefix;
+					else if (isset($bfox_syn_prefix[strtolower($prefix)])) $new_prefixes[] = $prefix;
 				}
-				if (!isset($book) && isset($bfox_syn_prefix[$pattern])) $new_prefixes[] = $pattern;
+				if (!isset($book) && isset($bfox_syn_prefix[strtolower($pattern)])) $new_prefixes[] = $pattern;
 			}
 			$prefixes = $new_prefixes;
 			
@@ -177,7 +178,7 @@
 		{
 			$regex = preg_replace('/\s+/', '\s+', preg_quote($replacement));
 			$new_text = '<a href="' . $ref->get_url() . '">' . $replacement . '</a>';
-			$text = preg_replace('/'. $regex. '/', $new_text, $text, 1);
+			$text = preg_replace('/'. $regex. '/i', $new_text, $text, 1);
 		}
 
 		return $text;
