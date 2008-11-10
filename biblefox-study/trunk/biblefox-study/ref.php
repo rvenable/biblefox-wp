@@ -157,10 +157,10 @@
 			if (isset($book))
 			{
 				// If we have found a chapter/verse reference, we can see if it is valid
-				if (1 == preg_match('/\s*(\d+)(\s*-\s*\d+)?(\s*:\s*\d+)?(\s*-\s*\d+)?(\s*:\s*\d+)?/', $text, $matches, PREG_OFFSET_CAPTURE, $offset))
+				if (1 == preg_match('/^\s*(\d+)(\s*-\s*\d+)?(\s*:\s*\d+)?(\s*-\s*\d+)?(\s*:\s*\d+)?/', substr($text, $offset), $matches, PREG_OFFSET_CAPTURE))
 				{
 					$book_name_start = $pattern_start;
-					$pattern_start = (int) $matches[0][1];
+					$pattern_start = (int) $matches[0][1] + $offset;
 					$pattern = (string) $matches[0][0];
 					
 					$ref_str = $book . ' ' . $pattern;
