@@ -20,6 +20,7 @@
 	define(BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox-admin-tools');
 	define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 	define(BFOX_READ_SUBPAGE, 'bfox-read');
+	define(BFOX_BLOG_SUBPAGE, 'bfox-blog');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	// Uncomment for testing DB queries
@@ -41,6 +42,17 @@
 			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 			add_submenu_page(BFOX_READ_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 			add_submenu_page(BFOX_READ_SUBPAGE, 'Passage History', 'History', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+
+			// Menus for experimenting with displaying the blog from the admin menu
+			add_menu_page('The Blog', 'Blog', 0, BFOX_BLOG_SUBPAGE, 'bfox_blog');
+			add_submenu_page(BFOX_BLOG_SUBPAGE, 'Home', 'Home', 0, BFOX_BLOG_SUBPAGE, 'bfox_blog_page');
+			$pages = get_pages();
+			if (0 < count($pages))
+			{
+				foreach ($pages as $page)
+					if ('home' != strtolower($page->post_name))
+						add_submenu_page(BFOX_BLOG_SUBPAGE, $page->post_name, $page->post_name, 0, 'bfox-blog-page-' . $page->post_name, 'bfox_blog_page');
+			}
 		}
 
 		// These menu pages are only for the site admin
@@ -60,6 +72,14 @@
 		bfox_usfx_menu();
 	}
 
+	function bfox_blog()
+	{
+	}
+
+	function bfox_blog_page()
+	{
+	}
+	
 	function bfox_save_post($post_id = 0)
 	{
 		$refStr = $_POST['bible_ref'];
