@@ -127,37 +127,40 @@
 		while (1 == preg_match('/\S+/', $text, $matches, PREG_OFFSET_CAPTURE, $offset))
 		{
 			// Store the match data in more readable variables
-			$offset = (int) $matches[0][1];
+			$pattern_start = (int) $matches[0][1];
 			$pattern = (string) $matches[0][0];
+			$pattern_lc = strtolower($pattern);
 			$index++;
 
 			// The word might be a portion of book name (ie, a prefix to the book name),
 			// So we need to detect that using the bfox_syn_prefix array, and save those potential book 'prefixes'
-
-			// Handle previous prefixes
-			$new_prefixes = array();
-			if (isset($bfox_synonyms[strtolower($pattern)])) $book = $pattern;
-			else
-			{
-				foreach ($prefixes as $prefix)
-				{
-					$prefix .= ' ' . $pattern;
-					if (isset($bfox_synonyms[$prefix])) $book = $prefix;
-					else if (isset($bfox_syn_prefix[strtolower($prefix)])) $new_prefixes[] = $prefix;
-				}
-				if (!isset($book) && isset($bfox_syn_prefix[strtolower($pattern)])) $new_prefixes[] = $pattern;
-			}
-			$prefixes = $new_prefixes;
+			if (isset($bfox_synonyms[$pattern_lc])) $book = $pattern;
 			
-			$offset += strlen($pattern);
+			// For each prefix we have saved, append the current word and see if we have a synonym
+			// If we have a synonym then we can use that synonym as the book
+			// If we don't, we should see if the new prefix is still a valid prefix
+			foreach ($prefixes as $start => &$prefix)
+			{
+				$prefix .= ' ' . $pattern_lc;
+				if (isset($bfox_synonyms[$prefix])) $book = $prefix;
+				
+				// Unset the the prefix if it is no longer valid
+				if (!isset($bfox_syn_prefix[$prefix])) unset($prefixes[$start]);
+			}
+
+			// If the current word is a prefix on its own, add it to the prefixes array
+			if (isset($bfox_syn_prefix[$pattern_lc])) $prefixes[$pattern_start] = $pattern;
+
+			$offset = $pattern_start + strlen($pattern);
 
 			// If we have successfully found a book synonym, then we can see if there are chapter and verse references
 			if (isset($book))
 			{
-				// If we have find a chapter/verse reference, we can see if it is valid
+				// If we have found a chapter/verse reference, we can see if it is valid
 				if (1 == preg_match('/\s*(\d+)(\s*-\s*\d+)?(\s*:\s*\d+)?(\s*-\s*\d+)?(\s*:\s*\d+)?/', $text, $matches, PREG_OFFSET_CAPTURE, $offset))
 				{
-					$offset = (int) $matches[0][1];
+					$book_name_start = $pattern_start;
+					$pattern_start = (int) $matches[0][1];
 					$pattern = (string) $matches[0][0];
 					
 					$ref_str = $book . ' ' . $pattern;
@@ -165,20 +168,22 @@
 					// If this is a valid bible reference, then save it to be replaced later
 					$bible_ref = new BibleRefs($ref_str);
 					if ($bible_ref->is_valid())
-						$bible_refs[$ref_str] = $bible_ref;
+						$bible_refs[$ref_str] = array('ref' => $bible_ref, 'start' => $book_name_start, 'length' => ($pattern_start - $book_name_start) + strlen($pattern));
 					
-					$offset += strlen($pattern);
+					// Clear the prefixes
+					$prefixes = array();
+
+					$offset = $pattern_start + strlen($pattern);
 				}
 			}
 			unset($book);
 		}
 
-		// Perform any text replacements
-		foreach ($bible_refs as $replacement => $ref)
+		// Perform any text replacements (in reverse order since the string length might be modified)
+		foreach (array_reverse($bible_refs) as $replacement => $ref)
 		{
-			$regex = preg_replace('/\s+/', '\s+', preg_quote($replacement));
-			$new_text = '<a href="' . $ref->get_url() . '">' . $replacement . '</a>';
-			$text = preg_replace('/'. $regex. '/i', $new_text, $text, 1);
+			$new_text = '<a href="' . $ref['ref']->get_url() . '">' . $replacement . '</a>';
+			$text = substr_replace($text, $new_text, $ref['start'], $ref['length']);
 		}
 
 		return $text;
