@@ -151,4 +151,19 @@
 		return $refs;
 	}
 
+	/*
+	 AJAX function for sending the bible text
+	 */
+	function bfox_ajax_send_bible_text()
+	{
+		$ref_str = $_POST['ref_str'];
+		$text_field = 'bible-text-1';
+		$ref_field = 'bible-ref-field';
+		$ref = new BibleRefs($ref_str);
+		$content = bfox_get_ref_content($ref);
+		$ref_str = $ref->get_string();
+		die("jQuery('#$text_field').html('$content'); jQuery('#$ref_field').val('$ref_str'); jQuery('#$ref_field').change();");
+	}
+	add_action('wp_ajax_bfox_ajax_send_bible_text', 'bfox_ajax_send_bible_text');
+
 ?>

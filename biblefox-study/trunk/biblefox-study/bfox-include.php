@@ -163,6 +163,9 @@
 	
 	function bfox_add_head_files()
 	{
+		// use JavaScript SACK library for Ajax
+		wp_print_scripts( array( 'sack' ));
+
 		$url = get_option('siteurl');
 		?>
 <link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>

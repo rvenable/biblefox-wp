@@ -61,7 +61,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 
 <span class="hide-if-no-js">
 <input type="text" name="new-bible-ref" id="new-bible-ref" size="16" autocomplete="off" value="" />
-<input type="button" class="button" id="add-bible-ref" value="Add Scripture" tabindex="3" />
+<input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
 <span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
 </span>
 
@@ -77,6 +77,13 @@ You must save your post for theses scriptures to refresh.</p>
 <?php echo bfox_get_ref_content($refs); ?>
 </div>
 </div>
+
+<br/>
+<input type="hidden" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php"/>
+<input type="hidden" id="bible-ref-field" value="" />
+<input type="button" class="button" id="add-bible-ref" value="Add Scripture Tag" tabindex="3" />
+Text: <br/><div id="bible-text-1"></div>
+
 <?php
 
 	}
