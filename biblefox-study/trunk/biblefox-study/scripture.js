@@ -55,7 +55,7 @@ function bible_ref_flush_to_text() {
 
 function bible_ref_press_key( e ) {
 	if ( 13 == e.keyCode ) {
-		bible_text_request();
+		bible_text_request_new();
 		return false;
 	}
 }
@@ -65,27 +65,33 @@ function bible_ref_change()
 	jQuery('#add-bible-ref').val('Tag ' + jQuery('#bible-ref-field').val());
 }
 
-function bible_text_request()
+function bible_text_request(ref_str)
 {
 	var mysack = new sack(jQuery('#bible-request-url').val());
 	
 	mysack.execute = 1;
 	mysack.method = 'POST';
 	mysack.setVar("action", "bfox_ajax_send_bible_text");
-	mysack.setVar("ref_str", jQuery('#new-bible-ref').val());
+	mysack.setVar("ref_str", ref_str);
 	mysack.encVar("cookie", document.cookie, false);
 	mysack.onError = function() { alert('Ajax error in looking up bible reference')};
 	mysack.runAJAX();
 	
-	return true;
+	return false;
+}
+
+function bible_text_request_new()
+{
+	bible_text_request(jQuery('#new-bible-ref').val());
 }
 
 jQuery(document).ready( function() {
 	bible_ref_update_quickclicks();
-	jQuery('#add-bible-ref').click( bible_ref_flush_to_text );
-	jQuery('#view-bible-ref').click( bible_text_request );
-	jQuery('#new-bible-ref').keypress( bible_ref_press_key );
+	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
+	jQuery('#view-bible-ref').click(bible_text_request_new);
+	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
 	jQuery('#bible-ref-field').change(bible_ref_change);
+	jQuery('.bible-ref-link').click(bible_text_request_new);
 
 	// Hide the bible-ref-viewer unless we have some bible refs to view
 	if ('' == jQuery('#bible-ref-list').val()) jQuery('#bible-ref-viewer').hide();

@@ -79,8 +79,8 @@ You must save your post for theses scriptures to refresh.</p>
 </div>
 
 <br/>
-<input type="hidden" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php"/>
-<input type="hidden" id="bible-ref-field" value="" />
+<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+<input type="hidden" name="bible-ref-field" id="bible-ref-field" value="" />
 <input type="button" class="button" id="add-bible-ref" value="Add Scripture Tag" tabindex="3" />
 Text: <br/><div id="bible-text-1"></div>
 
