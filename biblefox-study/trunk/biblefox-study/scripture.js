@@ -17,8 +17,13 @@ function bible_ref_remove_tag() {
 }
 
 function bible_ref_update_quickclicks() {
-	if ( jQuery( '#bible-ref-list' ).length == 0 )
+	txt = '<span>No Scripture Tags.<br/>To add a new scripture tag, first view the scripture you want in the Scripture Quick View below.</span>';
+	if (jQuery('#bible-ref-list').length == 0)
+	{
+		jQuery('#bible-ref-checklist').html(txt);
 		return;
+	}
+
 	var current_tags = jQuery( '#bible-ref-list' ).val().split(';');
 	jQuery( '#bible-ref-checklist' ).empty();
 	shown = false;
@@ -32,8 +37,9 @@ function bible_ref_update_quickclicks() {
 			shown = true;
 		}
 	});
-	if ( shown )
-		jQuery( '#bible-ref-checklist' ).prepend( '<strong>Scripture Tags Used:</strong><br />' );
+
+	if (jQuery('#bible-ref-checklist').html().length == 0)
+		jQuery('#bible-ref-checklist').html(txt);
 }
 
 function bible_ref_set_text(newtags)
@@ -45,10 +51,9 @@ function bible_ref_set_text(newtags)
 }
 
 function bible_ref_flush_to_text() {
-	var newtags = jQuery('#bible-ref-list').val() + ';' + jQuery('#bible-ref-field').val();
+	var newtags = jQuery('#bible-ref-list').val() + ';' + jQuery('#add-bible-ref').attr('bible_ref');
 	
 	bible_ref_set_text(newtags);
-//	jQuery('#bible-ref-field').val('');
 	jQuery('#bible-ref-field').focus();
 	return false;
 }

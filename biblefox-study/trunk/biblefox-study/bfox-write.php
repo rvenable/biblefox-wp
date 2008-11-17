@@ -56,17 +56,25 @@
 
 		// Create the form
 	?>
+<strong>Scripture Tags</strong>
 <p>Adding scripture tags is a simple way to organize your posts around Bible passages.<br/>
 For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag. Once it is tagged, whenever you read Genesis 1 you will see this post!</p>
 
+<p><strong>Current Scripture Tags:</strong></p>
+<input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" autocomplete="off" value="<?php echo attribute_escape($refStr); ?>" />
+<p><div id="bible-ref-checklist"></div></p>
+
 <span class="hide-if-no-js">
+<p><strong>Scripture Quick View</strong></p>
+<p>The Scripture Quick View is an easy way to see any bible passages while typing your post. It lets you scan passages for verses to copy and paste into your post, and also lets you tag passages to associate this post with that passage.</p>
 <input type="text" name="new-bible-ref" id="new-bible-ref" size="16" autocomplete="off" value="" />
 <input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
 <span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
+<br/>
+<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+<input type="hidden" name="bible-ref-field" id="bible-ref-field" value="" />
+<div id="bible-text-1"></div>
 </span>
-
-<input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" autocomplete="off" value="<?php echo attribute_escape($refStr); ?>" />
-<p><div id="bible-ref-checklist"></div></p>
 
 <div id="bible-ref-viewer" class="wp-hidden-children hide-if-no-js">
 <p><strong>View the Tagged Scripture</strong><br/>
@@ -77,12 +85,6 @@ You must save your post for theses scriptures to refresh.</p>
 <?php echo bfox_get_ref_content($refs); ?>
 </div>
 </div>
-
-<br/>
-<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
-<input type="hidden" name="bible-ref-field" id="bible-ref-field" value="" />
-<input type="button" class="button" id="add-bible-ref" value="Add Scripture Tag" tabindex="3" />
-Text: <br/><div id="bible-text-1"></div>
 
 <?php
 

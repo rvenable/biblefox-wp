@@ -140,6 +140,27 @@
 		return $refs;
 	}
 
+	function bfox_ref_quick_view(BibleRefs $ref)
+	{
+		$next_refs = new BibleRefs($ref->get_sets());
+		$previous_refs = new BibleRefs($ref->get_sets());
+		$next_refs->increment(1);
+		$previous_refs->increment(-1);
+		
+		$scripture_links = array();
+		$next_link = '<a href="#hack" class="bible-ref-link" value="' . $next_refs->get_string() . '">' . $next_refs->get_string() . ' ></a>';
+		$previous_link = '<a href="#hack" class="bible-ref-link" value="' . $previous_refs->get_string() . '">< ' . $previous_refs->get_string() . '</a>';
+		$tag_link = '<a href="#hack" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref->get_string() . '">Tag ' . $ref->get_string() . '</a>';
+
+		$menu = '<table width="100%"><tr>';
+		$menu .= '<td align="left" width="33%">' . $previous_link . '</td>';
+		$menu .= '<td align="center" width="33%">' . $tag_link . '</td>';
+		$menu .= '<td align="right" width="33%">' . $next_link . '</a></td>';
+		$menu .= '</tr>';
+		$menu .= '</table>';
+		return $menu . bfox_get_ref_content($ref);
+	}
+
 	/*
 	 AJAX function for sending the bible text
 	 */
@@ -149,18 +170,9 @@
 		$text_field = 'bible-text-1';
 		$ref_field = 'bible-ref-field';
 		$ref = new BibleRefs($ref_str);
-
-		$next_refs = new BibleRefs($ref->get_sets());
-		$previous_refs = new BibleRefs($ref->get_sets());
-		$next_refs->increment(1);
-		$previous_refs->increment(-1);
-
-		$scripture_links = array();
-		$scripture_links['next'] = '<a href="#hack" class="bible-ref-link" value="' . $next_refs->get_string() . '">' . $next_refs->get_string() . ' >';
-		$scripture_links['previous'] = '<a href="#hack" class="bible-ref-link" value="' . $previous_refs->get_string() . '">< ' . $previous_refs->get_string() . '</a>';
-		
-		$content = bfox_get_ref_menu($ref, true, $scripture_links) . bfox_get_ref_content($ref);
 		$ref_str = $ref->get_string();
+
+		$content = addslashes(bfox_ref_quick_view($ref));
 		$script = "
 		jQuery('#$text_field').html('$content');
 		jQuery('#$ref_field').val('$ref_str');
