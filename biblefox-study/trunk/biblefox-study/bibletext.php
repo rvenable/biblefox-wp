@@ -69,17 +69,6 @@
 		return (new BibleRefs($sets));
 	}
 	
-	function bfox_get_bible_permalink($refStr)
-	{
-		return get_option('home') . '/?bible_ref=' . $refStr;
-	}
-
-	function bfox_get_bible_link($refStr)
-	{
-		$permalink = bfox_get_bible_permalink($refStr);
-		return "<a href=\"$permalink\" title=\"$refStr\">$refStr</a>";
-	}
-
 	function bfox_get_ref_menu(BibleRefs $refs, $header = true, $scripture_links = NULL)
 	{
 		$home_dir = get_option('home');
@@ -105,7 +94,7 @@
 			if ($header) $menu .= '<br/><a href="http://www.biblegateway.com/passage/?search=' . $refStr . '&version=31" target="_blank">Read on BibleGateway</a>';
 			$menu .= '</small>';
 			
-			$write_link = '<a href="' . $admin_dir . '/post-new.php?bible_ref=' . $refStr . '">Write about this passage</a>';
+			$write_link = $refs->get_link('Write about this passage', 'write');
 		}
 		else $menu .= '<small><a href="' . $home_dir . '/wp-login.php">Login</a> to track your bible reading</small>';
 
@@ -118,8 +107,8 @@
 			$previous_refs->increment(-1);
 			
 			$scripture_links = array();
-			$scripture_links['next'] = '<a href="' . $next_refs->get_url() . '">' . $next_refs->get_string() . ' >';
-			$scripture_links['previous'] = '<a href="' . $previous_refs->get_url() . '">< ' . $previous_refs->get_string() . '</a>';
+			$scripture_links['next'] = $next_refs->get_link($next_refs->get_string() . ' >');
+			$scripture_links['previous'] = $previous_refs->get_link('< ' . $previous_refs->get_string());
 		}
 		
 		$menu .= '<table width="100%"><tr>';

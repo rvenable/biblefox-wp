@@ -445,9 +445,9 @@ How often will you be reading this plan?<br/>
 			$read_str = $read? 'Read' : 'Viewed';
 			$lc_read_str = strtolower($read_str);
 			$output .= "<h3>Recently $read_str Scriptures<a name=\"recent_{$lc_read_str}\"></a></h3>";
-			foreach ($refs_array as $refs)
+			foreach ($refs_array as &$refs)
 			{
-				$output .= bfox_get_bible_link($refs->get_string()) . '<br/>';
+				$output .= $refs->get_link() . '<br/>';
 			}
 		}
 		return $output;

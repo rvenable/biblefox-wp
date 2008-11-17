@@ -307,7 +307,7 @@
 					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
-					$new_post['bfox_permalink'] = bfox_get_bible_permalink($refStr);
+					$new_post['bfox_permalink'] = $ref->get_link(NULL, 'blog');
 
 					// Turn off comments
 					$new_post['comment_status'] = 'closed';
@@ -378,8 +378,8 @@
 	{
 		global $bfox_specials;
 		
-		bfox_create_synonym_data();
-		$data = bfox_process_html_text($data, 'bfox_ref_replace');
+//		bfox_create_synonym_data();
+//		$data = bfox_process_html_text($data, 'bfox_ref_replace');
 		
 		$special_chars = array('footnote' => array('open' => '((', 'close' => '))'),
 							   'footnote_xml' => array('open' => '<footnote>', 'close' => '</footnote>'),

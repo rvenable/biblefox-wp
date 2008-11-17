@@ -104,16 +104,6 @@
 		return 0;
 	}
 
-	function bfox_format_ref_url($ref_str, $path = '/')
-	{
-		return get_option('home') . $path . '?bible_ref=' . $ref_str;
-	}
-	
-	function bfox_format_ref_link($ref_str)
-	{
-		return '<a href="' . bfox_format_ref_url($ref_str) . '" title="' . $ref_str . '">' . $ref_str . '</a>';
-	}
-	
 	function bfox_ref_replace($text)
 	{
 		global $bfox_synonyms, $bfox_syn_prefix;
@@ -682,25 +672,23 @@
 			return count($this->refs);
 		}
 
-		function get_url()
+		function get_url($context = NULL)
 		{
-			return bfox_format_ref_url($this->get_string());
+			global $bfox_links;
+			return $bfox_links->ref_url($this->get_string(), $context);
 		}
 
-		function get_write_url()
+		function get_link($text = NULL, $context = NULL)
 		{
-			return bfox_format_ref_url($this->get_string(), '/wp-admin/post-new.php');
-		}
-		
-		function get_link($format = '')
-		{
-			return bfox_format_ref_link($this->get_string($format));
+			global $bfox_links;
+			return $bfox_links->ref_link(array('ref_str' => $this->get_string(), 'text' => $text), $context);
 		}
 		
 		function get_links()
 		{
+			global $bfox_links;
 			$links = array();
-			foreach ($this->refs as $ref) $links[] = bfox_format_ref_link($ref->get_string());
+			foreach ($this->refs as $ref) $links[] = $bfox_links->ref_link($ref->get_string());
 			return implode('; ', $links);
 		}
 		

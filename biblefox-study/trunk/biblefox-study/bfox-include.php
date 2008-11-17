@@ -17,6 +17,7 @@
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");
 	require_once("plan.php");
+	require_once('links.php');
 
 	// BibleRefs class
 	require_once("ref.php");
