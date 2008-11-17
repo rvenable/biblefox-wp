@@ -97,13 +97,4 @@ jQuery(document).ready( function() {
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
 	jQuery('#bible-ref-field').change(bible_ref_change);
 	jQuery('.bible-ref-link').click(bible_text_request_new);
-
-	// Hide the bible-ref-viewer unless we have some bible refs to view
-	if ('' == jQuery('#bible-ref-list').val()) jQuery('#bible-ref-viewer').hide();
-
-	jQuery('#bible-text-toggle').click( function() {
-		jQuery(this).parents('div:first').toggleClass( 'wp-hidden-children' );
-		return false;
-	} );
-
 });

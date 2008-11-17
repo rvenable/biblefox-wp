@@ -76,16 +76,6 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 <div id="bible-text-1"></div>
 </span>
 
-<div id="bible-ref-viewer" class="wp-hidden-children hide-if-no-js">
-<p><strong>View the Tagged Scripture</strong><br/>
-You can quickly view the scriptures you are tagging below. Use this to reference the scripture while writing your post.<br/>
-You must save your post for theses scriptures to refresh.</p>
-<h4><a id="bible-text-toggle" href="#bible-ref-view" tabindex="3"><?php echo $refStr; ?></a></h4>
-<div id="bible-ref-view" class="wp-hidden-child">
-<?php echo bfox_get_ref_content($refs); ?>
-</div>
-</div>
-
 <?php
 
 	}
