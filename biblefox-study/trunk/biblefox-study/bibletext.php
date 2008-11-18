@@ -148,9 +148,9 @@
 		$previous_refs->increment(-1);
 		
 		$scripture_links = array();
-		$next_link = '<a href="#hack" class="bible-ref-link" value="' . $next_refs->get_string() . '">' . $next_refs->get_string() . ' ></a>';
-		$previous_link = '<a href="#hack" class="bible-ref-link" value="' . $previous_refs->get_string() . '">< ' . $previous_refs->get_string() . '</a>';
-		$tag_link = '<a href="#hack" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref->get_string() . '">Tag ' . $ref->get_string() . '</a>';
+		$next_link = '<input type="button" class="button bible-ref-link" bible_ref="' . $next_refs->get_string() . '" value="' . $next_refs->get_string() . ' >">';
+		$previous_link = '<input type="button" class="button bible-ref-link" bible_ref="' . $previous_refs->get_string() . '" value="< ' . $previous_refs->get_string() . '">';
+		$tag_link = '<input type="button" class="button" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref->get_string() . '" value="Tag ' . $ref->get_string() . '">';
 
 		$menu = '<table width="100%"><tr>';
 		$menu .= '<td align="left" width="33%">' . $previous_link . '</td>';
@@ -178,7 +178,7 @@
 		jQuery('#$ref_field').val('$ref_str');
 		jQuery('#$ref_field').change();
 		jQuery('.bible-ref-link').click(function() {
-			bible_text_request(jQuery(this).attr('value'));
+			bible_text_request(jQuery(this).attr('bible_ref'));
 		});
 		";
 		die($script);

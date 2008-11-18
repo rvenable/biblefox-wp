@@ -17,10 +17,10 @@ function bible_ref_remove_tag() {
 }
 
 function bible_ref_update_quickclicks() {
-	txt = '<span>No Scripture Tags.<br/>To add a new scripture tag, first view the scripture you want in the Scripture Quick View below.</span>';
+	empty_txt = '<span>No Scripture Tags.<br/>To add a new scripture tag, first view the scripture you want in the Scripture Quick View below.</span>';
 	if (jQuery('#bible-ref-list').length == 0)
 	{
-		jQuery('#bible-ref-checklist').html(txt);
+		jQuery('#bible-ref-checklist').html(empty_txt);
 		return;
 	}
 
@@ -39,7 +39,7 @@ function bible_ref_update_quickclicks() {
 	});
 
 	if (jQuery('#bible-ref-checklist').html().length == 0)
-		jQuery('#bible-ref-checklist').html(txt);
+		jQuery('#bible-ref-checklist').html(empty_txt);
 }
 
 function bible_ref_set_text(newtags)
