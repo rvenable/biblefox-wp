@@ -269,5 +269,64 @@
 		echo '</div>';
 		bfox_menu_install_translations();
 	}
+
+	function bfox_create_book_counts_table()
+	{
+		$data_table_name = BFOX_BOOK_COUNTS_TABLE;
+		
+		// Note this function creates the table with dbDelta() which apparently has some pickiness
+		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+		
+		$sql = "CREATE TABLE $data_table_name (
+		trans_id int,
+		book_id int,
+		chapter_id int,
+		value int
+		);";
+		
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta($sql);
+	}
+
+	function bfox_create_translation_data($trans_id)
+	{
+		global $wpdb;
+
+		$data_table_name = BFOX_BOOK_COUNTS_TABLE;
+
+		// If the translations table doesn't exist, create it
+		if ($wpdb->get_var("SHOW TABLES LIKE '$data_table_name'") != $data_table_name)
+			bfox_create_book_counts_table();
+
+		$table_name = bfox_get_verses_table_name($trans_id);
+
+		$wpdb->query($wpdb->prepare('REPLACE INTO ' . $data_table_name . '
+									(trans_id, book_id, chapter_id, value)
+									SELECT %d, book_id, 0, MAX(chapter_id)
+									FROM ' . $table_name . '
+									GROUP BY book_id',
+									$trans_id,
+									$book_id), ARRAY_N);
+
+		$wpdb->query($wpdb->prepare('REPLACE INTO ' . $data_table_name . '
+									(trans_id, book_id, chapter_id, value)
+									SELECT %d, book_id, chapter_id, MAX(verse_id)
+									FROM ' . $table_name . '
+									WHERE chapter_id > 0
+									GROUP BY book_id, chapter_id',
+									$trans_id,
+									$book_id), ARRAY_N);
+
+/*		foreach ($book_data as $book_id => $chapter_data)
+		{
+			echo 'Book: ' . bfox_get_book_name($book_id) . ' (id:' . $book_id . '): ';
+			$chap_strs = array();
+			foreach ($chapter_data as $chapter_id => $verse_data)
+			{
+				echo $chapter_id . ' (' . $verse_data[0] . '), ';
+			}
+			echo implode(', ', $chap_strs) . '<br/>';
+		}*/
+	}
 	
 ?>

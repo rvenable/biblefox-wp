@@ -6,6 +6,7 @@
 	define('BFOX_BOOKS_TABLE', BFOX_BASE_TABLE_PREFIX . 'books');
 	define('BFOX_SYNONYMS_TABLE', BFOX_BASE_TABLE_PREFIX . 'synonyms');
 	define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
+	define('BFOX_BOOK_COUNTS_TABLE', BFOX_BASE_TABLE_PREFIX . 'book_counts');
 
 	// User Levels
 	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);

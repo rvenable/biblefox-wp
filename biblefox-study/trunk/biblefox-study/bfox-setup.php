@@ -13,16 +13,19 @@
 			$results = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
 			
 			$rows = '';
-			foreach ($results as $row)
+			if (is_array($results))
 			{
-				if (!is_array($cols)) $cols = array_keys($row);
-				$rows .= '<tr>';
-				foreach ($row as $col) $rows .= '<td>' . $col . '</td>';
-				$rows .= '</tr>';
+				foreach ($results as $row)
+				{
+					if (!is_array($cols)) $cols = array_keys($row);
+					$rows .= '<tr>';
+					foreach ($row as $col) $rows .= '<td>' . $col . '</td>';
+					$rows .= '</tr>';
+				}
+				echo '<table><tr>';
+				foreach ($cols as $col) echo '<th>' . $col . '</th>';
+				echo '</tr>' . $rows . '</table>';
 			}
-			echo '<table><tr>';
-			foreach ($cols as $col) echo '<th>' . $col . '</th>';
-			echo '</tr>' . $rows . '</table>';
 		}
 		
 		/*
@@ -284,6 +287,13 @@
 				}
 			}
 			$reader->close();
+		}
+		
+		function show_trans()
+		{
+			require_once('bfox-translations.php');
+//			bfox_create_translation_data(12);
+			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
 		}
 		
 		
