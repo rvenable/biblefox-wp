@@ -296,6 +296,11 @@
 			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
 		}
 		
+		function show_toc()
+		{
+			require_once('bfox-translations.php');
+			bfox_show_toc();
+		}
 		
 	}
 	

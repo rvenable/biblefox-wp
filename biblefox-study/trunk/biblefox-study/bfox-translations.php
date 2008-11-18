@@ -316,17 +316,100 @@
 									GROUP BY book_id, chapter_id',
 									$trans_id,
 									$book_id), ARRAY_N);
+	}
 
-/*		foreach ($book_data as $book_id => $chapter_data)
+	function bfox_set_book_groups()
+	{
+		global $bfox_bible_groups;
+		$groups = array();
+		$groups['all'] = range(1, 81);
+		$groups['bible'] = range(1, 66);
+		$groups['old'] = range(1, 39);
+		$groups['new'] = range(40, 66);
+		$groups['torah'] = range(1, 5);
+		$groups['history'] = range(6, 17);
+		$groups['wisdom'] = range(18, 22);
+		$groups['prophets'] = range(28, 39);
+		$groups['major_prophets'] = range(23, 27);
+		$groups['minor_prophets'] = range(28, 39);
+		$groups['gospels'] = range(40, 43);
+		$groups['acts'] = array(44);
+		$groups['gospelacts'] = range(40, 44);
+		$groups['paul'] = range(45, 57);
+		$groups['epistles'] = range(58, 65);
+		$groups['revelation'] = array(66);
+		$groups['apocrypha'] = range(67, 81);
+
+		$bfox_bible_groups = $groups;
+	}
+
+	function bfox_show_toc_groups($groups, $books, $depth = 3)
+	{
+		global $bfox_bible_groups, $bfox_links;
+
+		foreach ($groups as $key => $group)
 		{
-			echo 'Book: ' . bfox_get_book_name($book_id) . ' (id:' . $book_id . '): ';
-			$chap_strs = array();
-			foreach ($chapter_data as $chapter_id => $verse_data)
+			if (is_array($group)) $output .= bfox_show_toc_groups($group, $books, $depth + 1);
+			else
 			{
-				echo $chapter_id . ' (' . $verse_data[0] . '), ';
+				if ('0' != $key)
+				{
+					$output .= "<p><h$depth>$group</h$depth></p>";
+					foreach ($bfox_bible_groups[$key] as $book_id)
+					{
+						if (isset($books[$book_id]))
+						{
+							$book_name = bfox_get_book_name($book_id);
+							$output .= $book_name . ': ';
+							$chaps = array();
+							for ($chapter = 0; $chapter < $books[$book_id]; $chapter++)
+								$chaps[] = $bfox_links->ref_link(array('ref_str' => $book_name . ' ' .($chapter + 1), 'text' => $chapter + 1));
+							$output .= implode(', ', $chaps) . '<br/>';
+						}
+					}
+				}
+				else
+				{
+					$depth2 = $depth - 1;
+					$output .= "<p><h$depth2>$group</h$depth2></p>";
+				}
 			}
-			echo implode(', ', $chap_strs) . '<br/>';
-		}*/
+		}
+
+		return $output;
+	}
+
+	function bfox_show_toc($trans_id = 12)
+	{
+		bfox_set_book_groups();
+		
+		global $wpdb;
+		$data = $wpdb->get_results($wpdb->prepare('SELECT book_id, value
+												  FROM ' . BFOX_BOOK_COUNTS_TABLE . '
+												  WHERE trans_id = %d AND chapter_id = 0',
+												  $trans_id));
+		
+		foreach ($data as $row)
+			$books[$row->book_id] = $row->value;
+		
+		$groups = array('The Bible',
+						'old' => array('Old Testament',
+									   'torah' => 'The Books of Moses',
+									   'history' => 'The Historical Books',
+									   'wisdom' => 'The Books of Wisdom',
+									   'prophets' => array('The Prophets',
+														   'major_prophets' => 'Major Prophets',
+														   'minor_prophets' => 'Minor Prophets')),
+						'new' => array('New Testament',
+									   'gospels' => 'The Gospels',
+									   'acts' => 'Acts',
+									   'paul' => 'Pauline Epistles',
+									   'epistles' => 'General Epistles',
+									   'revelation' => 'Revelation'),
+						'apocrypha' => 'Apocryphal Books'
+		);
+		
+		echo bfox_show_toc_groups($groups, $books);
 	}
 	
 ?>
