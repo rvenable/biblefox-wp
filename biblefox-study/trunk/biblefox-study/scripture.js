@@ -31,7 +31,7 @@ function bible_ref_update_quickclicks() {
 	jQuery.each( current_tags, function( key, val ) {
 		val = val.replace( /^\s+/, '' ).replace( /\s+$/, '' ); // trim
 		if ( !val.match(/^\s+$/) && '' != val ) {
-			txt = '<span><a id="bible-ref-check-' + key + '" class="bible-tag-remove-button">X</a>&nbsp;<a href="#hack" id="bible-ref-link-' + key + '" bible_ref="' + val + '">' + val + '</a></span>';
+			txt = '<span><a id="bible-ref-check-' + key + '" class="bible-tag-remove-button">X</a>&nbsp;<a id="bible-ref-link-' + key + '" class="bible-ref-quick-link" bible_ref="' + val + '">' + val + '</a></span>';
 			jQuery('#bible-ref-checklist').append(txt);
 			jQuery('#bible-ref-check-' + key).click(bible_ref_remove_tag);
 			jQuery('#bible-ref-link-' + key).click(bible_ref_link_click);

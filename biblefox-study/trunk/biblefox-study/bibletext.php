@@ -167,7 +167,7 @@
 	function bfox_ajax_send_bible_text()
 	{
 		$ref_str = $_POST['ref_str'];
-		$text_field = 'bible-text-1';
+		$text_field = 'bible-text';
 		$ref_field = 'bible-ref-field';
 		$ref = new BibleRefs($ref_str);
 

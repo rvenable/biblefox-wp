@@ -73,7 +73,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 <br/>
 <input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
 <input type="hidden" name="bible-ref-field" id="bible-ref-field" value="" />
-<div id="bible-text-1"></div>
+<div id="bible-text"></div>
 </span>
 
 <?php

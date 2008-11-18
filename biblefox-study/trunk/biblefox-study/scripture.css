@@ -29,6 +29,14 @@ br.bible-poetry {
 	display: none; // HACK - WP is adding an unwanted <p> in front of these so we are hiding this until that is fixed
 }
 
+/*
+Scripture Links
+*/
+
+a.bible-ref-quick-link {
+	text-decoration: underline;
+	cursor: pointer;
+}
 
 /*
 Scripture Tags (copied from regular tag CSS - #tagchecklist)
