@@ -61,8 +61,8 @@ Scripture Tags (copied from regular tag CSS - #tagchecklist)
 	cursor: default;
 }
 
-#bible-ref-checklist span a {
-	margin: 6px 0pt 0pt -9px;
+.bible-tag-remove-button {
+	margin: 5px 0pt 0pt -9px;
 	cursor: pointer;
 	width: 10px;
 	height: 10px;
@@ -73,11 +73,10 @@ Scripture Tags (copied from regular tag CSS - #tagchecklist)
 	position: absolute;
 }
 
-#bible-ref-checklist span a {
+.bible-tag-remove-button {
 	background: url(../../../wp-admin/images/xit.gif) no-repeat;
 }
 
-#bible-ref-checklist span a:hover {
+.bible-tag-remove-button:hover {
 	background: url(../../../wp-admin/images/xit.gif) no-repeat -10px 0;
 }
-

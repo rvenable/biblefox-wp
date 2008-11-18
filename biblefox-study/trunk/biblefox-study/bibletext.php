@@ -170,6 +170,10 @@
 		$text_field = 'bible-text-1';
 		$ref_field = 'bible-ref-field';
 		$ref = new BibleRefs($ref_str);
+
+		// If it is not valid, then there is no point in continuing
+		if (!$ref->is_valid()) die;
+
 		$ref_str = $ref->get_string();
 
 		$content = addslashes(bfox_ref_quick_view($ref));
@@ -177,9 +181,7 @@
 		jQuery('#$text_field').html('$content');
 		jQuery('#$ref_field').val('$ref_str');
 		jQuery('#$ref_field').change();
-		jQuery('.bible-ref-link').click(function() {
-			bible_text_request(jQuery(this).attr('bible_ref'));
-		});
+		jQuery('.bible-ref-link').click(bible_ref_link_click);
 		";
 		die($script);
 	}

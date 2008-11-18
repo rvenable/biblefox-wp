@@ -31,9 +31,10 @@ function bible_ref_update_quickclicks() {
 	jQuery.each( current_tags, function( key, val ) {
 		val = val.replace( /^\s+/, '' ).replace( /\s+$/, '' ); // trim
 		if ( !val.match(/^\s+$/) && '' != val ) {
-			txt = '<span><a id="bible-ref-check-' + key + '" class="ntdelbutton">X</a>&nbsp;' + val + '</span> ';
-			jQuery( '#bible-ref-checklist' ).append( txt );
-			jQuery( '#bible-ref-check-' + key ).click( bible_ref_remove_tag );
+			txt = '<span><a id="bible-ref-check-' + key + '" class="bible-tag-remove-button">X</a>&nbsp;<a href="#hack" id="bible-ref-link-' + key + '" bible_ref="' + val + '">' + val + '</a></span>';
+			jQuery('#bible-ref-checklist').append(txt);
+			jQuery('#bible-ref-check-' + key).click(bible_ref_remove_tag);
+			jQuery('#bible-ref-link-' + key).click(bible_ref_link_click);
 			shown = true;
 		}
 	});
@@ -90,11 +91,15 @@ function bible_text_request_new()
 	bible_text_request(jQuery('#new-bible-ref').val());
 }
 
+function bible_ref_link_click()
+{
+	bible_text_request(jQuery(this).attr('bible_ref'));
+}
+
 jQuery(document).ready( function() {
 	bible_ref_update_quickclicks();
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
 	jQuery('#view-bible-ref').click(bible_text_request_new);
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
 	jQuery('#bible-ref-field').change(bible_ref_change);
-	jQuery('.bible-ref-link').click(bible_text_request_new);
 });

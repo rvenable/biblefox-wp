@@ -66,7 +66,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 
 <span class="hide-if-no-js">
 <p><strong>Scripture Quick View</strong></p>
-<p>The Scripture Quick View is an easy way to see any bible passages while typing your post. It lets you scan passages for verses to copy and paste into your post, and also lets you tag passages to associate this post with that passage.</p>
+<p>The Scripture Quick View is an easy way to see any bible passages while typing your post. It lets you scan passages for verses to copy and paste into your post, and also lets you tag passages to link them to your post.</p>
 <input type="text" name="new-bible-ref" id="new-bible-ref" size="16" autocomplete="off" value="" />
 <input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
 <span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
@@ -83,7 +83,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 			?>
 <div id="bible-ref-viewer" class="hide-if-js">
 <p><strong>View the Tagged Scripture</strong><br/>
-The following scriptures are tagged for this post. You can use this toreference the scripture while writing your post.</p>
+The following scriptures are tagged for this post. You can use this to reference the scripture while writing your post.</p>
 <?php echo bfox_get_ref_content($refs); ?>
 </div>
 
