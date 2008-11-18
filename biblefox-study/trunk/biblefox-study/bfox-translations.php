@@ -360,11 +360,12 @@
 						if (isset($books[$book_id]))
 						{
 							$book_name = bfox_get_book_name($book_id);
-							$output .= $book_name . ': ';
+							$output .= $book_name;
 							$chaps = array();
 							for ($chapter = 0; $chapter < $books[$book_id]; $chapter++)
 								$chaps[] = $bfox_links->ref_link(array('ref_str' => $book_name . ' ' .($chapter + 1), 'text' => $chapter + 1));
-							$output .= implode(', ', $chaps) . '<br/>';
+//							$output .=  ': ' . implode(', ', $chaps);
+							$output .= '<br/>';
 						}
 					}
 				}
@@ -392,7 +393,7 @@
 		foreach ($data as $row)
 			$books[$row->book_id] = $row->value;
 		
-		$groups = array('The Bible',
+		$groups = array('',
 						'old' => array('Old Testament',
 									   'torah' => 'The Books of Moses',
 									   'history' => 'The Historical Books',
@@ -409,7 +410,9 @@
 						'apocrypha' => 'Apocryphal Books'
 		);
 		
+		echo '<center>';
 		echo bfox_show_toc_groups($groups, $books);
+		echo '</center>';
 	}
 	
 ?>
