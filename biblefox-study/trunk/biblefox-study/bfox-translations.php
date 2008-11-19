@@ -343,6 +343,33 @@
 		$bfox_bible_groups = $groups;
 	}
 
+	function bfox_books_two_cols()
+	{
+		global $bfox_bible_groups, $bfox_links;
+		$content .= '<div id="bible_toc">';
+
+		$content .= '<div id="old_testament"><h3>Old Testament</h3>';
+		$content .= '<ul>';
+		foreach ($bfox_bible_groups['old'] as $book_id)
+			$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
+		$content .= '</ul></div>';
+
+		$content .= '<div id="new_testament"><h3>New Testament</h3>';
+		$content .= '<ul>';
+		foreach ($bfox_bible_groups['new'] as $book_id)
+		$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
+		$content .= '</ul></div>';
+		
+		$content .= '<div id="apocrypha"><h3>Apocryphal Books</h3>';
+		$content .= '<ul>';
+		foreach ($bfox_bible_groups['apocrypha'] as $book_id)
+		$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
+		$content .= '</ul></div>';
+		
+		$content .= '</div>';
+		return $content;
+	}
+
 	function bfox_show_toc_groups($groups, $books, $depth = 3)
 	{
 		global $bfox_bible_groups, $bfox_links;
@@ -360,12 +387,12 @@
 						if (isset($books[$book_id]))
 						{
 							$book_name = bfox_get_book_name($book_id);
-							$output .= $book_name;
+							$output .= '<p>' . $book_name;
 							$chaps = array();
 							for ($chapter = 0; $chapter < $books[$book_id]; $chapter++)
 								$chaps[] = $bfox_links->ref_link(array('ref_str' => $book_name . ' ' .($chapter + 1), 'text' => $chapter + 1));
-//							$output .=  ': ' . implode(', ', $chaps);
-							$output .= '<br/>';
+//							$output .= '<br/>' . implode(', ', $chaps);
+							$output .= '</p>';
 						}
 					}
 				}
@@ -383,7 +410,8 @@
 	function bfox_show_toc($trans_id = 12)
 	{
 		bfox_set_book_groups();
-		
+		echo bfox_books_two_cols();
+/*		
 		global $wpdb;
 		$data = $wpdb->get_results($wpdb->prepare('SELECT book_id, value
 												  FROM ' . BFOX_BOOK_COUNTS_TABLE . '
@@ -412,7 +440,7 @@
 		
 		echo '<center>';
 		echo bfox_show_toc_groups($groups, $books);
-		echo '</center>';
+		echo '</center>';*/
 	}
 	
 ?>

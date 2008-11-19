@@ -30,6 +30,41 @@ br.bible-poetry {
 }
 
 /*
+Table of Contents
+*/
+
+#bible_toc {
+	text-align: center;
+	margin-left: 10%;
+	margin-right: 10%;
+	width: 80%;
+}
+
+#bible_toc ul{
+	list-style-type: none;
+	margin: 0;//10 10 10 10;
+	padding: 0;
+}
+
+#old_testament {
+	float: left;
+	width: 45%;
+	margin-right: 5%;
+}
+
+#new_testament {
+	float: right;
+	width: 45%;
+	margin-right: 5%;
+}
+
+#apocrypha {
+	float: right;
+	width: 45%;
+	margin-right: 5%;
+}
+
+/*
 Scripture Links
 */
 
