@@ -168,7 +168,7 @@
 	{
 		$ref_str = $_POST['ref_str'];
 		$ref = new BibleRefs($ref_str);
-		sleep(5);
+		sleep(1);
 
 		// If it is not valid, then there is no point in continuing
 		if (!$ref->is_valid()) die;

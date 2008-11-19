@@ -82,49 +82,41 @@ function bible_text_request(ref_str)
 	mysack.encVar("cookie", document.cookie, false);
 	mysack.onError = function() { alert('Ajax error in looking up bible reference')};
 	mysack.runAJAX();
-	jQuery('#bible-text').fadeOut("fast");
+
+	// Fade out the the progress text, then update it to say we are loading
 	jQuery('#bible-text-progress').fadeOut("fast", function () {
-										   jQuery('#bible-text-progress').html('Loading "' + ref_str + '"...');
-										   });
+		jQuery('#bible-text-progress').html('Loading "' + ref_str + '"...');
+	});
+
+	// Fade the load progress loading text back in
 	jQuery('#bible-text-progress').fadeIn("fast");
-//	jQuery('#bible-text-progress').effect("pulsate", { times: 3 }, 1000);
-//	jQuery('#bible-text-progress').fadeOut("normal", function () {
-//										   jQuery('#bible-text-progress').fadeIn("normal");
-//										   });
-//	bfox_pulsate('#bible-text-progress');
 	
 	return false;
 }
 
-function bfox_pulsate_in(id)
-{
-	jQuery(id).fadeIn("normal", function () { bfox_pulsate_out(id) });
-}
-
-function bfox_pulsate(id)
-{
-	jQuery(id).fadeOut("normal");
-	jQuery(id).fadeIn("normal", function () { bfox_pulsate(id) });
-}
-
 function bfox_quick_view_loaded(ref_str, content)
 {
-	jQuery('#bible-text').fadeOut("fast", function () {
-										   jQuery('#bible-text').html(content);
-								  jQuery('.bible-ref-link').click(bible_ref_link_click);
-										   });
-	jQuery('#bible-text').fadeIn("fast");
-//	jQuery('#bible-text').html(content);
-//	jQuery('#bible-ref-field').val(ref_str);
-//	jQuery('#bible-ref-field').change();
-//	jQuery('#bible-text-progress').stop( {clearQueue: true} );
-	jQuery('#bible-text-progress').fadeOut("fast", function () {
-										   jQuery('#bible-text-progress').html('Viewing ' + ref_str);
-										   });
-	jQuery('#bible-text-progress').fadeIn("fast");
-//	jQuery('#bible-text-progress').fadeTo("normal", 1, function () {
-//					  jQuery('#bible-text-progress').stop( {clearQueue: true} );
-//					  });
+	// Wait until the progress text is finished
+	jQuery('#bible-text-progress').queue( function () {
+
+		// Fade out the progress text, then update date it to say we are done loading
+		jQuery('#bible-text-progress').fadeOut("fast", function() {
+			jQuery('#bible-text-progress').html('Viewing ' + ref_str);
+		});
+
+		// Fade out the old bible text, then replace it with the new text
+		jQuery('#bible-text').fadeOut("fast", function () {
+			jQuery('#bible-text').html(content);
+			jQuery('.bible-ref-link').click(bible_ref_link_click);
+		});
+
+		// Fade everything back in
+		jQuery('#bible-text-progress').fadeIn("fast");
+		jQuery('#bible-text').fadeIn("fast");
+
+		// We must dequeue to continue the queue
+		jQuery(this).dequeue();
+	});
 }
 
 function bfox_pulsate_stop(id)
