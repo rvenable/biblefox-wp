@@ -292,7 +292,7 @@
 		function show_trans()
 		{
 			require_once('bfox-translations.php');
-//			bfox_create_translation_data(12);
+			bfox_create_translation_data(bfox_get_default_version());
 			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
 		}
 		
