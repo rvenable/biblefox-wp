@@ -108,18 +108,16 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 <div id="bible-text"></div>
 </span>
 
-<?php
-
-		if ($refs->is_valid())
-		{
-			?>
 <div id="bible-ref-viewer" class="hide-if-js">
+
+<?php if ($refs->is_valid()) : ?>
 <p>The following scriptures are tagged for this post. You can use this to reference the scripture while writing your post.</p>
 <?php echo bfox_get_ref_content($refs); ?>
+<?php else : ?>
+<p>This box is for viewing scriptures that are tagged for this post. If you tag some scriptures (see the Scripture Tags box) and save the post, you will see the scripture here. You can then use this to reference the scripture while writing your post.</p>
+<?php endif; ?>
 </div>
-
 <?php
-		}
 
 	}
 
