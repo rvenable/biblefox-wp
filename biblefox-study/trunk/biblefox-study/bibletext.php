@@ -198,15 +198,19 @@
 		$ref = new BibleRefs($ref_str);
 		sleep(1);
 
-		// If it is not valid, then there is no point in continuing
-		if (!$ref->is_valid()) die;
+		// If it is not valid, give the user an error message
+		// Otherwise give the user the content they were looking for
+		if (!$ref->is_valid())
+		{
+			$content = 'Invalid bible reference: ' . $ref_str;
+		}
+		else
+		{
+			$ref_str = $ref->get_string();
+			$content = addslashes(bfox_ref_quick_view($ref));
+		}
 
-		$ref_str = $ref->get_string();
-
-		$content = addslashes(bfox_ref_quick_view($ref));
-		$script = "
-		bfox_quick_view_loaded('$ref_str', '$content');
-		";
+		$script = "bfox_quick_view_loaded('$ref_str', '$content');";
 		die($script);
 	}
 	add_action('wp_ajax_bfox_ajax_send_bible_text', 'bfox_ajax_send_bible_text');
