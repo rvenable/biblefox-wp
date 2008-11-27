@@ -51,7 +51,8 @@
 			add_submenu_page('wpmu-admin.php', 'Biblefox USFX', 'USFX', 10, 'bfox-usfx', 'bfox_usfx');
 		}
 
-		add_meta_box('bible-ref-div', __('Scripture Tags'), 'bfox_post_scripture_meta_box', 'post', 'normal', 'core');
+		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
+		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'bfox_save_post');
 	}
 
@@ -72,10 +73,18 @@
 		}
 	}
 
-	function bfox_post_scripture_meta_box($post)
+	function bfox_post_scripture_tag_meta_box($post)
 	{
+		// TODO3: Get rid of this include
 		require_once("bfox-write.php");
-		bfox_form_edit_bible_refs();
+		bfox_form_edit_scripture_tags();
+	}
+
+	function bfox_post_scripture_quick_view_meta_box($post)
+	{
+		// TODO3: Get rid of this include
+		require_once("bfox-write.php");
+		bfox_form_scripture_quick_view();
 	}
 
 	function bfox_progress()

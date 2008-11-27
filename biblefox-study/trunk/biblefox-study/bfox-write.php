@@ -39,9 +39,14 @@
 		}
 	}
 
-	// Function for creating the form field to edit a post's bible references
-	function bfox_form_edit_bible_refs()
+	/**
+	 * Returns a BibleRefs created from $_GET['bible_ref'] or from the saved bible refs for the current post
+	 *
+	 * @return BibleRefs
+	 */
+	function bfox_get_post_refs_from_input()
 	{
+		// TODO3: This function should probably be somewhere else
 		$refs = new BibleRefs;
 		if (isset($_GET['bible_ref']))
 			$refs->push_string($_GET['bible_ref']);
@@ -50,13 +55,23 @@
 		{
 			global $post_ID;
 			$refs = bfox_get_post_bible_refs($post_ID);
-		}
+	 	}
+	 	
+	 	return $refs;
+	}
 
+	/**
+	 * Function for creating the form field to edit a post's bible references
+	 *
+	 */
+	function bfox_form_edit_scripture_tags()
+	{
+		// TODO3: This function should probably be somewhere else
+		$refs = bfox_get_post_refs_from_input();
 		$refStr = $refs->get_string();
 
 		// Create the form
 	?>
-<strong>Scripture Tags</strong>
 <p>Adding scripture tags is a simple way to organize your posts around Bible passages.<br/>
 For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag. Once it is tagged, whenever you read Genesis 1 you will see this post!</p>
 
@@ -64,8 +79,23 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 <input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" autocomplete="off" value="<?php echo attribute_escape($refStr); ?>" />
 <p><div id="bible-ref-checklist"></div></p>
 
+	<?php
+
+	}
+	
+	/**
+	 * Function for creating the form displaying the scripture quick view
+	 *
+	 */
+	function bfox_form_scripture_quick_view()
+	{
+		// TODO3: This function should probably be somewhere else
+		$refs = bfox_get_post_refs_from_input();
+		$refStr = $refs->get_string();
+
+		// Create the form
+	?>
 <span class="hide-if-no-js">
-<p><strong>Scripture Quick View</strong></p>
 <p>The Scripture Quick View is an easy way to see any bible passages while typing your post. It lets you scan passages for verses to copy and paste into your post, and also lets you tag passages to link them to your post.</p>
 <input type="text" name="new-bible-ref" id="new-bible-ref" size="16" autocomplete="off" value="" />
 <input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
@@ -84,8 +114,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 		{
 			?>
 <div id="bible-ref-viewer" class="hide-if-js">
-<p><strong>View the Tagged Scripture</strong><br/>
-The following scriptures are tagged for this post. You can use this to reference the scripture while writing your post.</p>
+<p>The following scriptures are tagged for this post. You can use this to reference the scripture while writing your post.</p>
 <?php echo bfox_get_ref_content($refs); ?>
 </div>
 
