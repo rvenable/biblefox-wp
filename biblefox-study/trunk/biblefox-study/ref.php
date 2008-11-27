@@ -662,20 +662,36 @@
 		/**
 		 * Returns an output string with a Table of Contents for the ref
 		 *
+		 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref 
 		 * @return string Table of Contents
 		 */
-		function get_toc()
+		function get_toc($is_full = FALSE)
 		{
 			global $bfox_links;
 
 			// TODO3: These vars are kind of hacky 
 			list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
 
-			$toc = $toc_begin . $this->get_string() . '<br/>';
 			$book_name = bfox_get_book_name($this->vectors[0]->values['book']);
+
+			// Either display the full TOC or just the chapters in the ref
+			$toc = $toc_begin;
+			if ($is_full)
+			{
+				// TODO1: get translation version from user preferences
+				require_once('bfox-translations.php');
+				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], bfox_get_default_version());
+				$low = 1;
+				$toc .= $book_name;
+			}
+			else
+			{
+				list($low, $high) = $this->get_actual_chapters();
+				$toc .= $this->get_string();
+			}
+			$toc .= '<br/>';
 			
 			// Loop through the actual chapter numbers for this reference, adding links for each of them
-			list($low, $high) = $this->get_actual_chapters();
 			foreach (range($low, $high) as $chapter)
 			{
 				if (!empty($links)) $links .= $separator;
@@ -948,14 +964,15 @@
 		/**
 		 * Returns an output string for the Table of Contents for these refs
 		 *
+		 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref 
 		 * @return string Table of Contents
 		 */
-		function get_toc()
+		function get_toc($is_full = FALSE)
 		{
 			$book_content = array();
 			foreach ($this->refs as $ref)
 			{
-				$toc .= $ref->get_toc();
+				$toc .= $ref->get_toc($is_full);
 			}
 			return $toc;
 		}

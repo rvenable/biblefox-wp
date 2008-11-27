@@ -19,19 +19,32 @@
 		$content = bfox_special_syntax($content);
 		return $content;
 	}
-	
-	function bfox_get_ref_content_limited(BibleRefs $refs, $limit = 5)
+
+	/**
+	 * Returns an output string with scripture text for the Scripture Quick View
+	 * 
+	 * Includes a Table of Contents at the bottom.
+	 *
+	 * @param BibleRefs $refs
+	 * @param unknown_type $limit The limit of how many chapters can be displayed in full
+	 * @return string Scripture Text Output (with TOC)
+	 */
+	function bfox_get_ref_content_quick(BibleRefs $refs, $limit = 5)
 	{
-		$num_chapters = $refs->get_num_chapters(); 
+		$is_full = FALSE;
+		
+		// Only get the scripture text output if we haven't exceeded the chapter limit
+		$num_chapters = $refs->get_num_chapters();
 		if ($limit >= $num_chapters)
 		{
-			return bfox_get_ref_content($refs);
+			$content = bfox_get_ref_content($refs);
+			$content .= '<hr/>';
+			$is_full = TRUE;
 		}
-		else
-		{
-			$content = '<p style="text-align: center">You are limited to viewing ' . $limit . ' chapters at a time. </p>';
-			$content .= $refs->get_toc();
-		}
+
+		// Add the Table of Contents to the end of the output
+		$content .= $refs->get_toc($is_full);
+		
 		return $content;
 	}
 	
@@ -173,7 +186,7 @@
 		$menu .= '<td align="right" width="33%">' . $next_link . '</a></td>';
 		$menu .= '</tr>';
 		$menu .= '</table>';
-		return $menu . bfox_get_ref_content_limited($ref);
+		return $menu . bfox_get_ref_content_quick($ref);
 	}
 
 	/*
