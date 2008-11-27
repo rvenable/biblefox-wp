@@ -580,6 +580,21 @@
 			return 0;
 		}
 
+		/**
+		 * Returns the number of chapters in the bible ref (inaccurate)
+		 * 
+		 * Results are inaccurate for the bible references that don't have a valid ending chapter.
+		 * For instance, if a bible ref is set to be a whole book, the end chapter will be set to a
+		 * special constant (BFOX_UNIQUE_ID_MASK) instead of the actual last chapter of the book.
+		 * For more accurate results, use get_actual_chapters()
+		 *
+		 * @return unknown
+		 */
+		function get_num_chapters()
+		{
+			return $this->vectors[1]->values['chapter'] - $this->vectors[0]->values['chapter'] + 1;
+		}
+		
 		function shift(BibleRefVector $size_vector)
 		{
 			// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
@@ -618,6 +633,59 @@
 			}
 			return $shifted;
 		}
+
+		/**
+		 * Returns the first and last chapters of the bible reference (accurate)
+		 *
+		 * @return array An array with two elements: the first and last chapters
+		 */
+		function get_actual_chapters()
+		{
+			$low = $this->vectors[0]->values['chapter'];
+			$high = $this->vectors[1]->values['chapter'];
+			
+			// If the first chapter is 0, then it should really be chapter 1
+			if (0 == $low) $low = 1;
+
+			// If the last chapter is the max it can be, we should get the actual last chapter from the DB
+			// TODO2: The user could also input a chapter number which is beyond the actual last chapter, but below the max
+			if (BFOX_UNIQUE_ID_MASK == $high)
+			{
+				// TODO1: get translation version from user preferences
+				require_once('bfox-translations.php');
+				$high = bfox_get_num_chapters(bfox_get_default_version(), $this->vectors[0]->values['book']);
+			}
+
+			return array($low, $high);
+		}
+		
+		/**
+		 * Returns an output string with a Table of Contents for the ref
+		 *
+		 * @return string Table of Contents
+		 */
+		function get_toc()
+		{
+			global $bfox_links;
+
+			// TODO3: These vars are kind of hacky 
+			list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
+
+			$toc = $toc_begin . $this->get_string() . '<br/>';
+			$book_name = bfox_get_book_name($this->vectors[0]->values['book']);
+			
+			// Loop through the actual chapter numbers for this reference, adding links for each of them
+			list($low, $high) = $this->get_actual_chapters();
+			foreach (range($low, $high) as $chapter)
+			{
+				if (!empty($links)) $links .= $separator;
+				$links .= $ref_begin . $bfox_links->ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter, 'no_href' => 1)) . $ref_end;
+			}
+			
+			$toc .= $links . $toc_end;
+			return $toc;
+		}
+		
 	}
 
 	/*
@@ -690,6 +758,18 @@
 			$links = array();
 			foreach ($this->refs as $ref) $links[] = $bfox_links->ref_link($ref->get_string());
 			return implode('; ', $links);
+		}
+		
+		/**
+		 * Returns the number of chapters (inaccurate) for the refs by accumulating the number of chapters per ref
+		 *
+		 * @return unknown
+		 */
+		function get_num_chapters()
+		{
+			$num_chapters = 0;
+			foreach ($this->refs as $ref) $num_chapters += $ref->get_num_chapters();
+			return $num_chapters;
 		}
 		
 		function push_ref_single(BibleRefSingle $ref)
@@ -864,6 +944,22 @@
 			foreach ($sections as $section) $sectionRefs[] = new BibleRefs($section);
 			return $sectionRefs;
 		}
+
+		/**
+		 * Returns an output string for the Table of Contents for these refs
+		 *
+		 * @return string Table of Contents
+		 */
+		function get_toc()
+		{
+			$book_content = array();
+			foreach ($this->refs as $ref)
+			{
+				$toc .= $ref->get_toc();
+			}
+			return $toc;
+		}
+
 	}
 
 ?>

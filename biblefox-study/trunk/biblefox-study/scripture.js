@@ -119,19 +119,6 @@ function bfox_quick_view_loaded(ref_str, content)
 	});
 }
 
-function bfox_pulsate_stop(id)
-{
-	jQuery(id).stop( {clearQueue: true} );
-	jQuery(id).fadeTo("normal", 1, function () {
-					  jQuery(id).stop( {clearQueue: true} );
-					  });
-}
-
-function bfox_pulsate_out(id)
-{
-	jQuery(id).fadeOut("normal", function () { bfox_pulsate_in(id) });
-}
-
 function bible_text_request_new()
 {
 	bible_text_request(jQuery('#new-bible-ref').val());

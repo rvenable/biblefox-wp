@@ -20,6 +20,21 @@
 		return $content;
 	}
 	
+	function bfox_get_ref_content_limited(BibleRefs $refs, $limit = 5)
+	{
+		$num_chapters = $refs->get_num_chapters(); 
+		if ($limit >= $num_chapters)
+		{
+			return bfox_get_ref_content($refs);
+		}
+		else
+		{
+			$content = '<p style="text-align: center">You are limited to viewing ' . $limit . ' chapters at a time. </p>';
+			$content .= $refs->get_toc();
+		}
+		return $content;
+	}
+	
 	// Function for echoing scripture
 	function bfox_echo_scripture($version_id, BibleRefs $ref)
 	{
@@ -158,7 +173,7 @@
 		$menu .= '<td align="right" width="33%">' . $next_link . '</a></td>';
 		$menu .= '</tr>';
 		$menu .= '</table>';
-		return $menu . bfox_get_ref_content($ref);
+		return $menu . bfox_get_ref_content_limited($ref);
 	}
 
 	/*

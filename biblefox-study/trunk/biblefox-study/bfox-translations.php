@@ -318,6 +318,23 @@
 									$book_id), ARRAY_N);
 	}
 
+	/**
+	 * Returns the number of chapters in a book for a given translation
+	 *
+	 * @param int $book_id
+	 * @param int $trans_id
+	 * @return int The number of chapters in a book
+	 */
+	function bfox_get_num_chapters($book_id, $trans_id)
+	{
+		global $wpdb;
+		$num = $wpdb->get_var($wpdb->prepare('SELECT value
+												FROM ' . BFOX_BOOK_COUNTS_TABLE . '
+												WHERE trans_id = %d AND book_id = %d AND chapter_id = 0',
+												$trans_id, $book_id));
+		return $num;
+	}
+
 	function bfox_set_book_groups()
 	{
 		global $bfox_bible_groups;

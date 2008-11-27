@@ -59,7 +59,9 @@
 			if (!isset($attrs['class'])) $attrs['class'] = 'bible-ref-link';
 			if (!isset($attrs['value'])) $attrs['value'] = $ref_str;
 			if (!isset($attrs['text'])) $attrs['text'] = $ref_str;
-
+			if (!isset($attrs['bible_ref'])) $attrs['bible_ref'] = $ref_str;
+			if (isset($attrs['no_href'])) unset($attrs['href']);
+			
 			return $this->link($attrs);
 		}
 		
