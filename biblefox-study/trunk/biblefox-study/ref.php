@@ -653,7 +653,7 @@
 			{
 				// TODO1: get translation version from user preferences
 				require_once('bfox-translations.php');
-				$high = bfox_get_num_chapters(bfox_get_default_version(), $this->vectors[0]->values['book']);
+				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], bfox_get_default_version());
 			}
 
 			return array($low, $high);
