@@ -104,7 +104,6 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 
 <strong><p id="bible-text-progress"></p></strong>
 <input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
-<input type="hidden" name="bible-ref-field" id="bible-ref-field" value="" />
 <div id="bible-text"></div>
 </span>
 

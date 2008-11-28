@@ -55,7 +55,6 @@ function bible_ref_flush_to_text() {
 	var newtags = jQuery('#bible-ref-list').val() + ';' + jQuery('#add-bible-ref').attr('bible_ref');
 	
 	bible_ref_set_text(newtags);
-	jQuery('#bible-ref-field').focus();
 	return false;
 }
 
@@ -64,11 +63,6 @@ function bible_ref_press_key( e ) {
 		bible_text_request_new();
 		return false;
 	}
-}
-
-function bible_ref_change()
-{
-	jQuery('#add-bible-ref').val('Tag ' + jQuery('#bible-ref-field').val());
 }
 
 function bible_text_request(ref_str)
@@ -87,6 +81,9 @@ function bible_text_request(ref_str)
 	jQuery('#bible-text-progress').fadeOut("fast", function () {
 		jQuery('#bible-text-progress').html('Loading "' + ref_str + '"...');
 	});
+	
+	// Fade the bible-text slightly to indicate to the user that it is about to be replaced
+	jQuery('#bible-text').fadeTo("fast", 0.6);
 
 	// Fade the load progress loading text back in
 	jQuery('#bible-text-progress').fadeIn("fast");
@@ -113,6 +110,7 @@ function bfox_quick_view_loaded(ref_str, content)
 		// Fade everything back in
 		jQuery('#bible-text-progress').fadeIn("fast");
 		jQuery('#bible-text').fadeIn("fast");
+		jQuery('#bible-text').fadeTo("fast", 1);
 
 		// We must dequeue to continue the queue
 		jQuery(this).dequeue();
@@ -134,5 +132,4 @@ jQuery(document).ready( function() {
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
 	jQuery('#view-bible-ref').click(bible_text_request_new);
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
-	jQuery('#bible-ref-field').change(bible_ref_change);
 });
