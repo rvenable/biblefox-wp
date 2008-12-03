@@ -301,6 +301,49 @@
 			require_once('bfox-translations.php');
 			bfox_show_toc();
 		}
+
+		/**
+		 * Takes a bible ref string and uses it to create a BibleRefs to test BibleRefs for different inputs 
+		 *
+		 * @param string $ref_str Bible Reference string to test
+		 */
+		private function test_ref($ref_str)
+		{
+			echo "<p><strong>$ref_str</strong><br/>";
+
+			// Test setting a BibleRefs by a string
+			$ref = new BibleRefs($ref_str);
+			echo '$ref->get_string(): ' . $ref->get_string() . '<br/>';
+			
+			// Test setting a BibleRefs by a set of unique ids
+			$sets = $ref->get_sets();
+			$ref2 = new BibleRefs($sets);
+			echo '$ref2->get_string(): ' . $ref2->get_string() . '<br/>';
+
+			// Both BibleRefs should be equal since they were created from the same reference
+			if ($ref2->get_string() != $ref->get_string()) echo 'ERROR! Strings not equal!<br/>';
+
+			echo '</p>';
+		}
+
+		/**
+		 * Tests different bible reference input strings
+		 *
+		 */
+		function test_refs()
+		{
+			// Test the typical references
+			$this->test_ref('1sam');
+			$this->test_ref('1sam 1');
+			$this->test_ref('1sam 1-2');
+			$this->test_ref('1sam 1:1');
+			$this->test_ref('1sam 1:1-5');
+			$this->test_ref('1sam 1:1-2:5');
+			$this->test_ref('1sam 1-2:5');
+
+			// This test was failing (see bug 21)
+			$this->test_ref('Judges 2:6-3:6');
+		}
 		
 	}
 	

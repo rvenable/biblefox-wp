@@ -248,12 +248,13 @@
 			$chapter2 = (int) (($unique_ids[1] >> BFOX_UNIQUE_ID_PART_SIZE) & BFOX_UNIQUE_ID_MASK);
 			$verse2   = (int)  ($unique_ids[1] & BFOX_UNIQUE_ID_MASK);
 
+			// Clear verse2 if it is set to the max, or if chapter2 and verse2 equal chapter1 and verse1
+			if ((BFOX_UNIQUE_ID_MASK == $verse2) || (($chapter1 == $chapter2) && ($verse1 == $verse2)))
+				$verse2 = 0;
 			// If chapter two is set to max, we should not use it
 			if ((BFOX_UNIQUE_ID_MASK == $chapter2) || ($chapter1 == $chapter2))
 				$chapter2 = 0;
-			if ((BFOX_UNIQUE_ID_MASK == $verse2) || ($verse1 == $verse2))
-				$verse2 = 0;
-
+				
 			$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
 		}
 		
