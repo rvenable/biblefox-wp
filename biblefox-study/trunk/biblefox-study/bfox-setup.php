@@ -1,6 +1,8 @@
 <?php
+	// TODO2: This define probably needs to go somewhere else
 	define('BFOX_SETUP_DIR', dirname(__FILE__) . "/setup");
-	
+
+	// TODO2: Rename this file!
 	class BfoxAdminTools
 	{
 
@@ -270,25 +272,6 @@
 			echo bfox_process_html_text($str, 'bfox_ref_replace');
 		}
 
-		function ref_detect()
-		{
-			$reader = new XMLReader();
-			$reader->open(BFOX_DIR . '/books.html');
-
-			bfox_create_synonym_data();
-			while ($reader->read())
-			{
-				if (XMLReader::TEXT == $reader->nodeType)
-				{
-					echo '<p>' . $reader->value . '</p>';
-					$text = bfox_ref_replace($reader->value);
-					echo '<p>' . $text . '</p>';
-					echo '<br/>';
-				}
-			}
-			$reader->close();
-		}
-		
 		function show_trans()
 		{
 			require_once('bfox-translations.php');
@@ -343,6 +326,15 @@
 
 			// This test was failing (see bug 21)
 			$this->test_ref('Judges 2:6-3:6');
+		}
+
+		/**
+		 * Tests the bfox_get_discussions() function
+		 *
+		 */
+		function test_discussions()
+		{
+			echo bfox_get_discussions(array());//'limit' => 4));
 		}
 		
 	}
