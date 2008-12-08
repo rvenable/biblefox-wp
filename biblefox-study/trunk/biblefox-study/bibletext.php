@@ -215,4 +215,65 @@
 	}
 	add_action('wp_ajax_bfox_ajax_send_bible_text', 'bfox_ajax_send_bible_text');
 
+	/**
+	 * Create the output string for the bible viewer header
+	 *
+	 * @param BibleRefs $refs
+	 * @return string
+	 */
+	function bfox_bible_view_header(BibleRefs $refs)
+	{
+		$content = '<div id="bible_view_header">';
+		$content .= bfox_get_ref_menu($refs, TRUE);
+		$content .= '</div>';
+		return $content;
+	}
+
+	/**
+	 * Create the output string for the bible viewer footer
+	 *
+	 * @param BibleRefs $refs
+	 * @return string
+	 */
+	function bfox_bible_view_footer(BibleRefs $refs)
+	{
+		$content = '<div id="bible_view_footer">';
+		$content .= bfox_get_ref_menu($refs, FALSE);
+		$content .= $refs->get_toc(TRUE);
+		$content .= '</div>';
+		return $content;
+	}
+
+	/**
+	 * Create the output string for the bible viewer
+	 *
+	 * @param string search text
+	 * @return string
+	 */
+	function bfox_bible_view($text)
+	{
+		$refs = new BibleRefs($text);
+
+		// TODO2: use leftovers from ref detection to create search results
+		// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
+
+		$content = '<div id="bible_view">';
+		if ($refs->is_valid())
+		{
+			$content .= bfox_bible_view_header($refs);
+			$content .= '<div id="bible_view_content">';
+			$content .= bfox_get_ref_content($refs);
+			$content .= '</div>';
+			$content .= bfox_bible_view_footer($refs);
+		}
+		else
+		{
+			// Ref not valid, so perform search results
+			$content .= 'Ref not valid!';
+		}
+		$content .= '</div>';
+
+		return $content;
+	}
+
 ?>

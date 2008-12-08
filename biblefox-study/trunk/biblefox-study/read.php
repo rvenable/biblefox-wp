@@ -63,7 +63,7 @@
 		{
 			$refStr = $refs->get_string();
 			echo "<h2>$refStr</h2>";
-			echo bfox_get_ref_menu($refs, true);
+/*			echo bfox_get_ref_menu($refs, true);
 
 			$post_ids = bfox_get_posts_for_refs($refs);
 			if (0 < count($post_ids))
@@ -78,12 +78,13 @@
 
 			// Output all the scripture references
 			bfox_echo_scripture($trans_id, $refs);
-			echo bfox_get_ref_menu($refs, false);
+			echo bfox_get_ref_menu($refs, false);*/
+			echo bfox_bible_view($_GET['bible_ref']);
 
 			// Update the read history to show that we viewed these scriptures
 			$bfox_history->update($refs);
 		}
-	echo '<h2>Blog Post Commentaries</h2>';
+/*	echo '<h2>Blog Post Commentaries</h2>';
 	echo '<p><a href="">Write A Post</a></p>';
 	echo '<h3>My Bible Study Blogs</h3><p>View posts from any Biblefox Bible Studies that you have joined or subscribed to.<br/>Check out the list of Commentary Blogs to find some you can subscribe to.<br/><a href="">Add Commentaries</a></p>';
 	echo '<h3>My Friend Commentaries</h3><p>You can see what other users have written about this passage.<br/><a href="">Add Friends</a></p>';
@@ -101,7 +102,7 @@
 	echo '<h3>Bible By Email</h3>';
 	echo '<h3>Topical Cross References</h3><p>From the Topical Search</p>';
 	echo '<h3>Hebrew</h3>';
-	echo '<h3>Greek</h3>';
+	echo '<h3>Greek</h3>';*/
 
 		echo "</div>";
 	}
