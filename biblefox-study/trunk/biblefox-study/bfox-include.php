@@ -20,7 +20,7 @@
 	require_once("plan.php");
 	require_once('links.php');
 	require_once('marketing.php');
-	
+
 	// BibleRefs class
 	require_once("ref.php");
 
@@ -45,13 +45,13 @@
 
 		return $blogs;
 	}
-	
+
 	function bfox_divide_into_cols($array, $max_cols, $height_threshold = 0)
 	{
 		$count = count($array);
 		if (0 < $count)
 		{
-			
+
 			// The height_threshold is so that we don't divide into too many columns for small arrays
 			// So, for instance, if we have 3 max columns and 5 array elements, and a threshold of 5, we shouldn't
 			// divide that into 3 short columns, but one column of 5
@@ -59,9 +59,9 @@
 				$cols = $max_cols;
 			else
 				$cols = ceil($count / $height_threshold);
-			
+
 			if ($cols > $max_cols) $cols = $max_cols;
-			
+
 			$array = array_chunk($array, ceil($count / $cols), TRUE);
 		}
 		return $array;
@@ -73,7 +73,7 @@
 	 date_str - should be a datetime string acceptable by strtotime()
 		If date_str is not acceptable, 'today' will be used instead
 	 format - should be a format string acceptable by date()
-	 
+
 	 The function implements workarounds for some shortcomings of the strtotime() function:
 	 Essentially, strtotime() accepts many useful strings such as 'today', 'next tuesday', '10/14/2008', etc.
 	 These strings are calculated using the default timezone (date_default_timezone_get()), which isn't necessarily
@@ -85,26 +85,26 @@
 	{
 		// Get the current default timezone because we need to set it back when we are done
 		$tz = date_default_timezone_get();
-		
+
 		// Get this blog's GMT offset (as an integer because date_default_timezone_set() doesn't support minute increments)
 		$gmt_offset = (int)(get_option('gmt_offset'));
-		
+
 		// Invert the offset for use in date_default_timezone_set()
 		$gmt_offset *= -1;
-		
+
 		// If the offset is positive (or 0), add the + to the beginning
 		if ($gmt_offset >= 0) $gmt_offset = '+' . $gmt_offset;
-		
+
 		// Temporarily set the timezone to the blog's timezone
 		date_default_timezone_set('Etc/GMT' . $gmt_offset);
-		
+
 		// Get the date string
 		if (($time = strtotime($date_str)) === FALSE) $time = strtotime('today');
 		$date_str = date($format, $time);
-		
+
 		// Set the timezone back to its previous setting
 		date_default_timezone_set($tz);
-		
+
 		return $date_str;
 	}
 
@@ -129,7 +129,7 @@
 			$proto = 'http://';
 
 		$old_url = 'redirect_to=' . urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-		
+
 		// From site_url()
 		$site_url = 'http';
 		if (force_ssl_admin()) $site_url .= 's'; // Use https
@@ -163,7 +163,7 @@
 		return $excludes;
 	}
 	add_filter('wp_list_pages_excludes', 'bfox_list_pages_excludes');
-	
+
 	function bfox_add_head_files()
 	{
 		// use JavaScript SACK library for Ajax
@@ -198,20 +198,20 @@
 			// Store the match data in more readable variables
 			$text_end = (int) $matches[0][1];
 			$pattern = (string) $matches[0][0];
-			
+
 			$text_len = $text_end - $text_start;
 			if (0 < $text_len)
 			{
 				// Modify the data with the replacement text
 				$replacement = call_user_func($func, substr($html, $text_start, $text_len));
 				$html = substr_replace($html, $replacement, $text_start, $text_len);
-				
+
 				// Skip the rest of the replacement string
 				$text_end = $text_start + strlen($replacement);
 			}
 			$text_start = $text_end + strlen($pattern);
 		}
-		
+
 		$text_len = strlen($html) - $text_start;
 		if (0 < $text_len)
 		{
@@ -219,7 +219,7 @@
 			$replacement = call_user_func($func, substr($html, $text_start, $text_len));
 			$html = substr_replace($html, $replacement, $text_start, $text_len);
 		}
-		
+
 		return $html;
 	}
 
@@ -228,5 +228,5 @@
 	{
 		return preg_replace('/<[^<>]*[^<>\s][^<>]*>/', '', $html);
 	}
-	
+
 	?>

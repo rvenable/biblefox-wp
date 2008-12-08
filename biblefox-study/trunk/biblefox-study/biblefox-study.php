@@ -93,7 +93,7 @@
 		if (current_user_can(BFOX_USER_LEVEL_MANAGE_USERS)) bfox_join_request_menu();
 		include('my-blogs.php');
 	}
-	
+
 	function bfox_plan()
 	{
 		bfox_create_plan();
@@ -103,7 +103,7 @@
 	{
 		require_once("manage-plans.php");
 	}
-	
+
 	function bfox_share()
 	{
 		echo "<h2>Share with Friends</h2>";
@@ -114,23 +114,23 @@
 		require_once("bfox-translations.php");
 		bfox_translations_page();
 	}
-	
+
 	function bfox_admin_tools()
 	{
 		require_once("bfox-setup.php");
 		bfox_initial_setup();
 	}
-	
+
 	function bfox_study_init()
 	{
 		require_once("bfox-include.php");
-		
+
 		add_action('admin_menu', 'bfox_study_menu');
 
 		bfox_query_init();
 		bfox_widgets_init();
 	}
-	
+
 	function bfox_read()
 	{
 		require_once('read.php');

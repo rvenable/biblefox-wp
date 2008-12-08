@@ -102,7 +102,7 @@ How often will you be reading this plan?<br/>
 </form>
 <?php
 	}
-	
+
 	function bfox_get_sections_slow($text, $size)
 	{
 		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
@@ -126,7 +126,7 @@ How often will you be reading this plan?<br/>
 	{
 		// Divide the plan into 3 columns
 		$originals = bfox_divide_into_cols($plan->refs, $num_cols, 5);
-		
+
 		$headers = '<th width="1*"></th><th width="10*">Passage</th>';
 		if (isset($plan->dates))
 		{
@@ -192,7 +192,7 @@ How often will you be reading this plan?<br/>
 		$content .= '</tr></table>';
 		return $content;
 	}
-	
+
 	function bfox_blog_reading_plans($plans, $can_edit = false, $num_cols = 3)
 	{
 		global $bfox_plan;
@@ -213,7 +213,7 @@ How often will you be reading this plan?<br/>
 		}
 		return $content;
 	}
-	
+
 	function bfox_get_reading_plan_status()
 	{
 		global $bfox_plan;
@@ -240,7 +240,7 @@ How often will you be reading this plan?<br/>
 	function bfox_plan_summaries($blog_id = 0)
 	{
 		global $bfox_plan_progress, $bfox_specials;
-		
+
 		if (!$blog_id) $blog_id = $GLOBALS['blog_id'];
 
 		$blog_plan = new PlanBlog($blog_id);
@@ -293,7 +293,7 @@ How often will you be reading this plan?<br/>
 			echo "<br/>";
 		}
 	}
-	
+
 	function bfox_progress_page()
 	{
 		global $user_ID;
@@ -370,11 +370,11 @@ How often will you be reading this plan?<br/>
 					if ($refs->is_valid()) $plan['refs_array'][] = $refs;
 					$index++;
 				}
-				
+
 				// If we didn't actually make any changes to the refs_array then there is no need to send it
 				if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
 					unset($plan['refs_array']);
-				
+
 				$bfox_plan->edit_plan((object) $plan);
 			}
 			else
@@ -389,7 +389,7 @@ How often will you be reading this plan?<br/>
 				$bfox_plan->add_new_plan((object) $plan);
 			}
 		}
-		
+
 		if (isset($_GET['plan_id']))
 		{
 			if ($_GET['action'] == 'delete')

@@ -99,7 +99,7 @@ case 'editedplan':
 	$group_refs = new BibleRefs((string) $_POST['plan_group_passages']);
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
-		
+
 	$plan = array();
 	$plan['id'] = $plan_id;
 	$plan['name'] = stripslashes($_POST['plan_name']);
@@ -108,32 +108,32 @@ case 'editedplan':
 	$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
 	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
-		
+
 	// Create the refs array
 	$index = 0;
 	$is_edited = false;
 	foreach ($sections as $section)
 	{
 		$section = trim($section);
-		
+
 		// Determine if the text we got from input is different from the text already saved for this plan
 		if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
 			$is_edited = true;
-		
+
 		$refs = new BibleRefs($section);
 		if ($refs->is_valid()) $plan['refs_array'][] = $refs;
 		$index++;
 	}
-	
+
 	// If we didn't actually make any changes to the refs_array then there is no need to send it
 /*	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
 		unset($plan['refs_array']);*/
 
 	// Add the group chunk refs to the refs array
 	$plan['refs_array'] = array_merge($plan['refs_array'], $group_refs->get_sections($section_size));
-	
+
 	$bfox_plan->edit_plan((object) $plan);
-	
+
 	wp_redirect($bfox_page_url . '&action=edit&plan_id=' . $plan_id . '&message=3');
 
 	exit;

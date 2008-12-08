@@ -1,7 +1,7 @@
 <?php
 
 	/*
-	 Class for common plan functionality 
+	 Class for common plan functionality
 	 */
 	class Plan
 	{
@@ -17,7 +17,7 @@
 					(!isset($this->data_table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->data_table_name'") == $this->data_table_name)) &&
 					(!isset($this->user_table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->user_table_name'") == $this->user_table_name)));
 		}
-		
+
 		function get_plan_text($plan_id)
 		{
 			$refs = $this->get_plan_refs($plan_id);
@@ -34,7 +34,7 @@
 
 			$unread = array();
 			$read = array();
-			
+
 			if (isset($this->data_table_name))
 			{
 				global $wpdb;
@@ -81,7 +81,7 @@
 				// Convert any remaining sets to BibleRefs
 				if (0 < count($unread_sets)) $unread[$period_id] = new BibleRefs($unread_sets);
 				if (0 < count($read_sets)) $read[$period_id] = new BibleRefs($read_sets);
-				
+
 			}
 
 			$group = array();
@@ -110,7 +110,7 @@
 				global $wpdb;
 				if (null != $plan_id) $where = $wpdb->prepare('WHERE id = %d', $plan_id);
 				$plans = $wpdb->get_results("SELECT * from $this->plan_table_name $where");
-				
+
 				if (isset($this->blog_id))
 				{
 					foreach ($plans as &$plan)
@@ -170,7 +170,7 @@
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-			
+
 			$sql = '';
 
 			if (isset($this->plan_table_name))
@@ -186,7 +186,7 @@
 				PRIMARY KEY  (id)
 				);";
 			}
-			
+
 			if (isset($this->data_table_name))
 			{
 				$sql .= "CREATE TABLE $this->data_table_name (
@@ -248,24 +248,24 @@
 			if (is_array($users)) return $users;
 			return array();
 		}
-		
+
 		function add_new_plan($plan)
 		{
 			if (isset($this->plan_table_name))
 			{
 				global $wpdb;
-				
+
 				// If the table doesn't exist, create it
 				if ($wpdb->get_var("SHOW TABLES LIKE '$this->plan_table_name'") != $this->plan_table_name)
 					$this->create_tables();
-				
+
 				// Calculate the end date
 				$dates = $this->get_dates($plan, count($plan->refs_array));
 				if (0 < count($dates))
 					$plan->end_date = date('m/d/Y', $dates[count($dates) - 1]);
 				else
 					$plan->end_date = date('m/d/Y', current_time('timestamp'));
-				
+
 				// Update the plan table
 				if (!isset($plan->name) || ('' == $plan->name)) $plan->name = 'Plan ' . $plan_id;
 				$insert = $wpdb->prepare("INSERT INTO $this->plan_table_name
@@ -296,7 +296,7 @@
 					$plan->end_date = date('m/d/Y', $dates[count($dates) - 1]);
 				else
 					$plan->end_date = date('m/d/Y', current_time('timestamp'));
-				
+
 				// Update the plan table
 				$set_array = array();
 				if (isset($plan->name)) $set_array[] = $wpdb->prepare('name = %s', $plan->name);
@@ -336,13 +336,13 @@
 				}
 			}
 		}
-		
+
 		function insert_refs_array($plan_id, $plan_refs_array)
 		{
 			if (isset($this->data_table_name))
 			{
 				global $wpdb;
-				
+
 				$period_id = 0;
 				foreach ($plan_refs_array as $plan_refs)
 				{
@@ -353,7 +353,7 @@
 						$wpdb->query($insert);
 						$ref_id++;
 					}
-					
+
 					$period_id++;
 				}
 			}
@@ -365,7 +365,7 @@
 			$orig_refs_object = $this->get_plan_refs($plan_id);
 			$plan_list = array();
 			$plan_list['original'] = $orig_refs_object->unread;
-			
+
 			if ($add_progress)
 			{
 				// Get the plan progress for the current user
@@ -393,12 +393,12 @@
 			}
 			return $is_valid;
 		}
-		
+
 		function get_dates(&$plan, $count = 0)
 		{
 			// Get today according to the local blog settings, formatted as an integer number of seconds
 			$now = (int) date('U', strtotime(bfox_format_local_date('today')));
-			
+
 			$frequency_str = $this->frequency[$plan->frequency];
 			$dates = array();
 			$date = strtotime($plan->start_date);
@@ -415,7 +415,7 @@
 					}
 					while (!$this->is_valid_date($date, $plan) && ($inc_count < 7));
 				}
-				
+
 				if ($now < (int) date('U', $date))
 				{
 					if (!isset($plan->next_reading)) $plan->next_reading = $index;
@@ -462,9 +462,9 @@
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-			
+
 			$sql = '';
-			
+
 			if (isset($this->plan_table_name))
 			{
 				$sql .= "CREATE TABLE $this->plan_table_name (
@@ -474,7 +474,7 @@
 				PRIMARY KEY  (id)
 				);";
 			}
-			
+
 			if (isset($this->data_table_name))
 			{
 				$sql .= "CREATE TABLE $this->data_table_name (
@@ -488,7 +488,7 @@
 				PRIMARY KEY  (id)
 				);";
 			}
-			
+
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			dbDelta($sql);
 		}
@@ -514,7 +514,7 @@
 											 (blog_id, original_plan_id)
 											 VALUES (%d, %d)",
 											 $blog_id, $original_plan_id);
-					
+
 					// Insert and get the plan ID
 					$wpdb->query($insert);
 					$plan_id = $wpdb->insert_id;
@@ -533,7 +533,7 @@
 				{
 					global $wpdb;
 					$src_table = $bfox_plan->get_data_table_name();
-					
+
 					if ($wpdb->get_var("SHOW TABLES LIKE '$src_table'") == $src_table)
 					{
 						$insert = $wpdb->prepare("INSERT INTO $this->data_table_name
@@ -546,7 +546,7 @@
 						$wpdb->query($insert);
 					}
 				}
-				
+
 				// For each scripture they had read previously, mark as read again
 				if (isset($old_refs))
 					foreach ($old_refs->read as $refs) $this->mark_as_read($refs, $plan_id);
@@ -579,7 +579,7 @@
 			{
 				$read_start = $unique_ids[0];
 				$read_end = $unique_ids[1];
-				
+
 				// Find all plan refs, where one of the unique ids is between the start and end verse
 				// or where both the start and end verse are inside of the unique ids
 				$select = $wpdb->prepare("SELECT *
@@ -671,14 +671,14 @@
 			/*
 			 $plan_refs ordered by start, end
 			 $read_refs ordered by start and there can't have overlapping references
-			 
+
 			 a1,a2
 			 skip all that end before a1
 			 everything else that starts before or at a2 overlaps
 
 			 everything else that ends before or at a2 overlaps
 			 everything else that ends after a2 overlaps if it starts before or at a2
-			 while 
+			 while
 			$read_ref = array_pop($read_refs);
 			$start_index = 0;
 			$end_index = 0;
@@ -699,7 +699,7 @@
 						$new_unread_ref->start = $unread_start;
 						$new_unread_ref->end = $read_refs[$index]->start - 1;
 						$divs[] = $new_unread_ref;
-						
+
 						$new_read_ref->start = $read_refs[$index]->start;
 					}
 					else
@@ -721,7 +721,7 @@
 		}
 		 */
 	}
-	
+
 	global $bfox_plan;
 	$bfox_plan = new PlanBlog();
 	global $bfox_plan_progress;

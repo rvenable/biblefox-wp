@@ -19,7 +19,7 @@
 		{
 			$text = $attrs['text'];
 			unset($attrs['text']);
-			
+
 			$link = '<a';
 			foreach ($attrs as $key => $value) $link .= " $key='$value'";
 			return $link . '>' . $text . '</a>';
@@ -61,10 +61,10 @@
 			if (!isset($attrs['text'])) $attrs['text'] = $ref_str;
 			if (!isset($attrs['bible_ref'])) $attrs['bible_ref'] = $ref_str;
 			if (isset($attrs['no_href'])) unset($attrs['href']);
-			
+
 			return $this->link($attrs);
 		}
-		
+
 	}
 
 	global $bfox_links;

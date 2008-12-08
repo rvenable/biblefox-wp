@@ -3,11 +3,11 @@
 	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
 	{
 		global $wpdb;
-		
+
 		$ref_where = $refs->sql_where();
 		$table_name = bfox_get_verses_table_name($version_id);
 		$verses = $wpdb->get_results("SELECT verse_id, verse FROM " . $table_name . " WHERE $ref_where");
-		
+
 		$content = '';
 		foreach ($verses as $verse)
 		{
@@ -22,7 +22,7 @@
 
 	/**
 	 * Returns an output string with scripture text for the Scripture Quick View
-	 * 
+	 *
 	 * Includes a Table of Contents at the bottom.
 	 *
 	 * @param BibleRefs $refs
@@ -32,7 +32,7 @@
 	function bfox_get_ref_content_quick(BibleRefs $refs, $limit = 5)
 	{
 		$is_full = FALSE;
-		
+
 		// Only get the scripture text output if we haven't exceeded the chapter limit
 		$num_chapters = $refs->get_num_chapters();
 		if ($limit >= $num_chapters)
@@ -44,32 +44,32 @@
 
 		// Add the Table of Contents to the end of the output
 		$content .= $refs->get_toc($is_full);
-		
+
 		return $content;
 	}
-	
+
 	// Function for echoing scripture
 	function bfox_echo_scripture($version_id, BibleRefs $ref)
 	{
 		$content = bfox_get_ref_content($ref, $version_id);
 		echo $content;
 	}
-	
+
 	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
 	{
 		$begin = $table_name . '.' . $verse_begin;
 		$end = $table_name . '.' . $verse_end;
 		return $refs->sql_where2($begin, $end);
 	}
-	
+
 	function bfox_get_posts_for_refs(BibleRefs $refs)
 	{
 		global $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
-		
+
 		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
 			return array();
-		
+
 		$equation = bfox_get_posts_equation_for_refs($refs);
 		if ('' != $equation)
 			return $wpdb->get_col("SELECT post_id
@@ -78,10 +78,10 @@
 								  ON $table_name.post_id = $wpdb->posts.ID
 								  WHERE $wpdb->posts.post_type = 'post'
 								  AND $equation");
-		
+
 		return array();
 	}
-	
+
 	function bfox_get_post_bible_refs($post_id = 0)
 	{
 		global $wpdb;
@@ -96,7 +96,7 @@
 
 		return (new BibleRefs($sets));
 	}
-	
+
 	function bfox_get_ref_menu(BibleRefs $refs, $header = true, $scripture_links = NULL)
 	{
 		$home_dir = get_option('home');
@@ -121,7 +121,7 @@
 			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)';
 			if ($header) $menu .= '<br/><a href="http://www.biblegateway.com/passage/?search=' . $refStr . '&version=31" target="_blank">Read on BibleGateway</a>';
 			$menu .= '</small>';
-			
+
 			$write_link = $refs->get_link('Write about this passage', 'write');
 		}
 		else $menu .= '<small><a href="' . $home_dir . '/wp-login.php">Login</a> to track your bible reading</small>';
@@ -133,19 +133,19 @@
 			$previous_refs = new BibleRefs($refs->get_sets());
 			$next_refs->increment(1);
 			$previous_refs->increment(-1);
-			
+
 			$scripture_links = array();
 			$scripture_links['next'] = $next_refs->get_link($next_refs->get_string() . ' >');
 			$scripture_links['previous'] = $previous_refs->get_link('< ' . $previous_refs->get_string());
 		}
-		
+
 		$menu .= '<table width="100%"><tr>';
 		$menu .= '<td align="left" width="33%">' . $scripture_links['previous'] . '</td>';
 		$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
 		$menu .= '<td align="right" width="33%">' . $scripture_links['next'] . '</a></td>';
 		$menu .= '</tr>';
 		$menu .= '</table>';
-		
+
 		return $menu;
 	}
 
@@ -174,7 +174,7 @@
 		$previous_refs = new BibleRefs($ref->get_sets());
 		$next_refs->increment(1);
 		$previous_refs->increment(-1);
-		
+
 		$scripture_links = array();
 		$next_link = '<input type="button" class="button bible-ref-link" bible_ref="' . $next_refs->get_string() . '" value="' . $next_refs->get_string() . ' >">';
 		$previous_link = '<input type="button" class="button bible-ref-link" bible_ref="' . $previous_refs->get_string() . '" value="< ' . $previous_refs->get_string() . '">';

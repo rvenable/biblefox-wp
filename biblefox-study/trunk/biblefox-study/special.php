@@ -110,7 +110,7 @@
 		function get_reading_plans($args = array())
 		{
 			$content = '';
-			
+
 			// Get the plans for this bible blog
 			global $bfox_plan;
 			$plans = $bfox_plan->get_plans($args[BFOX_QUERY_VAR_PLAN_ID]);
@@ -122,10 +122,10 @@
 			{
 				$content = bfox_plan_summaries($blog_id);
 			}
-			
+
 			return $content;
 		}
-		
+
 		function get_current_readings($args)
 		{
 			if (!isset($args['limit'])) $args['limit'] = 1;
@@ -168,10 +168,10 @@
 			{
 				$content .= __('This blog has no Bible reading plans.');
 			}
-			
+
 			return $content;
 		}
-		
+
 		function get_my_reading()
 		{
 			global $blog_id;
@@ -181,7 +181,7 @@
 		function get_join()
 		{
 			global $bfox_message, $blog_id, $user_ID;
-			
+
 			if (0 < $user_ID)
 			{
 				if (is_user_member_of_blog($user_ID, $blog_id))
@@ -193,7 +193,7 @@ CONTENT;
 				else
 				{
 					$requests = $bfox_message->get_join_requests($user_ID, $blog_id);
-					
+
 					if ((0 == count($requests)) && (isset($_POST['send_request'])))
 					{
 						$bfox_message->send_join_request($blog_id);
@@ -231,23 +231,23 @@ CONTENT;
 			}
 			//'} stupid comment for xcode to color correctly
 
-			
+
 			return $content;
 		}
-		
+
 		function get_my_history()
 		{
 			$content = '';
 
 			// Get the recently read scriptures
 			$content .= bfox_get_recent_scriptures_output(10, true);
-			
+
 			// Get the recently viewed scriptures
 			$content .= bfox_get_recent_scriptures_output(10, false);
-			
+
 			return $content;
 		}
-		
+
 		function get_updates($args)
 		{
 			// This function uses an instance of WP_Query to get the latest posts
@@ -281,10 +281,10 @@ CONTENT;
 				$content .= '</table>';
 			}
 			wp_reset_query();  // Restore global post data stomped by the_post().
-			
+
 			return $content;
 		}
-		
+
 		function add_to_posts(&$posts, $args = array())
 		{
 			$page_name = $args[BFOX_QUERY_VAR_SPECIAL];
@@ -295,7 +295,7 @@ CONTENT;
 				$func = $this->pages[$page_name]['content_cb'];
 				if (is_callable($func)) $page['post_content'] = call_user_func($func, $args);
 				else $page['post_content'] = '';
-				
+
 				$page['post_title'] = $this->pages[$page_name]['title'];
 				$page['post_type'] = $this->pages[$page_name]['type'];
 
@@ -345,15 +345,15 @@ CONTENT;
 	function bfox_get_discussions($atts)
 	{
 		global $wpdb, $comment, $authordata;
-		
+
 		extract(shortcode_atts(array(
 			'limit' => 0),
 			$atts));
-		
+
 		// Create the limit portion of the sql
 		if (0 < $limit) $limit = $wpdb->prepare('LIMIT %d', $limit);
 		else $limit = '';
-		
+
 		// The post select statement (will be unioned with the comment select)
 		// Only select posts that are published
 		$pselect = "SELECT
@@ -403,7 +403,7 @@ CONTENT;
 			// Only show the date once per each day
 			if ($prev_date == $date) $date = '';
 			else $prev_date = $date;
-			
+
 			if ($result->is_post)
 			{
 				// Format posts as "[post_author_name_link] posted [post_name_link] at [time]"
@@ -436,9 +436,9 @@ CONTENT;
 			$content .= "<tr><td>$date</td><td>$author $action $post_link at $time</td></tr>";
 		}
 		$content .= '</table></div>';
-		
+
 		return $content;
 	}
 	add_shortcode('discussions', 'bfox_get_discussions');
-	
+
 ?>

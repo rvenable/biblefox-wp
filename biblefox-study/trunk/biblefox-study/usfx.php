@@ -14,9 +14,9 @@
 		private $attr_counts = array();
 		private $paragraph_tags = array();
 		private $reader;
-		
+
 		private $vs = array();
-		
+
 /*		class Element
 		{
 			function open()
@@ -66,7 +66,7 @@
 			foreach ($this->tag_conv as $tag => $data) $this->element_cbs[$tag] = 'tag_conv';
 
 			$this->tag_conv_empty = array('b' => array('br', 'class="bible-poetry"'));
-			
+
 			foreach ($this->tag_conv_empty as $tag => $data) $this->element_cbs[$tag] = 'tag_conv_empty';
 
 			$this->load_schema();
@@ -76,7 +76,7 @@
 		{
 			$reader = new XMLReader();
 			$reader->open(BFOX_DIR . '/usfx-2005-09-08.xsd.xml');
-			
+
 			$elements = array();
 			while ($reader->read())
 			{
@@ -92,7 +92,7 @@
 				}
 			}
 			$reader->close();
-			
+
 			foreach ($elements as $element => $description)
 				$this->add_element($element, $description);
 			$this->usfx_elements = $elements;
@@ -148,19 +148,19 @@
 
 			// The id attribute holds the chapter ID, but we are just incrementing anyway, so we don't need it
 			$this->get_attribute('id');
-			
+
 			$this->vs['chapter']++;
 			$this->vs['verse'] = 0;
 			$this->vs['text'] .= '<p class="bible-chapter-id">' . $this->vs['book_name'] . ' ' . $this->vs['chapter'] . '</p>';
 		}
-		
+
 		function open_verse()
 		{
 			$this->save_verse();
-			
+
 			// The id attribute holds the verse ID, but we are just incrementing anyway, so we don't need it
 			$this->get_attribute('id');
-			
+
 			$this->vs['verse']++;
 		}
 
@@ -196,22 +196,22 @@
 			$tag = array_pop($this->paragraph_tags);
 			$this->vs['text'] .= "</$tag>";
 		}
-		
+
 		function open_poetry()
 		{
 			$level = (int) $this->get_attribute('level');
-			
+
 			if ((1 != $level) && (2 != $level))
 				$this->invalidate_attribute('level');
-			
+
 			$this->vs['text'] .= '<p class="bible-poetry-level-' . $level . '">';
 		}
-		
+
 		function close_poetry()
 		{
 			$this->vs['text'] .= '</p>';
 		}
-		
+
 		function open_tag_conv()
 		{
 			// Ignoring the following attributes
@@ -235,19 +235,19 @@
 					$this->get_attribute('level');
 					break;
 			}
-			
+
 			$tag = $this->tag_conv[$this->element][0];
 			$attr = $this->tag_conv[$this->element][1];
 			if (!empty($attr)) $tag .= ' ' . $attr;
 			$this->vs['text'] .= "<$tag>";
 		}
-		
+
 		function close_tag_conv()
 		{
 			$tag = $this->tag_conv[$this->element][0];
 			$this->vs['text'] .= "</$tag>";
 		}
-		
+
 		function open_tag_conv_empty()
 		{
 			$tag = $this->tag_conv_empty[$this->element][0];
@@ -255,7 +255,7 @@
 			if (!empty($attr)) $tag .= ' ' . $attr;
 			$this->vs['text'] .= "<$tag/>";
 		}
-		
+
 		function get_callback($prefix, $element)
 		{
 			if (isset($this->element_cbs[$element]))
@@ -288,10 +288,10 @@
 				if (!isset($this->attr_counts[$element][$attribute])) $this->attr_counts[$element][$attribute] = array();
 				$this->attr_counts[$element][$attribute][$value]++;
 			}
-			
+
 			$this->invalid_attr_counts = $this->attr_counts;
  */
-			
+
 		}
 
 		function clear_attributes($element)
@@ -339,7 +339,7 @@
 					$total += $attr_total;
 				}
 			}
-			
+
 			return "Attributes:$total<ul>$str</ul>";
 		}
 
@@ -369,7 +369,7 @@
 		{
 			if (empty($file)) $file = BFOX_TRANSLATIONS_DIR . '/web-usfx.xml';
 			$this->reader->open($file);
-			
+
 			while ($this->reader->read())
 			{
 				if (XMLReader::ELEMENT == $this->reader->nodeType)
@@ -409,7 +409,7 @@
 
 			$this->reader->close();
 		}
-		
+
 		function echo_stats()
 		{
 			if (0 < count($this->verses))

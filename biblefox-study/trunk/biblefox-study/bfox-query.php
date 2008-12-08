@@ -75,9 +75,9 @@
 		// HACK: This special page stuff should really happen in bfox_parse_query, but WP won't call that func if is_home(), so we have to do it here
 		global $bfox_specials;
 		if (($wp_query === $GLOBALS['wp_query']) && ($wp_query->is_home)) $bfox_specials->do_home($wp_query);
-		
+
 		$vars = $wp_query->query_vars;
-		
+
 		if ($wp_query->is_search)
 			$refStrs = $vars['s'];
 		else if ($wp_query->is_bfox_bible_ref)
@@ -100,7 +100,7 @@
 		 HACK:
 		 Keep a global bfox var to remember the most recent instance of WP_Query.
 		 This can be compared against global $wp_query to see if the current instance is the main query (ie. ($bfox_recent_wp_query === $wp_query))
-		 
+
 		 Also note that we are using the $GLOBALS array here to save the reference to the query
 		  (see the warning on http://nz.php.net/manual/en/language.references.whatdo.php )
 		 */
@@ -137,12 +137,12 @@
 
 		return $fields;
 	}
-	
+
 	// Function for modifying the query WHERE statement
 	function bfox_posts_where($where)
 	{
 		global $bfox_bible_refs;
-		
+
 		if (0 < $bfox_bible_refs->get_count())
 		{
 			// NOTE: Searches can currently return unpublished results too!!! (because of this OR)
@@ -161,18 +161,18 @@
 	function bfox_posts_groupby($groupby)
 	{
 		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
-		
+
 		if ((0 < $bfox_bible_refs->get_count()) || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
 		{
 			// Group on post ID
 			$mygroupby = "{$wpdb->posts}.ID";
-			
+
 			// If the grouping we need isn't already there
 			if (!preg_match("/$mygroupby/", $groupby))
 			{
 				if (strlen(trim($groupby)))
 					$groupby .= ', ';
-				
+
 				$groupby .= $mygroupby;
 			}
 		}
@@ -264,28 +264,28 @@
 				// Update the read history to show that we viewed these scriptures
 				global $bfox_history;
 				$bfox_history->update($bfox_bible_refs);
-				
+
 				// Append the new posts onto the beginning of the post list
 				$posts = array_merge($new_posts, $posts);
 
 /*				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
 				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
-				
+
 				if (isset($plan_id) && isset($reading_id))
 				{
 					list($plan) = $bfox_plan->get_plans($plan_id);
 					if (isset($plan[$reading_id])) $reading = $plan[$reading_id];
 				}
-				
+
 				// If there are bible references, then we should display them as posts
 				// So we create an array of posts with scripture and add that to the current array of posts*/
-				
+
 			}
 			else if (0 < $bfox_bible_refs->get_count())
 			{
 				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
 				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
-				
+
 				if (isset($plan_id) && isset($reading_id))
 				{
 					list($plan) = $bfox_plan->get_plans($plan_id);
@@ -312,14 +312,14 @@
 					// Turn off comments
 					$new_post['comment_status'] = 'closed';
 					$new_post['ping_status'] = 'closed';
-					
+
 					$new_posts[] = ((object) $new_post);
 				}
-				
+
 				// Update the read history to show that we viewed these scriptures
 				global $bfox_history;
 				$bfox_history->update($bfox_bible_refs);
-				
+
 				// Append the new posts onto the beginning of the post list
 				$posts = array_merge($new_posts, $posts);
 			}
@@ -343,7 +343,7 @@
 					$new_post['post_type'] = BFOX_QUERY_VAR_SPECIAL;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
-					
+
 					// Append the new posts onto the beginning of the post list
 					$posts = array_merge(array((object) $new_post), $posts);
 				}
@@ -377,15 +377,15 @@
 	function bfox_special_syntax($data)
 	{
 		global $bfox_specials;
-		
+
 //		bfox_create_synonym_data();
 //		$data = bfox_process_html_text($data, 'bfox_ref_replace');
-		
+
 		$special_chars = array('footnote' => array('open' => '((', 'close' => '))'),
 							   'footnote_xml' => array('open' => '<footnote>', 'close' => '</footnote>'),
 							   'content' => array('open' => '{{', 'close' => '}}'),
 							   'link' => array('open' => '[[', 'close' => ']]'));
-		
+
 		foreach ($special_chars as $type => $type_info)
 		{
 			$offset = 0;
@@ -395,7 +395,7 @@
 
 			// XML footnotes function exactly like regular footnotes
 			if ('footnote_xml' == $type) $type = 'footnote';
-			
+
 			// Loop through each special char
 			while (1 == preg_match("/" . preg_quote($open, '/') . "(.*?)" . preg_quote($close, '/') . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
 			{
@@ -404,7 +404,7 @@
 				$pattern = (string) $matches[0][0];
 				$note_text = (string) $matches[1][0];
 				$index++;
-				
+
 				if ('footnote' == $type)
 				{
 					// Update the footnotes section string
@@ -439,19 +439,19 @@
 						$replacement = $bfox_specials->get_link($page_name, $params);
 					}
 				}
-				
+
 
 				// Modify the data with the replacement text
 				$data = substr_replace($data, $replacement, $offset, strlen($pattern));
-				
+
 				// Skip the rest of the replacement string
 				$offset += strlen($replacement);
 			}
 		}
-		
+
 		// Add the footnotes section to the end of the data
 		if (isset($footnotes)) $data .= "<h3>Footnotes</h3><ul>" . $footnotes . "</ul>";
-		
+
 		return $data;
 	}
 
@@ -468,7 +468,7 @@
 	function bfox_get_edit_post_link($link)
 	{
 		$post = &get_post($id);
-		
+
 		// If this post is actually scripture then we should change the
 		// edit post link to be a link to write a new post about this scripture
 		if (isset($post->bible_ref_str))
@@ -498,5 +498,5 @@
 		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 		add_action('template_redirect', 'bfox_template_redirect');
 	}
-	
+
 ?>

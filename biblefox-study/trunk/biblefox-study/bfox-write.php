@@ -1,11 +1,11 @@
 <?php
-	
+
 	function bfox_create_bible_ref_table()
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
 
-		$table_name = 
+		$table_name =
 		$sql = "CREATE TABLE " . BFOX_TABLE_BIBLE_REF . " (
 				post_id int,
 				ref_order int,
@@ -50,13 +50,13 @@
 		$refs = new BibleRefs;
 		if (isset($_GET['bible_ref']))
 			$refs->push_string($_GET['bible_ref']);
-		
+
 		if (!$refs->is_valid())
 		{
 			global $post_ID;
 			$refs = bfox_get_post_bible_refs($post_ID);
 	 	}
-	 	
+
 	 	return $refs;
 	}
 
@@ -82,7 +82,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 	<?php
 
 	}
-	
+
 	/**
 	 * Function for creating the form displaying the scripture quick view
 	 *

@@ -13,7 +13,7 @@
 		{
 			global $wpdb;
 			$results = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
-			
+
 			$rows = '';
 			if (is_array($results))
 			{
@@ -29,7 +29,7 @@
 				echo '</tr>' . $rows . '</table>';
 			}
 		}
-		
+
 		/*
 		 Upgrade function for DB tables
 		 */
@@ -40,7 +40,7 @@
 			foreach ($blogs as $blog)
 			{
 				echo "<strong>Upgrading Blog {$blog['blog_id']}...</strong><br/>";
-				
+
 				$plan = new PlanBlog($blog['blog_id']);
 				if ($plan->are_tables_installed())
 				{
@@ -49,20 +49,20 @@
 					$plan->reset_end_dates();
 				}
 			}
-			
+
 			global $wpdb;
 			$users = $wpdb->get_col("SELECT ID FROM $wpdb->users");
 			foreach ($users as $user_id)
 			{
 				echo "<strong>Upgrading User $user_id...</strong><br/>";
-				
+
 				$history = new History($user_id);
 				if ($history->are_tables_installed())
 				{
 					echo "Upgrading History<br/>";
 					$history->create_tables();
 				}
-				
+
 				$plan = new PlanProgress($user_id);
 				if ($plan->are_tables_installed())
 				{
@@ -79,7 +79,7 @@
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-			
+
 			$sql = "CREATE TABLE " . BFOX_BOOKS_TABLE . " (
 			id int,
 			name varchar(128),
@@ -87,7 +87,7 @@
 			short_name varchar(5),
 			PRIMARY KEY  (id)
 			);";
-			
+
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			dbDelta($sql);
 		}
@@ -101,18 +101,18 @@
 			$file = BFOX_SETUP_DIR . "/books.txt";
 			$delimiter = ",";
 			$table_name = BFOX_BOOKS_TABLE;
-			
+
 			define(DIEONDBERROR, '');
-			
+
 			// Create the books table
 			echo 'Creating Books Table<br/>';
 			$this->create_books_table();
-			
+
 			// Delete everything in the books table because we want to fill it completely with fresh data
 			echo 'Deleting and previous data in the Books Table<br/>';
 			$sql = $wpdb->prepare("DELETE FROM $table_name");
 			$wpdb->query($sql);
-			
+
 			// Load the data file into the table using a LOAD DATA statement
 			echo 'Filling the Books Table<br/>';
 			global $wpdb;
@@ -122,9 +122,9 @@
 								  (id, name, wiki_name, short_name)",
 								  $file,
 								  $delimiter);
-			
+
 			$wpdb->query($sql);
-			
+
 			$this->echo_table(BFOX_BOOKS_TABLE);
 		}
 
@@ -135,7 +135,7 @@
 		{
 			global $wpdb;
 			$books = $wpdb->get_results("SELECT id, name FROM " . BFOX_BOOKS_TABLE);
-			
+
 			$book_names = array();
 			foreach ($books as $book)
 			{
@@ -151,18 +151,18 @@
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-			
+
 			$sql = "CREATE TABLE " . BFOX_SYNONYMS_TABLE . " (
 			id int,
 			book_id int,
 			synonym varchar(128),
 			PRIMARY KEY  (id)
 			);";
-			
+
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			dbDelta($sql);
 		}
-		
+
 		/*
 		 Fills the synonyms table with data from setup/syns.txt
 		 */
@@ -171,27 +171,27 @@
 			global $wpdb;
 			$file = BFOX_SETUP_DIR . "/syns.txt";
 			$table_name = BFOX_SYNONYMS_TABLE;
-			
+
 			// Read the file into the array $lines
 			$lines = file($file);
 			$num_lines = count($lines);
-			
+
 			// Create the synonyms table
 			echo 'Creating Synonyms Table<br/>';
 			$this->create_synonyms_table();
-			
+
 			// Delete everything in the table because we want to fill it completely with fresh data
 			$sql = $wpdb->prepare("DELETE FROM $table_name");
 			$wpdb->query($sql);
-			
+
 			// Get a list of all the book ids in the books table
 			$book_ids = $this->get_book_id_list();
-			
+
 			// Start the synonyms off by adding all the book names
 			$syn_array = array();
 			foreach (array_keys($book_ids) as $book_name)
 			$syn_array[$book_ids[$book_name]] = $book_name;
-			
+
 			// Scan each line of the file to detect synonyms and which books they correspond to
 			$unknowns = '';
 			foreach ($lines as $line)
@@ -199,11 +199,11 @@
 				$line = strtolower($line);
 				$syns = explode(",", $line);
 				$num_syns = count($syns);
-				
+
 				// Find the first synonym that has a book_id
 				$index = 0;
 				while (($index < $num_syns) && (!array_key_exists(trim($syns[$index]), $book_ids))) $index++;
-				
+
 				if ($index < $num_syns)
 				{
 					// If we found a synonym with a book id then we should add all the synonyms on this line
@@ -217,10 +217,10 @@
 					$unknowns .= "$line\n";
 				}
 			}
-			
+
 			// We don't need the file lines anymore
 			unset($lines);
-			
+
 			// Create a list of sql values to insert into the table
 			$sql_values = array();
 			$index = 0;
@@ -239,12 +239,12 @@
 					}
 				}
 			}
-			
+
 			// Perform the insertion
 			$values = implode(', ', $sql_values);
 			$insert = "INSERT INTO $table_name (id, book_id, synonym) VALUES $values";
 			$wpdb->query($insert);
-			
+
 			if ($unknowns != '')
 			{
 				echo "Unknowns: <br/>";
@@ -265,7 +265,7 @@
 			<p>gen lala yoyo 4:5</p>
 			</xml>
 			";
-			
+
 			echo $str;
 			echo bfox_html_strip_tags($str);
 			bfox_create_synonym_data();
@@ -278,7 +278,7 @@
 			bfox_create_translation_data(bfox_get_default_version());
 			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
 		}
-		
+
 		function show_toc()
 		{
 			require_once('bfox-translations.php');
@@ -286,7 +286,7 @@
 		}
 
 		/**
-		 * Takes a bible ref string and uses it to create a BibleRefs to test BibleRefs for different inputs 
+		 * Takes a bible ref string and uses it to create a BibleRefs to test BibleRefs for different inputs
 		 *
 		 * @param string $ref_str Bible Reference string to test
 		 */
@@ -297,7 +297,7 @@
 			// Test setting a BibleRefs by a string
 			$ref = new BibleRefs($ref_str);
 			echo '$ref->get_string(): ' . $ref->get_string() . '<br/>';
-			
+
 			// Test setting a BibleRefs by a set of unique ids
 			$sets = $ref->get_sets();
 			$ref2 = new BibleRefs($sets);
@@ -336,14 +336,14 @@
 		{
 			echo bfox_get_discussions(array());//'limit' => 4));
 		}
-		
+
 	}
-	
+
 	function bfox_initial_setup()
 	{
 		echo '<div class="wrap"><h2>Admin Tools</h2>';
 		bfox_list_admin_tools();
-		
+
 		$tool = $_GET['tool'];
 		if (isset($tool))
 		{
@@ -365,5 +365,5 @@
 		$tools = get_class_methods('BfoxAdminTools');
 		foreach ($tools as $tool) echo '<a href="' . bfox_admin_page_url(BFOX_ADMIN_TOOLS_SUBPAGE) . '&amp;tool=' . $tool . '">' . $tool . '</a><br/>';
 	}
-	
+
 ?>

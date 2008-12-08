@@ -16,15 +16,15 @@
 		$query = $wpdb->prepare("SELECT $col FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
 		return $wpdb->get_var($query);
 	}
-	
+
 	function bfox_find_book_id($synonym)
 	{
 		global $wpdb, $bfox_synonyms;
 		$synonym = strtolower($synonym);
-		
+
 		if (empty($bfox_synonyms)) $book_id = $wpdb->get_var($wpdb->prepare("SELECT book_id FROM " . BFOX_SYNONYMS_TABLE . " WHERE synonym LIKE %s", trim($synonym)));
 		else if (isset($bfox_synonyms[$synonym])) $book_id = $bfox_synonyms[$synonym];
-		
+
 		if (empty($book_id)) return FALSE;
 		return $book_id;
 	}
@@ -62,12 +62,12 @@
 	function bfox_get_chapters($first_verse, $last_verse)
 	{
 		global $wpdb;
-		
+
 		// TODO: We need to let the user pick their own version
 		// Use the default translation until we add user input for this value
 		$version_id = bfox_get_default_version();
 		$table_name = bfox_get_verses_table_name($version_id);
-		
+
 		$query = $wpdb->prepare("SELECT chapter_id
 								FROM $table_name
 								WHERE unique_id >= %d
@@ -78,18 +78,18 @@
 								$last_verse);
 		return $wpdb->get_col($query);
 	}
-	
+
 	function bfox_get_passage_size($first_verse, $last_verse, $group_by = '')
 	{
 		global $wpdb;
 
 		if ('' != $group_by) $group_by = 'GROUP BY ' . $group_by;
-		
+
 		// TODO: We need to let the user pick their own version
 		// Use the default translation until we add user input for this value
 		$version_id = bfox_get_default_version();
 		$table_name = bfox_get_verses_table_name($version_id);
-		
+
 		$query = $wpdb->prepare("SELECT COUNT(*)
 								FROM $table_name
 								WHERE unique_id >= %d
@@ -125,7 +125,7 @@
 			// The word might be a portion of book name (ie, a prefix to the book name),
 			// So we need to detect that using the bfox_syn_prefix array, and save those potential book 'prefixes'
 			if (isset($bfox_synonyms[$pattern_lc])) $book = $pattern;
-			
+
 			// For each prefix we have saved, append the current word and see if we have a synonym
 			// If we have a synonym then we can use that synonym as the book
 			// If we don't, we should see if the new prefix is still a valid prefix
@@ -133,7 +133,7 @@
 			{
 				$prefix .= ' ' . $pattern_lc;
 				if (isset($bfox_synonyms[$prefix])) $book = $prefix;
-				
+
 				// Unset the the prefix if it is no longer valid
 				if (!isset($bfox_syn_prefix[$prefix])) unset($prefixes[$start]);
 			}
@@ -152,14 +152,14 @@
 					$book_name_start = $pattern_start;
 					$pattern_start = (int) $matches[0][1] + $offset;
 					$pattern = (string) $matches[0][0];
-					
+
 					$ref_str = $book . ' ' . $pattern;
 
 					// If this is a valid bible reference, then save it to be replaced later
 					$bible_ref = new BibleRefs($ref_str);
 					if ($bible_ref->is_valid())
 						$bible_refs[$ref_str] = array('ref' => $bible_ref, 'start' => $book_name_start, 'length' => ($pattern_start - $book_name_start) + strlen($pattern));
-					
+
 					// Clear the prefixes
 					$prefixes = array();
 
@@ -178,7 +178,7 @@
 
 		return $text;
 	}
-	
+
 	/*
 	 This class is used to represent a bible reference as a 3 integer vector: book, chapter, verse
 	 */
@@ -220,7 +220,7 @@
 	/*
 	 This class is used to represent a bible reference using the following integer values:
 	 book_id, chapter1, verse1, chapter2, verse2
-	 
+
 	 This form allows easy conversion between the unique ID form (BibleRefSingle) and string input/output
 	 */
 	class BibleRefParsed
@@ -254,15 +254,15 @@
 			// If chapter two is set to max, we should not use it
 			if ((BFOX_UNIQUE_ID_MASK == $chapter2) || ($chapter1 == $chapter2))
 				$chapter2 = 0;
-				
+
 			$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
 		}
-		
+
 		function set_by_string($str)
 		{
 			// Convert all whitespace to single spaces
 			$str = preg_replace('/\s+/', ' ', $str);
-			
+
 			// Find the last dash in the string and use it to divide the ref
 			$dash_left = trim($str);
 			if ($pos = strrpos($dash_left, '-'))
@@ -270,23 +270,23 @@
 				$dash_right = trim(substr($dash_left, $pos + 1));
 				$dash_left = trim(substr($dash_left, 0, $pos));
 			}
-			
+
 			// Parse the left side of the dash
 			$left_colon_list = explode(':', $dash_left);
 			$left_colon_count = count($left_colon_list);
-			
+
 			// We can only have one dash
 			if (2 >= $left_colon_count)
 			{
 				// If there was a dash, then save the right side as an integer verse number
 				if (1 < $left_colon_count)
 					$verse_num = (int) trim($left_colon_list[1]);
-				
+
 				// If we didn't have any problems with the right side of the colon (verse_num)
 				if ((!isset($verse_num)) || (0 < $verse_num))
 				{
 					if (isset($verse_num)) $verse1 = $verse_num;
-					
+
 					// Parse the left side of the colon to get the book name and the chapter num
 					$colon_left = trim($left_colon_list[0]);
 					if ($pos = strrpos($colon_left, ' '))
@@ -301,26 +301,26 @@
 					}
 				}
 			}
-			
+
 			// Parse the right side of the dash if the left side worked (yielding at least a chapter id)
 			if ((isset($dash_right)) && (isset($chapter1)))
 			{
 				$right_colon_list = explode(':', $dash_right);
 				$right_colon_count = count($right_colon_list);
-				
+
 				// We can only have one dash
 				if (2 >= $right_colon_count)
 				{
 					// If there was a dash, then save the right side as an integer
 					if (1 < $right_colon_count)
 						$num2 = (int) trim($right_colon_list[1]);
-					
+
 					// If we didn't have any problems with the right side of the colon (num2)
 					// Then save the left side as an integer
 					if ((!isset($num2)) || (0 < $num2))
 						$num1 = (int) trim($right_colon_list[0]);
 				}
-				
+
 				// If we got at least one integer and it is greater than zero,
 				// then everything went fine on this side of the dash
 				if ((isset($num1)) && (0 < $num1))
@@ -335,7 +335,7 @@
 					{
 						// If there is only one number on the right side of the dash,
 						// then it can be either a chapter or a verse
-						
+
 						// If the left side of the dash yielded a verse2,
 						// then we must have a verse on the right side of the dash also
 						if (isset($verse1)) $verse2 = $num1;
@@ -349,10 +349,10 @@
 					unset($chapter1);
 				}
 			}
-			
+
 			// If we haven't set a book string yet, set it to the original str
 			if (!isset($book_str)) $book_str = $str;
-			
+
 			// Try to find a book id for the book string
 			if ($book_id = bfox_find_book_id(trim($book_str)))
 			{
@@ -360,7 +360,7 @@
 				$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
 			}
 		}
-		
+
 		function get_unique_ids()
 		{
 			// Create the unique ids
@@ -378,17 +378,17 @@
 				 john 1:1-0:2	1:1-1:2			ch1:vs2
 				 john 1:1-5:2	1:1-5:2			ch2:vs2
 				 john 1-5:2		1:0-5:2			ch2:vs2
-				 
+
 				 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
 				 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
 				 */
-				
+
 				if (isset($this->chapter1)) $chapter1 = $this->chapter1;
 				else $chapter1 = 0;
 
 				if (isset($this->verse1)) $verse1 = $this->verse1;
 				else $verse1 = 0;
-				
+
 				// When verse2 is not set: verse2 equals max unless chapter2 is not set and verse1 is set
 				if (isset($this->verse2)) $verse2 = $this->verse2;
 				else $verse2 = ((isset($this->verse1)) && (!isset($this->chapter2))) ? $verse1 : BFOX_UNIQUE_ID_MASK;
@@ -396,7 +396,7 @@
 				// When chapter2 is not set: chapter2 equals chapter1 unless chapter1 is not set
 				if (isset($this->chapter2)) $chapter2 = $this->chapter2;
 				else $chapter2 = (isset($this->chapter1)) ? $chapter1 : BFOX_UNIQUE_ID_MASK;
-				
+
 				// Set the unique IDs according to the book IDs
 				$unique_ids[0] = $unique_ids[1] = $this->book_id << (BFOX_UNIQUE_ID_PART_SIZE * 2);
 
@@ -431,7 +431,7 @@
 				else if (isset($this->verse2))
 					$str .= "-{$this->verse2}";
 			}
-			
+
 			$this->str[$format] = $str;
 			return $this->str[$format];
 		}
@@ -461,7 +461,7 @@
 			{
 				$unique_ids = $value;
 			}
-			
+
 			if (isset($unique_ids))
 			{
 				$this->vectors = array(new BibleRefVector($unique_ids[0]),
@@ -515,18 +515,18 @@
 		{
 			/*
 			 Equation for determining whether one bible reference overlaps another
-			 
+
 			 a1 <= b1 and b1 <= a2 or
 			 a1 <= b2 and b2 <= a2
 			 or
 			 b1 <= a1 and a1 <= b2 or
 			 b1 <= a2 and a2 <= b2
-			 
+
 			 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
 			 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
-			 
+
 			 */
-			
+
 			global $wpdb;
 			return $wpdb->prepare("((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
 								    ((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
@@ -583,7 +583,7 @@
 
 		/**
 		 * Returns the number of chapters in the bible ref (inaccurate)
-		 * 
+		 *
 		 * Results are inaccurate for the bible references that don't have a valid ending chapter.
 		 * For instance, if a bible ref is set to be a whole book, the end chapter will be set to a
 		 * special constant (BFOX_UNIQUE_ID_MASK) instead of the actual last chapter of the book.
@@ -595,7 +595,7 @@
 		{
 			return $this->vectors[1]->values['chapter'] - $this->vectors[0]->values['chapter'] + 1;
 		}
-		
+
 		function shift(BibleRefVector $size_vector)
 		{
 			// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
@@ -644,7 +644,7 @@
 		{
 			$low = $this->vectors[0]->values['chapter'];
 			$high = $this->vectors[1]->values['chapter'];
-			
+
 			// If the first chapter is 0, then it should really be chapter 1
 			if (0 == $low) $low = 1;
 
@@ -659,18 +659,18 @@
 
 			return array($low, $high);
 		}
-		
+
 		/**
 		 * Returns an output string with a Table of Contents for the ref
 		 *
-		 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref 
+		 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref
 		 * @return string Table of Contents
 		 */
 		function get_toc($is_full = FALSE)
 		{
 			global $bfox_links;
 
-			// TODO3: These vars are kind of hacky 
+			// TODO3: These vars are kind of hacky
 			list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
 
 			$book_name = bfox_get_book_name($this->vectors[0]->values['book']);
@@ -691,18 +691,18 @@
 				$toc .= $this->get_string();
 			}
 			$toc .= '<br/>';
-			
+
 			// Loop through the actual chapter numbers for this reference, adding links for each of them
 			foreach (range($low, $high) as $chapter)
 			{
 				if (!empty($links)) $links .= $separator;
 				$links .= $ref_begin . $bfox_links->ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter, 'href' => '#bible-text-progress')) . $ref_end;
 			}
-			
+
 			$toc .= $links . $toc_end;
 			return $toc;
 		}
-		
+
 	}
 
 	/*
@@ -737,7 +737,7 @@
 			}
 			return $refs_array;
 		}
-		
+
 		function get_sets()
 		{
 			$unique_id_sets = array();
@@ -768,7 +768,7 @@
 			global $bfox_links;
 			return $bfox_links->ref_link(array('ref_str' => $this->get_string(), 'text' => $text), $context);
 		}
-		
+
 		function get_links()
 		{
 			global $bfox_links;
@@ -776,7 +776,7 @@
 			foreach ($this->refs as $ref) $links[] = $bfox_links->ref_link($ref->get_string());
 			return implode('; ', $links);
 		}
-		
+
 		/**
 		 * Returns the number of chapters (inaccurate) for the refs by accumulating the number of chapters per ref
 		 *
@@ -788,7 +788,7 @@
 			foreach ($this->refs as $ref) $num_chapters += $ref->get_num_chapters();
 			return $num_chapters;
 		}
-		
+
 		function push_ref_single(BibleRefSingle $ref)
 		{
 			$this->refs[] = $ref;
@@ -891,7 +891,7 @@
 		{
 			// NOTE: This function was supposed to be replaced by using the shift() functions, but they were too slow
 			// It is currently being hacked to work with the new BibleRefs system
-			
+
 			$sections = array();
 			$period = 0;
 			$section = 0;
@@ -903,7 +903,7 @@
 				$chapters = bfox_get_chapters($unique_ids[0], $unique_ids[1]);
 				$num_chapters = count($chapters);
 				$num_sections = (int) floor(($num_chapters + $remainder) / $size);
-				
+
 				$tmpRef['book_id'] = $ref->get_book_id();
 				$chapter1_index = 0;
 				$chapter2_index = $size - $remainder - 1;
@@ -916,37 +916,37 @@
 						$remainderStr = "";
 						$remainder = 0;
 					}
-					
+
 					$tmpRef['chapter1'] = $chapters[$chapter1_index];
 					if ($chapter2_index > $chapter1_index)
 						$tmpRef['chapter2'] = $chapters[$chapter2_index];
 					else $tmpRef['chapter2'] = 0;
-					
+
 					// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
 					// work well with the new BibleRefs system
 					$tmpRefParsed = new BibleRefParsed;
 					$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
 					$tmpRefStr .= $tmpRefParsed->get_string();
-					
+
 					$sections[] = $tmpRefStr;
-					
+
 					$chapter1_index = $chapter2_index + 1;
 					$chapter2_index = $chapter1_index + $size - 1;
 				}
-				
+
 				if ($chapter1_index < $num_chapters)
 				{
 					$remainder += $num_chapters - $chapter1_index;
 					$chapter2_index = $num_chapters - 1;
-					
+
 					$tmpRef['chapter1'] = $chapters[$chapter1_index];
 					if ($chapter2_index > $chapter1_index)
 						$tmpRef['chapter2'] = $chapters[$chapter2_index];
 					else $tmpRef['chapter2'] = 0;
-					
+
 					if ($remainderStr != "")
 						$remainderStr .= ", ";
-					
+
 					// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
 					// work well with the new BibleRefs system
 					$tmpRefParsed = new BibleRefParsed;
@@ -956,7 +956,7 @@
 			}
 			if ($remainderStr != "")
 				$sections[] = $remainderStr;
-			
+
 			$sectionRefs = array();
 			foreach ($sections as $section) $sectionRefs[] = new BibleRefs($section);
 			return $sectionRefs;
@@ -965,7 +965,7 @@
 		/**
 		 * Returns an output string for the Table of Contents for these refs
 		 *
-		 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref 
+		 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref
 		 * @return string Table of Contents
 		 */
 		function get_toc($is_full = FALSE)

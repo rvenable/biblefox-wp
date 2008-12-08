@@ -29,7 +29,7 @@ if ( ! empty($plan_id) ) {
 	echo '<h2>' . __('View Reading Plan') . '</h2><br/>';
 	echo bfox_echo_plan($plan);
 	echo '</div>';
-	
+
 } else {
 	$heading = __('Add Reading Plan');
 	$submit_text = __('Add Reading Plan');

@@ -1,5 +1,5 @@
 <?php
-	
+
 	function bfox_get_installed_translations()
 	{
 		global $wpdb;
@@ -26,7 +26,7 @@
 			}
 		}
 	}
-	
+
 	function bfox_create_translations_table()
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
@@ -60,11 +60,11 @@
 							  PRIMARY KEY  (unique_id)
 							  );",
 							  $verse_size);
-							  
+
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
 	}
-	
+
 	// Adds a translation to the translation table
 	// Returns the id of the new translation
 	function bfox_add_translation($header)
@@ -90,7 +90,7 @@
 			$id = $last_id + 1;
 			$is_default = 0;
 		}
-		
+
 		// Insert the header data for this translation
 		$insert = $wpdb->prepare("INSERT INTO $table_name
 								 (id, short_name, long_name, is_default, is_enabled)
@@ -102,10 +102,10 @@
 								 0);
 
 		$wpdb->query($insert);
-		
+
 		return $id;
 	}
-	
+
 	function bfox_install_bft_file($file_name)
 	{
 		$file = BFOX_TRANSLATIONS_DIR . "/$file_name";
@@ -131,13 +131,13 @@
 
 		// We don't need the file data anymore
 		unset($lines);
-		
+
 		if ($index < $num_lines)
 		{
 			$id = bfox_add_translation($header);
 			$table_name = bfox_get_verses_table_name($id);
 			$delimiter = $header['delim'];
-			
+
 			// Create the table
 			bfox_create_trans_verses_table($table_name, $header['verse_size']);
 
@@ -157,7 +157,7 @@
 								  1);
 
 			define(DIEONDBERROR, '');
-			
+
 			$result = $wpdb->query($sql);
 		}
 	}
@@ -183,10 +183,10 @@
 		$id = bfox_add_translation($header);
 		$table_name = bfox_get_verses_table_name($id);
 		bfox_create_trans_verses_table($table_name);
-		
+
 		bfox_usfx_install($table_name, $file);
 	}
-	
+
 	function bfox_get_bft_files()
 	{
 		$bft_files = array();
@@ -203,7 +203,7 @@
 			}
 		}
 		@closedir($translations_dir);
-		
+
 		return $bft_files;
 	}
 
@@ -230,13 +230,13 @@
 		$wpdb->query($wpdb->prepare("DELETE FROM " . BFOX_TRANSLATIONS_TABLE . " WHERE id = %d", $trans_id));
 		$wpdb->query("DROP TABLE " . bfox_get_verses_table_name($trans_id));
 	}
-	
+
 	function bfox_enable_translation($trans_id)
 	{
 		global $wpdb;
 		$wpdb->query($wpdb->prepare("UPDATE " . BFOX_TRANSLATIONS_TABLE . " SET is_enabled = !(is_enabled) WHERE id = %d", $trans_id));
 	}
-	
+
 	function bfox_translations_action($action)
 	{
 		if ('install' == $action)
@@ -258,7 +258,7 @@
 			bfox_enable_translation($trans_id);
 		}
 	}
-	
+
 	function bfox_translations_page()
 	{
 		if (isset($_GET['action']))
@@ -273,17 +273,17 @@
 	function bfox_create_book_counts_table()
 	{
 		$data_table_name = BFOX_BOOK_COUNTS_TABLE;
-		
+
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-		
+
 		$sql = "CREATE TABLE $data_table_name (
 		trans_id int,
 		book_id int,
 		chapter_id int,
 		value int
 		);";
-		
+
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
 	}
@@ -376,13 +376,13 @@
 		foreach ($bfox_bible_groups['new'] as $book_id)
 		$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
 		$content .= '</ul></div>';
-		
+
 		$content .= '<div id="apocrypha"><h3>Apocryphal Books</h3>';
 		$content .= '<ul>';
 		foreach ($bfox_bible_groups['apocrypha'] as $book_id)
 		$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
 		$content .= '</ul></div>';
-		
+
 		$content .= '</div>';
 		return $content;
 	}
@@ -428,16 +428,16 @@
 	{
 		bfox_set_book_groups();
 		echo bfox_books_two_cols();
-/*		
+/*
 		global $wpdb;
 		$data = $wpdb->get_results($wpdb->prepare('SELECT book_id, value
 												  FROM ' . BFOX_BOOK_COUNTS_TABLE . '
 												  WHERE trans_id = %d AND chapter_id = 0',
 												  $trans_id));
-		
+
 		foreach ($data as $row)
 			$books[$row->book_id] = $row->value;
-		
+
 		$groups = array('',
 						'old' => array('Old Testament',
 									   'torah' => 'The Books of Moses',
@@ -454,10 +454,10 @@
 									   'revelation' => 'Revelation'),
 						'apocrypha' => 'Apocryphal Books'
 		);
-		
+
 		echo '<center>';
 		echo bfox_show_toc_groups($groups, $books);
 		echo '</center>';*/
 	}
-	
+
 ?>

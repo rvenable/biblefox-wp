@@ -28,7 +28,7 @@
 			global $wpdb;
 			return (!isset($this->table_name) || ($wpdb->get_var("SHOW TABLES LIKE '$this->table_name'") == $this->table_name));
 		}
-		
+
 		function create_tables()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
@@ -46,7 +46,7 @@
 				value BIGINT NULL,
 				PRIMARY KEY  (id)
 				);";
-				
+
 				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
@@ -81,7 +81,7 @@
 			$thread_id = $wpdb->get_var($wpdb->prepare("SELECT id FROM $this->table_name WHERE type = %d AND from_id = %d", $this->types['join_request'], $reply_to_user_id));
 			$this->send_message($thread_id, $user_ID, $reply_to_user_id, 'join_request_reply', $reply_value);
 		}
-		
+
 		function get_join_requests($user_id = NULL, $blog_id = NULL)
 		{
 			global $wpdb;
@@ -102,7 +102,7 @@
 				$requests[$result->id] = $result;
 				$threads[] = $wpdb->prepare('thread_id = %d', $result->id);
 			}
-			
+
 			if (0 < count($threads))
 			{
 				$select = $wpdb->prepare("SELECT * FROM $this->table_name
@@ -121,13 +121,13 @@
 
 	global $bfox_message;
 	$bfox_message = new BfoxMessage();
-	
+
 	function bfox_join_request_menu()
 	{
 		global $blog_id, $bfox_message;
 		if (isset($_POST['accept_users'])) $reply_value = $bfox_message->join_request_status['accepted'];
 		if (isset($_POST['decline_users'])) $reply_value = $bfox_message->join_request_status['declined'];
-		
+
 		$requests = $bfox_message->get_join_requests(NULL, $blog_id);
 
 		$waiting = array();
@@ -171,12 +171,12 @@
 				if (0 < count($messages))
 					echo '<br class="clear"/><div id="message" class="updated fade"><p>' . implode('<br/>', $messages) . '</p></div>';
 			}
-			
+
 			if (0 < count($waiting))
 			{
-				
+
 				echo '<p><strong>The following users request to join this bible study:</strong></p>';
-			
+
 ?>
 <form id="posts-filter" action="" method="post">
 <input type="hidden" name="page" value="<?php echo BFOX_PROGRESS_SUBPAGE; ?>">

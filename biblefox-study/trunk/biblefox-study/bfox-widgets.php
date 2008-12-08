@@ -12,7 +12,7 @@
 		}
 		echo $before_widget . $before_title . $title . $after_title . '<ul>' . $content . '</ul>' . $after_widget;
 	}
-	
+
 	function bfox_widgets_init()
 	{
 		register_sidebar_widget('Special Pages', 'bfox_widget_special_pages');
