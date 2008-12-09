@@ -266,10 +266,18 @@
 			$content .= '</div>';
 			$content .= bfox_bible_view_footer($refs);
 		}
-		else
+		else if (!empty($text))
 		{
 			// Ref not valid, so perform search results
-			$content .= 'Ref not valid!';
+			require_once('bfox-translations.php');
+
+			$content .= bfox_bible_text_search($text);
+/*
+			$content .= bfox_bible_text_search('"' . $text . '"');
+
+			$text = '+' . implode(' +', explode(' ', $text));
+			$content .= bfox_bible_text_search($text);
+*/
 		}
 		$content .= '</div>';
 

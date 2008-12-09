@@ -132,3 +132,8 @@ Scripture Viewer
 	background-color: #E4F2FD;
 }
 
+#bible_search_verse_map {
+	float: left;
+}
+
+

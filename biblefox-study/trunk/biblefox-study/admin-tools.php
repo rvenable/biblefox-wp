@@ -2,18 +2,17 @@
 	// TODO2: This define probably needs to go somewhere else
 	define('BFOX_SETUP_DIR', dirname(__FILE__) . "/setup");
 
-	// TODO2: Rename this file!
 	class BfoxAdminTools
 	{
 
-		/*
-		 Private function for echoing DB tables
+		/**
+		 * Private function for echoing the results of a DB table query
+		 *
+		 * @param unknown_type $results
+		 * @param unknown_type $cols
 		 */
-		private function echo_table($table_name, $cols = NULL)
+		private function echo_table_results($results, $cols = NULL)
 		{
-			global $wpdb;
-			$results = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
-
 			$rows = '';
 			if (is_array($results))
 			{
@@ -28,6 +27,32 @@
 				foreach ($cols as $col) echo '<th>' . $col . '</th>';
 				echo '</tr>' . $rows . '</table>';
 			}
+		}
+
+		/**
+		 * Private function for echoing DB tables
+		 *
+		 * @param unknown_type $table_name
+		 * @param unknown_type $cols
+		 */
+		private function echo_table($table_name, $cols = NULL)
+		{
+			global $wpdb;
+			$results = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
+			$this->echo_table_results($results, $cols);
+		}
+
+		/**
+		 * Private function for echoing the description of a DB table
+		 *
+		 * @param unknown_type $table_name
+		 * @param unknown_type $cols
+		 */
+		private function echo_table_describe($table_name, $cols = NULL)
+		{
+			global $wpdb;
+			$results = $wpdb->get_results("DESCRIBE $table_name", ARRAY_A);
+			$this->echo_table_results($results, $cols);
 		}
 
 		/*
@@ -279,6 +304,18 @@
 			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
 		}
 
+		/**
+		 * Updates the default translation table
+		 *
+		 */
+		function update_trans_table()
+		{
+			require_once('bfox-translations.php');
+			$table_name = bfox_get_verses_table_name(bfox_get_default_version());
+			bfox_create_trans_verses_table($table_name);
+			$this->echo_table_describe($table_name);
+		}
+
 		function show_toc()
 		{
 			require_once('bfox-translations.php');
@@ -339,7 +376,11 @@
 
 	}
 
-	function bfox_initial_setup()
+	/**
+	 * Displays the admin tools menu
+	 *
+	 */
+	function bfox_admin_tools_menu()
 	{
 		echo '<div class="wrap"><h2>Admin Tools</h2>';
 		bfox_list_admin_tools();

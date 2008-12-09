@@ -22,9 +22,20 @@
 	define(BFOX_READ_SUBPAGE, 'bfox-read');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
-	// Uncomment for testing DB queries
-//	define('DIEONDBERROR', 'die!');
-//	$wpdb->show_errors(true);
+	/**
+	 * Hacky function for showing DB errors. Hacked into the wpdb query filter to make sure that the errors always show.
+	 *
+	 * @param unknown_type $query
+	 * @return unknown
+	 */
+	function bfox_show_errors($query)
+	{
+		global $wpdb;
+		define('DIEONDBERROR', 'die!');
+		$wpdb->show_errors(true);
+		return $query;
+	}
+	if (defined('BFOX_TESTBED')) add_filter('query', 'bfox_show_errors');
 
 	function bfox_study_menu()
 	{
@@ -117,8 +128,8 @@
 
 	function bfox_admin_tools()
 	{
-		require_once("bfox-setup.php");
-		bfox_initial_setup();
+		require_once("admin-tools.php");
+		bfox_admin_tools_menu();
 	}
 
 	function bfox_study_init()

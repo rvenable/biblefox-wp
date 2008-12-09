@@ -50,6 +50,9 @@
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
 
+		// Creates a FULLTEXT index on the verse data
+		// TODO2: This should be a translation option, so that we don't automatically have the index for every translation
+
 		global $wpdb;
 		$sql = $wpdb->prepare("CREATE TABLE $table_name (
 							  unique_id int,
@@ -57,7 +60,8 @@
 							  chapter_id int,
 							  verse_id int,
 							  verse varchar(%d),
-							  PRIMARY KEY  (unique_id)
+							  PRIMARY KEY  (unique_id),
+							  FULLTEXT (verse)
 							  );",
 							  $verse_size);
 
@@ -458,6 +462,223 @@
 		echo '<center>';
 		echo bfox_show_toc_groups($groups, $books);
 		echo '</center>';*/
+	}
+
+	/**
+	 * Creates an output string with a table row for each verse in the $results data
+	 *
+	 * @param array $results results from get_results() select statement with verse data
+	 * @param array $words the list of words to highlight as having been used in the search
+	 * @param string $header optional header string
+	 * @return string
+	 */
+	function bfox_output_verses($results, $words, $header = '')
+	{
+		if (0 < count($results))
+		{
+			global $bfox_links;
+
+			if (!empty($header)) $content .= "<tr><td class='verse_header' colspan=2>$header</td></tr>";
+
+			foreach ($words as &$word) $word = '/(' . addslashes(str_replace('+', '', $word)) . ')/i';
+
+			foreach ($results as $result)
+			{
+				$ref_str = bfox_get_book_name($result->book_id) . ' ' . $result->chapter_id . ':' . $result->verse_id;
+				$link = $bfox_links->ref_link($ref_str);
+				$result->verse = strip_tags($result->verse);
+				$result->verse = preg_replace($words, '<strong>$1</strong>', $result->verse);
+				$content .= "<tr><td valign='top' nowrap>$link</td><td>$result->verse</td></tr>";
+			}
+		}
+
+		return $content;
+	}
+
+	/**
+	 * Generates the output string for a verse search map
+	 *
+	 * @param unknown_type $book_counts
+	 * @return unknown
+	 */
+	function bfox_output_verse_map($book_counts)
+	{
+		global $bfox_links;
+
+		$content = '<table>';
+		foreach ($book_counts as $book => $count)
+		{
+			// TODO2: Currently only showing the books, but we should eventually display the book groups too
+			if (!empty($count) && is_int($book))
+			{
+				$book = bfox_get_book_name($book);
+				$link = $bfox_links->ref_link($book);
+				$content .= "<tr><td nowrap>$link</td><td>$count</td></tr>";
+			}
+		}
+		$content .= '</table>';
+
+		return $content;
+	}
+
+	/**
+	 * Performs a regular full text search
+	 *
+	 * @param unknown_type $text
+	 * @return unknown
+	 */
+	function bfox_search_regular($text)
+	{
+		global $wpdb;
+		$table_name = bfox_get_verses_table_name(bfox_get_default_version());
+		$match = $wpdb->prepare("MATCH(verse) AGAINST(%s)", $text);
+		$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $table_name WHERE $match LIMIT 5");
+
+		return $results;
+	}
+
+	/**
+	 * Performs a full text search with query expansion
+	 *
+	 * @param unknown_type $text
+	 * @return unknown
+	 */
+	function bfox_search_expanded($text)
+	{
+		global $wpdb;
+		$table_name = bfox_get_verses_table_name(bfox_get_default_version());
+		$match = $wpdb->prepare("MATCH(verse) AGAINST(%s WITH QUERY EXPANSION)", $text);
+		$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $table_name WHERE verse_id != 0 AND $match LIMIT 5");
+
+		return $results;
+	}
+
+	/**
+	 * Performs a boolean full text search
+	 *
+	 * @param unknown_type $text
+	 * @param unknown_type $limit
+	 * @return unknown
+	 */
+	function bfox_search_boolean($text, $limit = 40)
+	{
+		global $wpdb;
+		$table_name = bfox_get_verses_table_name(bfox_get_default_version());
+		$match = $wpdb->prepare("MATCH(verse) AGAINST(%s IN BOOLEAN MODE)", $text);
+		$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE verse_id != 0 AND $match ORDER BY unique_id ASC LIMIT %d", $limit));
+
+		return $results;
+	}
+
+	/**
+	 * Performs a boolean full text search, but returns results as a list of verse counts per book
+	 *
+	 * @param unknown_type $text
+	 * @param unknown_type $limit
+	 * @return unknown
+	 */
+	function bfox_search_boolean_books($text, $limit = 40)
+	{
+		global $wpdb;
+		$table_name = bfox_get_verses_table_name(bfox_get_default_version());
+		$match = $wpdb->prepare("MATCH(verse) AGAINST(%s IN BOOLEAN MODE)", $text);
+		$sql = "SELECT book_id, COUNT(*) AS count FROM $table_name WHERE verse_id != 0 AND $match GROUP BY book_id";
+		$results = (array) $wpdb->get_results($sql);
+
+		$book_counts = array();
+		foreach ($results as $result) $book_counts[$result->book_id] = $result->count;
+
+		// TODO2: This function should only be called once during init
+		bfox_set_book_groups();
+
+		global $bfox_bible_groups;
+		foreach ($bfox_bible_groups as $name => $book_ids)
+			foreach ($book_ids as $book_id) $book_counts[$name] += $book_counts[$book_id];
+
+		return $book_counts;
+	}
+
+	/**
+	 * Performs several different text searches and formats output to display them
+	 *
+	 * @param string $text search string
+	 * @return string output
+	 */
+	function bfox_bible_text_search($text)
+	{
+		// Parse the search text into words
+		$words = str_word_count($text, 1);
+
+		// Put the words back together for the new search text
+		$text = implode(' ', $words);
+
+		// Divide the words into long and short words
+		$long_words = array();
+		$short_words = array();
+		foreach ($words as $word)
+			if (strlen($word) > 2) $long_words[] = $word;
+			else $short_words[] = $word;
+
+		$long_word_min_len = 3;
+		$match_all_text = '+' . implode(' +', $long_words) . '*';
+		$book_counts = bfox_search_boolean_books($match_all_text);
+		$book_count = $book_counts['all'];
+
+		// We can only make phrase suggestions when there are long words
+		if (0 < count($long_words))
+		{
+			$sugg_limit = 10;
+			$sugg_count = 0;
+			if ((1 < count($words)) || (0 == $book_count))
+			{
+				$exact = bfox_search_boolean('"' . $text . '"', $sugg_limit - $sugg_count);
+				$sugg_count += count($exact);
+			}
+
+			if (0 < $sugg_limit - $sugg_count)
+			{
+				$specific = bfox_search_regular($text, $sugg_limit - $sugg_count);
+				$sugg_count += count($specific);
+			}
+
+			if (0 < $sugg_limit - $sugg_count)
+			{
+				$other = bfox_search_expanded($text, $sugg_limit - $sugg_count);
+				$sugg_count += count($other);
+			}
+
+			if (0 < $sugg_count)
+			{
+				$content .= "<h3>Suggestions - $text</h3>";
+				$content .= '<table>';
+
+				$content .= bfox_output_verses($exact, $words, 'Exact Matches');
+				$content .= bfox_output_verses($specific, $words, 'Specific Suggestions');
+				$content .= bfox_output_verses($other, $words, 'Other Suggestions');
+
+				$content .= '</table>';
+			}
+		}
+
+		// Show the exact matches at the bottom
+		$content .= "<h3>Match All Words - $text</h3>";
+		$content .= '<div id="bible_search_all_words">';
+		$content .= '<div id="bible_search_verse_map">';
+		$content .= bfox_output_verse_map($book_counts);
+		$content .= '</div>';
+
+		$content .= '<div id="bible_search_results">';
+		$content .= '<table>';
+		$start = microtime();
+		$content .= bfox_output_verses(bfox_search_boolean($match_all_text), $words);
+		$end = microtime();
+		$content .= '</table>';
+		$content .= '<p>Time: ' . ($end - $start) . " $end $start</p>";
+		$content .= '</div>';
+		$content .= '</div>';
+
+
+		return $content;
 	}
 
 ?>
