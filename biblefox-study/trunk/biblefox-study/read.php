@@ -56,6 +56,7 @@
 <input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
 </p>
 </form>
+<a id="quick_view_button">Quick View</a>
 
 <?php
 		// If we have at least one scripture reference
@@ -80,6 +81,15 @@
 			bfox_echo_scripture($trans_id, $refs);
 			echo bfox_get_ref_menu($refs, false);*/
 			echo bfox_bible_view($_GET['bible_ref']);
+			echo '<div id="bible_quick_view">';
+			echo '<p>This is the bible quick view. Try viewing ' . $refs->get_link(NULL, 'quick') . '</p>';
+			?>
+<strong><p id="bible-text-progress"></p></strong>
+<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+<div id="bible-text"></div>
+
+			<?php
+			echo '</div>';
 
 			// Update the read history to show that we viewed these scriptures
 			$bfox_history->update($refs);

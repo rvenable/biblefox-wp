@@ -33,10 +33,17 @@
 		function ref_url($ref_str, $context = NULL)
 		{
 			if (empty($context)) $context = $this->ref_context;
-			$prefix = array('blog' => $this->home . '/?',
-							'bible' => $this->bible . '&amp;',
-							'write' => $this->admin . '/post-new.php?');
-			return $prefix[$context] . 'bible_ref=' . $ref_str;
+
+			if ('quick' == $context) $url = '#bible-text-progress';
+			else
+			{
+				$prefix = array('blog' => $this->home . '/?',
+								'bible' => $this->bible . '&amp;',
+								'write' => $this->admin . '/post-new.php?');
+				$url = $prefix[$context] . 'bible_ref=' . $ref_str;
+			}
+
+			return $url;
 		}
 
 		function ref_link($attrs, $context = NULL)
@@ -61,6 +68,8 @@
 			if (!isset($attrs['text'])) $attrs['text'] = $ref_str;
 			if (!isset($attrs['bible_ref'])) $attrs['bible_ref'] = $ref_str;
 			if (isset($attrs['no_href'])) unset($attrs['href']);
+
+			if ('quick' == $context) $attrs['onClick'] = "bible_text_request(\"$ref_str\")";
 
 			return $this->link($attrs);
 		}

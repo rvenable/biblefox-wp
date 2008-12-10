@@ -127,9 +127,33 @@ function bible_ref_link_click()
 	bible_text_request(jQuery(this).attr('bible_ref'));
 }
 
+function bfox_toggle_quick_view()
+{
+	if ('none' == jQuery('#bible_quick_view').css('display'))
+	{
+		jQuery('#bible_view').animate({width: '50%'}, 'fast');
+		jQuery('#bible_view').queue(function() {
+			jQuery('#bible_quick_view').fadeIn('fast', function() {
+				jQuery('#bible_view').dequeue();
+			});
+		});
+	}
+	else
+	{
+		jQuery('#bible_view').queue(function() {
+			jQuery('#bible_quick_view').fadeOut('fast', function() {
+				jQuery('#bible_view').dequeue();
+			});
+		});
+		jQuery('#bible_view').animate({width: '100%'}, 'fast');
+	}
+}
+
 jQuery(document).ready( function() {
 	bible_ref_update_quickclicks();
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
 	jQuery('#view-bible-ref').click(bible_text_request_new);
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
+	
+	jQuery('#quick_view_button').click(bfox_toggle_quick_view);
 });
