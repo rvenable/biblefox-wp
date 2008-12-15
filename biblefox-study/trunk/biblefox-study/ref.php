@@ -712,10 +712,14 @@
 	{
 		private $refs;
 
-		function BibleRefs($value = 0)
+		function BibleRefs($value = NULL, $value2 = NULL)
 		{
 			$this->refs = array();
-			if (is_string($value)) $this->push_string($value);
+			if (is_string($value))
+			{
+				if (is_null($value2)) $this->push_string($value);
+				else $this->push_concatenated($value, $value2);
+			}
 			else if (is_array($value)) $this->push_sets($value);
 		}
 
@@ -826,6 +830,31 @@
 				}
 			}
 			return $count;
+		}
+
+		/**
+		 * Push bible references represented by two strings, each containing concatenated unique ids.
+		 *
+		 * The first string represents all the starting unique ids, and the second string represents all the ending unique ids.
+		 * This function is primarily useful for extracting bible references from SQL table entries, when the start and end
+		 * unique ids are concatenated using the GROUP_CONCAT() SQL function.
+		 *
+		 * @param unknown_type $begin_str
+		 * @param unknown_type $end_str
+		 * @param unknown_type $delim
+		 */
+		function push_concatenated($begin_str, $end_str, $delim = ',')
+		{
+			$begins = explode($delim, $begin_str);
+			$ends = explode($delim, $end_str);
+			$sets = array();
+			$index = 0;
+			foreach ($begins as $begin)
+			{
+				$end = $ends[$index++];
+				$sets[] = array((int) $begin, (int) $end);
+			}
+			return $this->push_sets($sets);
 		}
 
 		function sql_where($col1 = 'unique_id')

@@ -192,16 +192,7 @@
 		{
 			foreach ($posts as &$post)
 			{
-				$begins = explode(',', $post->verse_begin);
-				$ends = explode(',', $post->verse_end);
-				$sets = array();
-				$index = 0;
-				foreach ($begins as $begin)
-				{
-					$end = $ends[$index++];
-					$sets[] = array((int) $begin, (int) $end);
-				}
-				$post->bible_refs = new BibleRefs($sets);
+				$post->bible_refs = new BibleRefs($post->verse_begin, $post->verse_end);
 			}
 		}
 		return $posts;

@@ -26,6 +26,7 @@
 
 	// Include files which need BibleRefs
 	require_once("bibletext.php");
+	require_once('quicknote.php');
 	require_once("history.php");
 	require_once('message.php');
 	require_once("bfox-query.php");

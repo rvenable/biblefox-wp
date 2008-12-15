@@ -18,7 +18,9 @@
 			{
 				foreach ($results as $row)
 				{
-					if (!is_array($cols)) $cols = array_keys($row);
+					if (!is_array($cols))
+						if (is_array($row)) $cols = array_keys($row);
+						else $cols = array_keys(get_object_vars($row));
 					$rows .= '<tr>';
 					foreach ($row as $col) $rows .= '<td>' . $col . '</td>';
 					$rows .= '</tr>';
@@ -372,6 +374,20 @@
 		function test_discussions()
 		{
 			echo bfox_get_discussions(array());//'limit' => 4));
+		}
+
+		/**
+		 * Tests the quicknotes system
+		 *
+		 */
+		function test_quicknotes()
+		{
+			global $bfox_quicknote;
+			// $bfox_quicknote->create_tables();
+			// $bfox_quicknote->save_quicknote(new BibleRefs('Genesis 2, Gen 7-9'), 'Fun stuff!');
+			$res = $bfox_quicknote->get_quicknotes(new BibleRefs('Gen'));
+			$this->echo_table_results($res);
+			$bfox_quicknote->list_quicknotes(new BibleRefs('Gen'));
 		}
 
 	}
