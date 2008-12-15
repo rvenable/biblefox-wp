@@ -152,3 +152,48 @@ Scripture Viewer
 	display: none;
 }
 
+#verse_select_box {
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	border-top: thin solid #2583AD;
+	background-color: #E4F2FD;
+//	display: none;
+	font-size: 9px;
+	z-index: 2;
+}
+
+#verse_select_more_info {
+	display: none;
+}
+
+#verse_select_menu {
+	float: left;
+	width: 200px;
+}
+
+#verse_select_menu h1 {
+	font-size: 1em;
+}
+
+#verse_select_menu ul {
+	list-style-type: none;
+	margin: 0px;
+	padding: 5px;
+}
+
+#edit_quick_note {
+	float: right;
+	width: 80%;
+}
+
+#edit_quick_note_save {
+	float: left;
+}
+
+.edit_quick_note_link {
+//	text-decoration: underline;
+	cursor: pointer;
+}
+

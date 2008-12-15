@@ -49,8 +49,12 @@ class QuickNote
 	{
 		global $user_ID, $wpdb;
 
+		// Convert end-lines to <br /> tags
+		$note = str_replace(array("\r\n", "\r"), "\n", $note);
+		$note = preg_replace("/\n+/", "<br />", $note);
+
 		// If a note id was specified, then we are modifying a previously created note
-		if (!is_null($id))
+		if (!empty($id))
 		{
 			// Make sure that we are modifying a note for the current user
 			// If we aren't, we can just set the id to null and continue to insert a new note
@@ -67,7 +71,7 @@ class QuickNote
 		}
 
 		// If there is no note id, just insert a new note
-		if (is_null($id))
+		if (empty($id))
 		{
 			$wpdb->query($wpdb->prepare("INSERT INTO $this->bfox_quicknotes SET user = %d, note = %s, date_created = NOW(), date_modified = NOW()", $user_ID, $note));
 			$id = $wpdb->insert_id;
@@ -137,20 +141,53 @@ class QuickNote
 			");
 	}
 
+	/**
+	 * Returns an output string with a list of all the quick notes for a given bible reference
+	 *
+	 * @param BibleRefs $refs
+	 * @return string
+	 */
 	function list_quicknotes(BibleRefs $refs)
 	{
 		$notes = $this->get_quicknotes($refs);
 		foreach ($notes as $note)
 		{
 			$refs = new BibleRefs($note->verse_start, $note->verse_end);
-			$content .= $refs->get_link() . ': ' . $note->note . '<br/>';
+			$edit = '<a class="edit_quick_note_link" onClick="bfox_edit_quick_note(' . $note->id . ')">[edit]</a>';
+			$note_content = '<span id="quick_note_' . $note->id . '">' . $note->note . '</span>';
+			$content .= "<tr><td>" . $refs->get_link() . "</td><td>$edit</td><td>$note_content</td></tr>";
 		}
 
-		echo $content;
+		return $content;
 	}
 }
 
 global $bfox_quicknote;
 $bfox_quicknote = new QuickNote();
+
+/**
+ * AJAX function for saving the quick note
+ *
+ */
+function bfox_ajax_save_quick_note()
+{
+	$id = $_POST['note_id'];
+	$note = $_POST['note'];
+	$ref_str = $_POST['ref_str'];
+
+	$refs = new BibleRefs($ref_str);
+
+	global $bfox_quicknote;
+	$id = $bfox_quicknote->save_quicknote($refs, $note, $id);
+
+	// Return the new list of quick notes
+	// TODO2: This should return the list of quicknotes for the currently displayed passage (not the passages in the quick note)
+	$content = addslashes($bfox_quicknote->list_quicknotes($refs));
+
+	$script = "bfox_quick_note_saved('$content')";
+	die($script);
+}
+add_action('wp_ajax_bfox_ajax_save_quick_note', 'bfox_ajax_save_quick_note');
+
 
 ?>

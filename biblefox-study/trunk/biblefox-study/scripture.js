@@ -96,7 +96,7 @@ function bfox_quick_view_loaded(ref_str, content)
 	// Wait until the progress text is finished
 	jQuery('#bible-text-progress').queue( function () {
 
-		// Fade out the progress text, then update date it to say we are done loading
+		// Fade out the progress text, then update it to say we are done loading
 		jQuery('#bible-text-progress').fadeOut("fast", function() {
 			jQuery('#bible-text-progress').html('Viewing ' + ref_str);
 		});
@@ -149,6 +149,114 @@ function bfox_toggle_quick_view()
 	}
 }
 
+function bfox_text_select()
+{
+	// Use Javascript Range Objects
+	// See http://www.quirksmode.org/dom/range_intro.html
+	var userSelection;
+	if (window.getSelection) {
+		userSelection = window.getSelection();
+	}
+	else if (document.selection) { // should come last; Opera!
+		userSelection = document.selection.createRange();
+	}
+	
+	var selectedText = userSelection;
+	if (userSelection.text)
+		selectedText = userSelection.text;
+
+/*		
+//	selectedText = jQuery(userSelection.anchorNode).html;
+	
+//	var rangeObject = bfox_get_range_object(userSelection);
+	var ref = //jQuery(userSelection.anchorNode).prev().html() + '; ' + 
+//	userSelection.focusNode.nodeValue + '; ' + 
+	jQuery(userSelection.anchorNode).parent().html();
+	*/
+	
+	if ('' != selectedText)
+	{
+		var ref = jQuery('#bible_text_main_ref').html(); 
+		jQuery('#verse_selected').html(ref);
+		jQuery('#verse_select_more_info').fadeIn('fast');
+//		jQuery('#edit_quick_note_text').focus();
+	}
+	else jQuery('#verse_select_more_info').fadeOut('fast');
+//	jQuery('#verse-select-menu').dialog();
+	
+	//if ('' != selectedText) alert(selectedText);
+}
+
+function bfox_get_range_object(selectionObject) {
+	if (selectionObject.getRangeAt)
+		return selectionObject.getRangeAt(0);
+	else { // Safari!
+		var range = document.createRange();
+		range.setStart(selectionObject.anchorNode,selectionObject.anchorOffset);
+		range.setEnd(selectionObject.focusNode,selectionObject.focusOffset);
+		return range;
+	}
+}
+
+function bfox_save_quick_note()
+{
+	jQuery('.edit_quick_note_input').attr("disabled", true);
+
+	var note = jQuery('#edit_quick_note_text').val();
+	var id = jQuery('#edit_quick_note_id').val();
+	var ref_str = 'gen 1';
+
+	var mysack = new sack(jQuery('#bible-request-url').val());
+	
+	mysack.execute = 1;
+	mysack.method = 'POST';
+	mysack.setVar("action", "bfox_ajax_save_quick_note");
+	mysack.setVar("note", note);
+	mysack.setVar("note_id", id);
+	mysack.setVar("ref_str", ref_str);
+	mysack.encVar("cookie", document.cookie, false);
+	mysack.onError = function() { alert('Ajax error in saving the ')};
+	mysack.runAJAX();
+
+	jQuery('#edit_quick_note_progress').html('Saving...');
+	jQuery('#edit_quick_note_progress').fadeIn("fast");
+	
+	return false;
+}
+
+function bfox_quick_note_saved(content)
+{
+	jQuery('#edit_quick_note_progress').fadeOut("fast", function() {
+		jQuery('#edit_quick_note_progress').html('Saved!');
+		jQuery('.edit_quick_note_input').removeAttr("disabled");
+		jQuery('#quick_note_list').html(content);
+	}).fadeIn(1000).fadeOut(1000);
+}
+
+function bfox_set_quick_note(id, note)
+{
+	jQuery('#edit_quick_note_id').val(id);
+	jQuery('#edit_quick_note_text').val(note);
+	jQuery('#edit_quick_note_text').focus();
+}
+
+function bfox_edit_quick_note(id)
+{
+	bfox_set_quick_note(id, jQuery('#quick_note_' + id).html());
+}
+
+function bfox_new_quick_note()
+{
+	bfox_set_quick_note('0', '');
+}
+
+function bfox_edit_quick_note_press_key( e ) {
+	if ( 13 == e.keyCode ) {
+		bfox_save_quick_note();
+		return false;
+	}
+}
+
 jQuery(document).ready( function() {
 	bible_ref_update_quickclicks();
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
@@ -156,4 +264,9 @@ jQuery(document).ready( function() {
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
 	
 	jQuery('#quick_view_button').click(bfox_toggle_quick_view);
+
+	jQuery('#edit_quick_note_text').keypress(bfox_edit_quick_note_press_key);
+	jQuery('#edit_quick_note_text').val('');
+
+	jQuery(document).mouseup(bfox_text_select);
 });
