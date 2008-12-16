@@ -5,6 +5,7 @@ global $bfox_translations;
 if ( !empty($trans_id) ) {
 	$heading = __('Edit Translation');
 	$submit_text = __('Edit Translation');
+	$no_file_text = __('No changes');
 	$form = 'name="edittrans" id="edittrans" method="post" action="" class="validate"';
 	$action = 'editedtrans';
 	$nonce_action = 'update-translation-' . $trans_id;
@@ -14,6 +15,7 @@ if ( !empty($trans_id) ) {
 } else {
 	$heading = __('Add Translation');
 	$submit_text = __('Add Translation');
+	$no_file_text = __('None');
 	$form = 'name="addtrans" id="addtrans" method="post" action="" class="add:the-list: validate"';
 	$action = 'addtrans';
 	$nonce_action = 'add-translation';
@@ -56,11 +58,13 @@ $trans_files = $bfox_translations->get_translation_files();
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="trans_file"><?php _e('Source data file') ?></label></th>
 			<td>
-				<input type="radio" name="trans_file" id="trans_file_none" value="none" checked="checked" /><label for="trans_file_none"><?php _e('None') ?></label><br />
+				<input type="radio" name="trans_file" id="trans_file_none" value="" checked="checked" /><label for="trans_file_none"><?php echo $no_file_text ?></label><br />
 				<?php foreach ($trans_files as $index => $file): ?>
 				<input type="radio" name="trans_file" id="trans_file_<?php echo $index ?>" value="<?php echo $file ?>" /><label for="trans_file_<?php echo $index ?>"><?php echo $file ?></label><br />
 				<? endforeach; ?>
-            	<?php _e('The source file for adding the translation data to the database. If no source data is selected, the translation will not have any bible verses. These files are stored in the translation directory of the biblefox plugin.'); ?>
+            	<?php _e('The source file for adding the translation data to the database. These files listed here are stored in the translation directory of the biblefox plugin.<br/>
+            	<strong>If you select a data file, expect the changes to take a few moments as the file is parsed.</strong><br/>
+            	If no source data is selected, the translation will not have any bible verses.'); ?>
             </td>
 		</tr>
 	</table>

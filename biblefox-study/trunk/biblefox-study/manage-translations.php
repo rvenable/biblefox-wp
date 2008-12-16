@@ -25,6 +25,7 @@ case 'addtrans':
 	$trans['short_name'] = stripslashes($_POST['short_name']);
 	$trans['long_name'] = stripslashes($_POST['long_name']);
 	$trans['is_enabled'] = (int) $_POST['is_enabled'];
+	$trans['file_name'] = stripslashes($_POST['trans_file']);
 	$trans_id = $bfox_translations->edit_translation((object) $trans);
 
 	wp_redirect($bfox_page_url . '&message=1');
@@ -68,6 +69,7 @@ case 'editedtrans':
 	$trans['short_name'] = stripslashes($_POST['short_name']);
 	$trans['long_name'] = stripslashes($_POST['long_name']);
 	$trans['is_enabled'] = (int) $_POST['is_enabled'];
+	$trans['file_name'] = stripslashes($_POST['trans_file']);
 	$trans_id = $bfox_translations->edit_translation((object) $trans, $trans_id);
 
 	wp_redirect($bfox_page_url . '&message=3');
@@ -159,8 +161,7 @@ endif; ?>
 <br class="clear" />
 
 <p><strong>Note:</strong><br/>
-<strong>Translations</strong> are an important part of most Biblefox Bible Study Blogs.<br/>
-By creating a translation, you can structure what scriptures you read and when you read them!</p>
+<strong>Translations</strong> are needed to display scripture.</p>
 
 </div>
 

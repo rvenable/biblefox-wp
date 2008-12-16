@@ -27,7 +27,7 @@
 
 			$sql = "
 			CREATE TABLE IF NOT EXISTS $this->bfox_translations (
-				id bigint(20) unsigned NOT NULL auto_increment,
+				id int unsigned NOT NULL auto_increment,
 				short_name varchar(8) NOT NULL default '',
 				long_name varchar(128) NOT NULL default '',
 				is_default boolean NOT NULL default 0,
@@ -109,6 +109,20 @@
 				$id = $wpdb->insert_id;
 			}
 
+			// If a file was specified, we need to add verse data from that file
+			if (!empty($trans->file_name))
+			{
+				$translation = new Translation($id);
+
+				// If the table exists, delete its old data
+				// Otherwise create the table
+				if ($translation->does_data_exist()) $translation->delete_verse_data();
+				else $translation->create_table();
+
+				// Add the new verse data
+				$translation->add_verse_data($trans->file_name);
+			}
+
 			return $id;
 		}
 
@@ -120,11 +134,38 @@
 		function delete_translation($trans_id)
 		{
 			global $wpdb;
+
+			// Drop the verse data table
+			$translation = new Translation($trans_id);
+			$translation->drop_table();
+
+			// Delete the translation data from the translation table
 			$wpdb->query($wpdb->prepare("DELETE FROM $this->bfox_translations WHERE id = %d", $trans_id));
 		}
 
+		/**
+		 * Returns the default bible translation id
+		 *
+		 * @return unknown
+		 */
+		function get_default_id()
+		{
+			global $wpdb;
+			return $wpdb->get_var("SELECT id FROM $this->bfox_translations WHERE is_default = 1 LIMIT 1");
+		}
 
-		/*
+		/**
+		 * Returns the user's default bible translation id
+		 *
+		 * @return unknown
+		 */
+		function get_user_default_id()
+		{
+			// TODO2: User should have his own default translation
+			return $this->get_default_id();
+		}
+
+		/* TODO2:
 		function search_all();
 		*/
 	}
@@ -132,14 +173,113 @@
 	global $bfox_translations;
 	$bfox_translations = new TranslationManager();
 
+	/**
+	 * A class for individual bible translations
+	 *
+	 */
 	class Translation
 	{
-		/*
-		function get_verses($start, $end);
-		function delete_verse_data();
-		function add_verse_data();
-		function create_fulltext_index();
-		function remove_fulltext_index();
+		var $id;
+
+		function Translation($id = NULL)
+		{
+			global $bfox_translations;
+			if (empty($id)) $id = $bfox_translations->get_user_default_id();
+
+			$this->id = (int) $id;
+
+			$this->table = BFOX_BASE_TABLE_PREFIX . "trans{$id}_verses";
+		}
+
+		/**
+		 * Creates the verse data table, with or without a full text index
+		 *
+		 * @param boolean $use_index Whether a full text index should be used or not
+		 */
+		function create_table($use_index = FALSE)
+		{
+			// Note this function creates the table with dbDelta() which apparently has some pickiness
+			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+
+			// Creates a FULLTEXT index on the verse data
+			if ($use_index)
+			{
+				$index_cols = "index_text text NOT NULL,";
+				$index = ", FULLTEXT (index_text)";
+			}
+
+			global $wpdb;
+			$sql = "
+			CREATE TABLE $this->table (
+				unique_id int unsigned NOT NULL,
+				book_id int unsigned NOT NULL,
+				chapter_id int unsigned NOT NULL,
+				verse_id int unsigned NOT NULL,
+				verse text NOT NULL,
+				$index_cols
+				PRIMARY KEY  (unique_id)
+				$index
+			);
+			";
+
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql);
+		}
+
+		/**
+		 * Returns whether the verse data table exists
+		 *
+		 * @return unknown
+		 */
+		function does_data_exist()
+		{
+			global $wpdb;
+			return ($wpdb->get_var("SHOW TABLES LIKE '$this->table'") == $this->table);
+		}
+
+		/**
+		 * Repairs a full text index
+		 *
+		 */
+		function repair_index()
+		{
+			global $wpdb;
+			$wpdb->query("REPAIR TABLE $this->table QUICK");
+		}
+
+		/**
+		 * Add verse data from a USFX file
+		 *
+		 * @param unknown_type $file_name
+		 */
+		function add_verse_data($file_name)
+		{
+			bfox_usfx_install($this->table, BFOX_TRANSLATIONS_DIR . "/$file_name");
+		}
+
+		/**
+		 * Delete all the data from the verse data table
+		 *
+		 */
+		function delete_verse_data()
+		{
+			global $wpdb;
+			$wpdb->query("DELETE FROM $this->table");
+		}
+
+		/**
+		 * Drop the verse data table
+		 *
+		 */
+		function drop_table()
+		{
+			// Only try to drop the table if it actually exists
+			global $wpdb;
+			if ($this->does_data_exist()) $wpdb->query("DROP TABLE $this->table");
+		}
+
+		/* TODO2:
+		function get_verses(BibleRefs $ref);
 		function search();
 */
 	}
@@ -169,30 +309,6 @@
 				echo "<br/>";
 			}
 		}
-	}
-
-	function bfox_create_trans_verses_table($table_name, $verse_size = 1024)
-	{
-		// Note this function creates the table with dbDelta() which apparently has some pickiness
-		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-
-		// Creates a FULLTEXT index on the verse data
-		// TODO2: This should be a translation option, so that we don't automatically have the index for every translation
-
-		global $wpdb;
-		$sql = $wpdb->prepare("CREATE TABLE $table_name (
-							  unique_id int,
-							  book_id int,
-							  chapter_id int,
-							  verse_id int,
-							  verse varchar(%d),
-							  PRIMARY KEY  (unique_id),
-							  FULLTEXT (verse)
-							  );",
-							  $verse_size);
-
-		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-		dbDelta($sql);
 	}
 
 	function bfox_install_bft_file($file_name)
@@ -263,54 +379,6 @@
 							  $verse_text
 							  );
 		$wpdb->query($sql);
-	}
-
-	function bfox_install_usfx_file($file_name)
-	{
-		$file = BFOX_TRANSLATIONS_DIR . "/$file_name";
-		$header = array('short_name' => 'WEB', 'long_name' => 'World English Bible');
-		$id = bfox_add_translation($header);
-		$table_name = bfox_get_verses_table_name($id);
-		bfox_create_trans_verses_table($table_name);
-
-		bfox_usfx_install($table_name, $file);
-	}
-
-	function bfox_get_bft_files()
-	{
-		$bft_files = array();
-
-		$translations_dir = opendir(BFOX_TRANSLATIONS_DIR);
-		if ($translations_dir)
-		{
-			while (($file_name = readdir($translations_dir)) !== false)
-			{
-				if (substr($file_name, -4) == '.bft')
-					$bft_files[] = "$file_name";
-				else if (substr($file_name, -4) == '.xml')
-					$bft_files[] = "$file_name";
-			}
-		}
-		@closedir($translations_dir);
-
-		return $bft_files;
-	}
-
-	function bfox_menu_install_translations()
-	{
-		echo '<div class="wrap">';
-		echo '<h2>Install Translations</h2>';
-		echo 'The following translation files have been found in your translations directory.<br/>';
-		echo 'Please select a translation to install:<br/>';
-
-		$bft_files = bfox_get_bft_files();
-		foreach ($bft_files as $bft_file)
-		{
-			$page = BFOX_TRANSLATION_SUBPAGE;
-			$url = "admin.php?page=$page&amp;action=install&amp;file=$bft_file";
-			echo "<a href='$url'>$bft_file</a><br/>";
-		}
-		echo '</div>';
 	}
 
 	function bfox_delete_translation($trans_id)
