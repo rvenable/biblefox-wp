@@ -390,6 +390,14 @@
 			$bfox_quicknote->list_quicknotes(new BibleRefs('Gen'));
 		}
 
+		/**
+		 * A function for dumping temporary functionality to do temporary tasks
+		 *
+		 */
+		function temp()
+		{
+		}
+
 	}
 
 	/**

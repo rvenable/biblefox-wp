@@ -122,8 +122,7 @@
 
 	function bfox_translations()
 	{
-		require_once("bfox-translations.php");
-		bfox_translations_page();
+		require_once('manage-translations.php');
 	}
 
 	function bfox_admin_tools()

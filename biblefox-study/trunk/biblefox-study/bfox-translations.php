@@ -1,5 +1,149 @@
 <?php
 
+	/**
+	 * Manages all translations
+	 *
+	 */
+	class TranslationManager
+	{
+		/**
+		 * Constructor for TranslationManager
+		 *
+		 * @return TranslationManager
+		 */
+		function TranslationManager()
+		{
+			$this->bfox_translations = BFOX_TRANSLATIONS_TABLE;
+		}
+
+		/**
+		 * Creates the DB table for the translations
+		 *
+		 */
+		function create_tables()
+		{
+			// Note this function creates the table with dbDelta() which apparently has some pickiness
+			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+
+			$sql = "
+			CREATE TABLE IF NOT EXISTS $this->bfox_translations (
+				id bigint(20) unsigned NOT NULL auto_increment,
+				short_name varchar(8) NOT NULL default '',
+				long_name varchar(128) NOT NULL default '',
+				is_default boolean NOT NULL default 0,
+				is_enabled boolean NOT NULL default 0,
+				PRIMARY KEY  (id)
+			);
+			";
+
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			dbDelta($sql);
+		}
+
+		/**
+		 * Returns all the data from the translation table
+		 *
+		 * @return unknown
+		 */
+		function get_translations()
+		{
+			global $wpdb;
+			return $wpdb->get_results("SELECT * FROM $this->bfox_translations ORDER BY short_name, long_name");
+		}
+
+		/**
+		 * Returns the translation data for one particular translation
+		 *
+		 * @param int $trans_id
+		 * @return unknown
+		 */
+		function get_translation($trans_id)
+		{
+			global $wpdb;
+			return $wpdb->get_row($wpdb->prepare("SELECT * FROM $this->bfox_translations WHERE id = %d", $trans_id));
+		}
+
+		/**
+		 * Returns an array of file names for the translations files in the translation directory
+		 *
+		 * @return unknown
+		 */
+		function get_translation_files()
+		{
+			$files = array();
+
+			$translations_dir = opendir(BFOX_TRANSLATIONS_DIR);
+			if ($translations_dir)
+			{
+				while (($file_name = readdir($translations_dir)) !== false)
+				{
+					if (substr($file_name, -4) == '.xml')
+						$files[] = "$file_name";
+				}
+			}
+			@closedir($translations_dir);
+
+			return $files;
+		}
+
+		/**
+		 * Modifies/Creates the info for a particular translation in the translations table
+		 *
+		 * @param object $trans
+		 * @param int $id Optional translation ID
+		 * @return unknown
+		 */
+		function edit_translation($trans, $id = NULL)
+		{
+			global $wpdb;
+
+			if (!empty($id))
+			{
+				$wpdb->query($wpdb->prepare("UPDATE $this->bfox_translations SET short_name = %s, long_name = %s, is_enabled = %d WHERE id = %d",
+					$trans->short_name, $trans->long_name, $trans->is_enabled, $id));
+			}
+			else
+			{
+				$wpdb->query($wpdb->prepare("INSERT INTO $this->bfox_translations SET short_name = %s, long_name = %s, is_enabled = %d",
+					$trans->short_name, $trans->long_name, $trans->is_enabled));
+				$id = $wpdb->insert_id;
+			}
+
+			return $id;
+		}
+
+		/**
+		 * Deletes a translation from the translation table
+		 *
+		 * @param unknown_type $trans_id
+		 */
+		function delete_translation($trans_id)
+		{
+			global $wpdb;
+			$wpdb->query($wpdb->prepare("DELETE FROM $this->bfox_translations WHERE id = %d", $trans_id));
+		}
+
+
+		/*
+		function search_all();
+		*/
+	}
+
+	global $bfox_translations;
+	$bfox_translations = new TranslationManager();
+
+	class Translation
+	{
+		/*
+		function get_verses($start, $end);
+		function delete_verse_data();
+		function add_verse_data();
+		function create_fulltext_index();
+		function remove_fulltext_index();
+		function search();
+*/
+	}
+
 	function bfox_get_installed_translations()
 	{
 		global $wpdb;
@@ -27,24 +171,6 @@
 		}
 	}
 
-	function bfox_create_translations_table()
-	{
-		// Note this function creates the table with dbDelta() which apparently has some pickiness
-		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-
-		$sql = "CREATE TABLE " . BFOX_TRANSLATIONS_TABLE . " (
-				id int,
-				short_name varchar(8),
-				long_name varchar(128),
-				is_default boolean,
-				is_enabled boolean,
-				PRIMARY KEY  (id)
-			);";
-
-		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-		dbDelta($sql);
-	}
-
 	function bfox_create_trans_verses_table($table_name, $verse_size = 1024)
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
@@ -67,47 +193,6 @@
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
-	}
-
-	// Adds a translation to the translation table
-	// Returns the id of the new translation
-	function bfox_add_translation($header)
-	{
-		global $wpdb;
-		$table_name = BFOX_TRANSLATIONS_TABLE;
-
-		// If the translations table doesn't exist, create it
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-		{
-			bfox_create_translations_table();
-		}
-		else
-		{
-			// If the table already exists we need to know the last id
-			$last_id = $wpdb->get_var("SELECT id FROM $table_name ORDER BY id DESC");
-		}
-
-		$id = 0;
-		$is_default = 1;
-		if (isset($last_id))
-		{
-			$id = $last_id + 1;
-			$is_default = 0;
-		}
-
-		// Insert the header data for this translation
-		$insert = $wpdb->prepare("INSERT INTO $table_name
-								 (id, short_name, long_name, is_default, is_enabled)
-								 VALUES (%d, %s, %s, %d, %d)",
-								 $id,
-								 $header['short_name'],
-								 $header['long_name'],
-								 $is_default,
-								 0);
-
-		$wpdb->query($insert);
-
-		return $id;
 	}
 
 	function bfox_install_bft_file($file_name)

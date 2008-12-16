@@ -11,6 +11,7 @@
 	// User Levels
 	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 	define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
+	define('BFOX_USER_LEVEL_MANAGE_TRANSLATIONS', 10);
 
 	// Column Definitions
 	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
@@ -33,6 +34,7 @@
 	require_once('special.php');
 	require_once('bfox-widgets.php');
 	require_once('usfx.php');
+	require_once('bfox-translations.php');
 
 	// Returns the bible study blogs for a given user
 	// Should be used in place of get_blogs_of_user() because the main biblefox.com blog should not count
