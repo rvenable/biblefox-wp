@@ -137,7 +137,9 @@ endif; ?>
 	</thead>
 	<tbody id="the-list" class="list:cat">
 <?php
-	$translations = $bfox_translations->get_translations();
+	// Get all the bible translations, even the disabled ones
+	$translations = $bfox_translations->get_translations(TRUE);
+
 	foreach ($translations as $trans)
 	{
 		$edit_link = '<a class="row-title" href="' . $bfox_page_url . '&amp;action=edit&amp;trans_id=' . $trans->id . '">' . __('edit') . '</a></td>';

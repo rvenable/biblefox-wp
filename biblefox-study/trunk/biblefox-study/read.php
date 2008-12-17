@@ -5,16 +5,9 @@
 		global $wpdb;
 		global $bfox_history;
 
-		// Get all enabled translations
-		$translations = $wpdb->get_results("SELECT id, short_name FROM " . BFOX_TRANSLATIONS_TABLE . " WHERE is_enabled = TRUE ORDER BY is_default DESC");
-		if (isset($_GET['trans_id']))
-		{
-			$trans_id = $_GET['trans_id'];
-		}
-		else
-		{
-			$trans_id = $translations[0]->id;
-		}
+		// Override the global translation using the translation passed in
+		global $bfox_trans;
+		$bfox_trans = new Translation($_GET['trans_id']);
 
 		// Create a list of bible references to show
 		// If the user passed a list through the GET parameter use that
@@ -43,17 +36,7 @@
 <form id="posts-filter" action="admin.php" method="get">
 <input type="hidden" name="page" value="<?php echo BFOX_READ_SUBPAGE; ?>" />
 <p id="post-search">
-<?php
-	$header = 'name="trans"';
-	echo '<select name="trans_id">';
-	foreach ($translations as $translation)
-	{
-		echo "<option value = \"$translation->id\"";
-		if ($translation->id == $trans_id) echo " selected";
-		echo ">$translation->short_name</option>";
-	}
-	echo '</select>';
-	?>
+	<?php bfox_translation_select($bfox_trans->id) ?>
 <input type="text" id="post-search-input" name="bible_ref" value="<?php echo $reflistStr; ?>" />
 <input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
 </p>
@@ -123,7 +106,8 @@
 			// Update the read history to show that we viewed these scriptures
 			$bfox_history->update($refs);
 		}
-/*	echo '<h2>Blog Post Commentaries</h2>';
+/*	TODO2: Make sure everything on this list is in a task, then remove this list
+	echo '<h2>Blog Post Commentaries</h2>';
 	echo '<p><a href="">Write A Post</a></p>';
 	echo '<h3>My Bible Study Blogs</h3><p>View posts from any Biblefox Bible Studies that you have joined or subscribed to.<br/>Check out the list of Commentary Blogs to find some you can subscribe to.<br/><a href="">Add Commentaries</a></p>';
 	echo '<h3>My Friend Commentaries</h3><p>You can see what other users have written about this passage.<br/><a href="">Add Friends</a></p>';

@@ -43,12 +43,14 @@
 		/**
 		 * Returns all the data from the translation table
 		 *
+		 * @param bool $get_disabled Whether we should include disabled translations in the results
 		 * @return unknown
 		 */
-		function get_translations()
+		function get_translations($get_disabled = FALSE)
 		{
 			global $wpdb;
-			return $wpdb->get_results("SELECT * FROM $this->bfox_translations ORDER BY short_name, long_name");
+			if (!$get_disabled) $where = 'WHERE is_enabled = 1';
+			return $wpdb->get_results("SELECT * FROM $this->bfox_translations $where ORDER BY short_name, long_name");
 		}
 
 		/**
@@ -61,6 +63,18 @@
 		{
 			global $wpdb;
 			return $wpdb->get_row($wpdb->prepare("SELECT * FROM $this->bfox_translations WHERE id = %d", $trans_id));
+		}
+
+		/**
+		 * Returns whether a specific translation is enabled
+		 *
+		 * @param unknown_type $trans_id
+		 * @return unknown
+		 */
+		function is_enabled($trans_id)
+		{
+			global $wpdb;
+			return (bool) $wpdb->get_var($wpdb->prepare("SELECT is_enabled FROM $this->bfox_translations WHERE id = %d", $trans_id));
 		}
 
 		/**
@@ -180,15 +194,18 @@
 	class Translation
 	{
 		var $id;
+		var $table;
 
-		function Translation($id = NULL)
+		function Translation($id = NULL, $use_disabled = FALSE)
 		{
 			global $bfox_translations;
-			if (empty($id)) $id = $bfox_translations->get_user_default_id();
+
+			// If no id was specified, or if we are not using disabled IDs and the specified ID is disabled,
+			// Then use the user's default ID
+			if (empty($id) || (!$use_disabled && !$bfox_translations->is_enabled($id))) $id = $bfox_translations->get_user_default_id();
 
 			$this->id = (int) $id;
-
-			$this->table = BFOX_BASE_TABLE_PREFIX . "trans{$id}_verses";
+			$this->table = BFOX_BASE_TABLE_PREFIX . "trans{$this->id}_verses";
 		}
 
 		/**
@@ -234,7 +251,8 @@
 		function does_data_exist()
 		{
 			global $wpdb;
-			return ($wpdb->get_var("SHOW TABLES LIKE '$this->table'") == $this->table);
+			if (!isset($this->data_exists)) $this->data_exists = ($wpdb->get_var("SHOW TABLES LIKE '$this->table'") == $this->table);
+			return $this->data_exists;
 		}
 
 		/**
@@ -278,11 +296,72 @@
 			if ($this->does_data_exist()) $wpdb->query("DROP TABLE $this->table");
 		}
 
+		/**
+		 * Get the verse content for some bible references
+		 *
+		 * @param BibleRefs $refs
+		 * @param unknown_type $id_text_begin
+		 * @param unknown_type $id_text_end
+		 * @return string Formatted bible verse output
+		 */
+		function get_verses(BibleRefs $refs, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
+		{
+			// We can only grab verses if the verse data exists
+			if ($this->does_data_exist())
+			{
+				global $wpdb;
+
+				$ref_where = $refs->sql_where();
+				$verses = $wpdb->get_results("SELECT verse_id, verse FROM $this->table WHERE $ref_where");
+
+				$content = '';
+				foreach ($verses as $verse)
+				{
+					if ($verse->verse_id != 0)
+						$content .= "$id_text_begin$verse->verse_id$id_text_end";
+					$content .= $verse->verse;
+				}
+
+				$content = bfox_special_syntax($content);
+			}
+			else $content = 'No verse data exists for this translation.';
+
+			return $content;
+		}
+
 		/* TODO2:
-		function get_verses(BibleRefs $ref);
 		function search();
 */
 	}
+
+	// Set the global translation (using the default translation)
+	global $bfox_trans;
+	$bfox_trans = new Translation();
+
+	/**
+	 * Outputs an html select input with a list of translations
+	 *
+	 * @param unknown_type $select_id
+	 */
+	function bfox_translation_select($select_id = NULL)
+	{
+		global $bfox_translations;
+
+		// Get the list of enabled translations
+		$translations = $bfox_translations->get_translations();
+
+		?>
+		<select name="trans_id">
+		<?php foreach ($translations as $translation): ?>
+			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo $translation->short_name ?></option>
+		<?php endforeach; ?>
+		</select>
+		<?php
+	}
+
+
+
+
 
 	function bfox_get_installed_translations()
 	{

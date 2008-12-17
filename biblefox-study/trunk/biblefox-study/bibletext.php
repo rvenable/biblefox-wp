@@ -2,22 +2,8 @@
 
 	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
 	{
-		global $wpdb;
-
-		$ref_where = $refs->sql_where();
-		$table_name = bfox_get_verses_table_name($version_id);
-		$verses = $wpdb->get_results("SELECT verse_id, verse FROM " . $table_name . " WHERE $ref_where");
-
-		$content = '';
-		foreach ($verses as $verse)
-		{
-			if ($verse->verse_id != 0)
-				$content .= "$id_text_begin$verse->verse_id$id_text_end";
-			$content .= $verse->verse;
-		}
-
-		$content = bfox_special_syntax($content);
-		return $content;
+		global $bfox_trans;
+		return $bfox_trans->get_verses($refs, $id_text_begin, $id_text_end);
 	}
 
 	/**
