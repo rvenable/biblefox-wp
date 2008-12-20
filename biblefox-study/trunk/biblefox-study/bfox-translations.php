@@ -304,7 +304,7 @@
 		 * @param unknown_type $id_text_end
 		 * @return string Formatted bible verse output
 		 */
-		function get_verses(BibleRefs $refs, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
+		function get_verses(BibleRefs $refs)
 		{
 			// We can only grab verses if the verse data exists
 			if ($this->does_data_exist())
@@ -317,9 +317,11 @@
 				$content = '';
 				foreach ($verses as $verse)
 				{
+					$content .= '<span class="bible_verse">';
 					if ($verse->verse_id != 0)
-						$content .= "$id_text_begin$verse->verse_id$id_text_end";
+						$content .= '<em class="bible-verse-id">' . $verse->verse_id . '</em> ';
 					$content .= $verse->verse;
+					$content .= "</span>\n";
 				}
 
 				$content = bfox_special_syntax($content);
