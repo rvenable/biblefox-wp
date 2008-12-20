@@ -301,7 +301,6 @@
 
 		function show_trans()
 		{
-			require_once('bfox-translations.php');
 			bfox_create_translation_data(bfox_get_default_version());
 			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
 		}
@@ -312,7 +311,6 @@
 		 */
 		function update_trans_table()
 		{
-			require_once('bfox-translations.php');
 			$table_name = bfox_get_verses_table_name(bfox_get_default_version());
 			bfox_create_trans_verses_table($table_name);
 			$this->echo_table_describe($table_name);
@@ -320,7 +318,6 @@
 
 		function show_toc()
 		{
-			require_once('bfox-translations.php');
 			bfox_show_toc();
 		}
 

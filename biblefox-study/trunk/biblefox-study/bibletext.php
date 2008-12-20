@@ -255,7 +255,6 @@
 		else if (!empty($text))
 		{
 			// Ref not valid, so perform search results
-			require_once('bfox-translations.php');
 
 			$content .= bfox_bible_text_search($text);
 /*

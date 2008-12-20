@@ -653,7 +653,6 @@
 			if (BFOX_UNIQUE_ID_MASK == $high)
 			{
 				// TODO1: get translation version from user preferences
-				require_once('bfox-translations.php');
 				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], bfox_get_default_version());
 			}
 
@@ -680,7 +679,6 @@
 			if ($is_full)
 			{
 				// TODO1: get translation version from user preferences
-				require_once('bfox-translations.php');
 				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], bfox_get_default_version());
 				$low = 1;
 				$toc .= $book_name;

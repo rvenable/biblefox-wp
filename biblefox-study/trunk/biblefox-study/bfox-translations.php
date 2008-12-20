@@ -321,7 +321,7 @@
 					if ($verse->verse_id != 0)
 						$content .= '<em class="bible-verse-id">' . $verse->verse_id . '</em> ';
 					$content .= $verse->verse;
-					$content .= "</span>\n";
+					$content .= "</span>";
 				}
 
 				$content = bfox_special_syntax($content);
