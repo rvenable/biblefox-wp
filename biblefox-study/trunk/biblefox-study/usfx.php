@@ -445,6 +445,9 @@
 		private $vs = array();
 		private $verse_tag_stack = array();
 		public $verse_samples = array();
+		public $verse_xml_errors = array();
+		public $valid_verses = 0;
+		public $invalid_verses = 0;
 
 		function __construct($schema_file = NULL)
 		{
@@ -557,12 +560,31 @@
 				for ($i = 0; $i < $count; $i++) $this->add_close_tag();
 
 				// Save some stat data
-				$id = 'book'.$this->vs['book'].' '.$this->vs['chapter'].':'.$this->vs['verse'];
-				if (15 > count($this->verse_samples))
+				$id = bfox_get_book_name($this->vs['book']) . ' ' . $this->vs['chapter'] . ':' . $this->vs['verse'];
+				$verse_filter = TRUE; //$this->vs['book'] == 43 && $this->vs['chapter'] == 3; // John 3
+				if ($verse_filter && (15 > count($this->verse_samples)))
 				{
 					// Save the verse
 					$this->verse_samples[$id] = htmlspecialchars($this->vs['text']);
 				}
+
+				// Validate the XML
+				libxml_use_internal_errors(true);
+				$doc = '<verse_text>' . $this->vs['text'] . '</verse_text>';
+				$xml = simplexml_load_string($doc, NULL, LIBXML_NOWARNING);
+
+				if (!$xml)
+				{
+					$this->invalid_verses++;
+					if (count($this->verse_xml_errors) < 10)
+					{
+						$errors = libxml_get_errors();
+						foreach ($errors as &$error) $error->xml = $doc;
+						$this->verse_xml_errors[$id] = $errors;
+						libxml_clear_errors();
+					}
+				}
+				else $this->valid_verses++;
 
 				// Save the verse data to the DB
 				if (!empty($this->table_name) && isset($this->vs['book']))
@@ -629,6 +651,17 @@
 			$this->vs['verse']++;
 
 			return $data;
+		}
+
+		function list_xml_errors($errors)
+		{
+			$content = '';
+			foreach ($errors as $error)
+			{
+				if (empty($content)) $content .= htmlspecialchars($error->xml) . '<br/>';
+				$content .= "Error $error->code ($error->line:$error->column): $error->message<br/>";
+			}
+			return $content;
 		}
 
 	}
@@ -751,6 +784,13 @@
 
 		?>
 		<div class="wrap">
+			<h2>XML Validation</h2>
+			<p>
+			Valid XML Verses: <?php echo $usfx->valid_verses ?><br />
+			Invalid XML Verses: <?php echo $usfx->invalid_verses ?>
+			</p>
+			<p>XML Errors:</p>
+			<?php foreach ($usfx->verse_xml_errors as $id => $errors) echo "$id:<br/>" . $usfx->list_xml_errors($errors); ?>
 			<h2>Verse Samples</h2>
 			<?php foreach ($usfx->verse_samples as $id => $sample) echo "$id: $sample<br/>"; ?>
 			<h2>Element Overviews</h2>
@@ -764,9 +804,6 @@
 			<?php echo $usfx->get_all_element_content() ?>
 		</div>
 		<?php
-//		$usfx->read_file(BFOX_TRANSLATIONS_DIR . '/web-usfx.xml');
-//		$usfx->get_stat_str();
-//		$usfx->echo_stats();
 	}
 
 ?>
