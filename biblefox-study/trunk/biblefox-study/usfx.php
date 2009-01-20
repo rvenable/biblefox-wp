@@ -71,6 +71,30 @@
 		}
 
 		/**
+		 * Set the value for a given element and key
+		 *
+		 * @param string $element
+		 * @param string $key
+		 * @param unknown_type $value
+		 */
+		public function set_element_value($element, $key, $value)
+		{
+			$this->modify_element($element, array($key => $value));
+		}
+
+		/**
+		 * Return the value for a given element and key
+		 *
+		 * @param string $element
+		 * @param string $key
+		 * @return unknown
+		 */
+		public function get_element_value($element, $key)
+		{
+			return $this->elements[$element][$key];
+		}
+
+		/**
 		 * Loads a schema file to store information for elements of the schema
 		 *
 		 * @param string $schema_file The schema file to read
@@ -461,20 +485,51 @@
 			foreach ((array) $tags as $tag) $this->set_tag_conv($tag, 'div', 'class="bible-hidden" style="display:none"');
 		}
 
+		/**
+		 * Sets whether an element should be added to the tag stack
+		 *
+		 * @param string $element
+		 */
+		function set_element_unstackable($element)
+		{
+			$this->set_element_value($element, 'unstackable', TRUE);
+		}
+
+		/**
+		 * Returns whether an element should be added to the tag stack
+		 *
+		 * @param string $element
+		 * @return bool
+		 */
+		function is_element_stackable($element)
+		{
+			$unstackable = $this->get_element_value($element, 'unstackable');
+			return empty($unstackable);
+		}
+
 		function add_open_tag($data)
 		{
 			if (isset($this->vs['verse']))
 			{
 				$this->vs['text'] .= $data['open_tag'];
-				array_push($this->verse_tag_stack, $data);
+
+				// If this is a stackable element then we should add it to our verse tag stack
+				if ($this->is_element_stackable($data['element']))
+					array_push($this->verse_tag_stack, $data);
 			}
 		}
 
-		function add_close_tag($data = NULL)
+		function add_close_tag($data = array())
 		{
 			if (isset($this->vs['verse']))
 			{
-				$data = array_pop($this->verse_tag_stack);
+				// Pop off the data from the verse tag stack
+				$pop_data = array_pop($this->verse_tag_stack);
+
+				// If the popped data isn't the same as the passed in data, then we should put it back on the stack
+				if (isset($data['element']) && ($data['element'] != $pop_data['element'])) array_push($this->verse_tag_stack, $pop_data);
+				else $data = $pop_data;
+
 				$this->vs['text'] .= $data['close_tag'];
 			}
 		}
@@ -595,6 +650,10 @@
 			$this->set_tag_conv_empty('b', 'br class="bible-poetry"');
 			$this->set_hidden_tags(array('id', 'h', 'ide'));
 			$this->set_tag_conv('usfx', 'div');
+
+			// 'p' and 'q' don't need to be closed at the end of each verse anymore, so we won't stack them
+			$this->set_element_unstackable('p');
+			$this->set_element_unstackable('q');
 		}
 
 		function open_paragraph($data)
@@ -612,7 +671,7 @@
 				default:
 					$is_valid = FALSE;
 					$data['open_tag'] = '';
-					$data['close_tag'] = '<br class="bible_end_p" />';
+					$data['close_tag'] = '<span class="bible_end_p"></span>';
 					break;
 			}
 
@@ -627,16 +686,15 @@
 
 		function open_poetry($data)
 		{
-			$data['open_tag'] = '';
-			$data['close_tag'] = '<br class="bible_end_p" />';
-
 			$level = (int) $this->get_attribute('level');
 
 			if ((1 != $level) && (2 != $level))
 				$this->invalidate_attribute('level');
 
-			for ($index = 0; $index < $level; $index++)
-				$data['open_tag'] .= '&nbsp;';
+			$data['open_tag'] = '<span class="bible_poetry_indent_' . $level . '"></span>';
+			$data['close_tag'] = '<span class="bible_end_poetry"></span>';
+
+			return $data;
 		}
 
 		function open_tag_conv()
@@ -682,7 +740,7 @@
 	function bfox_usfx_menu()
 	{
 		$usfx = new BfoxUsfx();
-		$usfx->read_file(BFOX_TRANSLATIONS_DIR . '/asv-usfx.xml');
+		$usfx->read_file(BFOX_TRANSLATIONS_DIR . '/web-usfx.xml');
 		$all = $usfx->get_all_elements();
 
 		$schema = $usfx->get_key_value_elements('schema', TRUE);

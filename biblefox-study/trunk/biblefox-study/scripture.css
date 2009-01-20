@@ -1,11 +1,6 @@
-p.bible-poetry-level-1 {
-	margin: 0px;
-}
-
-p.bible-poetry-level-2 {
-	margin: 0px;
-	margin-left: 20px;
-}
+/*
+Scripture Text
+*/
 
 p.bible-psalm-desc {
 	font-style: italic;
@@ -28,6 +23,31 @@ p.bible-chapter-id {
 br.bible-poetry {
 	display: none; // HACK - WP is adding an unwanted <p> in front of these so we are hiding this until that is fixed
 }
+
+.bible_verse {
+	display: inline;
+	margin: 0px;
+}
+
+.bible_end_p {
+	display: block;
+	height: 10px;
+}
+
+.bible_end_poetry {
+	display: block;
+	height: 4px;
+}
+
+.bible_poetry_indent_1 {
+	margin: 0px;
+}
+
+.bible_poetry_indent_2 {
+	margin: 0px;
+	margin-left: 20px;
+}
+
 
 /*
 Table of Contents
@@ -142,6 +162,11 @@ Scripture Viewer
 }
 
 #quick_view_button {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+#verse_layout_toggle {
 	text-decoration: underline;
 	cursor: pointer;
 }

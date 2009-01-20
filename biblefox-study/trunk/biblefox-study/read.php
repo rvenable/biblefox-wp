@@ -37,6 +37,7 @@
 </p>
 </form>
 <a id="quick_view_button">Quick View</a>
+Paragraphs: <a id="verse_layout_toggle">On</a>
 <div id="verse_select_box">
 	<div id="verse_select_more_info">
 	More info...

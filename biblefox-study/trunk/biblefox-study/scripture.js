@@ -127,6 +127,26 @@ function bible_ref_link_click()
 	bible_text_request(jQuery(this).attr('bible_ref'));
 }
 
+function bfox_toggle_verse_paragraph()
+{
+	verse = 'On';
+	paragraph = 'Off';
+	if (verse == jQuery('#verse_layout_toggle').html())
+	{
+		jQuery('.bible_verse').css('display', 'block');
+		jQuery('.bible_verse').css('margin', '8px 0px 8px 0px');
+		jQuery('.bible_end_p').css('display', 'none');
+		jQuery('#verse_layout_toggle').html(paragraph);
+	}
+	else
+	{
+		jQuery('.bible_verse').css('display', 'inline');
+		jQuery('.bible_verse').css('margin', '0px');
+		jQuery('.bible_end_p').css('display', 'block');
+		jQuery('#verse_layout_toggle').html(verse);
+	}
+}
+
 function bfox_toggle_quick_view()
 {
 	if ('none' == jQuery('#bible_quick_view').css('display'))
@@ -264,6 +284,7 @@ jQuery(document).ready( function() {
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
 	
 	jQuery('#quick_view_button').click(bfox_toggle_quick_view);
+	jQuery('#verse_layout_toggle').click(bfox_toggle_verse_paragraph);
 
 	jQuery('#edit_quick_note_text').keypress(bfox_edit_quick_note_press_key);
 	jQuery('#edit_quick_note_text').val('');
