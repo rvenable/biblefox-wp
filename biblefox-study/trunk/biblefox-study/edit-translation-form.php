@@ -1,5 +1,13 @@
 <?php
 
+$messages[1] = __('Translation added.');
+$messages[3] = __('Translation updated.');
+
+if (isset($_GET['message'])) : ?>
+<div id="message" class="updated fade"><p><?php echo $messages[$_GET['message']]; ?></p></div>
+<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+endif;
+
 global $bfox_translations;
 
 if ( !empty($trans_id) ) {
@@ -60,7 +68,7 @@ $trans_files = $bfox_translations->get_translation_files();
 			<td>
 				<input type="radio" name="trans_file" id="trans_file_none" value="" checked="checked" /><label for="trans_file_none"><?php echo $no_file_text ?></label><br />
 				<?php foreach ($trans_files as $index => $file): ?>
-				<input type="radio" name="trans_file" id="trans_file_<?php echo $index ?>" value="<?php echo $file ?>" /><label for="trans_file_<?php echo $index ?>"><?php echo $file ?></label><br />
+				<input type="radio" name="trans_file" id="trans_file_<?php echo $index ?>" value="<?php echo $file ?>" /><label for="trans_file_<?php echo $index ?>"><?php echo $file ?></label> (<a href="<?php echo "$bfox_page_url&action=validate&file=$file" ?>" target="_blank">Validate</a>)<br />
 				<? endforeach; ?>
             	<?php _e('The source file for adding the translation data to the database. These files listed here are stored in the translation directory of the biblefox plugin.<br/>
             	<strong>If you select a data file, expect the changes to take a few moments as the file is parsed.</strong><br/>

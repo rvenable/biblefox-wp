@@ -28,7 +28,7 @@ case 'addtrans':
 	$trans['file_name'] = stripslashes($_POST['trans_file']);
 	$trans_id = $bfox_translations->edit_translation((object) $trans);
 
-	wp_redirect($bfox_page_url . '&message=1');
+	wp_redirect($bfox_page_url . '&action=edit&trans_id=' . $trans_id . '&message=1');
 
 	exit;
 break;
@@ -72,9 +72,19 @@ case 'editedtrans':
 	$trans['file_name'] = stripslashes($_POST['trans_file']);
 	$trans_id = $bfox_translations->edit_translation((object) $trans, $trans_id);
 
-	wp_redirect($bfox_page_url . '&message=3');
+	wp_redirect($bfox_page_url . '&action=edit&trans_id=' . $trans_id . '&message=3');
 
 	exit;
+break;
+
+case 'validate':
+
+	require_once ('admin-header.php');
+	$file = (string) $_GET['file'];
+	bfox_usfx_menu($file);
+	include('admin-footer.php');
+	exit;
+
 break;
 
 default:

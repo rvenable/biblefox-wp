@@ -737,10 +737,10 @@
 		$usfx->read_file($file);
 	}
 
-	function bfox_usfx_menu()
+	function bfox_usfx_menu($file = 'web-usfx.xml')
 	{
 		$usfx = new BfoxUsfx();
-		$usfx->read_file(BFOX_TRANSLATIONS_DIR . '/web-usfx.xml');
+		$usfx->read_file(BFOX_TRANSLATIONS_DIR . '/' . $file);
 		$all = $usfx->get_all_elements();
 
 		$schema = $usfx->get_key_value_elements('schema', TRUE);

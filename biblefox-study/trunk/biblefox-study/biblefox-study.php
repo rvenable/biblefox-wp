@@ -59,17 +59,11 @@
 		{
 			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
 			add_submenu_page('wpmu-admin.php', 'Admin Tools', 'Admin Tools', 10, BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox_admin_tools');
-			add_submenu_page('wpmu-admin.php', 'Biblefox USFX', 'USFX', 10, 'bfox-usfx', 'bfox_usfx');
 		}
 
 		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'bfox_save_post');
-	}
-
-	function bfox_usfx()
-	{
-		bfox_usfx_menu();
 	}
 
 	function bfox_save_post($post_id = 0)
