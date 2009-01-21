@@ -61,9 +61,11 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 </div>
 
 <?php
+		$refs = new BibleRefs($search);
+		global $bfox_quicknote;
+		$bfox_quicknote->set_biblerefs($refs);
 		echo "<h2 id='bible_text_main_ref'>Bible Viewer</h2>";
 		echo bfox_bible_view($search);
-		$refs = new BibleRefs($search);
 		echo '<div id="bible_quick_view">';
 		echo '<p>This is the bible quick view. Try viewing ' . $refs->get_link(NULL, 'quick') . '</p>';
 		?>
@@ -73,9 +75,8 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 
 		<?php
 		echo '</div>';
-		global $bfox_quicknote;
 		echo '<table id="quick_note_list">';
-		echo $bfox_quicknote->list_quicknotes($refs);
+		echo $bfox_quicknote->list_quicknotes();
 		echo '</table>';
 
 		// Update the read history to show that we viewed these scriptures

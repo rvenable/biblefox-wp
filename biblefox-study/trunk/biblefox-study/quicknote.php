@@ -4,6 +4,7 @@ class QuickNote
 {
 	var $bfox_quicknotes;
 	var $bfox_quicknote_refs;
+	var $notes = array();
 
 	function QuickNote()
 	{
@@ -92,7 +93,7 @@ class QuickNote
 	 * @param BibleRefs $refs
 	 * @return unknown
 	 */
-	function get_quicknotes(BibleRefs $refs)
+	private function get_quicknotes(BibleRefs $refs)
 	{
 		global $wpdb;
 
@@ -109,7 +110,7 @@ class QuickNote
 			INNER JOIN $this->bfox_quicknote_refs AS refs
 			ON notes.id = refs.id
 			WHERE $user_where AND $ref_where
-			ORDER BY refs.verse_start, refs.verse_end
+			ORDER BY refs.verse_end, refs.verse_start, notes.date_created
 			");
 	}
 
@@ -119,7 +120,7 @@ class QuickNote
 	 * @param BibleRefs $refs
 	 * @return unknown
 	 */
-	function get_grouped_quicknotes(BibleRefs $refs)
+	private function get_grouped_quicknotes(BibleRefs $refs)
 	{
 		global $wpdb;
 
@@ -142,15 +143,74 @@ class QuickNote
 	}
 
 	/**
+	 * Sets the BibleRefs to get quick notes for. It retrieves all the quick notes for those refs and stores them internally.
+	 *
+	 * @param BibleRefs $refs
+	 */
+	function set_biblerefs(BibleRefs $refs)
+	{
+		$this->notes = $this->get_quicknotes($refs);
+	}
+
+	/**
+	 * Gets an array of quick note arrays, indexed by the verse_end unique_id
+	 *
+	 * @return unknown
+	 */
+	function get_indexed_notes()
+	{
+		foreach ($this->notes as $note)
+		{
+			$key = $note->verse_end;
+			if (!isset($indexed_notes[$key])) $indexed_notes[$key] = array();
+			array_push($indexed_notes[$key], $note);
+		}
+		return $indexed_notes;
+	}
+
+	/**
+	 * Returns a list of verse note links for the given unique_id, taking the notes from the given indexed_notes array.
+	 *
+	 * $indexed_notes should be of the form as returned by get_indexed_notes(). This function modifies $indexed_notes to remove notes as it uses them.
+	 * If no $unique_id is set, all of the notes left in $indexed_notes are used.
+	 *
+	 * @param array $indexed_notes Quicknote data as returned by get_indexed_notes()
+	 * @param integer $unique_id
+	 * @return string
+	 */
+	function list_verse_notes(&$indexed_notes, $unique_id = NULL)
+	{
+		$note_list = array();
+		if (empty($unique_id))
+		{
+			if (!empty($indexed_notes)) $note_list = $indexed_notes;
+			$indexed_notes = array();
+		}
+		else if (isset($indexed_notes[$unique_id]))
+		{
+			$note_list = array($indexed_notes[$unique_id]);
+			unset($indexed_notes[$unique_id]);
+		}
+
+		foreach ($note_list as $notes)
+		{
+			foreach ($notes as $note)
+			{
+				$content .= "<a href='#quick_note_$note->id' title='$note->note'>[note]</a>";
+			}
+		}
+		return $content;// . $unique_id;
+	}
+
+	/**
 	 * Returns an output string with a list of all the quick notes for a given bible reference
 	 *
 	 * @param BibleRefs $refs
 	 * @return string
 	 */
-	function list_quicknotes(BibleRefs $refs)
+	function list_quicknotes()
 	{
-		$notes = $this->get_quicknotes($refs);
-		foreach ($notes as $note)
+		foreach ($this->notes as $note)
 		{
 			$refs = new BibleRefs($note->verse_start, $note->verse_end);
 			$edit = '<a class="edit_quick_note_link" onClick="bfox_edit_quick_note(' . $note->id . ')">[edit]</a>';
@@ -162,6 +222,7 @@ class QuickNote
 	}
 }
 
+// TODO2: We shouldn't use a global instance of quicknote
 global $bfox_quicknote;
 $bfox_quicknote = new QuickNote();
 

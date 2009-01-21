@@ -309,11 +309,12 @@
 			// We can only grab verses if the verse data exists
 			if ($this->does_data_exist())
 			{
-				global $wpdb;
+				global $wpdb, $bfox_quicknote;
 
 				$ref_where = $refs->sql_where();
-				$verses = $wpdb->get_results("SELECT book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
+				$verses = $wpdb->get_results("SELECT unique_id, book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
 
+				$notes = $bfox_quicknote->get_indexed_notes();
 				$content = '';
 				foreach ($verses as $verse)
 				{
@@ -323,8 +324,10 @@
 					if ($verse->verse_id != 0)
 						$content .= '<em class="bible-verse-id">' . $verse->verse_id . '</em> ';
 					$content .= $verse->verse;
+					$content .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
 					$content .= "</span>";
 				}
+				$content .= $bfox_quicknote->list_verse_notes($notes);
 
 				$content = bfox_special_syntax($content);
 			}
