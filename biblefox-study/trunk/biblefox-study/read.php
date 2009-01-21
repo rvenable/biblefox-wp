@@ -39,13 +39,11 @@
 <a id="quick_view_button">Quick View</a>
 Paragraphs: <a id="verse_layout_toggle">On</a>
 <div id="verse_select_box">
-	<div id="verse_select_more_info">
-	More info...
-	</div>
 	<div id="verse_select_menu">
 		<h1 id="verse_selected"><?php echo $refStr; ?></h1>
 		<ul>
-			<li><a href="">Copy text without verse numbers</a></li>
+			<li><a href="">Commentaries</a></li>
+			<li><a href="">View text without verse numbers</a></li>
 			<li><a href="">View in Quick View</a></li>
 			<li><a href="">Create a quick note</a></li>
 		</ul>

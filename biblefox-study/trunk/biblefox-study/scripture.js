@@ -169,7 +169,7 @@ function bfox_toggle_quick_view()
 	}
 }
 
-function bfox_text_select()
+function bfox_text_select(event)
 {
 	// Use Javascript Range Objects
 	// See http://www.quirksmode.org/dom/range_intro.html
@@ -185,26 +185,54 @@ function bfox_text_select()
 	if (userSelection.text)
 		selectedText = userSelection.text;
 
-/*		
+		
 //	selectedText = jQuery(userSelection.anchorNode).html;
 	
 //	var rangeObject = bfox_get_range_object(userSelection);
-	var ref = //jQuery(userSelection.anchorNode).prev().html() + '; ' + 
 //	userSelection.focusNode.nodeValue + '; ' + 
-	jQuery(userSelection.anchorNode).parent().html();
-	*/
+//	jQuery(userSelection.anchorNode).parent().html();
+
+	var ref = '';
 	
 	if ('' != selectedText)
 	{
-		var ref = jQuery('#bible_text_main_ref').html(); 
-		jQuery('#verse_selected').html(ref);
-		jQuery('#verse_select_more_info').fadeIn('fast');
-//		jQuery('#edit_quick_note_text').focus();
+		ref = jQuery('#bible_text_main_ref').html();
+		var verse1 = jQuery(userSelection.anchorNode).parents('.bible_verse');
+		var verse2 = jQuery(userSelection.focusNode).parents('.bible_verse');
+
+		// You can only select within one book
+		var book = verse1.attr('book');
+		if (verse2.attr('book') == book) {
+			var ch1 = eval(verse1.attr('chapter'));
+			var ch2 = eval(verse2.attr('chapter'));
+			var v1 = eval(verse1.attr('verse'));
+			var v2 = eval(verse2.attr('verse'));
+			if (ch1 > ch2) {
+				ref = book + ' ' + ch2 + ':' + v2 + '-' + ch1 + ':' + v1;
+			}
+			else if (ch1 == ch2) {
+				if (v1 > v2)
+					ref = book + ' ' + ch2 + ':' + v2 + '-' + v1;
+				else if (v1 == v2)
+					ref = book + ' ' + ch1 + ':' + v1;
+				else
+					ref = book + ' ' + ch1 + ':' + v1 + '-' + v2;
+			}
+			else
+				ref = book + ' ' + ch1 + ':' + v1 + '-' + ch2 + ':' + v2;
+		}
 	}
-	else jQuery('#verse_select_more_info').fadeOut('fast');
-//	jQuery('#verse-select-menu').dialog();
 	
-	//if ('' != selectedText) alert(selectedText);
+	if ('' != ref)
+	{
+		jQuery('#verse_selected').html(ref);
+/*
+		jQuery('#verse_select_menu').css('top', event.pageY + 'px');
+		jQuery('#verse_select_menu').css('left', event.pageX + 'px');
+		jQuery('#verse_select_menu').fadeIn('fast');
+		*/
+		jQuery('#verse_select_box').fadeIn('fast');
+	}
 }
 
 function bfox_get_range_object(selectionObject) {
@@ -290,4 +318,7 @@ jQuery(document).ready( function() {
 	jQuery('#edit_quick_note_text').val('');
 
 	jQuery(document).mouseup(bfox_text_select);
+	jQuery(document).mousedown(function() {
+		jQuery('#verse_select_box').fadeOut('fast');
+	});
 });

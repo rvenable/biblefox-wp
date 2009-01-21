@@ -184,13 +184,9 @@ Scripture Viewer
 	width: 100%;
 	border-top: thin solid #2583AD;
 	background-color: #E4F2FD;
-//	display: none;
+	display: none;
 	font-size: 9px;
 	z-index: 2;
-}
-
-#verse_select_more_info {
-	display: none;
 }
 
 #verse_select_menu {

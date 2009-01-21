@@ -312,12 +312,14 @@
 				global $wpdb;
 
 				$ref_where = $refs->sql_where();
-				$verses = $wpdb->get_results("SELECT verse_id, verse FROM $this->table WHERE $ref_where");
+				$verses = $wpdb->get_results("SELECT book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
 
 				$content = '';
 				foreach ($verses as $verse)
 				{
-					$content .= '<span class="bible_verse">';
+					$book_name = bfox_get_book_name($verse->book_id);
+					// TODO2: We don't need the book and chapter for each verse, verses should be nested in chapter and book elements
+					$content .= "<span class='bible_verse' book='$book_name' chapter='$verse->chapter_id' verse='$verse->verse_id'>";
 					if ($verse->verse_id != 0)
 						$content .= '<em class="bible-verse-id">' . $verse->verse_id . '</em> ';
 					$content .= $verse->verse;
