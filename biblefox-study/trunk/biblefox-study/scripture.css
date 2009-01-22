@@ -204,6 +204,10 @@ Scripture Viewer
 	padding: 5px;
 }
 
+#verse_select_box_close {
+	float: right;
+}
+
 #edit_quick_note {
 	float: right;
 	width: 80%;

@@ -39,6 +39,7 @@
 <a id="quick_view_button">Quick View</a>
 Paragraphs: <a id="verse_layout_toggle">On</a>
 <div id="verse_select_box">
+	<a href="#close" id="verse_select_box_close" onclick="bfox_close_select_box()">X Close</a>
 	<div id="verse_select_menu">
 		<h1 id="verse_selected"><?php echo $refStr; ?></h1>
 		<ul>
@@ -52,6 +53,7 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 		<form action="" id="edit_quick_note_form">
 			<input type="hidden" value="" id="edit_quick_note_id" />
 			<textarea rows="1" style="width: 100%; height: auto;" class="edit_quick_note_input" id="edit_quick_note_text"></textarea>
+			<input type="text" id="quick_note_bible_ref" name="quick_note_bible_ref" value="" />
 			<input type="button" value="<?php _e('Save'); ?>" class="button edit_quick_note_input" onclick="bfox_save_quick_note()" />
 			<input type="button" value="<?php _e('New Note'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
 			<input type="button" value="<?php _e('Delete'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
@@ -75,9 +77,9 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 
 		<?php
 		echo '</div>';
-		echo '<table id="quick_note_list">';
+/*		echo '<table id="quick_note_list">';
 		echo $bfox_quicknote->list_quicknotes();
-		echo '</table>';
+		echo '</table>';*/
 
 		// Update the read history to show that we viewed these scriptures
 		$bfox_history->update($refs);

@@ -402,7 +402,7 @@
 					$footnotes .= "<li><a name=\"footnote_$index\" href=\"#footnote_ref_$index\">[$index]</a> $note_text</li>";
 
 					// Replace the footnote with a link
-					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\" title=\"" . bfox_html_strip_tags($note_text) . "\"><sup>[$index]</sup></a>";
+					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\" title=\"" . bfox_html_strip_tags($note_text) . "\">[$index]</a>";
 				}
 				else
 				{

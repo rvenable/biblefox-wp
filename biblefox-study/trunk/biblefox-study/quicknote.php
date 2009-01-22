@@ -168,6 +168,12 @@ class QuickNote
 		return $indexed_notes;
 	}
 
+	function get_note_link($id, $note, BibleRefs $refs)
+	{
+		$ref_str = $refs->get_string();
+		return "<a href='#none' id='quick_note_link_$id' title='$note' onclick=\"bfox_edit_quick_note('$id', '$ref_str')\">[note]</a>";
+	}
+
 	/**
 	 * Returns a list of verse note links for the given unique_id, taking the notes from the given indexed_notes array.
 	 *
@@ -185,21 +191,28 @@ class QuickNote
 		{
 			if (!empty($indexed_notes)) $note_list = $indexed_notes;
 			$indexed_notes = array();
+			$content .= "<span id='end_quick_notes'>";
 		}
-		else if (isset($indexed_notes[$unique_id]))
+		else
 		{
-			$note_list = array($indexed_notes[$unique_id]);
-			unset($indexed_notes[$unique_id]);
+			if (isset($indexed_notes[$unique_id]))
+			{
+				$note_list = array($indexed_notes[$unique_id]);
+				unset($indexed_notes[$unique_id]);
+			}
+			$content .= "<span id='quick_notes_$unique_id'>";
 		}
 
 		foreach ($note_list as $notes)
 		{
 			foreach ($notes as $note)
 			{
-				$content .= "<a href='#quick_note_$note->id' title='$note->note'>[note]</a>";
+				$refs = new BibleRefs($note->verse_start, $note->verse_end);
+				$content .= $this->get_note_link($note->id, $note->note, $refs);;
 			}
 		}
-		return $content;// . $unique_id;
+		if (!empty($content)) $content .= '</span> ';
+		return $content;
 	}
 
 	/**
@@ -208,18 +221,22 @@ class QuickNote
 	 * @param BibleRefs $refs
 	 * @return string
 	 */
+/* TODO2: Not currently using this function, but will be needed for displaying quicknotes without javascript
 	function list_quicknotes()
 	{
+//		$content .= '<form action="">';
 		foreach ($this->notes as $note)
 		{
 			$refs = new BibleRefs($note->verse_start, $note->verse_end);
 			$edit = '<a class="edit_quick_note_link" onClick="bfox_edit_quick_note(' . $note->id . ')">[edit]</a>';
 			$note_content = '<span id="quick_note_' . $note->id . '">' . $note->note . '</span>';
 			$content .= "<tr><td>" . $refs->get_link() . "</td><td>$edit</td><td>$note_content</td></tr>";
+//			$content .= '<tr><td><input type="text" value="' . $refs->get_string() . '" /></td><td></td><td><textarea rows="1" style="width: 100%; height: auto;">' . $note->note . '</textarea></td></tr>';
 		}
+//		$content .= '</form>';
 
 		return $content;
-	}
+	}*/
 }
 
 // TODO2: We shouldn't use a global instance of quicknote
@@ -237,15 +254,26 @@ function bfox_ajax_save_quick_note()
 	$ref_str = $_POST['ref_str'];
 
 	$refs = new BibleRefs($ref_str);
+	$is_new_note = (0 == $id);
 
 	global $bfox_quicknote;
 	$id = $bfox_quicknote->save_quicknote($refs, $note, $id);
 
-	// Return the new list of quick notes
-	// TODO2: This should return the list of quicknotes for the currently displayed passage (not the passages in the quick note)
-	$content = addslashes($bfox_quicknote->list_quicknotes($refs));
+	list($unique_ids) = $refs->get_sets();
+	$section_id = "#quick_notes_$unique_ids[1]";
+	if ($is_new_note)
+	{
+		// Return the new list of quick notes
+		$bfox_quicknote->set_biblerefs($refs);
+		$link = addslashes($bfox_quicknote->get_note_link($id, $note, $refs));
 
-	$script = "bfox_quick_note_saved('$content')";
+		$script = "bfox_quick_note_created('$section_id', '$link')";
+	}
+	else
+	{
+		$script = "bfox_quick_note_edited('$section_id', '#quick_note_link_$id', '$note')";
+	}
+
 	die($script);
 }
 add_action('wp_ajax_bfox_ajax_save_quick_note', 'bfox_ajax_save_quick_note');
