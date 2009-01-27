@@ -6,57 +6,79 @@
 	define(BFOX_REF_FORMAT_NORMAL, 'normal');
 	define(BFOX_REF_FORMAT_SHORT, 'short');
 
+	/**
+	 * Returns the book name for a given book ID
+	 *
+	 * @param integer $book_id
+	 * @param string $format
+	 * @return string
+	 */
 	function bfox_get_book_name($book_id, $format = '')
 	{
-		global $wpdb;
+		global $bfox_books;
 
 		if (BFOX_REF_FORMAT_SHORT == $format) $col = 'short_name';
 		else $col = 'name';
 
-		$query = $wpdb->prepare("SELECT $col FROM " . BFOX_BOOKS_TABLE . " WHERE id = %d", $book_id);
-		return $wpdb->get_var($query);
+		return $bfox_books[$book_id][$col];
 	}
 
-	function bfox_find_book_id($synonym)
+	/**
+	 * Returns the book id for a book name synonym.
+	 *
+	 * Synonyms have levels for how specific the synonyms. For instance, Isaiah could be abbreviated as 'is', which could be confused with
+	 * the word 'is'. So 'is' is not in the default level, and thus is not used unless its level is specified.
+	 *
+	 * @param string $synonym
+	 * @param integer $max_level
+	 * @return integer
+	 */
+	function bfox_find_book_id($synonym, $max_level = 0)
 	{
-		global $wpdb, $bfox_synonyms;
-		$synonym = strtolower($synonym);
+		global $bfox_synonyms;
+		$synonym = strtolower(trim($synonym));
 
-		if (empty($bfox_synonyms)) $book_id = $wpdb->get_var($wpdb->prepare("SELECT book_id FROM " . BFOX_SYNONYMS_TABLE . " WHERE synonym LIKE %s", trim($synonym)));
-		else if (isset($bfox_synonyms[$synonym])) $book_id = $bfox_synonyms[$synonym];
+		// TODO2: Books with First and Second should be handled algorithmically
+
+		$level = 0;
+		while (empty($book_id) && ($level <= $max_level))
+		{
+			$book_id = $bfox_synonyms[$level][$synonym];
+			$level++;
+		}
 
 		if (empty($book_id)) return FALSE;
 		return $book_id;
 	}
 
+	/**
+	 * Creates the global synonym prefix array which is necessary for bfox_ref_replace()
+	 *
+	 */
 	function bfox_create_synonym_data()
 	{
 		global $wpdb, $bfox_synonyms, $bfox_syn_prefix;
 
-		if (empty($bfox_synonyms))
+		if (empty($bfox_syn_prefix))
 		{
-			$bfox_synonyms = array();
-			$results = $wpdb->get_results($wpdb->prepare("SELECT synonym, book_id FROM " . BFOX_SYNONYMS_TABLE));
-			foreach ($results as $result)
+			foreach ($bfox_synonyms as $level => $level_syns)
 			{
-				$synonym = strtolower($result->synonym);
-				$bfox_synonyms[$synonym] = $result->book_id;
-
-				$words = preg_split('/\s/', $synonym, -1, PREG_SPLIT_NO_EMPTY);
-				if (0 < count($words))
+				foreach ($level_syns as $synonym => $book_id)
 				{
-					$prefix = '';
-					foreach ($words as $word)
+					$words = preg_split('/\s/', $synonym, -1, PREG_SPLIT_NO_EMPTY);
+					if (0 < count($words))
 					{
-						if (!empty($prefix)) $prefix .= ' ';
-						$prefix .= $word;
-						$bfox_syn_prefix[$prefix] = TRUE;
+						$prefix = '';
+						foreach ($words as $word)
+						{
+							if (!empty($prefix)) $prefix .= ' ';
+							$prefix .= $word;
+							$bfox_syn_prefix[$prefix] = TRUE;
+						}
 					}
 				}
 			}
 		}
-
-		return $bfox_synonyms;
 	}
 
 	function bfox_get_chapters($first_verse, $last_verse)
@@ -106,7 +128,7 @@
 
 	function bfox_ref_replace($text)
 	{
-		global $bfox_synonyms, $bfox_syn_prefix;
+		global $bfox_syn_prefix;
 
 		// Loop throught the text, word by word (where a word is a string of non-whitespace chars)
 		// Check each word to see if it is part of a synonym for a book
@@ -124,7 +146,7 @@
 
 			// The word might be a portion of book name (ie, a prefix to the book name),
 			// So we need to detect that using the bfox_syn_prefix array, and save those potential book 'prefixes'
-			if (isset($bfox_synonyms[$pattern_lc])) $book = $pattern;
+			if (bfox_find_book_id($pattern)) $book = $pattern;
 
 			// For each prefix we have saved, append the current word and see if we have a synonym
 			// If we have a synonym then we can use that synonym as the book
@@ -132,7 +154,7 @@
 			foreach ($prefixes as $start => &$prefix)
 			{
 				$prefix .= ' ' . $pattern_lc;
-				if (isset($bfox_synonyms[$prefix])) $book = $prefix;
+				if (bfox_find_book_id($prefix)) $book = $prefix;
 
 				// Unset the the prefix if it is no longer valid
 				if (!isset($bfox_syn_prefix[$prefix])) unset($prefixes[$start]);

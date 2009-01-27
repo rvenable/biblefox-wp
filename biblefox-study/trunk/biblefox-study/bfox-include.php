@@ -16,6 +16,7 @@
 	// Column Definitions
 	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
 
+	require_once('bible-meta.php');
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");
 	require_once("plan.php");
