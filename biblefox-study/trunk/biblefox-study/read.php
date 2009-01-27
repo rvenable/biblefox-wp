@@ -38,6 +38,7 @@
 </form>
 <a id="quick_view_button">Quick View</a>
 Paragraphs: <a id="verse_layout_toggle">On</a>
+<div id="bible_note_popup"></div>
 <div id="verse_select_box">
 	<a href="#close" id="verse_select_box_close" onclick="bfox_close_select_box()">X Close</a>
 	<div id="verse_select_menu">

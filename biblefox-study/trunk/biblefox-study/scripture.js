@@ -311,10 +311,10 @@ function bfox_set_quick_note(id, note, ref)
 	jQuery('#edit_quick_note_text').focus();
 }
 
-function bfox_edit_quick_note(id, ref)
+function bfox_edit_quick_note(id, note, ref)
 {
 	jQuery('#verse_select_box').fadeIn('fast');
-	bfox_set_quick_note(id, jQuery('#quick_note_link_' + id).attr('title'), ref);
+	bfox_set_quick_note(id, note, ref);
 }
 
 function bfox_new_quick_note()
@@ -327,6 +327,15 @@ function bfox_edit_quick_note_press_key( e ) {
 		bfox_save_quick_note();
 		return false;
 	}
+}
+
+function bfox_note_popup_show(note, text) {
+	var offset = jQuery(note).offset();
+	jQuery('#bible_note_popup').html(text).css('top', offset.top + 'px').css('left', offset.left + 'px').show();
+}
+
+function bfox_note_popup_hide() {
+	jQuery('#bible_note_popup').hide();
 }
 
 jQuery(document).ready( function() {

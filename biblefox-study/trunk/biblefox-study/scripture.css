@@ -222,3 +222,12 @@ Scripture Viewer
 	cursor: pointer;
 }
 
+#bible_note_popup {
+	position: absolute;
+	border: thin solid #2583AD;
+	background-color: #E4F2FD;
+	display: none;
+	padding: 10px;
+	margin: 0px;
+}
+

@@ -171,7 +171,7 @@ class QuickNote
 	function get_note_link($id, $note, BibleRefs $refs)
 	{
 		$ref_str = $refs->get_string();
-		return "<a href='#none' id='quick_note_link_$id' title='$note' onclick=\"bfox_edit_quick_note('$id', '$ref_str')\">[note]</a>";
+		return "<a href='#none' id='quick_note_link_$id' onclick=\"bfox_edit_quick_note('$id', '$note', '$ref_str')\" onmouseover=\"bfox_note_popup_show(this, '<b>$ref_str:</b> $note')\" onmouseout=\"bfox_note_popup_hide()\">[note]</a>";
 	}
 
 	/**
