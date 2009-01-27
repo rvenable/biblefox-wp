@@ -323,8 +323,8 @@
 					$content .= "<span class='bible_verse' book='$book_name' chapter='$verse->chapter_id' verse='$verse->verse_id'>";
 					if ($verse->verse_id != 0)
 						$content .= '<em class="bible-verse-id">' . $verse->verse_id . '</em> ';
-					$content .= $verse->verse;
 					$content .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
+					$content .= $verse->verse;
 					$content .= "</span>";
 				}
 				$content .= $bfox_quicknote->list_verse_notes($notes);

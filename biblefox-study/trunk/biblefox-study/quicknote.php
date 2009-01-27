@@ -110,7 +110,7 @@ class QuickNote
 			INNER JOIN $this->bfox_quicknote_refs AS refs
 			ON notes.id = refs.id
 			WHERE $user_where AND $ref_where
-			ORDER BY refs.verse_end, refs.verse_start, notes.date_created
+			ORDER BY refs.verse_start, refs.verse_end, notes.date_created
 			");
 	}
 
@@ -161,7 +161,7 @@ class QuickNote
 	{
 		foreach ($this->notes as $note)
 		{
-			$key = $note->verse_end;
+			$key = $note->verse_start;
 			if (!isset($indexed_notes[$key])) $indexed_notes[$key] = array();
 			array_push($indexed_notes[$key], $note);
 		}
@@ -260,7 +260,7 @@ function bfox_ajax_save_quick_note()
 	$id = $bfox_quicknote->save_quicknote($refs, $note, $id);
 
 	list($unique_ids) = $refs->get_sets();
-	$section_id = "#quick_notes_$unique_ids[1]";
+	$section_id = "#quick_notes_$unique_ids[0]";
 	if ($is_new_note)
 	{
 		// Return the new list of quick notes
