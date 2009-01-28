@@ -232,10 +232,24 @@ function bfox_save_quick_note()
 {
 	jQuery('.edit_quick_note_input').attr("disabled", true);
 
-	var note = jQuery('#edit_quick_note_text').val();
 	var id = jQuery('#edit_quick_note_id').val();
+	var note = jQuery('#edit_quick_note_text').val();
 	var ref_str = jQuery('#quick_note_bible_ref').val();
 
+	bfox_ajax_modify_note('Saving...', id, note, ref_str);
+}
+
+function bfox_delete_quick_note()
+{
+	jQuery('.edit_quick_note_input').attr("disabled", true);
+
+	var id = jQuery('#edit_quick_note_id').val();
+
+	bfox_ajax_modify_note('Deleting...', id, '', '');
+}
+
+function bfox_ajax_modify_note(msg, id, note, ref_str)
+{
 	var mysack = new sack(jQuery('#bible-request-url').val());
 	
 	mysack.execute = 1;
@@ -248,27 +262,18 @@ function bfox_save_quick_note()
 	mysack.onError = function() { alert('Ajax error in saving the ')};
 	mysack.runAJAX();
 
-	jQuery('#edit_quick_note_progress').html('Saving...').fadeIn("fast");
+	jQuery('#edit_quick_note_progress').html(msg).fadeIn("fast");
 	
 	return false;
 }
 
-function bfox_quick_note_edited(section_id, link, verse_id)
+function bfox_quick_note_modified(msg, section_id, link, verse_id)
 {
-	jQuery(verse_id).remove();
-	bfox_quick_note_created(section_id, link);
-}
+	if ('' != verse_id) jQuery(verse_id).remove();
+	if ('' != section_id) jQuery(section_id).append(link);
 
-function bfox_quick_note_created(section_id, link)
-{
-	jQuery(section_id).append(link);
-	bfox_quick_note_saved();
-}
-
-function bfox_quick_note_saved()
-{
 	jQuery('#edit_quick_note_progress').fadeOut("fast", function() {
-		jQuery('#edit_quick_note_progress').html('Saved!');
+		jQuery('#edit_quick_note_progress').html(msg);
 		jQuery('.edit_quick_note_input').removeAttr("disabled");
 		bfox_new_quick_note();
 	}).fadeIn(1000).fadeOut(1000, function() {

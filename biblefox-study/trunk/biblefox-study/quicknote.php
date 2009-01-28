@@ -3,13 +3,11 @@
 class QuickNote
 {
 	var $bfox_quicknotes;
-	var $bfox_quicknote_refs;
 	var $notes = array();
 
 	function QuickNote()
 	{
 		$this->bfox_quicknotes = BFOX_BASE_TABLE_PREFIX . 'quicknotes';
-		$this->bfox_quicknote_refs = BFOX_BASE_TABLE_PREFIX . 'quicknote_refs';
 	}
 
 	function create_tables()
@@ -24,13 +22,10 @@ class QuickNote
 			privacy int NOT NULL default '0',
 			date_created datetime NOT NULL,
 			date_modified datetime NOT NULL,
-			note text NOT NULL,
-			PRIMARY KEY  (id)
-		);
-		CREATE TABLE IF NOT EXISTS $this->bfox_quicknote_refs (
-			id bigint(20) unsigned NOT NULL,
 			verse_start int NOT NULL,
 			verse_end int NOT NULL
+			note text NOT NULL,
+			PRIMARY KEY  (id)
 		);
 		";
 
@@ -54,6 +49,8 @@ class QuickNote
 		$note = str_replace(array("\r\n", "\r"), "\n", $note);
 		$note = preg_replace("/\n+/", "<br />", $note);
 
+		list(list($verse_start, $verse_end)) = $refs->get_sets();
+
 		// If a note id was specified, then we are modifying a previously created note
 		if (!empty($id))
 		{
@@ -63,10 +60,12 @@ class QuickNote
 			if ($note_user == $user_ID)
 			{
 				// Update the note data
-				$wpdb->query($wpdb->prepare("UPDATE $this->bfox_quicknotes SET note = %s, date_modified = NOW() WHERE id = %d", $note, $id));
-
-				// Delete any previously saved ref data because we have new refs to insert
-				$wpdb->query($wpdb->prepare("DELETE FROM $this->bfox_quicknote_refs WHERE id = %d", $id));
+				$wpdb->query($wpdb->prepare("
+					UPDATE $this->bfox_quicknotes
+					SET note = %s, verse_start = %d, verse_end = %d, date_modified = NOW()
+					WHERE id = %d",
+					$note, $verse_start, $verse_end,
+					$id));
 			}
 			else $id = NULL;
 		}
@@ -74,44 +73,33 @@ class QuickNote
 		// If there is no note id, just insert a new note
 		if (empty($id))
 		{
-			$wpdb->query($wpdb->prepare("INSERT INTO $this->bfox_quicknotes SET user = %d, note = %s, date_created = NOW(), date_modified = NOW()", $user_ID, $note));
+			$wpdb->query($wpdb->prepare("
+				INSERT INTO $this->bfox_quicknotes
+				SET user = %d, note = %s, verse_start = %d, verse_end = %d, date_created = NOW(), date_modified = NOW()",
+				$user_ID, $note, $verse_start, $verse_end));
 			$id = $wpdb->insert_id;
-		}
-
-		// Insert all the bible refs for the note we just modified or created
-		foreach ($refs->get_sets() as $unique_ids)
-		{
-			$wpdb->query($wpdb->prepare("INSERT INTO $this->bfox_quicknote_refs SET id = %d, verse_start = %d, verse_end = %d", $id, $unique_ids[0], $unique_ids[1]));
 		}
 
 		return $id;
 	}
 
 	/**
-	 * Returns the quicknotes in a given passage of scripture.
+	 * Deletes the quick note specified by the given ID
 	 *
-	 * @param BibleRefs $refs
-	 * @return unknown
+	 * The current user must be the owner of the note for it to be deleted
+	 *
+	 * @param integer $id
 	 */
-	private function get_quicknotes(BibleRefs $refs)
+	function delete_quicknote($id)
 	{
-		global $wpdb;
+		global $user_ID, $wpdb;
 
-		// TODO3: Allow viewing friends quick notes
-
-		global $user_ID;
-
-		$user_where = $wpdb->prepare('notes.user = %d', $user_ID);
-		$ref_where = $refs->sql_where2("refs.verse_start", "refs.verse_end");
-
-		return (array) $wpdb->get_results("
-			SELECT notes.*, refs.verse_start AS verse_start, refs.verse_end AS verse_end
-			FROM $this->bfox_quicknotes AS notes
-			INNER JOIN $this->bfox_quicknote_refs AS refs
-			ON notes.id = refs.id
-			WHERE $user_where AND $ref_where
-			ORDER BY refs.verse_start, refs.verse_end, notes.date_created
-			");
+		// Make sure that we are deleting a note for the current user
+		$note_user = $wpdb->get_var($wpdb->prepare("SELECT user FROM $this->bfox_quicknotes WHERE id = %d", $id));
+		if ($note_user == $user_ID)
+		{
+			$wpdb->query($wpdb->prepare("DELETE FROM $this->bfox_quicknotes WHERE id = %d", $id));
+		}
 	}
 
 	/**
@@ -120,7 +108,7 @@ class QuickNote
 	 * @param BibleRefs $refs
 	 * @return unknown
 	 */
-	private function get_grouped_quicknotes(BibleRefs $refs)
+	function get_quicknotes(BibleRefs $refs)
 	{
 		global $wpdb;
 
@@ -128,17 +116,14 @@ class QuickNote
 
 		global $user_ID;
 
-		$user_where = $wpdb->prepare('notes.user = %d', $user_ID);
-		$ref_where = $refs->sql_where2("refs.verse_start", "refs.verse_end");
+		$user_where = $wpdb->prepare('user = %d', $user_ID);
+		$ref_where = $refs->sql_where2("verse_start", "verse_end");
 
 		return (array) $wpdb->get_results("
-			SELECT notes.*, GROUP_CONCAT(refs.verse_start) AS verse_start, GROUP_CONCAT(refs.verse_end) AS verse_end
-			FROM $this->bfox_quicknotes AS notes
-			INNER JOIN $this->bfox_quicknote_refs AS refs
-			ON notes.id = refs.id
+			SELECT *
+			FROM $this->bfox_quicknotes
 			WHERE $user_where AND $ref_where
-			GROUP BY notes.id
-			ORDER BY MIN(refs.verse_start), MIN(refs.verse_end)
+			ORDER BY verse_start, verse_end, date_created
 			");
 	}
 
@@ -250,30 +235,43 @@ $bfox_quicknote = new QuickNote();
  */
 function bfox_ajax_save_quick_note()
 {
+	global $bfox_quicknote;
+
 	$id = $_POST['note_id'];
 	$note = $_POST['note'];
 	$ref_str = $_POST['ref_str'];
 
-	$refs = new BibleRefs($ref_str);
-	$is_new_note = (0 == $id);
+	$verse_id = "#quick_note_link_$id";
 
-	global $bfox_quicknote;
-	$id = $bfox_quicknote->save_quicknote($refs, $note, $id);
-
-	list($unique_ids) = $refs->get_sets();
-	$section_id = "#quick_notes_$unique_ids[0]";
-	$bfox_quicknote->set_biblerefs($refs);
-	$link = addslashes($bfox_quicknote->get_note_link($id, $note, $refs));
-
-	if ($is_new_note)
+	// If we have a note or bible reference, we can modify the note
+	// Otherwise we should delete the note
+	if ('' != $note || '' != $ref_str)
 	{
-		$script = "bfox_quick_note_created('$section_id', '$link')";
+		$refs = new BibleRefs($ref_str);
+		list($unique_ids) = $refs->get_sets();
+		$section_id = "#quick_notes_$unique_ids[0]";
+
+		// If the original id was blank, then we are creating a new note
+		if (0 == $id) $verse_id = '';
+
+		// Modify the note
+		$id = $bfox_quicknote->save_quicknote($refs, $note, $id);
+
+//		$bfox_quicknote->set_biblerefs($refs);
+		$link = addslashes($bfox_quicknote->get_note_link($id, $note, $refs));
+
+		$message = __('Saved!');
 	}
 	else
 	{
-		$script = "bfox_quick_note_edited('$section_id', '$link', '#quick_note_link_$id')";
+		// Delete the note
+		$bfox_quicknote->delete_quicknote($id);
+		$section_id = '';
+		$link = '';
+		$message = __('Deleted!');
 	}
 
+	$script = "bfox_quick_note_modified('$message', '$section_id', '$link', '$verse_id')";
 	die($script);
 }
 add_action('wp_ajax_bfox_ajax_save_quick_note', 'bfox_ajax_save_quick_note');

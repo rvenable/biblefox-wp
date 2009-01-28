@@ -58,7 +58,7 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 			<input type="text" id="quick_note_bible_ref" name="quick_note_bible_ref" value="" disabled />
 			<input type="button" value="<?php _e('Save'); ?>" class="button edit_quick_note_input" onclick="bfox_save_quick_note()" />
 			<input type="button" value="<?php _e('New Note'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
-			<input type="button" value="<?php _e('Delete'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
+			<input type="button" value="<?php _e('Delete'); ?>" class="button edit_quick_note_input" onclick="bfox_delete_quick_note()" />
 			<div id="edit_quick_note_progress"></div>
 		</form>
 	</div>
