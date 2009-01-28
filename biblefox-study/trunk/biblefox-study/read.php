@@ -52,9 +52,10 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 	</div>
 	<div id="edit_quick_note">
 		<form action="" id="edit_quick_note_form">
+			Enter note text:
 			<input type="hidden" value="" id="edit_quick_note_id" />
 			<textarea rows="1" style="width: 100%; height: auto;" class="edit_quick_note_input" id="edit_quick_note_text"></textarea>
-			<input type="text" id="quick_note_bible_ref" name="quick_note_bible_ref" value="" />
+			<input type="text" id="quick_note_bible_ref" name="quick_note_bible_ref" value="" disabled />
 			<input type="button" value="<?php _e('Save'); ?>" class="button edit_quick_note_input" onclick="bfox_save_quick_note()" />
 			<input type="button" value="<?php _e('New Note'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
 			<input type="button" value="<?php _e('Delete'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />

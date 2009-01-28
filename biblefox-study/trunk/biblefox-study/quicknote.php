@@ -171,7 +171,8 @@ class QuickNote
 	function get_note_link($id, $note, BibleRefs $refs)
 	{
 		$ref_str = $refs->get_string();
-		return "<a href='#none' id='quick_note_link_$id' onclick=\"bfox_edit_quick_note('$id', '$note', '$ref_str')\" onmouseover=\"bfox_note_popup_show(this, '<b>$ref_str:</b> $note')\" onmouseout=\"bfox_note_popup_hide()\">[note]</a>";
+		$ref_str_short = $refs->get_string('short');
+		return "<a href='#none' id='quick_note_link_$id' onclick=\"bfox_edit_quick_note('$id', '$note', '$ref_str')\" onmouseover=\"bfox_note_popup_show(this, '<b>$ref_str_short:</b> $note')\" onmouseout=\"bfox_note_popup_hide()\">[note]</a>";
 	}
 
 	/**
@@ -261,17 +262,16 @@ function bfox_ajax_save_quick_note()
 
 	list($unique_ids) = $refs->get_sets();
 	$section_id = "#quick_notes_$unique_ids[0]";
+	$bfox_quicknote->set_biblerefs($refs);
+	$link = addslashes($bfox_quicknote->get_note_link($id, $note, $refs));
+
 	if ($is_new_note)
 	{
-		// Return the new list of quick notes
-		$bfox_quicknote->set_biblerefs($refs);
-		$link = addslashes($bfox_quicknote->get_note_link($id, $note, $refs));
-
 		$script = "bfox_quick_note_created('$section_id', '$link')";
 	}
 	else
 	{
-		$script = "bfox_quick_note_edited('$section_id', '#quick_note_link_$id', '$note')";
+		$script = "bfox_quick_note_edited('$section_id', '$link', '#quick_note_link_$id')";
 	}
 
 	die($script);

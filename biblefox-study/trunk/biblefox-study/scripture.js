@@ -79,7 +79,7 @@ function bible_text_request(ref_str)
 
 	// Fade out the the progress text, then update it to say we are loading
 	jQuery('#bible-text-progress').fadeOut("fast", function () {
-		jQuery('#bible-text-progress').html('Loading "' + ref_str + '"...');
+		jQuery(this).html('Loading "' + ref_str + '"...');
 	});
 	
 	// Fade the bible-text slightly to indicate to the user that it is about to be replaced
@@ -97,20 +97,19 @@ function bfox_quick_view_loaded(ref_str, content)
 	jQuery('#bible-text-progress').queue( function () {
 
 		// Fade out the progress text, then update it to say we are done loading
-		jQuery('#bible-text-progress').fadeOut("fast", function() {
-			jQuery('#bible-text-progress').html('Viewing ' + ref_str);
+		jQuery(this).fadeOut("fast", function() {
+			jQuery(this).html('Viewing ' + ref_str);
 		});
 
 		// Fade out the old bible text, then replace it with the new text
 		jQuery('#bible-text').fadeOut("fast", function () {
-			jQuery('#bible-text').html(content);
+			jQuery(this).html(content);
 			jQuery('.bible-ref-link').click(bible_ref_link_click);
 		});
 
 		// Fade everything back in
 		jQuery('#bible-text-progress').fadeIn("fast");
-		jQuery('#bible-text').fadeIn("fast");
-		jQuery('#bible-text').fadeTo("fast", 1);
+		jQuery('#bible-text').fadeIn("fast").fadeTo("fast", 1);
 
 		// We must dequeue to continue the queue
 		jQuery(this).dequeue();
@@ -133,15 +132,13 @@ function bfox_toggle_verse_paragraph()
 	paragraph = 'Off';
 	if (verse == jQuery('#verse_layout_toggle').html())
 	{
-		jQuery('.bible_verse').css('display', 'block');
-		jQuery('.bible_verse').css('margin', '8px 0px 8px 0px');
+		jQuery('.bible_verse').css('display', 'block').css('margin', '8px 0px 8px 0px');
 		jQuery('.bible_end_p').css('display', 'none');
 		jQuery('#verse_layout_toggle').html(paragraph);
 	}
 	else
 	{
-		jQuery('.bible_verse').css('display', 'inline');
-		jQuery('.bible_verse').css('margin', '0px');
+		jQuery('.bible_verse').css('display', 'inline').css('margin', '0px');
 		jQuery('.bible_end_p').css('display', 'block');
 		jQuery('#verse_layout_toggle').html(verse);
 	}
@@ -151,8 +148,7 @@ function bfox_toggle_quick_view()
 {
 	if ('none' == jQuery('#bible_quick_view').css('display'))
 	{
-		jQuery('#bible_view').animate({width: '50%'}, 'fast');
-		jQuery('#bible_view').queue(function() {
+		jQuery('#bible_view').animate({width: '50%'}, 'fast').queue(function() {
 			jQuery('#bible_quick_view').fadeIn('fast', function() {
 				jQuery('#bible_view').dequeue();
 			});
@@ -164,8 +160,7 @@ function bfox_toggle_quick_view()
 			jQuery('#bible_quick_view').fadeOut('fast', function() {
 				jQuery('#bible_view').dequeue();
 			});
-		});
-		jQuery('#bible_view').animate({width: '100%'}, 'fast');
+		}).animate({width: '100%'}, 'fast');
 	}
 }
 
@@ -184,13 +179,6 @@ function bfox_text_select(event)
 	var selectedText = userSelection;
 	if (userSelection.text)
 		selectedText = userSelection.text;
-
-		
-//	selectedText = jQuery(userSelection.anchorNode).html;
-	
-//	var rangeObject = bfox_get_range_object(userSelection);
-//	userSelection.focusNode.nodeValue + '; ' + 
-//	jQuery(userSelection.anchorNode).parent().html();
 
 	var ref = '';
 	
@@ -228,9 +216,7 @@ function bfox_text_select(event)
 		jQuery('#verse_selected').html(ref);
 		jQuery('#quick_note_bible_ref').val(ref);
 /*
-		jQuery('#verse_select_menu').css('top', event.pageY + 'px');
-		jQuery('#verse_select_menu').css('left', event.pageX + 'px');
-		jQuery('#verse_select_menu').fadeIn('fast');
+		jQuery('#verse_select_menu').css('top', event.pageY + 'px').css('left', event.pageX + 'px').fadeIn('fast');
 		*/
 		jQuery('#verse_select_box').fadeIn('fast');
 	}
@@ -238,20 +224,8 @@ function bfox_text_select(event)
 		bfox_close_select_box();
 }
 
-function bfox_get_range_object(selectionObject) {
-	if (selectionObject.getRangeAt)
-		return selectionObject.getRangeAt(0);
-	else { // Safari!
-		var range = document.createRange();
-		range.setStart(selectionObject.anchorNode,selectionObject.anchorOffset);
-		range.setEnd(selectionObject.focusNode,selectionObject.focusOffset);
-		return range;
-	}
-}
-
 function bfox_close_select_box() {
-//	if ('none' == jQuery('#verse_select_box_close').css('display'))
-		jQuery('#verse_select_box').fadeOut('fast');
+	jQuery('#verse_select_box').fadeOut('fast');
 }
 
 function bfox_save_quick_note()
@@ -274,16 +248,15 @@ function bfox_save_quick_note()
 	mysack.onError = function() { alert('Ajax error in saving the ')};
 	mysack.runAJAX();
 
-	jQuery('#edit_quick_note_progress').html('Saving...');
-	jQuery('#edit_quick_note_progress').fadeIn("fast");
+	jQuery('#edit_quick_note_progress').html('Saving...').fadeIn("fast");
 	
 	return false;
 }
 
-function bfox_quick_note_edited(section_id, verse_id, note)
+function bfox_quick_note_edited(section_id, link, verse_id)
 {
-	jQuery(verse_id).attr('title', note).remove().appendTo(section_id);
-	bfox_quick_note_saved();
+	jQuery(verse_id).remove();
+	bfox_quick_note_created(section_id, link);
 }
 
 function bfox_quick_note_created(section_id, link)
@@ -307,8 +280,7 @@ function bfox_set_quick_note(id, note, ref)
 {
 	jQuery('#edit_quick_note_id').val(id);
 	if ('' != ref) jQuery('#quick_note_bible_ref').val(ref);
-	jQuery('#edit_quick_note_text').val(note);
-	jQuery('#edit_quick_note_text').focus();
+	jQuery('#edit_quick_note_text').val(note).focus();
 }
 
 function bfox_edit_quick_note(id, note, ref)
@@ -347,8 +319,7 @@ jQuery(document).ready( function() {
 	jQuery('#quick_view_button').click(bfox_toggle_quick_view);
 	jQuery('#verse_layout_toggle').click(bfox_toggle_verse_paragraph);
 
-	jQuery('#edit_quick_note_text').keypress(bfox_edit_quick_note_press_key);
-	jQuery('#edit_quick_note_text').val('');
+	jQuery('#edit_quick_note_text').keypress(bfox_edit_quick_note_press_key).val('');
 
 	jQuery('#bible_view_content').mouseup(bfox_text_select);
 });
