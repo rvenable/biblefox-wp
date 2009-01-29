@@ -154,7 +154,7 @@
 		return $refs;
 	}
 
-	function bfox_ref_quick_view(BibleRefs $ref)
+	function bfox_ref_quick_view_menu(BibleRefs $ref)
 	{
 		$next_refs = new BibleRefs($ref->get_sets());
 		$previous_refs = new BibleRefs($ref->get_sets());
@@ -172,7 +172,7 @@
 		$menu .= '<td align="right" width="33%">' . $next_link . '</a></td>';
 		$menu .= '</tr>';
 		$menu .= '</table>';
-		return $menu . bfox_get_ref_content_quick($ref);
+		return $menu;
 	}
 
 	/*
@@ -180,8 +180,11 @@
 	 */
 	function bfox_ajax_send_bible_text()
 	{
+		global $bfox_quicknote;
+
 		$ref_str = $_POST['ref_str'];
 		$ref = new BibleRefs($ref_str);
+		$bfox_quicknote->set_biblerefs($ref);
 		sleep(1);
 
 		// If it is not valid, give the user an error message
@@ -193,80 +196,13 @@
 		else
 		{
 			$ref_str = $ref->get_string();
-			$content = addslashes(bfox_ref_quick_view($ref));
+			$menu = addslashes(bfox_ref_quick_view_menu($ref));
+			$content = addslashes(bfox_get_ref_content_quick($ref));
 		}
 
-		$script = "bfox_quick_view_loaded('$ref_str', '$content');";
+		$script = "bfox_quick_view_loaded('$ref_str', '$content', '$menu');";
 		die($script);
 	}
 	add_action('wp_ajax_bfox_ajax_send_bible_text', 'bfox_ajax_send_bible_text');
-
-	/**
-	 * Create the output string for the bible viewer header
-	 *
-	 * @param BibleRefs $refs
-	 * @return string
-	 */
-	function bfox_bible_view_header(BibleRefs $refs)
-	{
-		$content = '<div id="bible_view_header">';
-		$content .= bfox_get_ref_menu($refs, TRUE);
-		$content .= '</div>';
-		return $content;
-	}
-
-	/**
-	 * Create the output string for the bible viewer footer
-	 *
-	 * @param BibleRefs $refs
-	 * @return string
-	 */
-	function bfox_bible_view_footer(BibleRefs $refs)
-	{
-		$content = '<div id="bible_view_footer">';
-		$content .= bfox_get_ref_menu($refs, FALSE);
-		$content .= $refs->get_toc(TRUE);
-		$content .= '</div>';
-		return $content;
-	}
-
-	/**
-	 * Create the output string for the bible viewer
-	 *
-	 * @param string search text
-	 * @return string
-	 */
-	function bfox_bible_view($text)
-	{
-		$refs = new BibleRefs($text);
-
-		// TODO2: use leftovers from ref detection to create search results
-		// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
-
-		$content = '<div id="bible_view">';
-		if ($refs->is_valid())
-		{
-			$content .= bfox_bible_view_header($refs);
-			$content .= '<div id="bible_view_content">';
-			$content .= bfox_get_ref_content($refs);
-			$content .= '</div>';
-			$content .= bfox_bible_view_footer($refs);
-		}
-		else if (!empty($text))
-		{
-			// Ref not valid, so perform search results
-
-			$content .= bfox_bible_text_search($text);
-/*
-			$content .= bfox_bible_text_search('"' . $text . '"');
-
-			$text = '+' . implode(' +', explode(' ', $text));
-			$content .= bfox_bible_text_search($text);
-*/
-		}
-		$content .= '</div>';
-
-		return $content;
-	}
 
 ?>

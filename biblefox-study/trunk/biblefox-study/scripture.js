@@ -91,7 +91,7 @@ function bible_text_request(ref_str)
 	return false;
 }
 
-function bfox_quick_view_loaded(ref_str, content)
+function bfox_quick_view_loaded(ref_str, content, menu)
 {
 	// Wait until the progress text is finished
 	jQuery('#bible-text-progress').queue( function () {
@@ -101,15 +101,20 @@ function bfox_quick_view_loaded(ref_str, content)
 			jQuery(this).html('Viewing ' + ref_str);
 		});
 
+		// Fade out the old scripture menu, then replace it with the new menu
+		jQuery('#bible_quick_view_scripture_menu').fadeOut("fast", function () {
+			jQuery(this).html(menu);
+		});
+
 		// Fade out the old bible text, then replace it with the new text
 		jQuery('#bible-text').fadeOut("fast", function () {
 			jQuery(this).html(content);
-			jQuery('.bible-ref-link').click(bible_ref_link_click);
 		});
 
 		// Fade everything back in
 		jQuery('#bible-text-progress').fadeIn("fast");
 		jQuery('#bible-text').fadeIn("fast").fadeTo("fast", 1);
+		jQuery('#bible_quick_view_scripture_menu').fadeIn("fast");
 
 		// We must dequeue to continue the queue
 		jQuery(this).dequeue();
@@ -128,8 +133,8 @@ function bible_ref_link_click()
 
 function bfox_toggle_verse_paragraph()
 {
-	verse = 'On';
-	paragraph = 'Off';
+	verse = 'Switch to Verse View';
+	paragraph = 'Switch to Paragraph View';
 	if (verse == jQuery('#verse_layout_toggle').html())
 	{
 		jQuery('.bible_verse').css('display', 'block').css('margin', '8px 0px 8px 0px');
@@ -315,6 +320,12 @@ function bfox_note_popup_hide() {
 	jQuery('#bible_note_popup').hide();
 }
 
+function bfox_select_quick_view(selected) {
+	jQuery('.bible_quick_view_menu_option').hide();
+	jQuery('#' + selected + '_header').show();
+	jQuery('#' + selected + '_body').show();
+}
+
 jQuery(document).ready( function() {
 	bible_ref_update_quickclicks();
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
@@ -327,4 +338,5 @@ jQuery(document).ready( function() {
 	jQuery('#edit_quick_note_text').keypress(bfox_edit_quick_note_press_key).val('');
 
 	jQuery('#bible_view_content').mouseup(bfox_text_select);
+	bfox_select_quick_view('bible_quick_view_scripture');
 });

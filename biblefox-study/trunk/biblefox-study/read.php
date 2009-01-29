@@ -2,12 +2,11 @@
 
 	function bfox_read_menu()
 	{
-		global $wpdb;
-		global $bfox_history;
+		global $wpdb, $bfox_history, $bfox_quicknote, $bfox_trans, $bfox_translations;
 
 		// Override the global translation using the translation passed in
-		global $bfox_trans;
 		$bfox_trans = new Translation($_GET['trans_id']);
+		$translation = $bfox_translations->get_translation($bfox_trans->id);
 
 		// Get the search text input
 		$search = trim($_GET['bible_ref']);
@@ -24,61 +23,137 @@
 			$search = 'Genesis 1';
 		}
 
+		$refs = new BibleRefs($search);
+		$bfox_quicknote->set_biblerefs($refs);
 
 	?>
 
-<div class="wrap">
-<form id="posts-filter" action="admin.php" method="get">
-<input type="hidden" name="page" value="<?php echo BFOX_READ_SUBPAGE; ?>" />
-<p id="post-search">
-	<?php bfox_translation_select($bfox_trans->id) ?>
-<input type="text" id="post-search-input" name="bible_ref" value="<?php echo $reflistStr; ?>" />
-<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
-</p>
-</form>
-<a id="quick_view_button">Quick View</a>
-Paragraphs: <a id="verse_layout_toggle">On</a>
-<div id="bible_note_popup"></div>
-<div id="verse_select_box">
-	<a href="#close" id="verse_select_box_close" onclick="bfox_close_select_box()">X Close</a>
-	<div id="verse_select_menu">
-		<h1 id="verse_selected"><?php echo $refStr; ?></h1>
-		<ul>
-			<li><a href="">Commentaries</a></li>
-			<li><a href="">View text without verse numbers</a></li>
-			<li><a href="">View in Quick View</a></li>
-			<li><a href="">Create a quick note</a></li>
+<div class="" id="bible_tool">
+<h2 id='bible_text_main_ref'>Bible Viewer</h2>
+	<div id="bible_note_popup"></div>
+	<div id="verse_select_box">
+		<a href="#close" id="verse_select_box_close" onclick="bfox_close_select_box()">X Close</a>
+		<div id="verse_select_menu">
+			<h1 id="verse_selected"><?php echo $refStr; ?></h1>
+			<ul>
+				<li><a href="">Commentaries</a></li>
+				<li><a href="">View text without verse numbers</a></li>
+				<li><a href="">View in Quick View</a></li>
+				<li><a href="">Create a quick note</a></li>
+			</ul>
+		</div>
+		<div id="edit_quick_note">
+			<form action="" id="edit_quick_note_form">
+				Enter note text:
+				<input type="hidden" value="" id="edit_quick_note_id" />
+				<textarea rows="1" style="width: 100%; height: auto;" class="edit_quick_note_input" id="edit_quick_note_text"></textarea>
+				<input type="text" id="quick_note_bible_ref" name="quick_note_bible_ref" value="" disabled />
+				<input type="button" value="<?php _e('Save'); ?>" class="button edit_quick_note_input" onclick="bfox_save_quick_note()" />
+				<input type="button" value="<?php _e('New Note'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
+				<input type="button" value="<?php _e('Delete'); ?>" class="button edit_quick_note_input" onclick="bfox_delete_quick_note()" />
+				<div id="edit_quick_note_progress"></div>
+			</form>
+		</div>
+	</div>
+	<div id="bible_tool_header">
+		<form id="bible_view_search" action="admin.php" method="get">
+			<input type="hidden" name="page" value="<?php echo BFOX_READ_SUBPAGE; ?>" />
+				<?php bfox_translation_select($bfox_trans->id) ?>
+			<input type="text" name="bible_ref" value="<?php echo $reflistStr; ?>" />
+			<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
+		</form>
+		<ul id="bible_tool_options">
+			<li><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></li>
+			<li><a class="button" onclick="bfox_toggle_quick_view()">Quick View</a></li>
 		</ul>
 	</div>
-	<div id="edit_quick_note">
-		<form action="" id="edit_quick_note_form">
-			Enter note text:
-			<input type="hidden" value="" id="edit_quick_note_id" />
-			<textarea rows="1" style="width: 100%; height: auto;" class="edit_quick_note_input" id="edit_quick_note_text"></textarea>
-			<input type="text" id="quick_note_bible_ref" name="quick_note_bible_ref" value="" disabled />
-			<input type="button" value="<?php _e('Save'); ?>" class="button edit_quick_note_input" onclick="bfox_save_quick_note()" />
-			<input type="button" value="<?php _e('New Note'); ?>" class="button edit_quick_note_input" onclick="bfox_new_quick_note()" />
-			<input type="button" value="<?php _e('Delete'); ?>" class="button edit_quick_note_input" onclick="bfox_delete_quick_note()" />
-			<div id="edit_quick_note_progress"></div>
-		</form>
+	<div id="bible_tool_body">
+		<div id="bible_view">
+			<?php if ($refs->is_valid()): ?>
+			<div id="bible_view_header">
+				<h3><?php echo $refs->get_string() . " ($translation->short_name)" ?></h3>
+				<?php echo bfox_get_ref_menu($refs, TRUE) ?>
+			</div>
+			<div id="bible_view_content">
+				<?php echo bfox_get_ref_content($refs) ?>
+			</div>
+			<div id="bible_view_footer">
+				<?php
+					echo bfox_get_ref_menu($refs, FALSE);
+					echo $refs->get_toc(TRUE);
+				?>
+			</div>
+			<?php elseif (!empty($text)):
+				// TODO2: use leftovers from ref detection to create search results
+				// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
+
+				// Ref not valid, so perform search results
+
+				echo bfox_bible_text_search($text);
+	/*
+				$content .= bfox_bible_text_search('"' . $text . '"');
+
+				$text = '+' . implode(' +', explode(' ', $text));
+				$content .= bfox_bible_text_search($text);
+	*/
+			endif; ?>
+		</div>
+		<div id="bible_quick_view">
+			<div id="bible_quick_view_header">
+				<ul class="bible_quick_view_menu">
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_scripture')">Scripture</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_blogs')">Blogs</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_dict')">Dictionary</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_forum')">Forum</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_audio')">Audio</a></li>
+				</ul>
+				<div id="bible_quick_view_scripture_header" class="bible_quick_view_menu_option">
+					<h4 id="bible-text-progress">No Scripture</h4>
+					<?php bfox_translation_select($bfox_trans->id, TRUE) ?>
+					<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
+					<input type="button" class="button" id="view-bible-ref" value="Search" tabindex="3" />
+					<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+					<div id="bible_quick_view_scripture_menu"></div>
+				</div>
+				<div id="bible_quick_view_blogs_header" class="bible_quick_view_menu_option">
+					This will display blog entries for this scripture.
+				</div>
+				<div id="bible_quick_view_dict_header" class="bible_quick_view_menu_option">
+					This will display dictionary entries for this scripture.
+				</div>
+				<div id="bible_quick_view_forum_header" class="bible_quick_view_menu_option">
+					This will display forum discussions for this scripture.
+				</div>
+				<div id="bible_quick_view_audio_header" class="bible_quick_view_menu_option">
+					This will display audio bibles for this scripture.
+				</div>
+			</div>
+			<div id="bible_quick_view_body">
+				<div id="bible_quick_view_scripture_body" class="bible_quick_view_menu_option">
+					<div id="bible-text">
+						<p>This is the bible quick view. Try viewing <?php echo $refs->get_link(NULL, 'quick') ?></p>
+					</div>
+				</div>
+				<div id="bible_quick_view_blogs_body" class="bible_quick_view_menu_option">
+					My Blogs Entries
+				</div>
+				<div id="bible_quick_view_dict_body" class="bible_quick_view_menu_option">
+					This will display dictionary entries for this scripture.
+				</div>
+				<div id="bible_quick_view_forum_body" class="bible_quick_view_menu_option">
+					This will display forum discussions for this scripture.
+				</div>
+				<div id="bible_quick_view_audio_body" class="bible_quick_view_menu_option">
+					This will display audio bibles for this scripture.
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="bible_tool_footer">
 	</div>
 </div>
 
 <?php
-		$refs = new BibleRefs($search);
-		global $bfox_quicknote;
-		$bfox_quicknote->set_biblerefs($refs);
-		echo "<h2 id='bible_text_main_ref'>Bible Viewer</h2>";
-		echo bfox_bible_view($search);
-		echo '<div id="bible_quick_view">';
-		echo '<p>This is the bible quick view. Try viewing ' . $refs->get_link(NULL, 'quick') . '</p>';
-		?>
-<strong><p id="bible-text-progress"></p></strong>
-<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
-<div id="bible-text"></div>
-
-		<?php
-		echo '</div>';
 /*		echo '<table id="quick_note_list">';
 		echo $bfox_quicknote->list_quicknotes();
 		echo '</table>';*/
@@ -107,7 +182,6 @@ Paragraphs: <a id="verse_layout_toggle">On</a>
 	echo '<h3>Hebrew</h3>';
 	echo '<h3>Greek</h3>';*/
 
-		echo "</div>";
 	}
 
 ?>

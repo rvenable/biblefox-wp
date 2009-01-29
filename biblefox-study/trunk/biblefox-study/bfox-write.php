@@ -76,7 +76,7 @@
 For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag. Once it is tagged, whenever you read Genesis 1 you will see this post!</p>
 
 <p><strong>Current Scripture Tags:</strong></p>
-<input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" autocomplete="off" value="<?php echo attribute_escape($refStr); ?>" />
+<input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" value="<?php echo attribute_escape($refStr); ?>" />
 <p><div id="bible-ref-checklist"></div></p>
 
 	<?php
@@ -97,13 +97,14 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 	?>
 <span class="hide-if-no-js">
 <p>The Scripture Quick View is an easy way to see any bible passages while typing your post. It lets you scan passages for verses to copy and paste into your post, and also lets you tag passages to link them to your post.</p>
-<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" autocomplete="off" value="" />
+<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
 <input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
 <span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
 <br/>
 
-<strong><p id="bible-text-progress"></p></strong>
+<h4 id="bible-text-progress"></h4>
 <input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+<div id="bible_quick_view_scripture_menu"></div>
 <div id="bible-text"></div>
 </span>
 

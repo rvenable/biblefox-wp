@@ -67,7 +67,7 @@
 			if (!isset($attrs['value'])) $attrs['value'] = $ref_str;
 			if (!isset($attrs['text'])) $attrs['text'] = $ref_str;
 			if (!isset($attrs['bible_ref'])) $attrs['bible_ref'] = $ref_str;
-			if (isset($attrs['no_href'])) unset($attrs['href']);
+			if (isset($attrs['no_href']) || ('quick' == $context)) unset($attrs['href']);
 
 			if ('quick' == $context) $attrs['onClick'] = "bible_text_request(\"$ref_str\")";
 

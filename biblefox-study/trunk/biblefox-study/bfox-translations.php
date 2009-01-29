@@ -350,7 +350,7 @@
 	 *
 	 * @param unknown_type $select_id
 	 */
-	function bfox_translation_select($select_id = NULL)
+	function bfox_translation_select($select_id = NULL, $use_short = FALSE)
 	{
 		global $bfox_translations;
 
@@ -360,7 +360,7 @@
 		?>
 		<select name="trans_id">
 		<?php foreach ($translations as $translation): ?>
-			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo $translation->short_name ?></option>
+			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo ($use_short) ? $translation->short_name : $translation->long_name; ?></option>
 		<?php endforeach; ?>
 		</select>
 		<?php
