@@ -69,11 +69,11 @@
 				echo "<strong>Upgrading Blog {$blog['blog_id']}...</strong><br/>";
 
 				$plan = new PlanBlog($blog['blog_id']);
-				if ($plan->are_tables_installed())
+				if (!$plan->are_tables_installed())
 				{
 					echo "Upgrading Plan<br/>";
 					$plan->create_tables();
-					$plan->reset_end_dates();
+					//$plan->reset_end_dates();
 				}
 			}
 
