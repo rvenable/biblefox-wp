@@ -716,7 +716,7 @@
 			foreach (range($low, $high) as $chapter)
 			{
 				if (!empty($links)) $links .= $separator;
-				$links .= $ref_begin . $bfox_links->ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter, 'href' => '#bible-text-progress')) . $ref_end;
+				$links .= $ref_begin . $bfox_links->ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter)) . $ref_end;
 			}
 
 			$toc .= $links . $toc_end;

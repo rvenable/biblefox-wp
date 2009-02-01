@@ -78,11 +78,12 @@
 			if (!isset($ref_str)) $ref_str = '';
 			if (!isset($attrs['href'])) $attrs['href'] = $this->ref_url($ref_str, $context);
 			if (!isset($attrs['title'])) $attrs['title'] = $ref_str;
-			if (!isset($attrs['class'])) $attrs['class'] = 'bible-ref-link';
-			if (!isset($attrs['value'])) $attrs['value'] = $ref_str;
 			if (!isset($attrs['text'])) $attrs['text'] = $ref_str;
-			if (!isset($attrs['bible_ref'])) $attrs['bible_ref'] = $ref_str;
-			if (isset($attrs['no_href']) || ('quick' == $context)) unset($attrs['href']);
+			if (isset($attrs['no_href']) || ('quick' == $context))
+			{
+				if (!isset($attrs['class'])) $attrs['class'] = 'no_href';
+				unset($attrs['href']);
+			}
 
 			if ('quick' == $context) $attrs['onClick'] = "bible_text_request(\"$ref_str\")";
 

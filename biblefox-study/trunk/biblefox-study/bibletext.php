@@ -162,8 +162,8 @@
 		$previous_refs->increment(-1);
 
 		$scripture_links = array();
-		$next_link = '<input type="button" class="button bible-ref-link" bible_ref="' . $next_refs->get_string() . '" value="' . $next_refs->get_string() . ' >">';
-		$previous_link = '<input type="button" class="button bible-ref-link" bible_ref="' . $previous_refs->get_string() . '" value="< ' . $previous_refs->get_string() . '">';
+		$next_link = '<input type="button" class="button" onclick="bible_text_request(\'' . $next_refs->get_string() . '\')" value="' . $next_refs->get_string() . ' >">';
+		$previous_link = '<input type="button" class="button" onclick="bible_text_request(\'' . $previous_refs->get_string() . '\')" value="< ' . $previous_refs->get_string() . '">';
 		$tag_link = '<input type="button" class="button" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref->get_string() . '" value="Tag ' . $ref->get_string() . '">';
 
 		$menu = '<table width="100%"><tr>';
@@ -180,7 +180,10 @@
 	 */
 	function bfox_ajax_send_bible_text()
 	{
-		global $bfox_quicknote;
+		global $bfox_quicknote, $bfox_links;
+
+		// All the links on the quick view should link to the quick view by default
+		$bfox_links->set_ref_context('quick');
 
 		$ref_str = $_POST['ref_str'];
 		$ref = new BibleRefs($ref_str);

@@ -88,7 +88,7 @@ Table of Contents
 Scripture Links
 */
 
-a.bible-ref-quick-link, a.bible-ref-link {
+a.no_href {
 	text-decoration: underline;
 	cursor: pointer;
 }
