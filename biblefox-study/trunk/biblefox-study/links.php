@@ -15,6 +15,21 @@
 			else $this->ref_context = 'blog';
 		}
 
+		/**
+		 * Returns a link to an admin page
+		 *
+		 * @param string $page The admin page (and any parameters)
+		 * @param string $text The text to use in the link
+		 * @param string $attrs Any additional attributes for the link
+		 * @return string
+		 */
+		function admin_link($page, $text = '', $attrs = '')
+		{
+			$url = "$this->admin/$page";
+			if (empty($text)) $text = $url;
+			return "<a href='$url' $attrs>$text</a>";
+		}
+
 		function link($attrs)
 		{
 			$text = $attrs['text'];
