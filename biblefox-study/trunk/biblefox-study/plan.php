@@ -459,17 +459,31 @@
 			// We can only send out emails if there is an actual reading for today
 			if (isset($plan->todays_reading))
 			{
-				global $bfox_links;
+				global $bfox_links, $bfox_specials;
 
 				// Create the email content
 				$refs = $plan->refs[$plan->todays_reading];
 				$subject = "$plan->name (Reading " . ($plan->todays_reading + 1) . "): " . $refs->get_string();
-				$blog = $refs->get_link('Blog about this passage', 'write');
 				$headers = "content-type:text/html";
-				$message = "<h2>" . $refs->get_link(NULL, 'blog') . "</h2><p>$blog</p><hr/>";
+
+				// Create the email message
+				$blog = 'Share your thoughts about this reading: ' . $refs->get_link('Add a blog entry', 'write');
+				$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>Instructions for removing yourself from the email list are at the bottom of the email.</p>";
+				$message .= "<h2><a href='" . $bfox_specials->get_url_reading_plans($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
 				$message .= bfox_get_ref_content($refs);
-				$message .= "<p>$blog</p><hr/><p>If you would not like to receive reading plan emails, go to:<br/>";
-				$message .= $bfox_links->admin_link('profile.php#bfox_email_readings') . "<br/> Then uncheck the 'Email Readings' and click 'Update Profile'.";
+				$message .= "<p>$blog</p>";
+
+				// If this isn't the first reading, we should show any blog activity since the previous reading
+				if (0 < $plan->todays_reading)
+				{
+					$discussions = '';
+					$discussions .= bfox_get_discussions(array('min_date' => date('Y-m-d', $plan->dates[$plan->todays_reading - 1])));
+					if (!empty($discussions)) $message .= "<div><h3>Recent Blog Activity</h3>$discussions</div>";
+				}
+
+				// Tell the user how they can remove themselves from the email list
+				$message .= "<hr/><p>If you would not like to receive reading plan emails, go to:<br/>";
+				$message .= $bfox_links->admin_link('profile.php#bfox_email_readings') . "<br/> Then uncheck the 'Email Readings' option and click 'Update Profile'.";
 
 				// Check each user in this blog to see if they want to receive emails
 				// If they want to, send them an email

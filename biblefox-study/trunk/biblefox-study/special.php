@@ -339,7 +339,7 @@ CONTENT;
 	/**
 	 * Shortcode function for listing all the recent comments and posts together in chronological order
 	 *
-	 * @param unknown_type $atts
+	 * @param array $atts
 	 * @return string shortcode text
 	 */
 	function bfox_get_discussions($atts)
@@ -347,12 +347,17 @@ CONTENT;
 		global $wpdb, $comment, $authordata;
 
 		extract(shortcode_atts(array(
-			'limit' => 0),
+			'limit' => 0, 'min_date' => '', 'max_date' => ''),
 			$atts));
 
 		// Create the limit portion of the sql
 		if (0 < $limit) $limit = $wpdb->prepare('LIMIT %d', $limit);
 		else $limit = '';
+
+		// Create the WHERE for the Post Select
+		$where = '';
+		if (!empty($min_date)) $where .= $wpdb->prepare('AND (DATE(%s) <= DATE(post_date))', $min_date);
+		if (!empty($max_date)) $where .= $wpdb->prepare('AND (DATE(%s) >= DATE(post_date))', $max_date);
 
 		// The post select statement (will be unioned with the comment select)
 		// Only select posts that are published
@@ -367,7 +372,13 @@ CONTENT;
 			post_date as date
 			FROM $wpdb->posts
 			WHERE post_status = 'publish'
-			AND post_type = 'post'";
+			AND post_type = 'post'
+			$where";
+
+		// Create the WHERE for the Comment Select
+		$where = '';
+		if (!empty($min_date)) $where .= $wpdb->prepare("AND (DATE(%s) <= DATE($wpdb->comments.comment_date))", $min_date);
+		if (!empty($max_date)) $where .= $wpdb->prepare("AND (DATE(%s) >= DATE($wpdb->comments.comment_date))", $max_date);
 
 		// The comment select statement (will be unioned with the post select)
 		// Only select comments that are approved and are on posts that are published
@@ -383,7 +394,8 @@ CONTENT;
 			FROM $wpdb->comments
 			LEFT JOIN $wpdb->posts ON ($wpdb->comments.comment_post_ID = $wpdb->posts.ID)
 			WHERE $wpdb->comments.comment_approved = '1'
-			AND $wpdb->posts.post_status = 'publish'";
+			AND $wpdb->posts.post_status = 'publish'
+			$where";
 
 		// Get the posts and comments
 		// We are using a UNION so that we can get the posts and comments at the same time, thus being
