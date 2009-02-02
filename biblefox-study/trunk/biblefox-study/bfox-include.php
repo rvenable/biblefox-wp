@@ -16,6 +16,14 @@
 	// Column Definitions
 	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
 
+	// Query Variables
+	define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
+	define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
+	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
+	define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
+	define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
+	define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
+
 	require_once('bible-meta.php');
 	require_once("bfox-settings.php");
 	require_once("bfox-blog-specific.php");

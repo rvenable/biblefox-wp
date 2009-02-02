@@ -10,6 +10,7 @@
 			$this->home = get_option('home');
 			$this->admin = $this->home . '/wp-admin';
 			$this->bible = $this->admin . '/?page=' . BFOX_READ_SUBPAGE;
+			$this->special = $this->home . '/?' . BFOX_QUERY_VAR_SPECIAL . '=';
 
 			if (is_admin()) $this->ref_context = 'bible';
 			else $this->ref_context = 'blog';
@@ -28,6 +29,15 @@
 			$url = "$this->admin/$page";
 			if (empty($text)) $text = $url;
 			return "<a href='$url' $attrs>$text</a>";
+		}
+
+		function reading_plan_url($plan_id = NULL, $action = NULL, $reading_id = NULL)
+		{
+			$url = $this->special . 'current_readings';
+			if (!empty($plan_id)) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
+			if (!empty($action)) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
+			if (!empty($reading_id)) $url .= '&' . BFOX_QUERY_VAR_READING_ID . '=' . ($reading_id + 1);
+			return $url;
 		}
 
 		function link($attrs)

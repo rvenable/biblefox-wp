@@ -459,7 +459,7 @@
 			// We can only send out emails if there is an actual reading for today
 			if (isset($plan->todays_reading))
 			{
-				global $bfox_links, $bfox_specials;
+				global $bfox_links;
 
 				// Create the email content
 				$refs = $plan->refs[$plan->todays_reading];
@@ -469,7 +469,7 @@
 				// Create the email message
 				$blog = 'Share your thoughts about this reading: ' . $refs->get_link('Add a blog entry', 'write');
 				$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>Instructions for removing yourself from the email list are at the bottom of the email.</p>";
-				$message .= "<h2><a href='" . $bfox_specials->get_url_reading_plans($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
+				$message .= "<h2><a href='" . $bfox_links->reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
 				$message .= bfox_get_ref_content($refs);
 				$message .= "<p>$blog</p>";
 

@@ -25,6 +25,7 @@
 			}
 		}
 
+		// TODO2: This should be replaced with use of BfoxLinks::reading_plan_url()
 		function get_url_reading_plans($plan_id = NULL, $action = NULL, $reading_id = NULL, $url = NULL)
 		{
 			// HACK $url shouldn't be a parameter, i did this because it was easier since

@@ -7,13 +7,6 @@
 		http://codex.wordpress.org/Query_Overview
 	 */
 
-	define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
-	define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
-	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
-	define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
-	define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
-	define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
-
 	// Returns whether the current query is a bible reference query
 	function is_bfox_bible_ref()
 	{
