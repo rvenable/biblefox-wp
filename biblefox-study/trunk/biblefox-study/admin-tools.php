@@ -399,6 +399,18 @@
 		}
 
 		/**
+		 * For every user, updates all the default user options which haven't been set yet.
+		 *
+		 */
+		function update_all_user_options()
+		{
+			global $wpdb;
+			$user_ids = $wpdb->get_col("SELECT ID FROM $wpdb->users");
+			foreach ($user_ids as $user_id)
+				bfox_user_add_defaults($user_id);
+		}
+
+		/**
 		 * A function for dumping temporary functionality to do temporary tasks
 		 *
 		 */

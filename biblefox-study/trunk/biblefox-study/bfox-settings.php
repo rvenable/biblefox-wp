@@ -52,6 +52,17 @@ function bfox_user_register($user_id)
 add_action('user_register', 'bfox_user_register');
 
 /**
+ * Function for updating user options that haven't been set yet.
+ *
+ * @param unknown_type $user_id
+ */
+function bfox_user_add_defaults($user_id)
+{
+	if ('false' != get_user_option('bfox_email_readings', $user_id))
+		update_user_option($user_id, 'bfox_email_readings', 'true', TRUE);
+}
+
+/**
  * Callback function for Bible Settings section of User Profile page
  *
  */
