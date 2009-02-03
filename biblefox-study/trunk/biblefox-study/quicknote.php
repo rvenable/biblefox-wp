@@ -23,7 +23,7 @@ class QuickNote
 			date_created datetime NOT NULL,
 			date_modified datetime NOT NULL,
 			verse_start int NOT NULL,
-			verse_end int NOT NULL
+			verse_end int NOT NULL,
 			note text NOT NULL,
 			PRIMARY KEY  (id)
 		);
