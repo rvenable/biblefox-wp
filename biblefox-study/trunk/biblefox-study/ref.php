@@ -1027,6 +1027,64 @@
 			return $toc;
 		}
 
+		/**
+		 * Returns a string with the scripture content for these BibleRefs
+		 *
+		 * @param boolean $pre_format Should we pre format the scriptures?
+		 * @return string
+		 */
+		function get_scripture($pre_format = FALSE)
+		{
+			global $bfox_trans, $bfox_quicknote;
+
+			// Get the verse data from the bible translation
+			$verses = $bfox_trans->get_verses($this->sql_where());
+			if (!empty($verses))
+			{
+				if (!$pre_format)
+				{
+					$span_verse = TRUE;
+				}
+
+				// Try to get quick notes if we have any
+				$notes = $bfox_quicknote->get_indexed_notes();
+
+				// For each verse, do any required formatting and add it to our content
+				$content = '';
+				foreach ($verses as $verse)
+				{
+					$verse_text = '';
+					if ($verse->verse_id != 0)
+						$verse_text .= '<b class="bible-verse-id">' . $verse->verse_id . '</b> ';
+					$verse_text .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
+					$verse_text .= $verse->verse;
+
+					// Pre formatting is for when we can't use CSS (ie. in an email)
+					// We just replace the tags which would have been formatted by css with tags that don't need formatting
+					if ($pre_format)
+					{
+						$verse_text = str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n", $verse_text);
+						$verse_text = str_replace('<span class="bible_end_poetry"></span>', "<br/>\n", $verse_text);
+						$verse_text = str_replace('<span class="bible_poetry_indent_1"></span>', ' &nbsp &nbsp ', $verse_text);
+						$verse_text = str_replace('<span class="bible_poetry_indent_2"></span>', ' &nbsp &nbsp &nbsp &nbsp ', $verse_text);
+					}
+
+					// TODO2: We don't need the book and chapter for each verse, verses should be nested in chapter and book elements
+					if ($span_verse) $verse_text = "<span class='bible_verse' book='" . bfox_get_book_name($verse->book_id) . "' chapter='$verse->chapter_id' verse='$verse->verse_id'>$verse_text</span>";
+
+					$content .= $verse_text;
+				}
+
+				// Add any remaining quick notes
+				$content .= $bfox_quicknote->list_verse_notes($notes);
+
+				$content = bfox_special_syntax($content);
+			}
+			else $content = 'No verse data exists for this translation.';
+
+			return $content;
+		}
+
 	}
 
 ?>

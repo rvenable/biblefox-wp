@@ -299,41 +299,21 @@
 		/**
 		 * Get the verse content for some bible references
 		 *
-		 * @param BibleRefs $refs
-		 * @param unknown_type $id_text_begin
-		 * @param unknown_type $id_text_end
+		 * @param string $ref_where SQL WHERE statement as returned from BibleRefs::sql_where()
 		 * @return string Formatted bible verse output
 		 */
-		function get_verses(BibleRefs $refs)
+		function get_verses($ref_where)
 		{
+			$verses = array();
+
 			// We can only grab verses if the verse data exists
 			if ($this->does_data_exist())
 			{
-				global $wpdb, $bfox_quicknote;
-
-				$ref_where = $refs->sql_where();
+				global $wpdb;
 				$verses = $wpdb->get_results("SELECT unique_id, book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
-
-				$notes = $bfox_quicknote->get_indexed_notes();
-				$content = '';
-				foreach ($verses as $verse)
-				{
-					$book_name = bfox_get_book_name($verse->book_id);
-					// TODO2: We don't need the book and chapter for each verse, verses should be nested in chapter and book elements
-					$content .= "<span class='bible_verse' book='$book_name' chapter='$verse->chapter_id' verse='$verse->verse_id'>";
-					if ($verse->verse_id != 0)
-						$content .= '<em class="bible-verse-id">' . $verse->verse_id . '</em> ';
-					$content .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
-					$content .= $verse->verse;
-					$content .= "</span>";
-				}
-				$content .= $bfox_quicknote->list_verse_notes($notes);
-
-				$content = bfox_special_syntax($content);
 			}
-			else $content = 'No verse data exists for this translation.';
 
-			return $content;
+			return $verses;
 		}
 
 		/* TODO2:

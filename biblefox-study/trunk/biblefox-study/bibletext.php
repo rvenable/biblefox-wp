@@ -1,9 +1,9 @@
 <?php
 
+	// TODO3: get rid of this function
 	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
 	{
-		global $bfox_trans;
-		return $bfox_trans->get_verses($refs, $id_text_begin, $id_text_end);
+		return $refs->get_scripture();
 	}
 
 	/**
