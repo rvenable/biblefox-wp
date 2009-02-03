@@ -403,52 +403,56 @@ CONTENT;
 		// able to one limit that applies to both at the same time
 		$results = (array) $wpdb->get_results("($pselect) UNION ALL ($cselect) ORDER BY date DESC $limit");
 
-		// Each post/comment will be a row in a table
-		$content = '<div><table>';
-		foreach ($results as $result)
+		$content = '';
+		if (!empty($results))
 		{
-			// Format the date and time strings
-			// TODO2: These times should be formated for the timezone specified for the blog
-			$timestamp = strtotime($result->date);
-			$date = date('D, M j, Y', $timestamp);
-			$time = date('g:i a', $timestamp);
-
-			// Only show the date once per each day
-			if ($prev_date == $date) $date = '';
-			else $prev_date = $date;
-
-			if ($result->is_post)
+			// Each post/comment will be a row in a table
+			$content = '<div><table>';
+			foreach ($results as $result)
 			{
-				// Format posts as "[post_author_name_link] posted [post_name_link] at [time]"
+				// Format the date and time strings
+				// TODO2: These times should be formated for the timezone specified for the blog
+				$timestamp = strtotime($result->date);
+				$date = date('D, M j, Y', $timestamp);
+				$time = date('g:i a', $timestamp);
 
-				$authordata = get_userdata($result->author);
-				$post_link = '<a href="'. get_permalink($result->id) . '">' . get_the_title($result->id) . '</a>';
-				$author = '<a href="' . get_author_posts_url($result->author) . '">' . get_author_name($result->author) . '</a>';
-				$action = 'posted';
-			}
-			else
-			{
-				// Format comments as "[comment_author_name_link] commented on [post_name_link] at [time]"
+				// Only show the date once per each day
+				if ($prev_date == $date) $date = '';
+				else $prev_date = $date;
 
-				$result->comment_author = $result->author;
-				$comment = $result;
-
-				// If the author's url isn't valid, check if he is a user (by using his email) so that we can create a url
-				if ((empty($result->comment_author_url) || ('http://' == $result->comment_author_url)) && !empty($result->comment_author_email))
+				if ($result->is_post)
 				{
-					$user = get_user_by_email($result->comment_author_email);
-					$result->comment_author_url = get_author_posts_url($user->ID);
+					// Format posts as "[post_author_name_link] posted [post_name_link] at [time]"
+
+					$authordata = get_userdata($result->author);
+					$post_link = '<a href="'. get_permalink($result->id) . '">' . get_the_title($result->id) . '</a>';
+					$author = '<a href="' . get_author_posts_url($result->author) . '">' . get_author_name($result->author) . '</a>';
+					$action = 'posted';
+				}
+				else
+				{
+					// Format comments as "[comment_author_name_link] commented on [post_name_link] at [time]"
+
+					$result->comment_author = $result->author;
+					$comment = $result;
+
+					// If the author's url isn't valid, check if he is a user (by using his email) so that we can create a url
+					if ((empty($result->comment_author_url) || ('http://' == $result->comment_author_url)) && !empty($result->comment_author_email))
+					{
+						$user = get_user_by_email($result->comment_author_email);
+						$result->comment_author_url = get_author_posts_url($user->ID);
+					}
+
+					$post_link = '<a href="'. get_permalink($result->id) . '#comment-' . $result->comment_ID . '">' . get_the_title($result->id) . '</a>';
+					$author = get_comment_author_link();
+					$action = 'commented on';
 				}
 
-				$post_link = '<a href="'. get_permalink($result->id) . '#comment-' . $result->comment_ID . '">' . get_the_title($result->id) . '</a>';
-				$author = get_comment_author_link();
-				$action = 'commented on';
+				// Add the new row to the content
+				$content .= "<tr><td>$date</td><td>$author $action $post_link at $time</td></tr>";
 			}
-
-			// Add the new row to the content
-			$content .= "<tr><td>$date</td><td>$author $action $post_link at $time</td></tr>";
+			$content .= '</table></div>';
 		}
-		$content .= '</table></div>';
 
 		return $content;
 	}
