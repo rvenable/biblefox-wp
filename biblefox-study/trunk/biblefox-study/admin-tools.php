@@ -380,11 +380,11 @@
 		function test_quicknotes()
 		{
 			global $bfox_quicknote;
-			// $bfox_quicknote->create_tables();
+			$bfox_quicknote->create_tables();
 			// $bfox_quicknote->save_quicknote(new BibleRefs('Genesis 2, Gen 7-9'), 'Fun stuff!');
-			$res = $bfox_quicknote->get_quicknotes(new BibleRefs('Gen'));
-			$this->echo_table_results($res);
-			$bfox_quicknote->list_quicknotes(new BibleRefs('Gen'));
+//			$res = $bfox_quicknote->get_quicknotes(new BibleRefs('Gen'));
+//			$this->echo_table_results($res);
+//			$bfox_quicknote->list_quicknotes(new BibleRefs('Gen'));
 		}
 
 		/**
