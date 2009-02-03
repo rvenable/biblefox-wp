@@ -1056,7 +1056,7 @@
 					$verse_text = '';
 					if ($verse->verse_id != 0)
 						$verse_text .= '<b class="bible-verse-id">' . $verse->verse_id . '</b> ';
-					$verse_text .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
+					if ($span_verse) $verse_text .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
 					$verse_text .= $verse->verse;
 
 					// Pre formatting is for when we can't use CSS (ie. in an email)
@@ -1065,8 +1065,8 @@
 					{
 						$verse_text = str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n", $verse_text);
 						$verse_text = str_replace('<span class="bible_end_poetry"></span>', "<br/>\n", $verse_text);
-						$verse_text = str_replace('<span class="bible_poetry_indent_1"></span>', ' &nbsp &nbsp ', $verse_text);
-						$verse_text = str_replace('<span class="bible_poetry_indent_2"></span>', ' &nbsp &nbsp &nbsp &nbsp ', $verse_text);
+						$verse_text = str_replace('<span class="bible_poetry_indent_1"></span>', '', $verse_text);
+						$verse_text = str_replace('<span class="bible_poetry_indent_2"></span>', '<span style="margin-left: 20px"></span>', $verse_text);
 					}
 
 					// TODO2: We don't need the book and chapter for each verse, verses should be nested in chapter and book elements
@@ -1076,7 +1076,7 @@
 				}
 
 				// Add any remaining quick notes
-				$content .= $bfox_quicknote->list_verse_notes($notes);
+				if ($span_verse) $content .= $bfox_quicknote->list_verse_notes($notes);
 
 				$content = bfox_special_syntax($content);
 			}

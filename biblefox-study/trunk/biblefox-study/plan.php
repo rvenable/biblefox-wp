@@ -467,11 +467,14 @@
 				$headers = "content-type:text/html";
 
 				// Create the email message
+
 				$blog = 'Share your thoughts about this reading: ' . $refs->get_link('Add a blog entry', 'write');
-				$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>Instructions for removing yourself from the email list are at the bottom of the email.</p>";
+				$instructions = "If you would not like to receive reading plan emails, go to your " . $bfox_links->admin_link('profile.php#bfox_email_readings', 'profile page') . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
+
+				$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
 				$message .= "<h2><a href='" . $bfox_links->reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
 				$message .= $refs->get_scripture(TRUE);
-				$message .= "<p>$blog</p>";
+				$message .= "<hr/><p>$blog</p>";
 
 				// If this isn't the first reading, we should show any blog activity since the previous reading
 				if (0 < $plan->todays_reading)
@@ -481,9 +484,8 @@
 					if (!empty($discussions)) $message .= "<div><h3>Recent Blog Activity</h3>$discussions</div>";
 				}
 
-				// Tell the user how they can remove themselves from the email list
-				$message .= "<hr/><p>If you would not like to receive reading plan emails, go to:<br/>";
-				$message .= $bfox_links->admin_link('profile.php#bfox_email_readings') . "<br/> Then uncheck the 'Email Readings' option and click 'Update Profile'.";
+				// Add the removal instructions again
+				$message .= "<hr/><p>$instructions</p>";
 
 				// Check each user in this blog to see if they want to receive emails
 				// If they want to, send them an email
