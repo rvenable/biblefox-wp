@@ -393,9 +393,7 @@
 		 */
 		function send_reading_plan_emails()
 		{
-			global $blog_id, $bfox_plan;
-			$plan_ids = $bfox_plan->get_plan_ids();
-			foreach ($plan_ids as $plan_id) bfox_plan_emails_send($blog_id, $plan_id);
+			bfox_plan_emails_send();
 		}
 
 		/**

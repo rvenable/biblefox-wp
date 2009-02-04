@@ -334,6 +334,10 @@
 						$progress->track_plan($this->blog_id, $plan->id);
 					}
 				}
+
+				// If this plan is not finished, and we haven't scheduled the emails action, then we should schedule it
+				if (!$plan->is_finished && !wp_next_scheduled('bfox_plan_emails_send_action'))
+					wp_schedule_event(strtotime('today'), 'daily', 'bfox_plan_emails_send_action');
 			}
 		}
 
@@ -432,97 +436,112 @@
 				if ($index < $count)
 					$dates[] = $date;
 			}
-			return $dates;
-		}
 
-		/**
-		 * Private function for updating the email event schedule
-		 *
-		 * @param unknown_type $plan_id
-		 */
-		private function update_email_event($plan_id)
-		{
-			// TODO1: This function is not currently hooked up
-			wp_reschedule_event(0, 'daily', 'bfox_plan_emails_send_action', array($this->blog_id, $plan_id));
+			// Calculate whether this is finished
+			// Note: this is based off of the $dates array, so will vary for any given plan depending on the $count parameter passed in
+			$plan->is_finished = TRUE;
+			if (!empty($dates) && (((int) date('U', $dates[count($dates) - 1])) >= $now)) $plan->is_finished = FALSE;
+
+			return $dates;
 		}
 
 		/**
 		 * Send all of today's emails for a given reading plan
 		 *
-		 * @param unknown_type $plan_id
+		 * @param unknown_type $plan
 		 */
-		function send_emails($plan_id)
+		function send_plan_emails($plan)
 		{
-			// Get the reading plan data for this reading plan
-			list($plan) = $this->get_plans($plan_id);
+			global $bfox_links;
 
-			// We can only send out emails if there is an actual reading for today
-			if (isset($plan->todays_reading))
+			// Create the email content
+			$refs = $plan->refs[$plan->todays_reading];
+			$subject = "$plan->name (Reading " . ($plan->todays_reading + 1) . "): " . $refs->get_string();
+			$headers = "content-type:text/html";
+
+			// Create the email message
+
+			$blog = 'Share your thoughts about this reading: ' . $refs->get_link('Add a blog entry', 'write');
+			$instructions = "If you would not like to receive reading plan emails, go to your " . $bfox_links->admin_link('profile.php#bfox_email_readings', 'profile page') . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
+
+			$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
+			$message .= "<h2><a href='" . $bfox_links->reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
+			$message .= $refs->get_scripture(TRUE);
+			$message .= "<hr/><p>$blog</p>";
+
+			// If this isn't the first reading, we should show any blog activity since the previous reading
+			if (0 < $plan->todays_reading)
 			{
-				global $bfox_links;
+				$discussions = '';
+				$discussions .= bfox_get_discussions(array('min_date' => date('Y-m-d', $plan->dates[$plan->todays_reading - 1])));
+				if (!empty($discussions)) $message .= "<div><h3>Recent Blog Activity</h3>$discussions</div>";
+			}
 
-				// Create the email content
-				$refs = $plan->refs[$plan->todays_reading];
-				$subject = "$plan->name (Reading " . ($plan->todays_reading + 1) . "): " . $refs->get_string();
-				$headers = "content-type:text/html";
+			// Add the removal instructions again
+			$message .= "<hr/><p>$instructions</p>";
 
-				// Create the email message
-
-				$blog = 'Share your thoughts about this reading: ' . $refs->get_link('Add a blog entry', 'write');
-				$instructions = "If you would not like to receive reading plan emails, go to your " . $bfox_links->admin_link('profile.php#bfox_email_readings', 'profile page') . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
-
-				$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
-				$message .= "<h2><a href='" . $bfox_links->reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
-				$message .= $refs->get_scripture(TRUE);
-				$message .= "<hr/><p>$blog</p>";
-
-				// If this isn't the first reading, we should show any blog activity since the previous reading
-				if (0 < $plan->todays_reading)
+			// Check each user in this blog to see if they want to receive emails
+			// If they want to, send them an email
+			$success = array();
+			$failed = array();
+			$blog_users = get_users_of_blog();
+			foreach ($blog_users as $user)
+			{
+				if ('true' == get_user_option('bfox_email_readings', $user->user_id))
 				{
-					$discussions = '';
-					$discussions .= bfox_get_discussions(array('min_date' => date('Y-m-d', $plan->dates[$plan->todays_reading - 1])));
-					if (!empty($discussions)) $message .= "<div><h3>Recent Blog Activity</h3>$discussions</div>";
+					$result = wp_mail($user->user_email, $subject, "<html>$message</html>", $headers);
+					if ($result) $success[] = $user->user_email;
+					else $failed[] = $user->user_email;
 				}
+			}
 
-				// Add the removal instructions again
-				$message .= "<hr/><p>$instructions</p>";
+			// Send a log message to the admin email with info about the emails that were just sent
+			$message = "<p>The following message was sent to these users:<br/>Successful: " . implode(', ', $success) . '<br/>Failed: ' . implode(', ', $failed) . "</p><hr/>$message";
+			// TODO3: get_site_option() is a WPMU-only function
+			wp_mail(get_site_option('admin_email'), $subject, "<html>$message</html>", $headers);
+		}
 
-				// Check each user in this blog to see if they want to receive emails
-				// If they want to, send them an email
-				$success = array();
-				$failed = array();
-				$blog_users = get_users_of_blog();
-				foreach ($blog_users as $user)
+		/**
+		 * Send all the reading plan emails for this blog
+		 *
+		 */
+		function send_emails()
+		{
+			$plans = $this->get_plans();
+			$not_finished_count = 0;
+			foreach ($plans as $plan)
+			{
+				// We can only send out emails if there is an actual reading for today
+				// So, first check it the plan is finished, if it is stop the email scheduled event
+				// Otherwise, see if there is a reading for today, and if so, send it
+				if (!$plan->is_finished)
 				{
-					if ('true' == get_user_option('bfox_email_readings', $user->user_id))
+					$not_finished_count++;
+					if (isset($plan->todays_reading))
 					{
-						$result = wp_mail($user->user_email, $subject, "<html>$message</html>", $headers);
-						if ($result) $success[] = $user->user_email;
-						else $failed[] = $user->user_email;
+						$this->send_plan_emails($plan);
 					}
 				}
+			}
 
-				// Send a log message to the admin email with info about the emails that were just sent
-				$message = "<p>The following message was sent to these users:<br/>Successful: " . implode(', ', $success) . '<br/>Failed: ' . implode(', ', $failed) . "</p><hr/>$message";
-				// TODO3: get_site_option() is a WPMU-only function
-				wp_mail(get_site_option('admin_email'), $subject, "<html>$message</html>", $headers);
-				echo $message;
+			// If there aren't any unfinished plans, then we might as well get rid of the email action
+			if (0 == $not_finished_count)
+			{
+				wp_clear_scheduled_hook('bfox_plan_emails_send_action');
 			}
 		}
 	}
 
 	/**
-	 * Send the reading emails for the given blog and plan
+	 * Send the reading emails for this blog
 	 *
-	 * @param unknown_type $blog_id
-	 * @param unknown_type $plan_id
 	 */
-	function bfox_plan_emails_send($blog_id, $plan_id)
+	function bfox_plan_emails_send()
 	{
-		$plan = new PlanBlog($blog_id);
-		$plan->send_emails($plan_id);
+		global $bfox_plan;
+		$bfox_plan->send_emails();
 	}
-	add_action('bfox_plan_emails_send_action', 'bfox_plan_emails_send', NULL, 2);
+	add_action('bfox_plan_emails_send_action', 'bfox_plan_emails_send');
 
 	/*
 	 Class for managing the plans stored for individual users
