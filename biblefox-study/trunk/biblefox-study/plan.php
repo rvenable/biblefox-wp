@@ -336,8 +336,10 @@
 				}
 
 				// If this plan is not finished, and we haven't scheduled the emails action, then we should schedule it
+				// The scheduled timestamp should be 'today' but in our blog's time
+				// TODO2: If the the blog's time settings change, this needs to be rescheduled
 				if (!$plan->is_finished && !wp_next_scheduled('bfox_plan_emails_send_action'))
-					wp_schedule_event(strtotime('today'), 'daily', 'bfox_plan_emails_send_action');
+					wp_schedule_event((int) date('U', strtotime(bfox_format_local_date('today'))), 'daily', 'bfox_plan_emails_send_action');
 			}
 		}
 

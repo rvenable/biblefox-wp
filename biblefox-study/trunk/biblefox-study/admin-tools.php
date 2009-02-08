@@ -397,6 +397,17 @@
 		}
 
 		/**
+		 * Clears the reading plan email scheduled event for this blog.
+		 *
+		 * To add the event again after clearing it, edit any unfinished reading plan.
+		 *
+		 */
+		function clear_plan_email_event()
+		{
+			wp_clear_scheduled_hook('bfox_plan_emails_send_action');
+		}
+
+		/**
 		 * For every user, updates all the default user options which haven't been set yet.
 		 *
 		 */
