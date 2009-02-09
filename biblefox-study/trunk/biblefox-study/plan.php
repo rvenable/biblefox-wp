@@ -394,14 +394,17 @@
 			$is_valid = TRUE;
 			if ($this->frequency['day'] == $plan->frequency)
 			{
-				if ('' == $plan->frequency_options) $plan->frequency_options = '0123456';
-				$is_valid = !(FALSE === strstr($plan->frequency_options, date('w', $date)));
+				$is_valid = (TRUE === $plan->days_of_week[date('w', $date)]);
 			}
 			return $is_valid;
 		}
 
 		function get_dates(&$plan, $count = 0)
 		{
+			// Turn the frequency options into an array
+			if ('' == $plan->frequency_options) $plan->frequency_options = '0123456';
+			$plan->days_of_week = array_fill_keys(str_split($plan->frequency_options), TRUE);
+
 			// Get today according to the local blog settings, formatted as an integer number of seconds
 			$now = (int) date('U', strtotime(bfox_format_local_date('today')));
 
@@ -878,7 +881,7 @@
 			$plan['refs_array'] = $refs->get_sections($section_size);
 			$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
 			$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
-			$plan['frequency_options'] = $_POST['schedule_frequency_options'];
+			$plan['frequency_options'] = implode('', (array) $_POST['schedule_frequency_options']);
 			$plan_id = $bfox_plan->add_new_plan((object) $plan);
 			wp_redirect(add_query_arg(array('action' => 'edit', 'plan_id' => $plan_id, 'message' => 1), $bfox_page_url));
 
@@ -922,7 +925,7 @@
 			$plan['refs_array'] = array();
 			$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
 			$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
-			$plan['frequency_options'] = $_POST['schedule_frequency_options'];
+			$plan['frequency_options'] = implode('', (array) $_POST['schedule_frequency_options']);
 
 			// Create the refs array
 			$index = 0;
