@@ -1,19 +1,12 @@
 <?php
 
-$messages[1] = __('Reading Plan added.');
-$messages[3] = __('Reading Plan updated.');
-
-if (isset($_GET['message'])) : ?>
-<div id="message" class="updated fade"><p><?php echo $messages[$_GET['message']]; ?></p></div>
-<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-endif;
-
 global $bfox_plan;
+$bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 
 if ( ! empty($plan_id) ) {
 	$heading = __('Edit Reading Plan');
 	$submit_text = __('Edit Reading Plan');
-	$form = '<form name="editplan" id="editplan" method="post" action="" class="validate">';
+	$form = 'name="editplan" id="editplan" method="post" action="" class="validate"';
 	$action = 'editedplan';
 	$nonce_action = 'update-reading-plan-' . $plan_id;
 	$reading_help_text = __('Edit the passages above to modify your reading plan. Each line is a different reading in the plan.');
@@ -26,14 +19,14 @@ if ( ! empty($plan_id) ) {
 
 	// Output the reading plan at the top of the page
 	echo '<div class="wrap">';
-	echo '<h2>' . __('View Reading Plan') . '</h2><br/>';
+	echo '<h2>' . __('View Reading Plan') . " (<a href='$bfox_page_url'>" . __('view all') . '</a>)</h2><br/>';
 	echo bfox_echo_plan($plan);
 	echo '</div>';
 
 } else {
 	$heading = __('Add Reading Plan');
 	$submit_text = __('Add Reading Plan');
-	$form = '<form name="addplan" id="addplan" method="post" action="" class="add:the-list: validate">';
+	$form = 'name="addplan" id="addplan" method="post" action="" class="add:the-list: validate"';
 	$action = 'addplan';
 	$nonce_action = 'add-reading-plan';
 	$start_date = bfox_format_local_date('today');
@@ -52,7 +45,7 @@ $passage_help_text = __('<p>This allows you to add passages of the Bible to your
 <div class="wrap">
 <h2><?php echo $heading ?></h2>
 <div id="ajax-response"></div>
-<?php echo $form ?>
+<form <?php echo $form ?>>
 <input type="hidden" name="page" value="<?php echo BFOX_MANAGE_PLAN_SUBPAGE; ?>" />
 <input type="hidden" name="action" value="<?php echo $action; ?>" />
 <input type="hidden" name="plan_id" value="<?php echo $plan_id; ?>" />
@@ -60,7 +53,7 @@ $passage_help_text = __('<p>This allows you to add passages of the Bible to your
 	<table class="form-table">
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="plan_name"><?php _e('Reading Plan Name') ?></label></th>
-			<td><input name="plan_name" id="plan_name" type="text" value="<?php echo attribute_escape($plan->name); ?>" size="40" aria-required="true" /><br />
+			<td><input name="plan_name" id="plan_name" type="text" value="<?php echo attribute_escape($plan->name); ?>" size="40"/><br />
             <?php _e('The name is used to identify the reading plan almost everywhere.'); ?></td>
 		</tr>
 		<tr class="form-field">
@@ -84,13 +77,13 @@ $passage_help_text = __('<p>This allows you to add passages of the Bible to your
 <?php if (isset($passages)) : ?>
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="plan_passages"><?php _e('Readings') ?></label></th>
-			<td><textarea name="plan_passages" id="plan_passages" rows="15" cols="50" style="width: 97%;" aria-required="true"><?php echo wp_specialchars($passages); ?></textarea><br />
+			<td><textarea name="plan_passages" id="plan_passages" rows="15" cols="50" style="width: 97%;"><?php echo wp_specialchars($passages); ?></textarea><br />
             <?php echo $reading_help_text; ?></td>
 		</tr>
 <?php endif; ?>
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="plan_group_passages"><?php _e('Add Groups of Passages') ?></label></th>
-			<td><textarea name="plan_group_passages" id="plan_group_passages" rows="3" cols="50" style="width: 97%;" aria-required="true"></textarea><br />
+			<td><textarea name="plan_group_passages" id="plan_group_passages" rows="3" cols="50" style="width: 97%;"></textarea><br />
 			<input name="plan_chapters" id="plan_chapters" type="text" value="1" size="4" maxlength="4" /> <?php _e('Chapters per reading'); ?><br />
             <?php echo $passage_help_text; ?></td>
 		</tr>

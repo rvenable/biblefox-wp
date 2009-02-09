@@ -1,17 +1,10 @@
 <?php
 
-$messages[1] = __('Translation added.');
-$messages[3] = __('Translation updated.');
-
-if (isset($_GET['message'])) : ?>
-<div id="message" class="updated fade"><p><?php echo $messages[$_GET['message']]; ?></p></div>
-<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-endif;
-
 global $bfox_translations;
+$bfox_page_url = 'admin.php?page=' . BFOX_TRANSLATION_SUBPAGE;
 
 if ( !empty($trans_id) ) {
-	$heading = __('Edit Translation');
+	$heading = __('Edit Translation') . " (<a href='$bfox_page_url'>" . __('view all') . '</a>)';
 	$submit_text = __('Edit Translation');
 	$no_file_text = __('No changes');
 	$form = 'name="edittrans" id="edittrans" method="post" action="" class="validate"';

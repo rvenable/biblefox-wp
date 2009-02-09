@@ -41,9 +41,11 @@
 	{
 		$min_user_level = 8;
 		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
-//		add_submenu_page(BFOX_ADMIN_FILE, 'Reading Plans', 'Reading Plans', 0, BFOX_PLAN_SUBPAGE, 'bfox_plan');
-		add_management_page('Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
+
+		// Add the reading plan page to the Post menu
+		// Also add the corresponding load action
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
+		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'bfox_manage_reading_plans_load');
 
 		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
 
@@ -57,7 +59,11 @@
 		// These menu pages are only for the site admin
 		if (is_site_admin())
 		{
-			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_translations');
+			// Add the translation page to the WPMU admin menu
+			// Also add the corresponding load action
+			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_manage_translations');
+			add_action('load-' . get_plugin_page_hookname(BFOX_TRANSLATION_SUBPAGE, 'wpmu-admin.php'), 'bfox_manage_translations_load');
+
 			add_submenu_page('wpmu-admin.php', 'Admin Tools', 'Admin Tools', 10, BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox_admin_tools');
 		}
 
@@ -104,19 +110,9 @@
 		bfox_create_plan();
 	}
 
-	function bfox_manage_reading_plans()
-	{
-		require_once("manage-plans.php");
-	}
-
 	function bfox_share()
 	{
 		echo "<h2>Share with Friends</h2>";
-	}
-
-	function bfox_translations()
-	{
-		require_once('manage-translations.php');
 	}
 
 	function bfox_admin_tools()

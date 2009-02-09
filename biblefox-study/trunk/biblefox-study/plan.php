@@ -843,4 +843,147 @@
 	global $bfox_plan_progress;
 	$bfox_plan_progress = new PlanProgress();
 
+	/**
+	 * Called before loading the manage reading plan admin page
+	 *
+	 * Performs all the user's reading plan edit requests before loading the page
+	 *
+	 */
+	function bfox_manage_reading_plans_load()
+	{
+		global $bfox_plan;
+		$bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
+
+		$action = $_POST['action'];
+		if ( isset($_POST['deleteit']) && isset($_POST['delete']) )
+			$action = 'bulk-delete';
+
+		switch($action)
+		{
+
+		case 'addplan':
+
+			check_admin_referer('add-reading-plan');
+
+			if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
+				wp_die(__('Cheatin&#8217; uh?'));
+
+			$refs = new BibleRefs((string) $_POST['plan_group_passages']);
+			$section_size = (int) $_POST['plan_chapters'];
+			if ($section_size == 0) $section_size = 1;
+
+			$plan = array();
+			$plan['name'] = stripslashes($_POST['plan_name']);
+			$plan['summary'] = stripslashes($_POST['plan_description']);
+			$plan['refs_array'] = $refs->get_sections($section_size);
+			$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
+			$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
+			$plan['frequency_options'] = $_POST['schedule_frequency_options'];
+			$plan_id = $bfox_plan->add_new_plan((object) $plan);
+			wp_redirect(add_query_arg(array('action' => 'edit', 'plan_id' => $plan_id, 'message' => 1), $bfox_page_url));
+
+			exit;
+		break;
+
+		case 'bulk-delete':
+			check_admin_referer('bulk-reading-plans');
+
+			if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
+				wp_die( __('You are not allowed to delete reading plans.') );
+
+			foreach ( (array) $_POST['delete'] as $plan_id ) {
+				$bfox_plan->delete($plan_id);
+			}
+
+			wp_redirect(add_query_arg('message', 2, $bfox_page_url));
+			exit();
+
+		break;
+
+		case 'editedplan':
+			$plan_id = (int) $_POST['plan_id'];
+			check_admin_referer('update-reading-plan-' . $plan_id);
+
+			if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
+				wp_die(__('Cheatin&#8217; uh?'));
+
+			$old_refs = $bfox_plan->get_plan_refs($plan_id);
+			$text = trim((string) $_POST['plan_passages']);
+			$sections = explode("\n", $text);
+
+			$group_refs = new BibleRefs((string) $_POST['plan_group_passages']);
+			$section_size = (int) $_POST['plan_chapters'];
+			if ($section_size == 0) $section_size = 1;
+
+			$plan = array();
+			$plan['id'] = $plan_id;
+			$plan['name'] = stripslashes($_POST['plan_name']);
+			$plan['summary'] = stripslashes($_POST['plan_description']);
+			$plan['refs_array'] = array();
+			$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
+			$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
+			$plan['frequency_options'] = $_POST['schedule_frequency_options'];
+
+			// Create the refs array
+			$index = 0;
+			$is_edited = false;
+			foreach ($sections as $section)
+			{
+				$section = trim($section);
+
+				// Determine if the text we got from input is different from the text already saved for this plan
+				if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
+					$is_edited = true;
+
+				$refs = new BibleRefs($section);
+				if ($refs->is_valid()) $plan['refs_array'][] = $refs;
+				$index++;
+			}
+
+			// If we didn't actually make any changes to the refs_array then there is no need to send it
+		/*	if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
+				unset($plan['refs_array']);*/
+
+			// Add the group chunk refs to the refs array
+			$plan['refs_array'] = array_merge($plan['refs_array'], $group_refs->get_sections($section_size));
+
+			$bfox_plan->edit_plan((object) $plan);
+
+			wp_redirect(add_query_arg(array('action' => 'edit', 'plan_id' => $plan_id, 'message' => 3), $bfox_page_url));
+
+			exit;
+		break;
+		}
+	}
+
+	/**
+	 * Outputs the reading plan management admin page
+	 *
+	 */
+	function bfox_manage_reading_plans()
+	{
+		$messages[1] = __('Reading Plan added.');
+		$messages[2] = __('Reading Plan deleted.');
+		$messages[3] = __('Reading Plan updated.');
+		$messages[4] = __('Reading Plan not added.');
+		$messages[5] = __('Reading Plan not updated.');
+
+		if (isset($_GET['message']) && ($msg = (int) $_GET['message'])): ?>
+			<div id="message" class="updated fade"><p><?php echo $messages[$msg]; ?></p></div>
+			<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+		endif;
+
+		switch($_GET['action'])
+		{
+		case 'edit':
+			$plan_id = (int) $_GET['plan_id'];
+			include('edit-plan-form.php');
+			break;
+
+		default:
+			include('manage-plans.php');
+			break;
+		}
+	}
+
 ?>
