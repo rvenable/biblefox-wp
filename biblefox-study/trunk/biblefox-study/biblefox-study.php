@@ -2,7 +2,7 @@
 	/*
 	 Plugin Name: biblefox-study
 	 Plugin URI: http://tools.biblefox.com/study/
-	 Description: A wordpress plugin for studying the bible. Plan. Read. Share.
+	 Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
 	 Version: 0.1
 	 Author: Biblefox
 	 Author URI: http://biblefox.com
