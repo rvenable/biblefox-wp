@@ -4,35 +4,43 @@
 	 * Manages all translations
 	 *
 	 */
-	class TranslationManager
+	class Translations
 	{
+		const translation_table = BFOX_TRANSLATIONS_TABLE;
+		const book_counts_table = BFOX_BOOK_COUNTS_TABLE;
+
 		/**
-		 * Constructor for TranslationManager
+		 * Constructor for Translations
 		 *
-		 * @return TranslationManager
+		 * @return Translations
 		 */
-		function TranslationManager()
+		function __construct()
 		{
-			$this->bfox_translations = BFOX_TRANSLATIONS_TABLE;
 		}
 
 		/**
 		 * Creates the DB table for the translations
 		 *
 		 */
-		function create_tables()
+		private static function create_tables()
 		{
 			// Note this function creates the table with dbDelta() which apparently has some pickiness
 			// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
 
 			$sql = "
-			CREATE TABLE IF NOT EXISTS $this->bfox_translations (
+			CREATE TABLE IF NOT EXISTS " . self::translation_table . " (
 				id int unsigned NOT NULL auto_increment,
 				short_name varchar(8) NOT NULL default '',
 				long_name varchar(128) NOT NULL default '',
 				is_default boolean NOT NULL default 0,
 				is_enabled boolean NOT NULL default 0,
 				PRIMARY KEY  (id)
+			);
+			CREATE TABLE " . self::book_counts_table . " (
+				trans_id int,
+				book_id int,
+				chapter_id int,
+				value int
 			);
 			";
 
@@ -46,11 +54,11 @@
 		 * @param bool $get_disabled Whether we should include disabled translations in the results
 		 * @return unknown
 		 */
-		function get_translations($get_disabled = FALSE)
+		public static function get_translations($get_disabled = FALSE)
 		{
 			global $wpdb;
 			if (!$get_disabled) $where = 'WHERE is_enabled = 1';
-			return $wpdb->get_results("SELECT * FROM $this->bfox_translations $where ORDER BY short_name, long_name");
+			return $wpdb->get_results("SELECT * FROM " . self::translation_table . " $where ORDER BY short_name, long_name");
 		}
 
 		/**
@@ -59,10 +67,10 @@
 		 * @param int $trans_id
 		 * @return unknown
 		 */
-		function get_translation($trans_id)
+		public static function get_translation($trans_id)
 		{
 			global $wpdb;
-			return $wpdb->get_row($wpdb->prepare("SELECT * FROM $this->bfox_translations WHERE id = %d", $trans_id));
+			return $wpdb->get_row($wpdb->prepare("SELECT * FROM " . self::translation_table . " WHERE id = %d", $trans_id));
 		}
 
 		/**
@@ -71,10 +79,10 @@
 		 * @param unknown_type $trans_id
 		 * @return unknown
 		 */
-		function is_enabled($trans_id)
+		public static function is_enabled($trans_id)
 		{
 			global $wpdb;
-			return (bool) $wpdb->get_var($wpdb->prepare("SELECT is_enabled FROM $this->bfox_translations WHERE id = %d", $trans_id));
+			return (bool) $wpdb->get_var($wpdb->prepare("SELECT is_enabled FROM " . self::translation_table . " WHERE id = %d", $trans_id));
 		}
 
 		/**
@@ -82,7 +90,7 @@
 		 *
 		 * @return unknown
 		 */
-		function get_translation_files()
+		public static function get_translation_files()
 		{
 			$files = array();
 
@@ -107,18 +115,18 @@
 		 * @param int $id Optional translation ID
 		 * @return unknown
 		 */
-		function edit_translation($trans, $id = NULL)
+		public static function edit_translation($trans, $id = NULL)
 		{
 			global $wpdb;
 
 			if (!empty($id))
 			{
-				$wpdb->query($wpdb->prepare("UPDATE $this->bfox_translations SET short_name = %s, long_name = %s, is_enabled = %d WHERE id = %d",
+				$wpdb->query($wpdb->prepare("UPDATE " . self::translation_table . " SET short_name = %s, long_name = %s, is_enabled = %d WHERE id = %d",
 					$trans->short_name, $trans->long_name, $trans->is_enabled, $id));
 			}
 			else
 			{
-				$wpdb->query($wpdb->prepare("INSERT INTO $this->bfox_translations SET short_name = %s, long_name = %s, is_enabled = %d",
+				$wpdb->query($wpdb->prepare("INSERT INTO " . self::translation_table . " SET short_name = %s, long_name = %s, is_enabled = %d",
 					$trans->short_name, $trans->long_name, $trans->is_enabled));
 				$id = $wpdb->insert_id;
 			}
@@ -145,7 +153,7 @@
 		 *
 		 * @param unknown_type $trans_id
 		 */
-		function delete_translation($trans_id)
+		public static function delete_translation($trans_id)
 		{
 			global $wpdb;
 
@@ -154,7 +162,7 @@
 			$translation->drop_table();
 
 			// Delete the translation data from the translation table
-			$wpdb->query($wpdb->prepare("DELETE FROM $this->bfox_translations WHERE id = %d", $trans_id));
+			$wpdb->query($wpdb->prepare("DELETE FROM " . self::translation_table . " WHERE id = %d", $trans_id));
 		}
 
 		/**
@@ -162,10 +170,10 @@
 		 *
 		 * @return unknown
 		 */
-		function get_default_id()
+		public static function get_default_id()
 		{
 			global $wpdb;
-			return $wpdb->get_var("SELECT id FROM $this->bfox_translations WHERE is_default = 1 LIMIT 1");
+			return $wpdb->get_var("SELECT id FROM " . self::translation_table . " WHERE is_default = 1 LIMIT 1");
 		}
 
 		/**
@@ -173,19 +181,16 @@
 		 *
 		 * @return unknown
 		 */
-		function get_user_default_id()
+		public static function get_user_default_id()
 		{
 			// TODO2: User should have his own default translation
-			return $this->get_default_id();
+			return self::get_default_id();
 		}
 
 		/* TODO2:
 		function search_all();
 		*/
 	}
-
-	global $bfox_translations;
-	$bfox_translations = new TranslationManager();
 
 	/**
 	 * A class for individual bible translations
@@ -198,11 +203,9 @@
 
 		function Translation($id = NULL, $use_disabled = FALSE)
 		{
-			global $bfox_translations;
-
 			// If no id was specified, or if we are not using disabled IDs and the specified ID is disabled,
 			// Then use the user's default ID
-			if (empty($id) || (!$use_disabled && !$bfox_translations->is_enabled($id))) $id = $bfox_translations->get_user_default_id();
+			if (empty($id) || (!$use_disabled && !Translations::is_enabled($id))) $id = Translations::get_user_default_id();
 
 			$this->id = (int) $id;
 			$this->table = BFOX_BASE_TABLE_PREFIX . "trans{$this->id}_verses";
@@ -332,10 +335,8 @@
 	 */
 	function bfox_translation_select($select_id = NULL, $use_short = FALSE)
 	{
-		global $bfox_translations;
-
 		// Get the list of enabled translations
-		$translations = $bfox_translations->get_translations();
+		$translations = Translations::get_translations();
 
 		?>
 		<select name="trans_id">
@@ -349,7 +350,7 @@
 
 
 
-
+/*
 	function bfox_get_installed_translations()
 	{
 		global $wpdb;
@@ -432,6 +433,7 @@
 			$result = $wpdb->query($sql);
 		}
 	}
+*/
 
 	function bfox_translation_update_verse($table_name, BibleRefVector $vector, $verse_text)
 	{
@@ -447,6 +449,7 @@
 		$wpdb->query($sql);
 	}
 
+/*
 	function bfox_delete_translation($trans_id)
 	{
 		global $wpdb;
@@ -492,24 +495,7 @@
 		echo '</div>';
 		bfox_menu_install_translations();
 	}
-
-	function bfox_create_book_counts_table()
-	{
-		$data_table_name = BFOX_BOOK_COUNTS_TABLE;
-
-		// Note this function creates the table with dbDelta() which apparently has some pickiness
-		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-
-		$sql = "CREATE TABLE $data_table_name (
-		trans_id int,
-		book_id int,
-		chapter_id int,
-		value int
-		);";
-
-		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-		dbDelta($sql);
-	}
+*/
 
 	function bfox_create_translation_data($trans_id)
 	{
@@ -908,7 +894,6 @@
 	 */
 	function bfox_manage_translations_load()
 	{
-		global $bfox_translations;
 		$bfox_page_url = 'admin.php?page=' . BFOX_TRANSLATION_SUBPAGE;
 
 		$action = $_POST['action'];
@@ -929,7 +914,7 @@
 			$trans['long_name'] = stripslashes($_POST['long_name']);
 			$trans['is_enabled'] = (int) $_POST['is_enabled'];
 			$trans['file_name'] = stripslashes($_POST['trans_file']);
-			$trans_id = $bfox_translations->edit_translation((object) $trans);
+			$trans_id = Translations::edit_translation((object) $trans);
 
 			wp_redirect(add_query_arg(array('action' => 'edit', 'trans_id' => $trans_id, 'message' => 1), $bfox_page_url));
 
@@ -943,7 +928,7 @@
 				wp_die( __('You are not allowed to delete translations.') );
 
 			foreach ((array) $_POST['delete'] as $trans_id)
-				$bfox_translations->delete_translation($trans_id);
+				Translations::delete_translation($trans_id);
 
 			wp_redirect(add_query_arg('message', 2, $bfox_page_url));
 
@@ -962,7 +947,7 @@
 			$trans['long_name'] = stripslashes($_POST['long_name']);
 			$trans['is_enabled'] = (int) $_POST['is_enabled'];
 			$trans['file_name'] = stripslashes($_POST['trans_file']);
-			$trans_id = $bfox_translations->edit_translation((object) $trans, $trans_id);
+			$trans_id = Translations::edit_translation((object) $trans, $trans_id);
 
 			wp_redirect(add_query_arg(array('action' => 'edit', 'trans_id' => $trans_id, 'message' => 3), $bfox_page_url));
 

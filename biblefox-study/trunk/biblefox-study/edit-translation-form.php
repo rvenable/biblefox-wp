@@ -1,6 +1,5 @@
 <?php
 
-global $bfox_translations;
 $bfox_page_url = 'admin.php?page=' . BFOX_TRANSLATION_SUBPAGE;
 
 if ( !empty($trans_id) ) {
@@ -11,7 +10,7 @@ if ( !empty($trans_id) ) {
 	$action = 'editedtrans';
 	$nonce_action = 'update-translation-' . $trans_id;
 
-	$trans = $bfox_translations->get_translation($trans_id);
+	$trans = Translations::get_translation($trans_id);
 
 } else {
 	$heading = __('Add Translation');
@@ -23,7 +22,7 @@ if ( !empty($trans_id) ) {
 	unset($trans);
 }
 
-$trans_files = $bfox_translations->get_translation_files();
+$trans_files = Translations::get_translation_files();
 
 ?>
 

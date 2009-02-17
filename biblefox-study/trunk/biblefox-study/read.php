@@ -2,11 +2,11 @@
 
 	function bfox_read_menu()
 	{
-		global $wpdb, $bfox_history, $bfox_quicknote, $bfox_trans, $bfox_translations;
+		global $wpdb, $bfox_history, $bfox_quicknote, $bfox_trans;
 
 		// Override the global translation using the translation passed in
 		$bfox_trans = new Translation($_GET['trans_id']);
-		$translation = $bfox_translations->get_translation($bfox_trans->id);
+		$translation = Translations::get_translation($bfox_trans->id);
 
 		// Get the search text input
 		$search = trim($_GET['bible_ref']);

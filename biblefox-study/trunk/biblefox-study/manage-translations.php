@@ -1,6 +1,5 @@
 <?php
 
-global $bfox_translations;
 $bfox_page_url = 'admin.php?page=' . BFOX_TRANSLATION_SUBPAGE;
 
 $header = __('Manage Translations');
@@ -42,7 +41,7 @@ if (current_user_can(BFOX_USER_LEVEL_MANAGE_TRANSLATIONS))
 	<tbody id="the-list" class="list:cat">
 <?php
 	// Get all the bible translations, even the disabled ones
-	$translations = $bfox_translations->get_translations(TRUE);
+	$translations = Translations::get_translations(TRUE);
 
 	foreach ($translations as $trans)
 	{
