@@ -135,7 +135,7 @@
 					</div>
 				</div>
 				<div id="bible_quick_view_blogs_body" class="bible_quick_view_menu_option">
-					My Blogs Entries
+					<?php Commentaries::output_posts($refs); ?>
 				</div>
 				<div id="bible_quick_view_dict_body" class="bible_quick_view_menu_option">
 					This will display dictionary entries for this scripture.

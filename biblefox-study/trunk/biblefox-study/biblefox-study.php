@@ -37,30 +37,36 @@
 	}
 	if (defined('BFOX_TESTBED')) add_filter('query', 'bfox_show_errors');
 
+	// TODO3: come up with something else
+	function pre($expr) { echo '<pre>'; print_r($expr); echo '</pre>'; }
+
 	function bfox_study_menu()
 	{
 		$min_user_level = 8;
 		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
 
-		// Add the reading plan page to the Post menu
-		// Also add the corresponding load action
+		// Add the reading plan page to the Post menu along with the corresponding load action
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'bfox_manage_reading_plans_load');
 
-		//add_submenu_page(BFOX_ADMIN_FILE, 'Share with Friends', 'Share', 0, 'share', 'bfox_share');
-
+		// These pages are temporarily only for site admin as they are being tested
 		if (is_site_admin())
 		{
 			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 			add_submenu_page(BFOX_READ_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 			add_submenu_page(BFOX_READ_SUBPAGE, 'Passage History', 'History', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+
+			// Add the reading plan page to the Post menu along with the corresponding load action
+			if (current_user_can('edit_users')) $parent = 'users.php';
+			else $parent = 'profile.php';
+			add_submenu_page($parent, 'My Commentaries', 'My Commentaries', 0, Commentaries::page, array('Commentaries', 'manage_page'));
+			add_action('load-' . get_plugin_page_hookname(Commentaries::page, $parent), array('Commentaries', 'manage_page_load'));
 		}
 
 		// These menu pages are only for the site admin
 		if (is_site_admin())
 		{
-			// Add the translation page to the WPMU admin menu
-			// Also add the corresponding load action
+			// Add the translation page to the WPMU admin menu along with the corresponding load action
 			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_manage_translations');
 			add_action('load-' . get_plugin_page_hookname(BFOX_TRANSLATION_SUBPAGE, 'wpmu-admin.php'), 'bfox_manage_translations_load');
 
@@ -155,6 +161,6 @@
 		}
 	}
 	// Redirect the dashboard after loading all plugins (all plugins are finished loading shortly after the necessary $pagenow var is created)
-	add_action('plugins_loaded', 'bfox_redirect_dashboard');
+	if (!defined('BFOX_TESTBED')) add_action('plugins_loaded', 'bfox_redirect_dashboard');
 
 ?>

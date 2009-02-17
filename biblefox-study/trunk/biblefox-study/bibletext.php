@@ -48,24 +48,34 @@
 		return $refs->sql_where2($begin, $end);
 	}
 
-	function bfox_get_posts_for_refs(BibleRefs $refs)
+	function bfox_get_posts_for_refs(BibleRefs $refs, $blog_id = 0)
 	{
+		if (empty($blog_id)) $blog_id = $GLOBALS['blog_id'];
+
 		global $wpdb;
 		$table_name = BFOX_TABLE_BIBLE_REF;
+		$posts_table = "{$wpdb->base_prefix}{$blog_id}_posts";
 
+		// TODO3: This check shouldn't be here permanently
 		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
 			return array();
 
+		$posts = array();
 		$equation = bfox_get_posts_equation_for_refs($refs);
 		if ('' != $equation)
-			return $wpdb->get_col("SELECT post_id
-								  FROM $table_name
-								  INNER JOIN $wpdb->posts
-								  ON $table_name.post_id = $wpdb->posts.ID
-								  WHERE $wpdb->posts.post_type = 'post'
-								  AND $equation");
+			$posts = $wpdb->get_results("
+				SELECT $posts_table.*
+				FROM $table_name
+				INNER JOIN $posts_table
+				ON $table_name.post_id = $posts_table.ID
+				WHERE $posts_table.post_type = 'post'
+				AND $equation");
 
-		return array();
+		// TODO2: We need a better way to get the permalink
+		foreach ($posts as &$post)
+			$post->permalink = get_blogaddress_by_id($blog_id) . '?p=' . $post->ID;
+
+		return $posts;
 	}
 
 	function bfox_get_post_bible_refs($post_id = 0)

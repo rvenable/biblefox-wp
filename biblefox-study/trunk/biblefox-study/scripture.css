@@ -285,3 +285,17 @@ ul#bible_tool_options li {
 #bible_quick_view_scripture_header h4 {
 	text-align: left;
 }
+
+
+/*
+Blog Commentaries
+*/
+
+.blog_com_title {
+//	float: left;
+}
+
+.blog_com_status {
+	position: absolute;
+	right: 0px;
+}
