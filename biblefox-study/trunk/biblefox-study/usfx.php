@@ -590,7 +590,7 @@
 				if (!empty($this->table_name) && isset($this->vs['book']))
 				{
 					$vector = new BibleRefVector(array($this->vs['book'], $this->vs['chapter'], $this->vs['verse']));
-					bfox_translation_update_verse($this->table_name, $vector, $this->vs['text']);
+					Translations::update_verse_text($this->table_name, $vector, $this->vs['text']);
 				}
 			}
 
@@ -763,17 +763,10 @@
 
 	}
 
-	function bfox_usfx_install($table_name, $file)
-	{
-		$usfx = new BfoxUsfx();
-		$usfx->set_table_name($table_name);
-		$usfx->read_file($file);
-	}
-
 	function bfox_usfx_menu($file = 'web-usfx.xml')
 	{
 		$usfx = new BfoxUsfx();
-		$usfx->read_file(BFOX_TRANSLATIONS_DIR . '/' . $file);
+		$usfx->read_file(Translations::dir . '/' . $file);
 		$all = $usfx->get_all_elements();
 
 		$schema = $usfx->get_key_value_elements('schema', TRUE);

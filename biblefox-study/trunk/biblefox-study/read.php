@@ -5,8 +5,8 @@
 		global $wpdb, $bfox_history, $bfox_quicknote, $bfox_trans;
 
 		// Override the global translation using the translation passed in
-		$bfox_trans = new Translation($_GET['trans_id']);
-		$translation = Translations::get_translation($bfox_trans->id);
+		// TODO3: Do we really need to override the global translation?
+		$bfox_trans = Translations::get_translation($_GET['trans_id']);
 
 		// Get the search text input
 		$search = trim($_GET['bible_ref']);
@@ -58,7 +58,7 @@
 	<div id="bible_tool_header">
 		<form id="bible_view_search" action="admin.php" method="get">
 			<input type="hidden" name="page" value="<?php echo BFOX_READ_SUBPAGE; ?>" />
-				<?php bfox_translation_select($bfox_trans->id) ?>
+				<?php Translations::output_select($bfox_trans->id) ?>
 			<input type="text" name="bible_ref" value="<?php echo $reflistStr; ?>" />
 			<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
 		</form>
@@ -71,7 +71,7 @@
 		<div id="bible_view">
 			<?php if ($refs->is_valid()): ?>
 			<div id="bible_view_header">
-				<h3><?php echo $refs->get_string() . " ($translation->short_name)" ?></h3>
+				<h3><?php echo $refs->get_string() . " ($bfox_trans->short_name)" ?></h3>
 				<?php echo bfox_get_ref_menu($refs, TRUE) ?>
 			</div>
 			<div id="bible_view_content">
@@ -109,7 +109,7 @@
 				</ul>
 				<div id="bible_quick_view_scripture_header" class="bible_quick_view_menu_option">
 					<h4 id="bible-text-progress">No Scripture</h4>
-					<?php bfox_translation_select($bfox_trans->id, TRUE) ?>
+					<?php Translations::output_select($bfox_trans->id, TRUE) ?>
 					<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
 					<input type="button" class="button" id="view-bible-ref" value="Search" tabindex="3" />
 					<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />

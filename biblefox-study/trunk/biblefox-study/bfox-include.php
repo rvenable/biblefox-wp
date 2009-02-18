@@ -11,7 +11,6 @@
 	// User Levels
 	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 	define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
-	define('BFOX_USER_LEVEL_MANAGE_TRANSLATIONS', 10);
 
 	// Column Definitions
 	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
@@ -240,6 +239,18 @@
 	function bfox_html_strip_tags($html)
 	{
 		return preg_replace('/<[^<>]*[^<>\s][^<>]*>/', '', $html);
+	}
+
+	/**
+	 * Returns whether a table exists or not
+	 *
+	 * @param string $table_name
+	 * @return boolean
+	 */
+	function bfox_does_table_exist($table_name)
+	{
+		global $wpdb;
+		return (bool) ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name);
 	}
 
 	?>

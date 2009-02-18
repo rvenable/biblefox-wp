@@ -16,7 +16,6 @@
 //	define(BFOX_ADMIN_FILE, __FILE__);
 	define(BFOX_PLAN_SUBPAGE, 'bfox-plan');
 	define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
-	define(BFOX_TRANSLATION_SUBPAGE, 'bfox-translations');
 	define(BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox-admin-tools');
 	define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 	define(BFOX_READ_SUBPAGE, 'bfox-read');
@@ -67,8 +66,8 @@
 		if (is_site_admin())
 		{
 			// Add the translation page to the WPMU admin menu along with the corresponding load action
-			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', 10, BFOX_TRANSLATION_SUBPAGE, 'bfox_manage_translations');
-			add_action('load-' . get_plugin_page_hookname(BFOX_TRANSLATION_SUBPAGE, 'wpmu-admin.php'), 'bfox_manage_translations_load');
+			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', Translations::min_user_level, Translations::page, array('Translations', 'manage_page'));
+			add_action('load-' . get_plugin_page_hookname(Translations::page, 'wpmu-admin.php'), array('Translations', 'manage_page_load'));
 
 			add_submenu_page('wpmu-admin.php', 'Admin Tools', 'Admin Tools', 10, BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox_admin_tools');
 		}

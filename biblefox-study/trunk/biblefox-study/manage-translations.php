@@ -1,16 +1,16 @@
 <?php
 
-$bfox_page_url = 'admin.php?page=' . BFOX_TRANSLATION_SUBPAGE;
+$bfox_page_url = 'admin.php?page=' . Translations::page;
 
 $header = __('Manage Translations');
-if (current_user_can(BFOX_USER_LEVEL_MANAGE_TRANSLATIONS))
+if (current_user_can(Translations::min_user_level))
 	$header .= ' (<a href="#addtrans">' . __('add new') . '</a>)';
 
 ?>
 
 <div class="wrap">
 <form action="" method="post">
-<input type="hidden" name="page" value="<?php echo BFOX_TRANSLATION_SUBPAGE; ?>">
+<input type="hidden" name="page" value="<?php echo Translations::page; ?>">
 <h2><?php echo $header ?></h2>
 
 <br class="clear" />
@@ -71,7 +71,7 @@ if (current_user_can(BFOX_USER_LEVEL_MANAGE_TRANSLATIONS))
 </div>
 
 <?php
-	if ( current_user_can(BFOX_USER_LEVEL_MANAGE_TRANSLATIONS) )
+	if ( current_user_can(Translations::min_user_level) )
 		include('edit-translation-form.php');
 
 ?>
