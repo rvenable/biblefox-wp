@@ -24,7 +24,11 @@
 		}
 
 		$refs = new BibleRefs($search);
-		$bfox_quicknote->set_biblerefs($refs);
+		if ($refs->is_valid())
+		{
+			$bfox_quicknote->set_biblerefs($refs);
+		}
+		else unset($refs);
 
 	?>
 
@@ -69,7 +73,7 @@
 	</div>
 	<div id="bible_tool_body">
 		<div id="bible_view">
-			<?php if ($refs->is_valid()): ?>
+			<?php if (isset($refs)): ?>
 			<div id="bible_view_header">
 				<h3><?php echo $refs->get_string() . " ($bfox_trans->short_name)" ?></h3>
 				<?php echo bfox_get_ref_menu($refs, TRUE) ?>
@@ -83,21 +87,22 @@
 					echo $refs->get_toc(TRUE);
 				?>
 			</div>
-			<?php elseif (!empty($text)):
+			<?php elseif (!empty($search)):
 				// TODO2: use leftovers from ref detection to create search results
 				// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
 
 				// Ref not valid, so perform search results
 
-				echo bfox_bible_text_search($text);
+				echo bfox_bible_text_search($search);
 	/*
-				$content .= bfox_bible_text_search('"' . $text . '"');
+				$content .= bfox_bible_text_search('"' . $search . '"');
 
-				$text = '+' . implode(' +', explode(' ', $text));
-				$content .= bfox_bible_text_search($text);
+				$search = '+' . implode(' +', explode(' ', $search));
+				$content .= bfox_bible_text_search($search);
 	*/
 			endif; ?>
 		</div>
+		<?php if (isset($refs)): ?>
 		<div id="bible_quick_view">
 			<div id="bible_quick_view_header">
 				<ul class="bible_quick_view_menu">
@@ -148,6 +153,7 @@
 				</div>
 			</div>
 		</div>
+		<? endif; ?>
 	</div>
 	<div id="bible_tool_footer">
 	</div>
@@ -159,7 +165,7 @@
 		echo '</table>';*/
 
 		// Update the read history to show that we viewed these scriptures
-		$bfox_history->update($refs);
+		if (isset($refs)) $bfox_history->update($refs);
 
 /*	TODO2: Make sure everything on this list is in a task, then remove this list
 	echo '<h2>Blog Post Commentaries</h2>';

@@ -299,23 +299,6 @@
 			echo bfox_process_html_text($str, 'bfox_ref_replace');
 		}
 
-		function show_trans()
-		{
-			bfox_create_translation_data(bfox_get_default_version());
-			$this->echo_table(BFOX_BOOK_COUNTS_TABLE);
-		}
-
-		/**
-		 * Updates the default translation table
-		 *
-		 */
-		function update_trans_table()
-		{
-			$table_name = bfox_get_verses_table_name(bfox_get_default_version());
-			bfox_create_trans_verses_table($table_name);
-			$this->echo_table_describe($table_name);
-		}
-
 		function show_toc()
 		{
 			bfox_show_toc();

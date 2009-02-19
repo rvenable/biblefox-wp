@@ -1,5 +1,57 @@
 <?php
 
+/*
+ * FULLTEXT Indexing Workaround:
+ *
+ * For bible searching, this plugin uses MySQL FULLTEXT indexes. However, the FULLTEXT
+ * indexer exludes words that are too short or are considered 'stop words'. To counteract
+ * this, we add a prefix to those words so that they are long enough and are not stop words,
+ * and therefore will be indexed.
+ */
+
+/*
+ * BFOX_FT_INDEX_PREFIX is added to the beginning of words which don't fit the MySQL
+ * FULLTEXT indexing criteria of minimum length and matching a stopword.
+ * Thus, by adding this prefix to the word, the word passes the indexing criteria,
+ * and thereby can be succesfully indexed (see Translation::get_index_text()).
+ *
+ * BFOX_FT_INDEX_PREFIX must be long enough to increase any word to at least the minimum
+ * string length. For instance, if the min length is 4 (BFOX_FT_MIN_WORD_LEN should
+ * reflect this), BFOX_FT_INDEX_PREFIX could be length 3, so that even 1 letter words
+ * are prefixed with 3 additional letters to reach the minimum length of 4 letters.
+ *
+ * The characters in BFOX_FT_INDEX_PREFIX must be unique enough so that when prefixing
+ * any word, the new word will not be a MySql stop word.
+ *
+ * This can be over-ridden in the wp-config file for different server setups.
+ * Remember to rebuild the translation indexes if modifying this value.
+ */
+if (!defined('BFOX_FT_INDEX_PREFIX'))
+	define('BFOX_FT_INDEX_PREFIX', 'bfx');
+
+/*
+ * Define the minimum word length for full text searches to be 4 by default.
+ * Any word shorter than length BFOX_FT_MIN_WORD_LEN will be prefixed with
+ * BFOX_FT_INDEX_PREFIX so that they will be long enough to be indexed by
+ * MySQL's FULLTEXT search.
+ *
+ * This can be over-ridden in the wp-config file for different server setups.
+ * Remember to rebuild the translation indexes if modifying this value.
+ */
+if (!defined('BFOX_FT_MIN_WORD_LEN'))
+	define('BFOX_FT_MIN_WORD_LEN', 4);
+
+/*
+ * Define the list of MySQL FULLTEXT stop words to ignore. Any of these words
+ * will be prefixed with BFOX_FT_INDEX_PREFIX so that MySQL won't detect them
+ * as stop words and they will be successfully indexed.
+ *
+ * This can be over-ridden in the wp-config file for different server setups.
+ * Remember to rebuild the translation indexes if modifying this value.
+ */
+global $bfox_ft_stopwords;
+if (empty($bfox_ft_stopwords)) include('stopwords.php');
+
 /**
  * A class for individual bible translations
  *
@@ -121,7 +173,7 @@ class Translations
 	public static function get_translation($trans_id)
 	{
 		global $wpdb;
-		return new Translation($wpdb->get_row($wpdb->prepare("SELECT * FROM " . self::translation_table . " WHERE id = %d", $trans_id)));
+		return new Translation((object) $wpdb->get_row($wpdb->prepare("SELECT * FROM " . self::translation_table . " WHERE id = %d", $trans_id)));
 	}
 
 	/**
@@ -163,7 +215,7 @@ class Translations
 	 *
 	 * @param boolean $use_index Whether a full text index should be used or not
 	 */
-	private static function create_translation_table($table_name, $use_index = FALSE)
+	private static function create_translation_table($table_name, $use_index = TRUE)
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
@@ -205,6 +257,33 @@ class Translations
 	}
 
 	/**
+	 * Returns the indexing text for the given text string
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	public static function get_index_text($text)
+	{
+		global $bfox_ft_stopwords;
+
+		// TODO1: Use str_word_count()
+
+		// Strip out HTML tags, lowercase it, reduce the whitespace to one space, and explode on space to get all the indexing words
+		$words = explode(' ', preg_replace('/\s+/', ' ', strtolower(strip_tags(trim($text)))));
+
+		// Check each word to see if it is below the FULLTEXT min word length, or if it is a FULLTEXT stopword
+		// If so, we need to prefix it with some characters so that it doesn't get ignored by MySQL
+		foreach ($words as &$word)
+		{
+			if ((strlen($word) < BFOX_FT_MIN_WORD_LEN) || isset($bfox_ft_stopwords[$word]))
+				$word = BFOX_FT_INDEX_PREFIX . $word;
+		}
+
+		// Return all the words as a space delimited string
+		return implode(' ', $words);
+	}
+
+	/**
 	 * Updates the verse data for a given verse in the given translation table
 	 *
 	 * @param string $table_name
@@ -214,13 +293,14 @@ class Translations
 	public static function update_verse_text($table_name, BibleRefVector $vector, $verse_text)
 	{
 		global $wpdb;
-		$sql = $wpdb->prepare("REPLACE INTO $table_name (unique_id, book_id, chapter_id, verse_id, verse)
-							  VALUES (%d, %d, %d, %d, %s)",
+		$sql = $wpdb->prepare("REPLACE INTO $table_name (unique_id, book_id, chapter_id, verse_id, verse, index_text)
+							  VALUES (%d, %d, %d, %d, %s, %s)",
 							  $vector->value,
 							  $vector->values['book'],
 							  $vector->values['chapter'],
 							  $vector->values['verse'],
-							  $verse_text
+							  $verse_text,
+							  self::get_index_text($verse_text)
 							  );
 		$wpdb->query($sql);
 	}
@@ -500,140 +580,6 @@ class Translations
 // Set the global translation (using the default translation)
 Translations::set_global_translations();
 
-
-/*
-function bfox_get_installed_translations()
-{
-	global $wpdb;
-	$table_name = BFOX_TRANSLATIONS_TABLE;
-	if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-	{
-		echo "No translations installed!<br/>";
-	}
-	else
-	{
-		$select = "SELECT id, long_name, is_enabled, is_default FROM $table_name ORDER BY long_name";
-		$translations = $wpdb->get_results($select);
-		foreach ($translations as $translation)
-		{
-			echo "$translation->is_enabled ";
-			echo "$translation->is_default ";
-			echo "$translation->long_name ";
-			$page = Translations::page;
-			$url = "admin.php?page=$page&amp;action=delete&amp;trans_id=$translation->id";
-			echo "<a href='$url'>delete</a> ";
-			$url = "admin.php?page=$page&amp;action=enable&amp;trans_id=$translation->id";
-			echo "<a href='$url'>enable</a>";
-			echo "<br/>";
-		}
-	}
-}
-
-function bfox_install_bft_file($file_name)
-{
-	$file = Translations::dir . "/$file_name";
-	$lines = file($file);
-	$num_lines = count($lines);
-
-	// Read the bft header
-	// Each line of the header should be of format: key=value
-	// The header ends with the string 'text='
-	$index = 0;
-	$header = array();
-	while (($index < $num_lines) && (FALSE === stripos($lines[$index], 'text=')))
-	{
-		$list = explode('=', $lines[$index]);
-		$key = trim($list[0]);
-		$value = trim($list[1]);
-		if ($key != '')
-		{
-			$header[$key] = $value;
-		}
-		$index++;
-	}
-
-	// We don't need the file data anymore
-	unset($lines);
-
-	if ($index < $num_lines)
-	{
-		$id = bfox_add_translation($header);
-		$table_name = bfox_get_verses_table_name($id);
-		$delimiter = $header['delim'];
-
-		// Create the table
-		bfox_create_trans_verses_table($table_name, $header['verse_size']);
-
-		// Load the data file into the table using a LOAD DATA statement
-		global $wpdb;
-		$sql = $wpdb->prepare("LOAD DATA LOCAL INFILE %s
-							  INTO TABLE $table_name
-							  FIELDS TERMINATED BY %s
-							  IGNORE %d LINES
-							  (book_id, chapter_id, verse_id, verse)
-							  SET unique_id = ((book_id * %d) + (chapter_id * %d) + (verse_id * %d))",
-							  $file,
-							  $delimiter,
-							  $index + 1,
-							  256 * 256,
-							  256,
-							  1);
-
-		define(DIEONDBERROR, '');
-
-		$result = $wpdb->query($sql);
-	}
-}
-*/
-
-/*
-function bfox_delete_translation($trans_id)
-{
-	global $wpdb;
-	$wpdb->query($wpdb->prepare("DELETE FROM " . BFOX_TRANSLATIONS_TABLE . " WHERE id = %d", $trans_id));
-	$wpdb->query("DROP TABLE " . bfox_get_verses_table_name($trans_id));
-}
-
-function bfox_enable_translation($trans_id)
-{
-	global $wpdb;
-	$wpdb->query($wpdb->prepare("UPDATE " . BFOX_TRANSLATIONS_TABLE . " SET is_enabled = !(is_enabled) WHERE id = %d", $trans_id));
-}
-
-function bfox_translations_action($action)
-{
-	if ('install' == $action)
-	{
-		$file = trim($_GET['file']);
-		if (substr($file, -4) == '.bft')
-			bfox_install_bft_file($file);
-		else if (substr($file, -4) == '.xml')
-			bfox_install_usfx_file($file);
-	}
-	else if ('delete' == $action)
-	{
-		$trans_id = (int) $_GET['trans_id'];
-		bfox_delete_translation($trans_id);
-	}
-	else if ('enable' == $action)
-	{
-		$trans_id = (int) $_GET['trans_id'];
-		bfox_enable_translation($trans_id);
-	}
-}
-
-function bfox_translations_page()
-{
-	if (isset($_GET['action']))
-		bfox_translations_action(trim($_GET['action']));
-	echo '<div class="wrap">';
-	echo '<h2>Manage Translations</h2>';
-	bfox_get_installed_translations();
-	echo '</div>';
-	bfox_menu_install_translations();
-}
-*/
-
 /**
  * Returns the number of chapters in a book for a given translation
  *
@@ -841,10 +787,9 @@ function bfox_output_verse_map($book_counts)
  */
 function bfox_search_regular($text)
 {
-	global $wpdb;
-	$table_name = bfox_get_verses_table_name(bfox_get_default_version());
-	$match = $wpdb->prepare("MATCH(verse) AGAINST(%s)", $text);
-	$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $table_name WHERE $match LIMIT 5");
+	global $wpdb, $bfox_trans;
+	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s)", $text);
+	$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $bfox_trans->table WHERE $match LIMIT 5");
 
 	return $results;
 }
@@ -857,10 +802,9 @@ function bfox_search_regular($text)
  */
 function bfox_search_expanded($text)
 {
-	global $wpdb;
-	$table_name = bfox_get_verses_table_name(bfox_get_default_version());
-	$match = $wpdb->prepare("MATCH(verse) AGAINST(%s WITH QUERY EXPANSION)", $text);
-	$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $table_name WHERE verse_id != 0 AND $match LIMIT 5");
+	global $wpdb, $bfox_trans;
+	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s WITH QUERY EXPANSION)", $text);
+	$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $bfox_trans->table WHERE verse_id != 0 AND $match LIMIT 5");
 
 	return $results;
 }
@@ -874,10 +818,9 @@ function bfox_search_expanded($text)
  */
 function bfox_search_boolean($text, $limit = 40)
 {
-	global $wpdb;
-	$table_name = bfox_get_verses_table_name(bfox_get_default_version());
-	$match = $wpdb->prepare("MATCH(verse) AGAINST(%s IN BOOLEAN MODE)", $text);
-	$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE verse_id != 0 AND $match ORDER BY unique_id ASC LIMIT %d", $limit));
+	global $wpdb, $bfox_trans;
+	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s IN BOOLEAN MODE)", $text);
+	$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $bfox_trans->table WHERE verse_id != 0 AND $match ORDER BY unique_id ASC LIMIT %d", $limit));
 
 	return $results;
 }
@@ -891,10 +834,9 @@ function bfox_search_boolean($text, $limit = 40)
  */
 function bfox_search_boolean_books($text, $limit = 40)
 {
-	global $wpdb;
-	$table_name = bfox_get_verses_table_name(bfox_get_default_version());
-	$match = $wpdb->prepare("MATCH(verse) AGAINST(%s IN BOOLEAN MODE)", $text);
-	$sql = "SELECT book_id, COUNT(*) AS count FROM $table_name WHERE verse_id != 0 AND $match GROUP BY book_id";
+	global $wpdb, $bfox_trans;
+	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s IN BOOLEAN MODE)", $text);
+	$sql = "SELECT book_id, COUNT(*) AS count FROM $bfox_trans->table WHERE verse_id != 0 AND $match GROUP BY book_id";
 	$results = (array) $wpdb->get_results($sql);
 
 	$book_counts = array();
@@ -921,41 +863,33 @@ function bfox_bible_text_search($text)
 	// Parse the search text into words
 	$words = str_word_count($text, 1);
 
-	// Put the words back together for the new search text
-	$text = implode(' ', $words);
-
-	// Divide the words into long and short words
-	$long_words = array();
-	$short_words = array();
-	foreach ($words as $word)
-		if (strlen($word) > 2) $long_words[] = $word;
-		else $short_words[] = $word;
-
-	$long_word_min_len = 3;
-	$match_all_text = '+' . implode(' +', $long_words) . '*';
+	$index_text = Translations::get_index_text($text);
+	$index_words = explode(' ', $index_text);
+	$match_all_text = '+' . implode('* +', $index_words) . '*';
 	$book_counts = bfox_search_boolean_books($match_all_text);
 	$book_count = $book_counts['all'];
 
+	/* TODO2: Implement the search suggestions
 	// We can only make phrase suggestions when there are long words
-	if (0 < count($long_words))
+	if (0 < count($index_words))
 	{
 		$sugg_limit = 10;
 		$sugg_count = 0;
-		if ((1 < count($words)) || (0 == $book_count))
+		if ((1 < count($index_words)) || (0 == $book_count))
 		{
-			$exact = bfox_search_boolean('"' . $text . '"', $sugg_limit - $sugg_count);
+			$exact = bfox_search_boolean('"' . $index_text . '"', $sugg_limit - $sugg_count);
 			$sugg_count += count($exact);
 		}
 
 		if (0 < $sugg_limit - $sugg_count)
 		{
-			$specific = bfox_search_regular($text, $sugg_limit - $sugg_count);
+			$specific = bfox_search_regular($index_text, $sugg_limit - $sugg_count);
 			$sugg_count += count($specific);
 		}
 
 		if (0 < $sugg_limit - $sugg_count)
 		{
-			$other = bfox_search_expanded($text, $sugg_limit - $sugg_count);
+			$other = bfox_search_expanded($index_text, $sugg_limit - $sugg_count);
 			$sugg_count += count($other);
 		}
 
@@ -971,6 +905,7 @@ function bfox_bible_text_search($text)
 			$content .= '</table>';
 		}
 	}
+	*/
 
 	// Show the exact matches at the bottom
 	$content .= "<h3>Match All Words - $text</h3>";

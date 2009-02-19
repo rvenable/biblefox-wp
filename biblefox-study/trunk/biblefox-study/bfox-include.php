@@ -238,6 +238,7 @@
 	// Removes all <tags> from html text
 	function bfox_html_strip_tags($html)
 	{
+		// TODO: I don't think we need this function - we can use PHP's strip_tags()
 		return preg_replace('/<[^<>]*[^<>\s][^<>]*>/', '', $html);
 	}
 

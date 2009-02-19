@@ -83,15 +83,10 @@
 
 	function bfox_get_chapters($first_verse, $last_verse)
 	{
-		global $wpdb;
-
-		// TODO: We need to let the user pick their own version
-		// Use the default translation until we add user input for this value
-		$version_id = bfox_get_default_version();
-		$table_name = bfox_get_verses_table_name($version_id);
+		global $wpdb, $bfox_trans;
 
 		$query = $wpdb->prepare("SELECT chapter_id
-								FROM $table_name
+								FROM $bfox_trans->table
 								WHERE unique_id >= %d
 								AND unique_id <= %d
 								AND chapter_id != 0
@@ -103,17 +98,12 @@
 
 	function bfox_get_passage_size($first_verse, $last_verse, $group_by = '')
 	{
-		global $wpdb;
+		global $wpdb, $bfox_trans;
 
 		if ('' != $group_by) $group_by = 'GROUP BY ' . $group_by;
 
-		// TODO: We need to let the user pick their own version
-		// Use the default translation until we add user input for this value
-		$version_id = bfox_get_default_version();
-		$table_name = bfox_get_verses_table_name($version_id);
-
 		$query = $wpdb->prepare("SELECT COUNT(*)
-								FROM $table_name
+								FROM $bfox_trans->table
 								WHERE unique_id >= %d
 								AND unique_id <= %d
 								AND chapter_id != 0
@@ -664,6 +654,8 @@
 		 */
 		function get_actual_chapters()
 		{
+			global $bfox_trans;
+
 			$low = $this->vectors[0]->values['chapter'];
 			$high = $this->vectors[1]->values['chapter'];
 
@@ -674,8 +666,7 @@
 			// TODO2: The user could also input a chapter number which is beyond the actual last chapter, but below the max
 			if (BFOX_UNIQUE_ID_MASK == $high)
 			{
-				// TODO1: get translation version from user preferences
-				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], bfox_get_default_version());
+				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], $bfox_trans->id);
 			}
 
 			return array($low, $high);
@@ -689,7 +680,7 @@
 		 */
 		function get_toc($is_full = FALSE)
 		{
-			global $bfox_links;
+			global $bfox_links, $bfox_trans;
 
 			// TODO3: These vars are kind of hacky
 			list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
@@ -700,8 +691,7 @@
 			$toc = $toc_begin;
 			if ($is_full)
 			{
-				// TODO1: get translation version from user preferences
-				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], bfox_get_default_version());
+				$high = bfox_get_num_chapters($this->vectors[0]->values['book'], $bfox_trans->id);
 				$low = 1;
 				$toc .= $book_name;
 			}

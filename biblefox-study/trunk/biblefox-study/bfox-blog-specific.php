@@ -15,13 +15,4 @@
 		return $wpdb->base_prefix . $local_blog_id . '_bfox_';
 	}
 
-	// TODO2: remove this function, use Translation class instead
-	function bfox_get_verses_table_name($id = -1)
-	{
-		if (!isset($id) || (0 > $id))
-			$id = bfox_get_default_version();
-
-		return BFOX_BASE_TABLE_PREFIX . "trans{$id}_verses";
-	}
-
 	?>
