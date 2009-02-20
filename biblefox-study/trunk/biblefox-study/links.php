@@ -66,12 +66,19 @@
 								'bible' => $this->bible . '&amp;',
 								'write' => $this->admin . '/post-new.php?');
 				$url = $prefix[$context] . 'bible_ref=' . $ref_str;
+
+				// For the main bible viewer, attach the current translation
+				if ('bible' == $context)
+				{
+					global $bfox_trans;
+					$url .= '&amp;trans_id=' . $bfox_trans->id;
+				}
 			}
 
 			return $url;
 		}
 
-		function ref_link($attrs, $context = NULL)
+		private function ref_format_attrs($attrs, $context = NULL)
 		{
 			if (empty($context)) $context = $this->ref_context;
 			if (!is_array($attrs))
@@ -96,10 +103,25 @@
 			}
 
 			if ('quick' == $context) $attrs['onClick'] = "bible_text_request(\"$ref_str\")";
-
-			return $this->link($attrs);
+			return $attrs;
 		}
 
+		public function ref_link($attrs, $context = NULL)
+		{
+			return $this->link($this->ref_format_attrs($attrs, $context));
+		}
+
+		public function ref_search_link($ref_str, $search, $context = NULL)
+		{
+			$url = $ref_str;
+			if (!empty($search)) $url .= "&amp;search=$search";
+
+			return $this->link($this->ref_format_attrs(array(
+				'ref_str' => $ref_str,
+				'href' => $this->ref_url($url, $context),
+				'title' => "Search for \"$search\" in $ref_str"),
+				$context));
+		}
 	}
 
 	global $bfox_links;

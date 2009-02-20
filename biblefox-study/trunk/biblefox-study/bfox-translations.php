@@ -756,9 +756,10 @@ function bfox_output_verses($results, $words, $header = '')
  * Generates the output string for a verse search map
  *
  * @param unknown_type $book_counts
+ * @param string $search_text
  * @return unknown
  */
-function bfox_output_verse_map($book_counts)
+function bfox_output_verse_map($book_counts, $search_text = '')
 {
 	global $bfox_links;
 
@@ -769,7 +770,7 @@ function bfox_output_verse_map($book_counts)
 		if (!empty($count) && is_int($book))
 		{
 			$book = bfox_get_book_name($book);
-			$link = $bfox_links->ref_link($book);
+			$link = $bfox_links->ref_search_link($book, $search_text);
 			$content .= "<tr><td nowrap>$link</td><td>$count</td></tr>";
 		}
 	}
@@ -811,15 +812,17 @@ function bfox_search_expanded($text)
 /**
  * Performs a boolean full text search
  *
- * @param unknown_type $text
- * @param unknown_type $limit
+ * @param string $text
+ * @param string $ref_where
+ * @param integer $limit
  * @return unknown
  */
-function bfox_search_boolean($text, $limit = 40)
+function bfox_search_boolean($text, $ref_where = '', $limit = 40)
 {
 	global $wpdb, $bfox_trans;
+	if (!empty($ref_where)) $ref_where = 'AND ' . $ref_where;
 	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s IN BOOLEAN MODE)", $text);
-	$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $bfox_trans->table WHERE verse_id != 0 AND $match ORDER BY unique_id ASC LIMIT %d", $limit));
+	$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $bfox_trans->table WHERE verse_id != 0 $ref_where AND $match ORDER BY unique_id ASC LIMIT %d", $limit));
 
 	return $results;
 }
@@ -855,9 +858,10 @@ function bfox_search_boolean_books($text, $limit = 40)
  * Performs several different text searches and formats output to display them
  *
  * @param string $text search string
+ * @param string $ref_where
  * @return string output
  */
-function bfox_bible_text_search($text)
+function bfox_bible_text_search($text, $ref_where = '')
 {
 	// Parse the search text into words
 	$words = str_word_count($text, 1);
@@ -876,7 +880,7 @@ function bfox_bible_text_search($text)
 		$sugg_count = 0;
 		if ((1 < count($index_words)) || (0 == $book_count))
 		{
-			$exact = bfox_search_boolean('"' . $index_text . '"', $sugg_limit - $sugg_count);
+			$exact = bfox_search_boolean('"' . $index_text . '"', $ref_where, $sugg_limit - $sugg_count);
 			$sugg_count += count($exact);
 		}
 
@@ -910,13 +914,13 @@ function bfox_bible_text_search($text)
 	$content .= "<h3>Match All Words - $text</h3>";
 	$content .= '<div id="bible_search_all_words">';
 	$content .= '<div id="bible_search_verse_map">';
-	$content .= bfox_output_verse_map($book_counts);
+	$content .= bfox_output_verse_map($book_counts, $text);
 	$content .= '</div>';
 
 	$content .= '<div id="bible_search_results">';
 	$content .= '<table>';
 	$start = microtime();
-	$content .= bfox_output_verses(bfox_search_boolean($match_all_text), $words);
+	$content .= bfox_output_verses(bfox_search_boolean($match_all_text, $ref_where), $words);
 	$end = microtime();
 	$content .= '</table>';
 	$content .= '<p>Time: ' . ($end - $start) . " $end $start</p>";

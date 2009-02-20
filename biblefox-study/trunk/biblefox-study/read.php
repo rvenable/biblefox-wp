@@ -8,27 +8,34 @@
 		// TODO3: Do we really need to override the global translation?
 		$bfox_trans = Translations::get_translation($_GET['trans_id']);
 
-		// Get the search text input
-		$search = trim($_GET['bible_ref']);
-		if (empty($search))
+		// Try to get some search text
+		$search_text = (string) $_GET['search'];
+
+		// If reference text was passed in, try to create BibleRefs from it
+		// If we can't create a valid BibleRefs, and there is no search text,
+		//  use the reference text as search text
+		if (!empty($_GET['bible_ref']))
 		{
-			// If there is no search text then get the last viewed references
+			$refs = new BibleRefs($_GET['bible_ref']);
+			if (!$refs->is_valid())
+			{
+				unset($refs);
+				if (empty($search_text)) $search_text = $_GET['bible_ref'];
+			}
+		}
+
+		// If we don't have search text yet, we should just create a bible reference
+		if (empty($search_text))
+		{
+			// First try to create a BibleRefs from the last viewed references
 			list($refs) = $bfox_history->get_refs_array();
-			$search = $refs->get_string();
+
+			// If there is no history, use Genesis 1
+			// TODO3: Test this
+			if (!isset($refs) || !$refs->is_valid()) $refs = new BibleRefs('Genesis 1');
 		}
 
-		// If we still don't have search text, use Genesis 1
-		if (empty($search))
-		{
-			$search = 'Genesis 1';
-		}
-
-		$refs = new BibleRefs($search);
-		if ($refs->is_valid())
-		{
-			$bfox_quicknote->set_biblerefs($refs);
-		}
-		else unset($refs);
+		if (isset($refs)) $bfox_quicknote->set_biblerefs($refs);
 
 	?>
 
@@ -73,7 +80,19 @@
 	</div>
 	<div id="bible_tool_body">
 		<div id="bible_view">
-			<?php if (isset($refs)): ?>
+			<?php if (!empty($search_text)):
+				// TODO2: use leftovers from ref detection to create search results
+				// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
+
+				if (isset($refs)) $ref_where = $refs->sql_where();
+				echo bfox_bible_text_search($search_text, $ref_where);
+	/*
+				$content .= bfox_bible_text_search('"' . $search_text . '"');
+
+				$search_text = '+' . implode(' +', explode(' ', $search_text));
+				$content .= bfox_bible_text_search($search_text);
+	*/
+				elseif (isset($refs)): ?>
 			<div id="bible_view_header">
 				<h3><?php echo $refs->get_string() . " ($bfox_trans->short_name)" ?></h3>
 				<?php echo bfox_get_ref_menu($refs, TRUE) ?>
@@ -87,20 +106,7 @@
 					echo $refs->get_toc(TRUE);
 				?>
 			</div>
-			<?php elseif (!empty($search)):
-				// TODO2: use leftovers from ref detection to create search results
-				// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
-
-				// Ref not valid, so perform search results
-
-				echo bfox_bible_text_search($search);
-	/*
-				$content .= bfox_bible_text_search('"' . $search . '"');
-
-				$search = '+' . implode(' +', explode(' ', $search));
-				$content .= bfox_bible_text_search($search);
-	*/
-			endif; ?>
+			<?php endif; ?>
 		</div>
 		<?php if (isset($refs)): ?>
 		<div id="bible_quick_view">
