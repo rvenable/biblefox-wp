@@ -175,10 +175,6 @@ Scripture Viewer
 	text-align: center;
 }
 
-#bible_search_verse_map {
-	float: left;
-}
-
 ul#bible_tool_options {text-align: right;}
 ul#bible_tool_options li {
 	display: inline;
@@ -299,3 +295,44 @@ Blog Commentaries
 	position: absolute;
 	right: 0px;
 }
+
+/*
+Bible Search
+*/
+
+#bfox_search .match_all {
+	position: relative;
+}
+
+#bfox_search .verse_map {
+	float: left;
+	position: relative;
+	width: 160px;
+	border: thin solid #2583AD;
+	background-color: #E4F2FD;
+}
+
+.book_group_title {
+	margin: 2px;
+	font-weight: bold;
+}
+
+.book_group {
+	padding-left: 8px;
+	margin: 0px;
+}
+
+.book_group li {
+	position: relative;
+	margin: 1px;
+}
+
+#bfox_search .verse_map .book_count {
+	position: absolute;
+	right: 0px;
+}
+
+#bfox_search .results {
+	position: static;
+}
+

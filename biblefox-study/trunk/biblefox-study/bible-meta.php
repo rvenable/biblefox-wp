@@ -1,5 +1,50 @@
 <?php
 
+/**
+ * Array for defining book groups (sets of books)
+ */
+global $bfox_book_groups;
+$bfox_book_groups = array(
+'bible' => array('old', 'new', 'apoc'),
+'protest' => array('old', 'new'),
+'old' => array('moses', 'history', 'wisdom', 'prophets'),
+'moses' => range(1, 5),
+'history' => range(6, 17),
+'wisdom' => range(18, 22),
+'prophets' => array('major_prophets', 'minor_prophets'),
+'major_prophets' => range(23, 27),
+'minor_prophets' => range(28, 39),
+'new' => array('gospels', 44, 'paul', 'epistles', 66),
+'gospels' => range(40, 43),
+'paul' => range(45, 57),
+'epistles' => range(58, 65),
+'apoc' => range(67, 81)
+);
+
+/**
+ * Array for defining the names for the book groups defined in $bfox_book_groups
+ */
+global $bfox_book_group_names;
+$bfox_book_group_names = array(
+'bible' => array('name' => 'Bible', 'short_name' => 'Bible'),
+'protest' => array('name' => 'Protestant Bible', 'short_name' => 'Bible'),
+'old' => array('name' => 'Old Testament', 'short_name' => 'Old'),
+'moses' => array('name' => 'Books of Moses', 'short_name' => 'Moses'),
+'history' => array('name' => 'Books of History', 'short_name' => 'History'),
+'wisdom' => array('name' => 'Books of Wisdom', 'short_name' => 'Wisdom'),
+'prophets' => array('name' => 'Prophets', 'short_name' => 'Prophets'),
+'major_prophets' => array('name' => 'Major Prophets', 'short_name' => 'Maj Prophets'),
+'minor_prophets' => array('name' => 'Minor Prophets', 'short_name' => 'Min Prophets'),
+'new' => array('name' => 'New Testament', 'short_name' => 'New'),
+'gospels' => array('name' => 'Gospels', 'short_name' => 'Gospels'),
+'paul' => array('name' => 'Pauline Epistles', 'short_name' => 'Paul'),
+'epistles' => array('name' => 'Epistles', 'short_name' => 'Epistles'),
+'apoc' => array('name' => 'Apocrypha', 'short_name' => 'Apocrypha')
+);
+
+/**
+ * Array for defining book information
+ */
 global $bfox_books;
 $bfox_books = array(
 '1' => array('name' => 'Genesis', 'wiki_name' => 'Book_of_Genesis', 'short_name' => 'Gen'),
@@ -88,6 +133,9 @@ $bfox_books = array(
 global $bfox_syn_prefix;
 $bfox_syn_prefix = array();
 
+/**
+ * Array for defining synonyms for bible book names
+ */
 global $bfox_synonyms;
 $bfox_synonyms = array(
 

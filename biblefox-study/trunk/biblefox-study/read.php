@@ -80,18 +80,10 @@
 	</div>
 	<div id="bible_tool_body">
 		<div id="bible_view">
-			<?php if (!empty($search_text)):
-				// TODO2: use leftovers from ref detection to create search results
-				// if (isset($refs->leftovers)) bfox_bible_text_search($refs->leftovers);
-
-				if (isset($refs)) $ref_where = $refs->sql_where();
-				echo bfox_bible_text_search($search_text, $ref_where);
-	/*
-				$content .= bfox_bible_text_search('"' . $search_text . '"');
-
-				$search_text = '+' . implode(' +', explode(' ', $search_text));
-				$content .= bfox_bible_text_search($search_text);
-	*/
+			<?php
+				if (!empty($search_text)):
+					if (isset($refs)) $ref_where = $refs->sql_where();
+					bfox_bible_text_search($search_text, $ref_where);
 				elseif (isset($refs)): ?>
 			<div id="bible_view_header">
 				<h3><?php echo $refs->get_string() . " ($bfox_trans->short_name)" ?></h3>

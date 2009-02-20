@@ -596,9 +596,10 @@ function bfox_get_num_chapters($book_id, $trans_id)
 	return $num;
 }
 
-function bfox_set_book_groups()
+function bfox_books_two_cols()
 {
-	global $bfox_bible_groups;
+	global $bfox_links;
+
 	$groups = array();
 	$groups['all'] = range(1, 81);
 	$groups['bible'] = range(1, 66);
@@ -619,11 +620,7 @@ function bfox_set_book_groups()
 	$groups['apocrypha'] = range(67, 81);
 
 	$bfox_bible_groups = $groups;
-}
 
-function bfox_books_two_cols()
-{
-	global $bfox_bible_groups, $bfox_links;
 	$content .= '<div id="bible_toc">';
 
 	$content .= '<div id="old_testament"><h3>Old Testament</h3>';
@@ -687,7 +684,6 @@ function bfox_show_toc_groups($groups, $books, $depth = 3)
 
 function bfox_show_toc($trans_id = 12)
 {
-	bfox_set_book_groups();
 	echo bfox_books_two_cols();
 /*
 	global $wpdb;
@@ -779,6 +775,41 @@ function bfox_output_verse_map($book_counts, $search_text = '')
 	return $content;
 }
 
+function bfox_output_bible_group_counts($group, $counts, $search_text = '')
+{
+	global $bfox_book_groups, $bfox_book_group_names, $bfox_links;
+
+	$count = 0;
+	$content = '';
+	foreach ($bfox_book_groups[$group] as $child)
+	{
+//		pre($child);
+		$child_count = 0;
+		$child_content = '';
+
+		if (isset($bfox_book_groups[$child])) list($child_count, $child_content) = bfox_output_bible_group_counts($child, $counts, $search_text);
+		else if (isset($counts[$child]))
+		{
+			$child_count = $counts[$child];
+			$child_content = $bfox_links->ref_search_link(bfox_get_book_name($child), $search_text) . "<span class='book_count'>$child_count</span>";
+		}
+
+		if (0 < $child_count)
+		{
+			$count += $child_count;
+			$content .= "<li>$child_content</li>";
+		}
+	}
+
+	return array($count, "<span class='book_group_title'>
+		<a href=''>{$bfox_book_group_names[$group]['name']}</a>
+		<span class='book_count'>$count</span>
+	</span>
+	<ul class='book_group'>
+		$content
+	</ul>");
+}
+
 /**
  * Performs a regular full text search
  *
@@ -830,11 +861,10 @@ function bfox_search_boolean($text, $ref_where = '', $limit = 40)
 /**
  * Performs a boolean full text search, but returns results as a list of verse counts per book
  *
- * @param unknown_type $text
- * @param unknown_type $limit
- * @return unknown
+ * @param string $text
+ * @return array Book counts
  */
-function bfox_search_boolean_books($text, $limit = 40)
+function bfox_search_boolean_books($text)
 {
 	global $wpdb, $bfox_trans;
 	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s IN BOOLEAN MODE)", $text);
@@ -844,12 +874,11 @@ function bfox_search_boolean_books($text, $limit = 40)
 	$book_counts = array();
 	foreach ($results as $result) $book_counts[$result->book_id] = $result->count;
 
-	// TODO2: This function should only be called once during init
-	bfox_set_book_groups();
-
+	/*
 	global $bfox_bible_groups;
 	foreach ($bfox_bible_groups as $name => $book_ids)
 		foreach ($book_ids as $book_id) $book_counts[$name] += $book_counts[$book_id];
+	*/
 
 	return $book_counts;
 }
@@ -911,24 +940,30 @@ function bfox_bible_text_search($text, $ref_where = '')
 	*/
 
 	// Show the exact matches at the bottom
-	$content .= "<h3>Match All Words - $text</h3>";
-	$content .= '<div id="bible_search_all_words">';
-	$content .= '<div id="bible_search_verse_map">';
-	$content .= bfox_output_verse_map($book_counts, $text);
-	$content .= '</div>';
-
-	$content .= '<div id="bible_search_results">';
-	$content .= '<table>';
-	$start = microtime();
-	$content .= bfox_output_verses(bfox_search_boolean($match_all_text, $ref_where), $words);
-	$end = microtime();
-	$content .= '</table>';
-	$content .= '<p>Time: ' . ($end - $start) . " $end $start</p>";
-	$content .= '</div>';
-	$content .= '</div>';
-
-
-	return $content;
+	list($count, $map) = bfox_output_bible_group_counts('protest', $book_counts, $text);
+	?>
+	<div id="bfox_search">
+		<h3>Match All Words - <?php echo $text ?></h3>
+		<div id="match_all">
+			<div class="verse_map">
+				<?php echo $map ?>
+			</div>
+			<div class="results">
+				<?php
+					$content .= '<div id="bible_search_results">';
+					$content .= '<table>';
+					$start = microtime();
+					$content .= bfox_output_verses(bfox_search_boolean($match_all_text, $ref_where), $words);
+					$end = microtime();
+					$content .= '</table>';
+					$content .= '<p>Time: ' . ($end - $start) . " $end $start</p>";
+					$content .= '</div>';
+					echo $content;
+				?>
+			</div>
+		</div>
+	</div>
+	<?php
 }
 
 ?>
