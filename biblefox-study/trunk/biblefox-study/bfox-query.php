@@ -78,7 +78,7 @@
 
 		// Global array for storing bible references used in a search
 		global $bfox_bible_refs;
-		$bfox_bible_refs = new BibleRefs($refStrs);
+		$bfox_bible_refs = RefManager::get_from_str($refStrs);
 
 		/*
 		 Problem:
@@ -185,7 +185,7 @@
 		{
 			foreach ($posts as &$post)
 			{
-				$post->bible_refs = new BibleRefs($post->verse_begin, $post->verse_end);
+				$post->bible_refs = RefManager::get_from_concat_values($post->verse_begin, $post->verse_end);
 			}
 		}
 		return $posts;

@@ -43,16 +43,14 @@
 		function get_refs_for_id($id)
 		{
 			global $wpdb;
-			$refs = new BibleRefs;
-			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE id = %d", $id), ARRAY_N));
+			$refs = RefManager::get_from_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE id = %d", $id), ARRAY_N));
 			return $refs;
 		}
 
 		function get_refs_for_time($time, $read)
 		{
 			global $wpdb;
-			$refs = new BibleRefs;
-			$refs->push_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = CAST(%s as DATETIME) AND is_read = %d", $time, $read), ARRAY_N));
+			$refs = RefManager::get_from_sets($wpdb->get_results($wpdb->prepare("SELECT verse_start, verse_end FROM $this->table_name WHERE time = CAST(%s as DATETIME) AND is_read = %d", $time, $read), ARRAY_N));
 			return $refs;
 		}
 

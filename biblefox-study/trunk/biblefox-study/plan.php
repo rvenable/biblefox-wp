@@ -57,8 +57,8 @@
 						// If an old period ID is set, then we need to convert its set info to BibleRefs
 						if (isset($period_id))
 						{
-							if (0 < count($unread_sets)) $unread[$period_id] = new BibleRefs($unread_sets);
-							if (0 < count($read_sets)) $read[$period_id] = new BibleRefs($read_sets);
+							if (0 < count($unread_sets)) $unread[$period_id] = RefManager::get_from_sets($unread_sets);
+							if (0 < count($read_sets)) $read[$period_id] = RefManager::get_from_sets($read_sets);
 							$unread_sets = array();
 							$read_sets = array();
 						}
@@ -79,8 +79,8 @@
 				}
 
 				// Convert any remaining sets to BibleRefs
-				if (0 < count($unread_sets)) $unread[$period_id] = new BibleRefs($unread_sets);
-				if (0 < count($read_sets)) $read[$period_id] = new BibleRefs($read_sets);
+				if (0 < count($unread_sets)) $unread[$period_id] = RefManager::get_from_sets($unread_sets);
+				if (0 < count($read_sets)) $read[$period_id] = RefManager::get_from_sets($read_sets);
 
 			}
 
@@ -871,7 +871,7 @@
 			if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 				wp_die(__('Cheatin&#8217; uh?'));
 
-			$refs = new BibleRefs((string) $_POST['plan_group_passages']);
+			$refs = RefManager::get_from_str((string) $_POST['plan_group_passages']);
 			$section_size = (int) $_POST['plan_chapters'];
 			if ($section_size == 0) $section_size = 1;
 
@@ -914,7 +914,7 @@
 			$text = trim((string) $_POST['plan_passages']);
 			$sections = explode("\n", $text);
 
-			$group_refs = new BibleRefs((string) $_POST['plan_group_passages']);
+			$group_refs = RefManager::get_from_str((string) $_POST['plan_group_passages']);
 			$section_size = (int) $_POST['plan_chapters'];
 			if ($section_size == 0) $section_size = 1;
 
@@ -938,7 +938,7 @@
 				if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
 					$is_edited = true;
 
-				$refs = new BibleRefs($section);
+				$refs = RefManager::get_from_str($section);
 				if ($refs->is_valid()) $plan['refs_array'][] = $refs;
 				$index++;
 			}

@@ -16,7 +16,7 @@
 		//  use the reference text as search text
 		if (!empty($_GET['bible_ref']))
 		{
-			$refs = new BibleRefs($_GET['bible_ref']);
+			$refs = RefManager::get_from_str($_GET['bible_ref']);
 			if (!$refs->is_valid())
 			{
 				unset($refs);
@@ -32,7 +32,7 @@
 
 			// If there is no history, use Genesis 1
 			// TODO3: Test this
-			if (!isset($refs) || !$refs->is_valid()) $refs = new BibleRefs('Genesis 1');
+			if (!isset($refs) || !$refs->is_valid()) $refs = RefManager::get_from_str('Genesis 1');
 		}
 
 		if (isset($refs)) $bfox_quicknote->set_biblerefs($refs);

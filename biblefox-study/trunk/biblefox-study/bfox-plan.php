@@ -108,7 +108,7 @@ How often will you be reading this plan?<br/>
 		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
 		// It ended up being much slower however, since it is doing way too many DB queries
 		// The DB queries are called by $this->get_size()
-		$refs = new BibleRefs($text);
+		$refs = RefManager::get_from_str($text);
 		$size_vector = new BibleRefVector(array(0, $size, 0));
 
 		$sections = array();
@@ -366,7 +366,7 @@ How often will you be reading this plan?<br/>
 					if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
 						$is_edited = true;
 
-					$refs = new BibleRefs($section);
+					$refs = RefManager::get_from_str($section);
 					if ($refs->is_valid()) $plan['refs_array'][] = $refs;
 					$index++;
 				}
@@ -384,7 +384,7 @@ How often will you be reading this plan?<br/>
 				$section_size = (int) $_GET['num_chapters'];
 				if ($section_size == 0) $section_size = 1;
 
-				$refs = new BibleRefs($text);
+				$refs = RefManager::get_from_str($text);
 				$plan['refs_array'] = $refs->get_sections($section_size);
 				$bfox_plan->add_new_plan((object) $plan);
 			}

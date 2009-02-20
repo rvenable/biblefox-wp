@@ -90,7 +90,7 @@
 			$sets = $wpdb->get_results($select, ARRAY_N);
 		}
 
-		return (new BibleRefs($sets));
+		return (RefManager::get_from_sets($sets));
 	}
 
 	function bfox_get_ref_menu(BibleRefs $refs, $header = true, $scripture_links = NULL)
@@ -125,8 +125,8 @@
 		// Scripture navigation links
 		if (is_null($scripture_links))
 		{
-			$next_refs = new BibleRefs($refs->get_sets());
-			$previous_refs = new BibleRefs($refs->get_sets());
+			$next_refs = RefManager::get_from_sets($refs->get_sets());
+			$previous_refs = RefManager::get_from_sets($refs->get_sets());
 			$next_refs->increment(1);
 			$previous_refs->increment(-1);
 
@@ -166,8 +166,8 @@
 
 	function bfox_ref_quick_view_menu(BibleRefs $ref)
 	{
-		$next_refs = new BibleRefs($ref->get_sets());
-		$previous_refs = new BibleRefs($ref->get_sets());
+		$next_refs = RefManager::get_from_sets($ref->get_sets());
+		$previous_refs = RefManager::get_from_sets($ref->get_sets());
 		$next_refs->increment(1);
 		$previous_refs->increment(-1);
 
@@ -196,7 +196,7 @@
 		$bfox_links->set_ref_context('quick');
 
 		$ref_str = $_POST['ref_str'];
-		$ref = new BibleRefs($ref_str);
+		$ref = RefManager::get_from_str($ref_str);
 		$bfox_quicknote->set_biblerefs($ref);
 		sleep(1);
 

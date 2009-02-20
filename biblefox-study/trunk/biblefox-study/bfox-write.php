@@ -47,9 +47,7 @@
 	function bfox_get_post_refs_from_input()
 	{
 		// TODO3: This function should probably be somewhere else
-		$refs = new BibleRefs;
-		if (isset($_GET['bible_ref']))
-			$refs->push_string($_GET['bible_ref']);
+		$refs = RefManager::get_from_str($_GET['bible_ref']);
 
 		if (!$refs->is_valid())
 		{

@@ -1,4 +1,44 @@
 <?php
+
+class RefManager
+{
+	public static function get_from_str($str)
+	{
+		$refs = new BibleRefs();
+		$refs->push_string($str);
+		return $refs;
+	}
+
+	public static function get_from_sets($sets)
+	{
+		$refs = new BibleRefs();
+		$refs->push_sets($sets);
+		return $refs;
+	}
+
+	public static function get_from_concat_values($begin_str, $end_str)
+	{
+		$refs = new BibleRefs();
+		$refs->push_concatenated($begin_str, $end_str);
+		return $refs;
+	}
+
+}
+
+abstract class BibleRefsAbstract
+{
+	abstract public function is_valid();
+	abstract public function get_string($format = '');
+	abstract public function get_url($context = NULL);
+	abstract public function get_link($text = NULL, $context = NULL);
+	abstract public function get_num_chapters();
+	abstract public function sql_where($col1 = 'unique_id');
+	abstract public function sql_where2($col1, $col2);
+	abstract public function increment($factor = 1);
+	abstract public function get_toc($is_full = FALSE);
+	abstract public function get_scripture($pre_format = FALSE);
+}
+
 define('BFOX_UNIQUE_ID_PART_SIZE', 8);
 define('BFOX_UNIQUE_ID_MASK', 0xFF);
 define('BFOX_UNIQUE_ID_MAX', 256);
@@ -168,7 +208,7 @@ function bfox_ref_replace($text)
 				$ref_str = $book . ' ' . $pattern;
 
 				// If this is a valid bible reference, then save it to be replaced later
-				$bible_ref = new BibleRefs($ref_str);
+				$bible_ref = RefManager::get_from_str($ref_str);
 				if ($bible_ref->is_valid())
 					$bible_refs[$ref_str] = array('ref' => $bible_ref, 'start' => $book_name_start, 'length' => ($pattern_start - $book_name_start) + strlen($pattern));
 
@@ -718,7 +758,7 @@ class BibleRefSingle
 /*
  This class is a wrapper around BibleRefSingle to store it in an array
  */
-class BibleRefs
+class BibleRefs extends BibleRefsAbstract
 {
 	private $refs;
 
@@ -997,7 +1037,7 @@ class BibleRefs
 			$sections[] = $remainderStr;
 
 		$sectionRefs = array();
-		foreach ($sections as $section) $sectionRefs[] = new BibleRefs($section);
+		foreach ($sections as $section) $sectionRefs[] = RefManager::get_from_str($section);
 		return $sectionRefs;
 	}
 

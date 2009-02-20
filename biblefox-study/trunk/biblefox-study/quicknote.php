@@ -193,7 +193,7 @@ class QuickNote
 		{
 			foreach ($notes as $note)
 			{
-				$refs = new BibleRefs($note->verse_start, $note->verse_end);
+				$refs = RefManager::get_from_concat_values($note->verse_start, $note->verse_end);
 				$content .= $this->get_note_link($note->id, $note->note, $refs);;
 			}
 		}
@@ -213,7 +213,7 @@ class QuickNote
 //		$content .= '<form action="">';
 		foreach ($this->notes as $note)
 		{
-			$refs = new BibleRefs($note->verse_start, $note->verse_end);
+			$refs = RefManager::get_from_concat_values($note->verse_start, $note->verse_end);
 			$edit = '<a class="edit_quick_note_link" onClick="bfox_edit_quick_note(' . $note->id . ')">[edit]</a>';
 			$note_content = '<span id="quick_note_' . $note->id . '">' . $note->note . '</span>';
 			$content .= "<tr><td>" . $refs->get_link() . "</td><td>$edit</td><td>$note_content</td></tr>";
@@ -247,7 +247,7 @@ function bfox_ajax_save_quick_note()
 	// Otherwise we should delete the note
 	if ('' != $note || '' != $ref_str)
 	{
-		$refs = new BibleRefs($ref_str);
+		$refs = RefManager::get_from_str($ref_str);
 		list($unique_ids) = $refs->get_sets();
 		$section_id = "#quick_notes_$unique_ids[0]";
 

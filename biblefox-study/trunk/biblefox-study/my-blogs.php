@@ -22,7 +22,7 @@ case 'addplan':
 	if ( !current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS) )
 		wp_die(__('Cheatin&#8217; uh?'));
 
-	$refs = new BibleRefs((string) $_POST['plan_group_passages']);
+	$refs = RefManager::get_from_str((string) $_POST['plan_group_passages']);
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
 
@@ -95,7 +95,7 @@ case 'editedplan':
 	$text = trim((string) $_POST['plan_passages']);
 	$sections = explode("\n", $text);
 
-	$group_refs = new BibleRefs((string) $_POST['plan_group_passages']);
+	$group_refs = RefManager::get_from_str((string) $_POST['plan_group_passages']);
 	$section_size = (int) $_POST['plan_chapters'];
 	if ($section_size == 0) $section_size = 1;
 
@@ -119,7 +119,7 @@ case 'editedplan':
 		if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
 			$is_edited = true;
 
-		$refs = new BibleRefs($section);
+		$refs = RefManager::get_from_str($section);
 		if ($refs->is_valid()) $plan['refs_array'][] = $refs;
 		$index++;
 	}
