@@ -13,7 +13,7 @@
  * BFOX_FT_INDEX_PREFIX is added to the beginning of words which don't fit the MySQL
  * FULLTEXT indexing criteria of minimum length and matching a stopword.
  * Thus, by adding this prefix to the word, the word passes the indexing criteria,
- * and thereby can be succesfully indexed (see Translation::get_index_text()).
+ * and thereby can be succesfully indexed (see Translation::get_index_words()).
  *
  * BFOX_FT_INDEX_PREFIX must be long enough to increase any word to at least the minimum
  * string length. For instance, if the min length is 4 (BFOX_FT_MIN_WORD_LEN should
@@ -257,19 +257,19 @@ class Translations
 	}
 
 	/**
-	 * Returns the indexing text for the given text string
+	 * Returns the words needed for indexing the given text string
 	 *
 	 * @param string $text
-	 * @return string
+	 * @return array of strings
 	 */
-	public static function get_index_text($text)
+	public static function get_index_words($text)
 	{
 		global $bfox_ft_stopwords;
 
 		// TODO1: Use str_word_count()
 
-		// Strip out HTML tags, lowercase it, reduce the whitespace to one space, and explode on space to get all the indexing words
-		$words = explode(' ', preg_replace('/\s+/', ' ', strtolower(strip_tags(trim($text)))));
+		// Strip out HTML tags, lowercase it, and parse into words
+		$words = str_word_count(strtolower(strip_tags($text)), 1);
 
 		// Check each word to see if it is below the FULLTEXT min word length, or if it is a FULLTEXT stopword
 		// If so, we need to prefix it with some characters so that it doesn't get ignored by MySQL
@@ -279,8 +279,7 @@ class Translations
 				$word = BFOX_FT_INDEX_PREFIX . $word;
 		}
 
-		// Return all the words as a space delimited string
-		return implode(' ', $words);
+		return $words;
 	}
 
 	/**
@@ -300,7 +299,7 @@ class Translations
 							  $vector->values['chapter'],
 							  $vector->values['verse'],
 							  $verse_text,
-							  self::get_index_text($verse_text)
+							  implode(' ', self::get_index_words($verse_text))
 							  );
 		$wpdb->query($sql);
 	}
@@ -863,8 +862,8 @@ function bfox_bible_text_search($text)
 	// Parse the search text into words
 	$words = str_word_count($text, 1);
 
-	$index_text = Translations::get_index_text($text);
-	$index_words = explode(' ', $index_text);
+	$index_words = Translations::get_index_words($text);
+	$index_text = implode(' ', $index_words);
 	$match_all_text = '+' . implode('* +', $index_words) . '*';
 	$book_counts = bfox_search_boolean_books($match_all_text);
 	$book_count = $book_counts['all'];
