@@ -574,8 +574,18 @@ class BibleRefSingle
 		$num_str = '';
 		if (!empty($this->verse_start->num_str))
 		{
-			$num_str .= $this->verse_start->num_str;
-			if (!empty($this->verse_end->num_str)) $num_str .= '-' . $this->verse_end->num_str;
+			// First get the end verse num string
+			$num_str = $this->verse_end->num_str;
+
+			// If the two chapters are equal, we need to fix the end verse num string
+			if ($this->verse_start->chapter == $this->verse_end->chapter)
+			{
+				$num_str = '';
+				if (($this->verse_end->verse != $this->verse_start->verse) && (BibleVerse::max_verse_id != $this->verse_end->verse))
+					$num_str = $this->verse_end->verse;
+			}
+			if (!empty($num_str)) $num_str = $this->verse_start->num_str . '-' . $num_str;
+			else $num_str = $this->verse_start->num_str;
 		}
 
 		$this->num_str = $num_str;
