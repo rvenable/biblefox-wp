@@ -529,7 +529,7 @@ class BiblePassage
 				$inc = BibleVerse::calc_unique_id(0, $chapter_inc, $verse_inc);
 				$verse1 = new BibleVerse($inc + $this->verse_start->unique_id);
 				$verse2 = new BibleVerse($inc + $this->verse_end->unique_id);
-				$this->update(array($verse1->unique_id, $verse2->unique_id));
+				$this->__construct($verse1, $verse2);
 			}
 		}
 	}
