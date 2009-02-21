@@ -61,104 +61,6 @@ class RefManager
 		return new BiblePassage($verse_start, $verse_end);
 	}
 
-	public static function parse_ref_str($str)
-	{
-		// Convert all whitespace to single spaces
-		$str = preg_replace('/\s+/', ' ', $str);
-
-		// Find the last dash in the string and use it to divide the ref
-		$dash_left = trim($str);
-		if ($pos = strrpos($dash_left, '-'))
-		{
-			$dash_right = trim(substr($dash_left, $pos + 1));
-			$dash_left = trim(substr($dash_left, 0, $pos));
-		}
-
-		// Parse the left side of the dash
-		$left_colon_list = explode(':', $dash_left);
-		$left_colon_count = count($left_colon_list);
-
-		// We can only have one dash
-		if (2 >= $left_colon_count)
-		{
-			// If there was a dash, then save the right side as an integer verse number
-			if (1 < $left_colon_count)
-				$verse_num = (int) trim($left_colon_list[1]);
-
-			// If we didn't have any problems with the right side of the colon (verse_num)
-			if ((!isset($verse_num)) || (0 < $verse_num))
-			{
-				if (isset($verse_num)) $verse1 = $verse_num;
-
-				// Parse the left side of the colon to get the book name and the chapter num
-				$colon_left = trim($left_colon_list[0]);
-				if ($pos = strrpos($colon_left, ' '))
-				{
-					// Get the chapter number which must be greater than 0
-					$chapter_num = (int) trim(substr($colon_left, $pos + 1));
-					if (0 < $chapter_num)
-					{
-						$chapter1 = $chapter_num;
-						$book_str = trim(substr($colon_left, 0, $pos));
-					}
-				}
-			}
-		}
-
-		// Parse the right side of the dash if the left side worked (yielding at least a chapter id)
-		if ((isset($dash_right)) && (isset($chapter1)))
-		{
-			$right_colon_list = explode(':', $dash_right);
-			$right_colon_count = count($right_colon_list);
-
-			// We can only have one dash
-			if (2 >= $right_colon_count)
-			{
-				// If there was a dash, then save the right side as an integer
-				if (1 < $right_colon_count)
-					$num2 = (int) trim($right_colon_list[1]);
-
-				// If we didn't have any problems with the right side of the colon (num2)
-				// Then save the left side as an integer
-				if ((!isset($num2)) || (0 < $num2))
-					$num1 = (int) trim($right_colon_list[0]);
-			}
-
-			// If we got at least one integer and it is greater than zero,
-			// then everything went fine on this side of the dash
-			if ((isset($num1)) && (0 < $num1))
-			{
-				if (isset($num2))
-				{
-					// If we have 2 numbers then the first is a chapter and the second is a verse
-					$chapter2 = $num1;
-					$verse2 = $num2;
-				}
-				else
-				{
-					// If there is only one number on the right side of the dash,
-					// then it can be either a chapter or a verse
-
-					// If the left side of the dash yielded a verse2,
-					// then we must have a verse on the right side of the dash also
-					if (isset($verse1)) $verse2 = $num1;
-					else $chapter2 = $num1;
-				}
-			}
-			else
-			{
-				// If we didn't get any numbers on this side of the dash
-				// then the string is misformatted
-				unset($chapter1);
-			}
-		}
-
-		// If we haven't set a book string yet, set it to the original str
-		if (!isset($book_str)) $book_str = $str;
-
-		return self::get_from_bcvs(bfox_find_book_id(trim($book_str)), $chapter1, $verse1, $chapter2, $verse2);
-	}
-
 	public static function fix_end_verse(BibleVerse $verse_start, BibleVerse $verse_end)
 	{
 		/*
@@ -884,7 +786,8 @@ class BibleRefs extends BibleRefsAbstract
 		$refstrs = preg_split("/[\n,;]/", trim($str));
 		foreach ($refstrs as $refstr)
 		{
-			$ref = RefManager::parse_ref_str($refstr);
+
+			$ref = self::parse_ref_str($refstr);
 			if ($ref->is_valid())
 			{
 				$this->refs[] = $ref;
@@ -1121,6 +1024,104 @@ class BibleRefs extends BibleRefsAbstract
 		else $content = 'No verse data exists for this translation.';
 
 		return $content;
+	}
+
+	private static function parse_ref_str($str)
+	{
+		// Convert all whitespace to single spaces
+		$str = preg_replace('/\s+/', ' ', $str);
+
+		// Find the last dash in the string and use it to divide the ref
+		$dash_left = trim($str);
+		if ($pos = strrpos($dash_left, '-'))
+		{
+			$dash_right = trim(substr($dash_left, $pos + 1));
+			$dash_left = trim(substr($dash_left, 0, $pos));
+		}
+
+		// Parse the left side of the dash
+		$left_colon_list = explode(':', $dash_left);
+		$left_colon_count = count($left_colon_list);
+
+		// We can only have one dash
+		if (2 >= $left_colon_count)
+		{
+			// If there was a dash, then save the right side as an integer verse number
+			if (1 < $left_colon_count)
+				$verse_num = (int) trim($left_colon_list[1]);
+
+			// If we didn't have any problems with the right side of the colon (verse_num)
+			if ((!isset($verse_num)) || (0 < $verse_num))
+			{
+				if (isset($verse_num)) $verse1 = $verse_num;
+
+				// Parse the left side of the colon to get the book name and the chapter num
+				$colon_left = trim($left_colon_list[0]);
+				if ($pos = strrpos($colon_left, ' '))
+				{
+					// Get the chapter number which must be greater than 0
+					$chapter_num = (int) trim(substr($colon_left, $pos + 1));
+					if (0 < $chapter_num)
+					{
+						$chapter1 = $chapter_num;
+						$book_str = trim(substr($colon_left, 0, $pos));
+					}
+				}
+			}
+		}
+
+		// Parse the right side of the dash if the left side worked (yielding at least a chapter id)
+		if ((isset($dash_right)) && (isset($chapter1)))
+		{
+			$right_colon_list = explode(':', $dash_right);
+			$right_colon_count = count($right_colon_list);
+
+			// We can only have one dash
+			if (2 >= $right_colon_count)
+			{
+				// If there was a dash, then save the right side as an integer
+				if (1 < $right_colon_count)
+					$num2 = (int) trim($right_colon_list[1]);
+
+				// If we didn't have any problems with the right side of the colon (num2)
+				// Then save the left side as an integer
+				if ((!isset($num2)) || (0 < $num2))
+					$num1 = (int) trim($right_colon_list[0]);
+			}
+
+			// If we got at least one integer and it is greater than zero,
+			// then everything went fine on this side of the dash
+			if ((isset($num1)) && (0 < $num1))
+			{
+				if (isset($num2))
+				{
+					// If we have 2 numbers then the first is a chapter and the second is a verse
+					$chapter2 = $num1;
+					$verse2 = $num2;
+				}
+				else
+				{
+					// If there is only one number on the right side of the dash,
+					// then it can be either a chapter or a verse
+
+					// If the left side of the dash yielded a verse2,
+					// then we must have a verse on the right side of the dash also
+					if (isset($verse1)) $verse2 = $num1;
+					else $chapter2 = $num1;
+				}
+			}
+			else
+			{
+				// If we didn't get any numbers on this side of the dash
+				// then the string is misformatted
+				unset($chapter1);
+			}
+		}
+
+		// If we haven't set a book string yet, set it to the original str
+		if (!isset($book_str)) $book_str = $str;
+
+		return RefManager::get_from_bcvs(bfox_find_book_id(trim($book_str)), $chapter1, $verse1, $chapter2, $verse2);
 	}
 
 }
