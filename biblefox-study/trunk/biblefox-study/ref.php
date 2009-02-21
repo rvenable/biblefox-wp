@@ -42,6 +42,163 @@ class RefManager
 		return $refs;
 	}
 
+	public static function get_from_set($unique_ids)
+	{
+		return self::get_from_unique_ids($unique_ids[0], $unique_ids[1]);
+	}
+
+	public static function get_from_unique_ids($start_id, $end_id)
+	{
+		$verse_start = new BibleVerse($start_id);
+		$verse_end = new BibleVerse($end_id);
+		return new BiblePassage($verse_start, $verse_end);
+	}
+
+	public static function get_from_bcvs($book, $chapter1, $verse1, $chapter2, $verse2)
+	{
+		$verse_start = new BibleVerse($book, $chapter1, $verse1);
+		$verse_end = self::fix_end_verse($verse_start, new BibleVerse($book, $chapter2, $verse2));
+		return new BiblePassage($verse_start, $verse_end);
+	}
+
+	public static function parse_ref_str($str)
+	{
+		// Convert all whitespace to single spaces
+		$str = preg_replace('/\s+/', ' ', $str);
+
+		// Find the last dash in the string and use it to divide the ref
+		$dash_left = trim($str);
+		if ($pos = strrpos($dash_left, '-'))
+		{
+			$dash_right = trim(substr($dash_left, $pos + 1));
+			$dash_left = trim(substr($dash_left, 0, $pos));
+		}
+
+		// Parse the left side of the dash
+		$left_colon_list = explode(':', $dash_left);
+		$left_colon_count = count($left_colon_list);
+
+		// We can only have one dash
+		if (2 >= $left_colon_count)
+		{
+			// If there was a dash, then save the right side as an integer verse number
+			if (1 < $left_colon_count)
+				$verse_num = (int) trim($left_colon_list[1]);
+
+			// If we didn't have any problems with the right side of the colon (verse_num)
+			if ((!isset($verse_num)) || (0 < $verse_num))
+			{
+				if (isset($verse_num)) $verse1 = $verse_num;
+
+				// Parse the left side of the colon to get the book name and the chapter num
+				$colon_left = trim($left_colon_list[0]);
+				if ($pos = strrpos($colon_left, ' '))
+				{
+					// Get the chapter number which must be greater than 0
+					$chapter_num = (int) trim(substr($colon_left, $pos + 1));
+					if (0 < $chapter_num)
+					{
+						$chapter1 = $chapter_num;
+						$book_str = trim(substr($colon_left, 0, $pos));
+					}
+				}
+			}
+		}
+
+		// Parse the right side of the dash if the left side worked (yielding at least a chapter id)
+		if ((isset($dash_right)) && (isset($chapter1)))
+		{
+			$right_colon_list = explode(':', $dash_right);
+			$right_colon_count = count($right_colon_list);
+
+			// We can only have one dash
+			if (2 >= $right_colon_count)
+			{
+				// If there was a dash, then save the right side as an integer
+				if (1 < $right_colon_count)
+					$num2 = (int) trim($right_colon_list[1]);
+
+				// If we didn't have any problems with the right side of the colon (num2)
+				// Then save the left side as an integer
+				if ((!isset($num2)) || (0 < $num2))
+					$num1 = (int) trim($right_colon_list[0]);
+			}
+
+			// If we got at least one integer and it is greater than zero,
+			// then everything went fine on this side of the dash
+			if ((isset($num1)) && (0 < $num1))
+			{
+				if (isset($num2))
+				{
+					// If we have 2 numbers then the first is a chapter and the second is a verse
+					$chapter2 = $num1;
+					$verse2 = $num2;
+				}
+				else
+				{
+					// If there is only one number on the right side of the dash,
+					// then it can be either a chapter or a verse
+
+					// If the left side of the dash yielded a verse2,
+					// then we must have a verse on the right side of the dash also
+					if (isset($verse1)) $verse2 = $num1;
+					else $chapter2 = $num1;
+				}
+			}
+			else
+			{
+				// If we didn't get any numbers on this side of the dash
+				// then the string is misformatted
+				unset($chapter1);
+			}
+		}
+
+		// If we haven't set a book string yet, set it to the original str
+		if (!isset($book_str)) $book_str = $str;
+
+		return self::get_from_bcvs(bfox_find_book_id(trim($book_str)), $chapter1, $verse1, $chapter2, $verse2);
+	}
+
+	public static function fix_end_verse(BibleVerse $verse_start, BibleVerse $verse_end)
+	{
+		/*
+		 Conversion methods:
+		 john			0:0-max:max		max:max
+		 john 1			1:0-1:max		ch1:max
+		 john 1-2		1:0-2:max		ch2:max
+		 john 1:1		1:1-1:1			ch1:vs1
+		 john 1:1-5		1:1-5:max		ch2:max
+		 john 1:1-0:2	1:1-1:2			ch1:vs2
+		 john 1:1-5:2	1:1-5:2			ch2:vs2
+		 john 1-5:2		1:0-5:2			ch2:vs2
+
+		 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
+		 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
+		 */
+
+		$verse2 = $verse_end->verse;
+		$chapter2 = $verse_end->chapter;
+
+		// When verse 2 is empty:
+		//  If chapter 2 is also empty and verse 1 is not empty
+		//	 Then use verse 1
+		//   Otherwise use the max verse
+		if (empty($verse_end->verse))
+			$verse2 = ((empty($verse_end->chapter)) && (!empty($verse_start->verse))) ? $verse_start->verse : BibleVerse::max_verse_id;
+
+		// When chapter 2 is empty:
+		//  If chapter 1 is also empty
+		//   Then use the max chapter
+		//   Otherwise use chapter 1
+		if (empty($verse_end->chapter))
+			$chapter2 = (empty($verse_start->chapter)) ? BibleVerse::max_chapter_id : $verse_start->chapter;
+
+		// Update the end verse with the new values
+		$verse_end->set_ref($verse_end->book, $chapter2, $verse2);
+
+		return $verse_end;
+	}
+
 }
 
 abstract class BibleRefsAbstract
@@ -342,229 +499,29 @@ class BibleVerse extends BibleRefsAbstract
 }
 
 /*
- This class is used to represent a bible reference using the following integer values:
- book_id, chapter1, verse1, chapter2, verse2
-
- This form allows easy conversion between the unique ID form (BibleRefSingle) and string input/output
- */
-class BibleRefParsed
-{
-	function set($book_id = 0, $chapter1 = 0, $verse1 = 0, $chapter2 = 0, $verse2 = 0)
-	{
-		$book_id  &= BFOX_UNIQUE_ID_MASK;
-		$chapter1 &= BFOX_UNIQUE_ID_MASK;
-		$verse1   &= BFOX_UNIQUE_ID_MASK;
-		$chapter2 &= BFOX_UNIQUE_ID_MASK;
-		$verse2   &= BFOX_UNIQUE_ID_MASK;
-
-		if (0 < $book_id) $this->book_id = $book_id;
-		if (0 < $chapter1) $this->chapter1 = $chapter1;
-		if (0 < $verse1) $this->verse1 = $verse1;
-		if (0 < $chapter2) $this->chapter2 = $chapter2;
-		if (0 < $verse2) $this->verse2 = $verse2;
-	}
-
-	function set_by_unique_ids($unique_ids)
-	{
-		$book_id  = (int) (($unique_ids[0] >> (BFOX_UNIQUE_ID_PART_SIZE * 2)) & BFOX_UNIQUE_ID_MASK);
-		$chapter1 = (int) (($unique_ids[0] >> BFOX_UNIQUE_ID_PART_SIZE) & BFOX_UNIQUE_ID_MASK);
-		$verse1   = (int)  ($unique_ids[0] & BFOX_UNIQUE_ID_MASK);
-		$chapter2 = (int) (($unique_ids[1] >> BFOX_UNIQUE_ID_PART_SIZE) & BFOX_UNIQUE_ID_MASK);
-		$verse2   = (int)  ($unique_ids[1] & BFOX_UNIQUE_ID_MASK);
-
-		// Clear verse2 if it is set to the max, or if chapter2 and verse2 equal chapter1 and verse1
-		if ((BFOX_UNIQUE_ID_MASK == $verse2) || (($chapter1 == $chapter2) && ($verse1 == $verse2)))
-			$verse2 = 0;
-		// If chapter two is set to max, we should not use it
-		if ((BFOX_UNIQUE_ID_MASK == $chapter2) || ($chapter1 == $chapter2))
-			$chapter2 = 0;
-
-		$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
-	}
-
-	public static function parse_ref_str($str)
-	{
-		// Convert all whitespace to single spaces
-		$str = preg_replace('/\s+/', ' ', $str);
-
-		// Find the last dash in the string and use it to divide the ref
-		$dash_left = trim($str);
-		if ($pos = strrpos($dash_left, '-'))
-		{
-			$dash_right = trim(substr($dash_left, $pos + 1));
-			$dash_left = trim(substr($dash_left, 0, $pos));
-		}
-
-		// Parse the left side of the dash
-		$left_colon_list = explode(':', $dash_left);
-		$left_colon_count = count($left_colon_list);
-
-		// We can only have one dash
-		if (2 >= $left_colon_count)
-		{
-			// If there was a dash, then save the right side as an integer verse number
-			if (1 < $left_colon_count)
-				$verse_num = (int) trim($left_colon_list[1]);
-
-			// If we didn't have any problems with the right side of the colon (verse_num)
-			if ((!isset($verse_num)) || (0 < $verse_num))
-			{
-				if (isset($verse_num)) $verse1 = $verse_num;
-
-				// Parse the left side of the colon to get the book name and the chapter num
-				$colon_left = trim($left_colon_list[0]);
-				if ($pos = strrpos($colon_left, ' '))
-				{
-					// Get the chapter number which must be greater than 0
-					$chapter_num = (int) trim(substr($colon_left, $pos + 1));
-					if (0 < $chapter_num)
-					{
-						$chapter1 = $chapter_num;
-						$book_str = trim(substr($colon_left, 0, $pos));
-					}
-				}
-			}
-		}
-
-		// Parse the right side of the dash if the left side worked (yielding at least a chapter id)
-		if ((isset($dash_right)) && (isset($chapter1)))
-		{
-			$right_colon_list = explode(':', $dash_right);
-			$right_colon_count = count($right_colon_list);
-
-			// We can only have one dash
-			if (2 >= $right_colon_count)
-			{
-				// If there was a dash, then save the right side as an integer
-				if (1 < $right_colon_count)
-					$num2 = (int) trim($right_colon_list[1]);
-
-				// If we didn't have any problems with the right side of the colon (num2)
-				// Then save the left side as an integer
-				if ((!isset($num2)) || (0 < $num2))
-					$num1 = (int) trim($right_colon_list[0]);
-			}
-
-			// If we got at least one integer and it is greater than zero,
-			// then everything went fine on this side of the dash
-			if ((isset($num1)) && (0 < $num1))
-			{
-				if (isset($num2))
-				{
-					// If we have 2 numbers then the first is a chapter and the second is a verse
-					$chapter2 = $num1;
-					$verse2 = $num2;
-				}
-				else
-				{
-					// If there is only one number on the right side of the dash,
-					// then it can be either a chapter or a verse
-
-					// If the left side of the dash yielded a verse2,
-					// then we must have a verse on the right side of the dash also
-					if (isset($verse1)) $verse2 = $num1;
-					else $chapter2 = $num1;
-				}
-			}
-			else
-			{
-				// If we didn't get any numbers on this side of the dash
-				// then the string is misformatted
-				unset($chapter1);
-			}
-		}
-
-		// If we haven't set a book string yet, set it to the original str
-		if (!isset($book_str)) $book_str = $str;
-
-		$book_id = bfox_find_book_id(trim($book_str));
-		$verse_start = new BibleVerse($book_id, $chapter1, $verse1);
-		$verse_end = self::fix_end_verse($verse_start, new BibleVerse($book_id, $chapter2, $verse2));
-
-		return array($verse_start, $verse_end);
-	}
-
-	public static function fix_end_verse(BibleVerse $verse_start, BibleVerse $verse_end)
-	{
-		/*
-		 Conversion methods:
-		 john			0:0-max:max		max:max
-		 john 1			1:0-1:max		ch1:max
-		 john 1-2		1:0-2:max		ch2:max
-		 john 1:1		1:1-1:1			ch1:vs1
-		 john 1:1-5		1:1-5:max		ch2:max
-		 john 1:1-0:2	1:1-1:2			ch1:vs2
-		 john 1:1-5:2	1:1-5:2			ch2:vs2
-		 john 1-5:2		1:0-5:2			ch2:vs2
-
-		 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
-		 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
-		 */
-
-		$verse2 = $verse_end->verse;
-		$chapter2 = $verse_end->chapter;
-
-		// When verse 2 is empty:
-		//  If chapter 2 is also empty and verse 1 is not empty
-		//	 Then use verse 1
-		//   Otherwise use the max verse
-		if (empty($verse_end->verse))
-			$verse2 = ((empty($verse_end->chapter)) && (!empty($verse_start->verse))) ? $verse_start->verse : BibleVerse::max_verse_id;
-
-		// When chapter 2 is empty:
-		//  If chapter 1 is also empty
-		//   Then use the max chapter
-		//   Otherwise use chapter 1
-		if (empty($verse_end->chapter))
-			$chapter2 = (empty($verse_start->chapter)) ? BibleVerse::max_chapter_id : $verse_start->chapter;
-
-		// Update the end verse with the new values
-		$verse_end->set_ref($verse_end->book, $chapter2, $verse2);
-
-		return $verse_end;
-	}
-
-}
-
-/*
  This class is used to represent a bible reference as two unique IDs
  */
-class BibleRefSingle
+class BiblePassage
 {
 	public $verse_start;
 	public $verse_end;
 	public $num_str;
 
-	public function __construct($value = array(0, 0))
+	public function __construct(BibleVerse $verse_start, BibleVerse $verse_end)
 	{
-		$this->update($value);
-	}
-
-	public function update($value = array(0, 0))
-	{
-		unset($this->cache);
-
-		if (is_string($value))
-		{
-			list($this->verse_start, $this->verse_end) = BibleRefParsed::parse_ref_str($value);
-		}
-		else if (is_array($value))
-		{
-			$unique_ids = $value;
-			$this->verse_start = new BibleVerse($unique_ids[0]);
-			$this->verse_end = new BibleVerse($unique_ids[1]);
-		}
+		$this->verse_start = $verse_start;
+		$this->verse_end = $verse_end;
 		$this->update_num_str();
 	}
 
-	function is_valid()
+	public function is_valid()
 	{
 		if ((0 < $this->verse_start->unique_id) && ($this->verse_start->unique_id <= $this->verse_end->unique_id))
 			return true;
 		return false;
 	}
 
-	function get_unique_ids()
+	public function get_unique_ids()
 	{
 		return array($this->verse_start->unique_id, $this->verse_end->unique_id);
 	}
@@ -731,7 +688,7 @@ class BibleRefSingle
 		else
 		{
 			// The new shifted value should be of size $size_vector
-			$shifted = new BibleRefSingle(array($this->verse_start->unique_id,
+			$shifted = new BiblePassage(array($this->verse_start->unique_id,
 												$this->verse_start->unique_id + $size_vector->value - 1));
 
 			// This bible ref gets whatever remains
@@ -811,7 +768,7 @@ class BibleRefSingle
 }
 
 /*
- This class is a wrapper around BibleRefSingle to store it in an array
+ This class is a wrapper around BiblePassage to store it in an array
  */
 class BibleRefs extends BibleRefsAbstract
 {
@@ -833,8 +790,8 @@ class BibleRefs extends BibleRefsAbstract
 		return (0 < count($this->refs));
 	}
 
-	// Returns the internal array of BibleRefSingles converted to an
-	// array of BibleRefs where each element has just one BibleRefSingle
+	// Returns the internal array of BiblePassage instances converted to an
+	// array of BibleRefs where each element has just one BiblePassage
 	function get_refs_array()
 	{
 		$refs_array = array();
@@ -898,7 +855,7 @@ class BibleRefs extends BibleRefsAbstract
 		return $num_chapters;
 	}
 
-	function push_ref_single(BibleRefSingle $ref)
+	function push_ref_single(BiblePassage $ref)
 	{
 		$this->refs[] = $ref;
 	}
@@ -910,7 +867,7 @@ class BibleRefs extends BibleRefsAbstract
 		{
 			foreach ($unique_id_sets as $unique_ids)
 			{
-				$ref = new BibleRefSingle($unique_ids);
+				$ref = RefManager::get_from_set($unique_ids);
 				if ($ref->is_valid())
 				{
 					$this->refs[] = $ref;
@@ -927,7 +884,7 @@ class BibleRefs extends BibleRefsAbstract
 		$refstrs = preg_split("/[\n,;]/", trim($str));
 		foreach ($refstrs as $refstr)
 		{
-			$ref = new BibleRefSingle($refstr);
+			$ref = RefManager::parse_ref_str($refstr);
 			if ($ref->is_valid())
 			{
 				$this->refs[] = $ref;
@@ -1058,10 +1015,7 @@ class BibleRefs extends BibleRefsAbstract
 					$tmpRef['chapter2'] = $chapters[$chapter2_index];
 				else $tmpRef['chapter2'] = 0;
 
-				// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
-				// work well with the new BibleRefs system
-				$tmpRefParsed = new BibleRefParsed;
-				$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
+				$tmpRefParsed = RefManager::get_from_bcvs($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
 				$tmpRefStr .= $tmpRefParsed->get_string();
 
 				$sections[] = $tmpRefStr;
@@ -1083,10 +1037,7 @@ class BibleRefs extends BibleRefsAbstract
 				if ($remainderStr != "")
 					$remainderStr .= ", ";
 
-				// HACK: This is a hacky way of getting the string, because I didn't want to rewrite this whole function to
-				// work well with the new BibleRefs system
-				$tmpRefParsed = new BibleRefParsed;
-				$tmpRefParsed->set($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
+				$tmpRefParsed = RefManager::get_from_bcvs($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
 				$remainderStr .= $tmpRefParsed->get_string();
 			}
 		}
