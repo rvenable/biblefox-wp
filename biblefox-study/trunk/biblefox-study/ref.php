@@ -243,7 +243,7 @@ function bfox_ref_replace($text)
  * BibleRef Class for a single bible verse
  *
  */
-class BibleVerse
+class BibleVerse extends BibleRefsAbstract
 {
 	const max_num_books = 256;
 	const max_num_chapters = self::max_num_books;
@@ -255,9 +255,16 @@ class BibleVerse
 
 	public $unique_id, $book, $chapter, $verse;
 
-	public function __construct($unique_id = 0)
+	public function __construct($book, $chapter = 0, $verse = 0)
 	{
-		$this->set_unique_id($unique_id);
+		// If the chapter and verse are not set, and the book is not a valid book, it must be a unique id
+		if (empty($chapter) && empty($verse) && (self::max_book_id < $book)) $this->set_unique_id($book);
+		else $this->set_ref($book, $chapter, $verse);
+	}
+
+	public function is_valid()
+	{
+		return (!empty($this->book));
 	}
 
 	public static function calc_unique_id($book, $chapter = 0, $verse = 0)
@@ -356,7 +363,7 @@ class BibleRefParsed
 		$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
 	}
 
-	function set_by_string($str)
+	public static function parse_ref_str($str)
 	{
 		// Convert all whitespace to single spaces
 		$str = preg_replace('/\s+/', ' ', $str);
@@ -451,59 +458,51 @@ class BibleRefParsed
 		// If we haven't set a book string yet, set it to the original str
 		if (!isset($book_str)) $book_str = $str;
 
-		// Try to find a book id for the book string
-		if ($book_id = bfox_find_book_id(trim($book_str)))
-		{
-			// If we found a book id, this must be a valid bible reference string
-			$this->set($book_id, $chapter1, $verse1, $chapter2, $verse2);
-		}
+		$book_id = bfox_find_book_id(trim($book_str));
+		$verse_start = new BibleVerse($book_id, $chapter1, $verse1);
+		$verse_end = self::fix_end_verse($verse_start, new BibleVerse($book_id, $chapter2, $verse2));
+
+		return array($verse_start, $verse_end);
 	}
 
-	function get_unique_ids()
+	public static function fix_end_verse(BibleVerse $verse_start, BibleVerse $verse_end)
 	{
-		// Create the unique ids
-		$unique_ids = array();
+		/*
+		 Conversion methods:
+		 john			0:0-max:max		max:max
+		 john 1			1:0-1:max		ch1:max
+		 john 1-2		1:0-2:max		ch2:max
+		 john 1:1		1:1-1:1			ch1:vs1
+		 john 1:1-5		1:1-5:max		ch2:max
+		 john 1:1-0:2	1:1-1:2			ch1:vs2
+		 john 1:1-5:2	1:1-5:2			ch2:vs2
+		 john 1-5:2		1:0-5:2			ch2:vs2
 
-		if (isset($this->book_id))
-		{
-			/*
-			 Conversion methods:
-			 john			0:0-max:max		max:max
-			 john 1			1:0-1:max		ch1:max
-			 john 1-2		1:0-2:max		ch2:max
-			 john 1:1		1:1-1:1			ch1:vs1
-			 john 1:1-5		1:1-5:max		ch2:max
-			 john 1:1-0:2	1:1-1:2			ch1:vs2
-			 john 1:1-5:2	1:1-5:2			ch2:vs2
-			 john 1-5:2		1:0-5:2			ch2:vs2
+		 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
+		 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
+		 */
 
-			 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
-			 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
-			 */
+		$verse2 = $verse_end->verse;
+		$chapter2 = $verse_end->chapter;
 
-			if (isset($this->chapter1)) $chapter1 = $this->chapter1;
-			else $chapter1 = 0;
+		// When verse 2 is empty:
+		//  If chapter 2 is also empty and verse 1 is not empty
+		//	 Then use verse 1
+		//   Otherwise use the max verse
+		if (empty($verse_end->verse))
+			$verse2 = ((empty($verse_end->chapter)) && (!empty($verse_start->verse))) ? $verse_start->verse : BibleVerse::max_verse_id;
 
-			if (isset($this->verse1)) $verse1 = $this->verse1;
-			else $verse1 = 0;
+		// When chapter 2 is empty:
+		//  If chapter 1 is also empty
+		//   Then use the max chapter
+		//   Otherwise use chapter 1
+		if (empty($verse_end->chapter))
+			$chapter2 = (empty($verse_start->chapter)) ? BibleVerse::max_chapter_id : $verse_start->chapter;
 
-			// When verse2 is not set: verse2 equals max unless chapter2 is not set and verse1 is set
-			if (isset($this->verse2)) $verse2 = $this->verse2;
-			else $verse2 = ((isset($this->verse1)) && (!isset($this->chapter2))) ? $verse1 : BFOX_UNIQUE_ID_MASK;
+		// Update the end verse with the new values
+		$verse_end->set_ref($verse_end->book, $chapter2, $verse2);
 
-			// When chapter2 is not set: chapter2 equals chapter1 unless chapter1 is not set
-			if (isset($this->chapter2)) $chapter2 = $this->chapter2;
-			else $chapter2 = (isset($this->chapter1)) ? $chapter1 : BFOX_UNIQUE_ID_MASK;
-
-			// Set the unique IDs according to the book IDs
-			$unique_ids[0] = $unique_ids[1] = $this->book_id << (BFOX_UNIQUE_ID_PART_SIZE * 2);
-
-			// Add the verse and chapter information to the unique ids
-			$unique_ids[0] += ($chapter1 << BFOX_UNIQUE_ID_PART_SIZE) + $verse1;
-			$unique_ids[1] += ($chapter2 << BFOX_UNIQUE_ID_PART_SIZE) + $verse2;
-		}
-
-		return $unique_ids;
+		return $verse_end;
 	}
 
 	function get_string($format = '')
@@ -554,17 +553,11 @@ class BibleRefSingle
 
 		if (is_string($value))
 		{
-			$this->cache['parsed'] = new BibleRefParsed;
-			$this->cache['parsed']->set_by_string($value);
-			$unique_ids = $this->cache['parsed']->get_unique_ids();
+			list($this->verse_start, $this->verse_end) = BibleRefParsed::parse_ref_str($value);
 		}
 		else if (is_array($value))
 		{
 			$unique_ids = $value;
-		}
-
-		if (isset($unique_ids))
-		{
 			$this->verse_start = new BibleVerse($unique_ids[0]);
 			$this->verse_end = new BibleVerse($unique_ids[1]);
 		}
