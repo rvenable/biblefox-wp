@@ -559,8 +559,11 @@
 				$count = count($open_tags);
 				for ($i = 0; $i < $count; $i++) $this->add_close_tag();
 
+				$bible_verse = new BibleVerse;
+				$bible_verse->set_ref($this->vs['book'], $this->vs['chapter'], $this->vs['verse']);
+
 				// Save some stat data
-				$id = bfox_get_book_name($this->vs['book']) . ' ' . $this->vs['chapter'] . ':' . $this->vs['verse'];
+				$id = $bible_verse->get_string();
 				$verse_filter = TRUE; //$this->vs['book'] == 43 && $this->vs['chapter'] == 3; // John 3
 				if ($verse_filter && (15 > count($this->verse_samples)))
 				{
@@ -589,8 +592,7 @@
 				// Save the verse data to the DB
 				if (!empty($this->table_name) && isset($this->vs['book']))
 				{
-					$vector = new BibleRefVector(array($this->vs['book'], $this->vs['chapter'], $this->vs['verse']));
-					Translations::update_verse_text($this->table_name, $vector, $this->vs['text']);
+					Translations::update_verse_text($this->table_name, $bible_verse, $this->vs['text']);
 				}
 			}
 

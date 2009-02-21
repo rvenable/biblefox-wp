@@ -2,6 +2,14 @@
 
 class RefManager
 {
+	public static function get_book_name($book, $name = 'name')
+	{
+		global $bfox_books;
+
+		if (isset($bfox_books[$book][$name])) return $bfox_books[$book][$name];
+		return 'Unknown';
+	}
+
 	public static function get_from_str($str)
 	{
 		$refs = new BibleRefs();
@@ -27,16 +35,16 @@ class RefManager
 
 abstract class BibleRefsAbstract
 {
-	abstract public function is_valid();
+//	abstract public function is_valid();
 	abstract public function get_string($format = '');
-	abstract public function get_url($context = NULL);
-	abstract public function get_link($text = NULL, $context = NULL);
-	abstract public function get_num_chapters();
-	abstract public function sql_where($col1 = 'unique_id');
-	abstract public function sql_where2($col1, $col2);
-	abstract public function increment($factor = 1);
-	abstract public function get_toc($is_full = FALSE);
-	abstract public function get_scripture($pre_format = FALSE);
+//	abstract public function get_url($context = NULL);
+//	abstract public function get_link($text = NULL, $context = NULL);
+//	abstract public function get_num_chapters();
+//	abstract public function sql_where($col1 = 'unique_id');
+//	abstract public function sql_where2($col1, $col2);
+//	abstract public function increment($factor = 1);
+//	abstract public function get_toc($is_full = FALSE);
+//	abstract public function get_scripture($pre_format = FALSE);
 }
 
 define('BFOX_UNIQUE_ID_PART_SIZE', 8);
@@ -231,41 +239,79 @@ function bfox_ref_replace($text)
 	return $text;
 }
 
-/*
- This class is used to represent a bible reference as a 3 integer vector: book, chapter, verse
+/**
+ * BibleRef Class for a single bible verse
+ *
  */
-class BibleRefVector
+class BibleVerse
 {
-	function BibleRefVector($vector)
+	const max_num_books = 256;
+	const max_num_chapters = self::max_num_books;
+	const max_num_verses = self::max_num_books;
+
+	const max_book_id = 255;
+	const max_chapter_id = self::max_book_id;
+	const max_verse_id = self::max_book_id;
+
+	public $unique_id, $book, $chapter, $verse;
+
+	public function __construct($unique_id = 0)
 	{
-		$this->update($vector);
+		$this->set_unique_id($unique_id);
 	}
 
-	function update($vector)
+	public static function calc_unique_id($book, $chapter = 0, $verse = 0)
 	{
-		if (is_array($vector))
+		return ($book * self::max_num_chapters * self::max_num_verses) +
+			($chapter * self::max_num_verses) +
+			$verse;
+	}
+
+	public static function calc_ref($unique_id)
+	{
+		$verse = $unique_id % self::max_num_verses;
+		$unique_id = (int) $unique_id / self::max_num_verses;
+		$chapter = $unique_id % self::max_num_chapters;
+		$unique_id = (int) $unique_id / self::max_num_chapters;
+		$book = $unique_id % self::max_num_books;
+
+		return array($book, $chapter, $verse);
+	}
+
+	public function set_ref($book, $chapter = 0, $verse = 0)
+	{
+		$this->book = min($book, self::max_book_id);
+		$this->chapter = min($chapter, self::max_chapter_id);
+		$this->verse = min($verse, self::max_verse_id);
+		$this->update_unique_id();
+	}
+
+	public function set_unique_id($unique_id)
+	{
+		$this->unique_id = $unique_id;
+		$this->update_ref();
+	}
+
+	public function update_ref()
+	{
+		list ($this->book, $this->chapter, $this->verse) = self::calc_ref($this->unique_id);
+	}
+
+	public function update_unique_id()
+	{
+		$this->unique_id = self::calc_unique_id($this->book, $this->chapter, $this->verse);
+	}
+
+	public function get_string($name = 'name')
+	{
+		$str = RefManager::get_book_name($this->book, $name);
+		if ((0 < $this->chapter) && (self::max_chapter_id != $this->chapter))
 		{
-			$this->values = $vector;
-			$this->value = 0;
-			$count = count($vector);
-			for ($index = 0; $index < $count; $index++)
-				$this->value = ($this->value << BFOX_UNIQUE_ID_PART_SIZE) + ($vector[$index] % BFOX_UNIQUE_ID_MAX);
-		}
-		else
-		{
-			$this->value = $vector;
-			$this->values = array(0, 0, 0);
-			for ($index = count($this->values) - 1; 0 <= $index; $index--)
-			{
-				$this->values[$index] = $vector % BFOX_UNIQUE_ID_MAX;
-				$vector = $vector >> BFOX_UNIQUE_ID_PART_SIZE;
-			}
+			$str .= " $this->chapter";
+			if ((0 < $this->verse) && (self::max_verse_id != $this->verse)) $str .= ":$this->verse";
 		}
 
-		// Set easy to use keys for the book, chapter and verse
-		$this->values['book'] = $this->values[0];
-		$this->values['chapter'] = $this->values[1];
-		$this->values['verse'] = $this->values[2];
+		return $str;
 	}
 }
 
@@ -494,12 +540,15 @@ class BibleRefParsed
  */
 class BibleRefSingle
 {
-	function BibleRefSingle($value = array(0, 0))
+	public $verse_start;
+	public $verse_end;
+
+	public function __construct($value = array(0, 0))
 	{
 		$this->update($value);
 	}
 
-	function update($value = array(0, 0))
+	public function update($value = array(0, 0))
 	{
 		unset($this->cache);
 
@@ -516,21 +565,21 @@ class BibleRefSingle
 
 		if (isset($unique_ids))
 		{
-			$this->vectors = array(new BibleRefVector($unique_ids[0]),
-								   new BibleRefVector($unique_ids[1]));
+			$this->verse_start = new BibleVerse($unique_ids[0]);
+			$this->verse_end = new BibleVerse($unique_ids[1]);
 		}
 	}
 
 	function is_valid()
 	{
-		if ((0 < $this->vectors[0]->value) && ($this->vectors[0]->value <= $this->vectors[1]->value))
+		if ((0 < $this->verse_start->unique_id) && ($this->verse_start->unique_id <= $this->verse_end->unique_id))
 			return true;
 		return false;
 	}
 
 	function get_unique_ids()
 	{
-		return array($this->vectors[0]->value, $this->vectors[1]->value);
+		return array($this->verse_start->unique_id, $this->verse_end->unique_id);
 	}
 
 	function get_string($format = '')
@@ -552,14 +601,14 @@ class BibleRefSingle
 
 	function get_book_id()
 	{
-		return $this->vectors[0]->values['book'];
+		return $this->verse_start->book;
 	}
 
 	// Returns an SQL expression for comparing this bible reference against one unique id column
 	function sql_where($col1 = 'unique_id')
 	{
 		global $wpdb;
-		return $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $this->vectors[0]->value, $this->vectors[1]->value);
+		return $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $this->verse_start->unique_id, $this->verse_end->unique_id);
 	}
 
 	// Returns an SQL expression for comparing this bible reference against two unique id columns
@@ -582,22 +631,22 @@ class BibleRefSingle
 		global $wpdb;
 		return $wpdb->prepare("((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
 							    ((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
-							  $this->vectors[1]->value, $this->vectors[0]->value, $this->vectors[1]->value,
-							  $this->vectors[0]->value, $this->vectors[0]->value, $this->vectors[1]->value);
+							  $this->verse_end->unique_id, $this->verse_start->unique_id, $this->verse_end->unique_id,
+							  $this->verse_start->unique_id, $this->verse_start->unique_id, $this->verse_end->unique_id);
 	}
 
 	// Increments the bible reference by a given factor
 	function increment($factor = 1)
 	{
 		// Only increment if we are not looking at an entire book
-		if (0 != $this->vectors[0]->values['chapter'])
+		if (0 != $this->verse_start->chapter)
 		{
 			// Get the difference between chapters
-			$diff = $this->vectors[1]->values['chapter'] - $this->vectors[0]->values['chapter'];
+			$diff = $this->verse_end->chapter - $this->verse_start->chapter;
 
 			// If the chapter difference is 0, and there is no specified verse
 			// Then we must be viewing one single chapter, so our chapter difference should be 1
-			if ((0 == $diff) && (0 == $this->vectors[0]->values['verse']))
+			if ((0 == $diff) && (0 == $this->verse_start->verse))
 				$diff = 1;
 
 			$chapter_inc = 0;
@@ -608,30 +657,33 @@ class BibleRefSingle
 			if (0 < $diff) $chapter_inc = $diff * $factor;
 			else
 			{
-				$diff = $this->vectors[1]->values['verse'] - $this->vectors[0]->values['verse'];
+				$diff = $this->verse_end->verse - $this->verse_start->verse;
 				$verse_inc = (1 + $diff) * $factor;
 			}
 
 			// If we have a chapter or verse increment,
-			// Then update our BibleRef with incremented vectors
+			// Then update our BibleRef with incremented bible verses
 			if ((0 != $chapter_inc) || (0 != $verse_inc))
 			{
-				$inc = new BibleRefVector(array(0, $chapter_inc, $verse_inc));
-				$vector1 = new BibleRefVector($inc->value + $this->vectors[0]->value);
-				$vector2 = new BibleRefVector($inc->value + $this->vectors[1]->value);
-				$this->update(array($vector1->value, $vector2->value));
+				// TODO3: Fix this increment (and don't use calc_unique_id())
+				$inc = BibleVerse::calc_unique_id(0, $chapter_inc, $verse_inc);
+				$verse1 = new BibleVerse($inc + $this->verse_start->unique_id);
+				$verse2 = new BibleVerse($inc + $this->verse_end->unique_id);
+				$this->update(array($verse1->unique_id, $verse2->unique_id));
 			}
 		}
 	}
 
+	/*
 	function get_size(BibleRefVector $size_vector)
 	{
 		if (0 != $size_vector->values['chapter'])
-			return bfox_get_passage_size($this->vectors[0]->value, $this->vectors[1]->value, 'chapter_id');
+			return bfox_get_passage_size($this->verse_start->unique_id, $this->verse_end->unique_id, 'chapter_id');
 		if (0 != $size_vector->values['verse'])
-			return bfox_get_passage_size($this->vectors[0]->value, $this->vectors[1]->value);
+			return bfox_get_passage_size($this->verse_start->unique_id, $this->verse_end->unique_id);
 		return 0;
 	}
+	*/
 
 	/**
 	 * Returns the number of chapters in the bible ref (inaccurate)
@@ -645,9 +697,10 @@ class BibleRefSingle
 	 */
 	function get_num_chapters()
 	{
-		return $this->vectors[1]->values['chapter'] - $this->vectors[0]->values['chapter'] + 1;
+		return $this->verse_end->chapter - $this->verse_start->chapter + 1;
 	}
 
+	/*
 	function shift(BibleRefVector $size_vector)
 	{
 		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
@@ -677,15 +730,16 @@ class BibleRefSingle
 		else
 		{
 			// The new shifted value should be of size $size_vector
-			$shifted = new BibleRefSingle(array($this->vectors[0]->value,
-												$this->vectors[0]->value + $size_vector->value - 1));
+			$shifted = new BibleRefSingle(array($this->verse_start->unique_id,
+												$this->verse_start->unique_id + $size_vector->value - 1));
 
 			// This bible ref gets whatever remains
-			$this->update(array($this->vectors[0]->value + $size_vector->value,
-								$this->vectors[1]->value));
+			$this->update(array($this->verse_start->unique_id + $size_vector->value,
+								$this->verse_end->unique_id));
 		}
 		return $shifted;
 	}
+	*/
 
 	/**
 	 * Returns the first and last chapters of the bible reference (accurate)
@@ -696,8 +750,8 @@ class BibleRefSingle
 	{
 		global $bfox_trans;
 
-		$low = $this->vectors[0]->values['chapter'];
-		$high = $this->vectors[1]->values['chapter'];
+		$low = $this->verse_start->chapter;
+		$high = $this->verse_end->chapter;
 
 		// If the first chapter is 0, then it should really be chapter 1
 		if (0 == $low) $low = 1;
@@ -706,7 +760,7 @@ class BibleRefSingle
 		// TODO2: The user could also input a chapter number which is beyond the actual last chapter, but below the max
 		if (BFOX_UNIQUE_ID_MASK == $high)
 		{
-			$high = bfox_get_num_chapters($this->vectors[0]->values['book'], $bfox_trans->id);
+			$high = bfox_get_num_chapters($this->verse_start->book, $bfox_trans->id);
 		}
 
 		return array($low, $high);
@@ -725,13 +779,13 @@ class BibleRefSingle
 		// TODO3: These vars are kind of hacky
 		list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
 
-		$book_name = bfox_get_book_name($this->vectors[0]->values['book']);
+		$book_name = bfox_get_book_name($this->verse_start->book);
 
 		// Either display the full TOC or just the chapters in the ref
 		$toc = $toc_begin;
 		if ($is_full)
 		{
-			$high = bfox_get_num_chapters($this->vectors[0]->values['book'], $bfox_trans->id);
+			$high = bfox_get_num_chapters($this->verse_start->book, $bfox_trans->id);
 			$low = 1;
 			$toc .= $book_name;
 		}
@@ -926,6 +980,7 @@ class BibleRefs extends BibleRefsAbstract
 		foreach ($this->refs as &$ref) $ref->increment($factor);
 	}
 
+	/*
 	function shift(BibleRefVector $size_vector)
 	{
 		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
@@ -965,6 +1020,7 @@ class BibleRefs extends BibleRefsAbstract
 
 		return $shifted;
 	}
+	*/
 
 	function get_sections($size)
 	{

@@ -103,6 +103,8 @@ How often will you be reading this plan?<br/>
 <?php
 	}
 
+	/*
+	 * TODO3: This function is not used anymore and should be removed
 	function bfox_get_sections_slow($text, $size)
 	{
 		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
@@ -121,6 +123,7 @@ How often will you be reading this plan?<br/>
 
 		return $sections;
 	}
+	*/
 
 	function bfox_echo_plan($plan, $num_cols = 3, $skip_read = false)
 	{

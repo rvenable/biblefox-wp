@@ -286,18 +286,18 @@ class Translations
 	 * Updates the verse data for a given verse in the given translation table
 	 *
 	 * @param string $table_name
-	 * @param BibleRefVector $vector
+	 * @param BibleVerse $verse
 	 * @param string $verse_text
 	 */
-	public static function update_verse_text($table_name, BibleRefVector $vector, $verse_text)
+	public static function update_verse_text($table_name, BibleVerse $verse, $verse_text)
 	{
 		global $wpdb;
 		$sql = $wpdb->prepare("REPLACE INTO $table_name (unique_id, book_id, chapter_id, verse_id, verse, index_text)
 							  VALUES (%d, %d, %d, %d, %s, %s)",
-							  $vector->value,
-							  $vector->values['book'],
-							  $vector->values['chapter'],
-							  $vector->values['verse'],
+							  $verse->unique_id,
+							  $verse->book,
+							  $verse->chapter,
+							  $verse->verse,
 							  $verse_text,
 							  implode(' ', self::get_index_words($verse_text))
 							  );
