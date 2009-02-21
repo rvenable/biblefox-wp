@@ -24,8 +24,8 @@
 			}
 		}
 
-		// If we don't have search text yet, we should just create a bible reference
-		if (empty($search_text))
+		// If we don't have a ref or search text yet, we should just create a bible reference
+		if (!isset($refs) && empty($search_text))
 		{
 			// First try to create a BibleRefs from the last viewed references
 			list($refs) = $bfox_history->get_refs_array();
