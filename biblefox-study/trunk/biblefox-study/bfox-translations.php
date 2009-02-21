@@ -777,13 +777,12 @@ function bfox_output_verse_map($book_counts, $search_text = '')
 
 function bfox_output_bible_group_counts($group, $counts, $search_text = '')
 {
-	global $bfox_book_groups, $bfox_book_group_names, $bfox_links;
+	global $bfox_book_groups, $bfox_links;
 
 	$count = 0;
 	$content = '';
 	foreach ($bfox_book_groups[$group] as $child)
 	{
-//		pre($child);
 		$child_count = 0;
 		$child_content = '';
 
@@ -802,7 +801,7 @@ function bfox_output_bible_group_counts($group, $counts, $search_text = '')
 	}
 
 	return array($count, "<span class='book_group_title'>
-		<a href=''>{$bfox_book_group_names[$group]['name']}</a>
+		" . $bfox_links->ref_search_link(bfox_get_book_name($group), $search_text, $group) . "
 		<span class='book_count'>$count</span>
 	</span>
 	<ul class='book_group'>

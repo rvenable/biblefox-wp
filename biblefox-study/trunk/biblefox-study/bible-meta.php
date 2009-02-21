@@ -22,10 +22,12 @@ $bfox_book_groups = array(
 );
 
 /**
- * Array for defining the names for the book groups defined in $bfox_book_groups
+ * Array for defining book information
+ *
+ * The numbered ones are books, the ones with string names are book groups
  */
-global $bfox_book_group_names;
-$bfox_book_group_names = array(
+global $bfox_books;
+$bfox_books = array(
 'bible' => array('name' => 'Bible', 'short_name' => 'Bible'),
 'protest' => array('name' => 'Protestant Bible', 'short_name' => 'Bible'),
 'old' => array('name' => 'Old Testament', 'short_name' => 'Old'),
@@ -39,14 +41,7 @@ $bfox_book_group_names = array(
 'gospels' => array('name' => 'Gospels', 'short_name' => 'Gospels'),
 'paul' => array('name' => 'Pauline Epistles', 'short_name' => 'Paul'),
 'epistles' => array('name' => 'Epistles', 'short_name' => 'Epistles'),
-'apoc' => array('name' => 'Apocrypha', 'short_name' => 'Apocrypha')
-);
-
-/**
- * Array for defining book information
- */
-global $bfox_books;
-$bfox_books = array(
+'apoc' => array('name' => 'Apocrypha', 'short_name' => 'Apocrypha'),
 '1' => array('name' => 'Genesis', 'wiki_name' => 'Book_of_Genesis', 'short_name' => 'Gen'),
 '2' => array('name' => 'Exodus', 'wiki_name' => 'Exodus', 'short_name' => 'Exo'),
 '3' => array('name' => 'Leviticus', 'wiki_name' => 'Leviticus', 'short_name' => 'Lev'),

@@ -111,9 +111,9 @@
 			return $this->link($this->ref_format_attrs($attrs, $context));
 		}
 
-		public function ref_search_link($ref_str, $search, $context = NULL)
+		public function ref_search_link($ref_str, $search, $url = '', $context = NULL)
 		{
-			$url = $ref_str;
+			if (empty($url)) $url = $ref_str;
 			if (!empty($search)) $url .= "&amp;search=$search";
 
 			return $this->link($this->ref_format_attrs(array(

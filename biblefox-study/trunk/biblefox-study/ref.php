@@ -669,6 +669,54 @@ class BiblePassage
 
 }
 
+class BibleGroupPassage extends BiblePassage
+{
+	private $group;
+
+	public function __construct($group)
+	{
+		$this->group = $group;
+		parent::__construct(
+			new BibleVerse(self::get_first_book($group), 0, 0),
+			new BibleVerse(self::get_last_book($group), BibleVerse::max_chapter_id, BibleVerse::max_verse_id)
+			);
+	}
+
+	public static function get_first_book($group)
+	{
+		global $bfox_book_groups;
+
+		$book = 0;
+		if (isset($bfox_book_groups[$group][0]))
+		{
+			$book = $bfox_book_groups[$group][0];
+			if (isset($bfox_book_groups[$book])) $book = self::get_first_book($book);
+		}
+
+		return $book;
+	}
+
+	public static function get_last_book($group)
+	{
+		global $bfox_book_groups;
+
+		$last_index = count($bfox_book_groups[$group]) - 1;
+		$book = 0;
+		if ((0 < $last_index) && isset($bfox_book_groups[$group][$last_index]))
+		{
+			$book = $bfox_book_groups[$group][$last_index];
+			if (isset($bfox_book_groups[$book])) $book = self::get_last_book($book);
+		}
+
+		return $book;
+	}
+
+	public function get_string($name = 'name')
+	{
+		return RefManager::get_book_name($this->group, $name);
+	}
+}
+
 /*
  This class is a wrapper around BiblePassage to store it in an array
  */
@@ -782,12 +830,19 @@ class BibleRefs extends BibleRefsAbstract
 
 	function push_string($str)
 	{
+		global $bfox_book_groups;
 		$count = 0;
 		$refstrs = preg_split("/[\n,;]/", trim($str));
 		foreach ($refstrs as $refstr)
 		{
-
-			$ref = self::parse_ref_str($refstr);
+			if (isset($bfox_book_groups[$refstr]))
+			{
+				$ref = new BibleGroupPassage($refstr);
+			}
+			else
+			{
+				$ref = self::parse_ref_str($refstr);
+			}
 			if ($ref->is_valid())
 			{
 				$this->refs[] = $ref;
