@@ -1,10 +1,21 @@
 <?php
 
+define('BFOX_UNIQUE_ID_PART_SIZE', 8);
+define('BFOX_UNIQUE_ID_MASK', 0xFF);
+define('BFOX_UNIQUE_ID_MAX', 256);
+
+define(BFOX_REF_FORMAT_NORMAL, 'normal');
+define(BFOX_REF_FORMAT_SHORT, 'short');
+
+
 class RefManager
 {
 	public static function get_book_name($book, $name = 'name')
 	{
 		global $bfox_books;
+
+		if (empty($name) || (BFOX_REF_FORMAT_NORMAL == $name)) $name = 'name';
+		elseif (BFOX_REF_FORMAT_SHORT == $name) $name = 'short_name';
 
 		if (isset($bfox_books[$book][$name])) return $bfox_books[$book][$name];
 		return 'Unknown';
@@ -46,13 +57,6 @@ abstract class BibleRefsAbstract
 //	abstract public function get_toc($is_full = FALSE);
 //	abstract public function get_scripture($pre_format = FALSE);
 }
-
-define('BFOX_UNIQUE_ID_PART_SIZE', 8);
-define('BFOX_UNIQUE_ID_MASK', 0xFF);
-define('BFOX_UNIQUE_ID_MAX', 256);
-
-define(BFOX_REF_FORMAT_NORMAL, 'normal');
-define(BFOX_REF_FORMAT_SHORT, 'short');
 
 /**
  * Returns the book name for a given book ID
@@ -253,7 +257,11 @@ class BibleVerse extends BibleRefsAbstract
 	const max_chapter_id = self::max_book_id;
 	const max_verse_id = self::max_book_id;
 
+	// Reference numbers
 	public $unique_id, $book, $chapter, $verse;
+
+	// The number portion of the reference string. Append this onto the book name to create the reference string
+	public $num_str;
 
 	public function __construct($book, $chapter = 0, $verse = 0)
 	{
@@ -291,32 +299,43 @@ class BibleVerse extends BibleRefsAbstract
 		$this->chapter = min($chapter, self::max_chapter_id);
 		$this->verse = min($verse, self::max_verse_id);
 		$this->update_unique_id();
+		$this->update_num_str();
 	}
 
 	public function set_unique_id($unique_id)
 	{
 		$this->unique_id = $unique_id;
 		$this->update_ref();
+		$this->update_num_str();
 	}
 
-	public function update_ref()
+	private function update_ref()
 	{
 		list ($this->book, $this->chapter, $this->verse) = self::calc_ref($this->unique_id);
 	}
 
-	public function update_unique_id()
+	private function update_unique_id()
 	{
 		$this->unique_id = self::calc_unique_id($this->book, $this->chapter, $this->verse);
+	}
+
+	private function update_num_str()
+	{
+		$num_str = '';
+		if ((0 < $this->chapter) && (self::max_chapter_id != $this->chapter))
+		{
+			$num_str = (string) $this->chapter;
+			if ((0 < $this->verse) && (self::max_verse_id != $this->verse)) $num_str .= ":$this->verse";
+		}
+
+		$this->num_str = $num_str;
 	}
 
 	public function get_string($name = 'name')
 	{
 		$str = RefManager::get_book_name($this->book, $name);
-		if ((0 < $this->chapter) && (self::max_chapter_id != $this->chapter))
-		{
-			$str .= " $this->chapter";
-			if ((0 < $this->verse) && (self::max_verse_id != $this->verse)) $str .= ":$this->verse";
-		}
+
+		if (!empty($this->num_str)) $str .= ' ' . $this->num_str;
 
 		return $str;
 	}
@@ -505,33 +524,6 @@ class BibleRefParsed
 		return $verse_end;
 	}
 
-	function get_string($format = '')
-	{
-		if (empty($format)) $format = BFOX_REF_FORMAT_NORMAL;
-
-		if (isset($this->str[$format]))
-			return $this->str[$format];
-
-		// Create the reference string
-		$str = bfox_get_book_name($this->book_id, $format);
-		if (isset($this->chapter1))
-		{
-			$str .= " {$this->chapter1}";
-			if (isset($this->verse1))
-				$str .= ":{$this->verse1}";
-			if (isset($this->chapter2))
-			{
-				$str .= "-{$this->chapter2}";
-				if (isset($this->verse2))
-					$str .= ":{$this->verse2}";
-			}
-			else if (isset($this->verse2))
-				$str .= "-{$this->verse2}";
-		}
-
-		$this->str[$format] = $str;
-		return $this->str[$format];
-	}
 }
 
 /*
@@ -541,6 +533,7 @@ class BibleRefSingle
 {
 	public $verse_start;
 	public $verse_end;
+	public $num_str;
 
 	public function __construct($value = array(0, 0))
 	{
@@ -561,6 +554,7 @@ class BibleRefSingle
 			$this->verse_start = new BibleVerse($unique_ids[0]);
 			$this->verse_end = new BibleVerse($unique_ids[1]);
 		}
+		$this->update_num_str();
 	}
 
 	function is_valid()
@@ -575,21 +569,25 @@ class BibleRefSingle
 		return array($this->verse_start->unique_id, $this->verse_end->unique_id);
 	}
 
-	function get_string($format = '')
+	private function update_num_str()
 	{
-		return $this->get_parsed()->get_string($format);
-	}
-
-	// Returns the parsed array form of the bible reference
-	function get_parsed()
-	{
-		if (!isset($this->cache['parsed']))
+		$num_str = '';
+		if (!empty($this->verse_start->num_str))
 		{
-			$this->cache['parsed'] = new BibleRefParsed;
-			$this->cache['parsed']->set_by_unique_ids($this->get_unique_ids());
+			$num_str .= $this->verse_start->num_str;
+			if (!empty($this->verse_end->num_str)) $num_str .= '-' . $this->verse_end->num_str;
 		}
 
-		return $this->cache['parsed'];
+		$this->num_str = $num_str;
+	}
+
+	public function get_string($name = 'name')
+	{
+		$str = RefManager::get_book_name($this->verse_start->book, $name);
+
+		if (!empty($this->num_str)) $str .= ' ' . $this->num_str;
+
+		return $str;
 	}
 
 	function get_book_id()
