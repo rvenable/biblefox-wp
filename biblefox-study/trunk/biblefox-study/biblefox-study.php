@@ -53,13 +53,10 @@
 		{
 			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 			add_submenu_page(BFOX_READ_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
-			add_submenu_page(BFOX_READ_SUBPAGE, 'Passage History', 'History', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 
 			// Add the reading plan page to the Post menu along with the corresponding load action
-			if (current_user_can('edit_users')) $parent = 'users.php';
-			else $parent = 'profile.php';
-			add_submenu_page($parent, 'My Commentaries', 'My Commentaries', 0, Commentaries::page, array('Commentaries', 'manage_page'));
-			add_action('load-' . get_plugin_page_hookname(Commentaries::page, $parent), array('Commentaries', 'manage_page_load'));
+			add_submenu_page(BFOX_READ_SUBPAGE, 'My Commentaries', 'My Commentaries', 0, Commentaries::page, array('Commentaries', 'manage_page'));
+			add_action('load-' . get_plugin_page_hookname(Commentaries::page, BFOX_READ_SUBPAGE), array('Commentaries', 'manage_page_load'));
 		}
 
 		// These menu pages are only for the site admin
