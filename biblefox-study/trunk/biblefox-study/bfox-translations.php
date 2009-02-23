@@ -775,6 +775,29 @@ function bfox_output_verse_map($book_counts, $search_text = '')
 	return $content;
 }
 
+function bfox_output_bible_group($group)
+{
+	global $bfox_book_groups, $bfox_links;
+
+	$content = '';
+	foreach ($bfox_book_groups[$group] as $child)
+	{
+		$child_content = '';
+
+		if (isset($bfox_book_groups[$child])) $child_content = bfox_output_bible_group($child);
+		else $child_content = $bfox_links->ref_link(RefManager::get_book_name($child));
+
+		$content .= "<li>$child_content</li>";
+	}
+
+	return "<span class='book_group_title'>
+		" . $bfox_links->ref_link(array('ref_str' => RefManager::get_book_name($group), 'href' => $bfox_links->ref_url($group))) . "
+	</span>
+	<ul class='book_group'>
+		$content
+	</ul>";
+}
+
 function bfox_output_bible_group_counts($group, $counts, $search_text = '')
 {
 	global $bfox_book_groups, $bfox_links;

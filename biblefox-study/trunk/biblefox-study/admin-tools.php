@@ -301,7 +301,8 @@
 
 		function show_toc()
 		{
-			bfox_show_toc();
+//			bfox_show_toc();
+			echo bfox_output_bible_group('bible');
 		}
 
 		/**
