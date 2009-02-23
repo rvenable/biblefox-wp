@@ -6,7 +6,7 @@
 
 		// Override the global translation using the translation passed in
 		// TODO3: Do we really need to override the global translation?
-		$bfox_trans = Translations::get_translation($_GET['trans_id']);
+		if (!empty($_GET['trans_id'])) $bfox_trans = Translations::get_translation($_GET['trans_id']);
 
 		// Try to get some search text
 		$search_text = (string) $_GET['search'];
