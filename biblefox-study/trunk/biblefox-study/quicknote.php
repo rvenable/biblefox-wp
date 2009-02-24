@@ -157,7 +157,11 @@ class QuickNote
 	{
 		$ref_str = $refs->get_string();
 		$ref_str_short = $refs->get_string('short');
-		return "<a href='#none' id='quick_note_link_$id' onclick=\"bfox_edit_quick_note('$id', '$note', '$ref_str')\" onmouseover=\"bfox_note_popup_show(this, '<b>$ref_str_short:</b> $note')\" onmouseout=\"bfox_note_popup_hide()\">[note]</a>";
+		return
+		"<span class='note' onmouseover=\"bfox_note_popup_show(this)\" onmouseout=\"bfox_note_popup_hide(this)\">
+			<span class='note_popup'><b>$ref_str_short:</b> $note</span>
+			<a href='#none' id='quick_note_link_$id' onclick=\"bfox_edit_quick_note('$id', '$note', '$ref_str')\">[note]</a>
+		</span>";
 	}
 
 	/**

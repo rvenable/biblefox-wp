@@ -286,13 +286,26 @@ ul#bible_tool_options li {
 	cursor: pointer;
 }
 
-#bible_note_popup {
+.note {
+	position: relative;
+}
+
+.note_popup {
+	-moz-border-radius-bottomleft: 6px;
+	-moz-border-radius-bottomright: 6px;
+	-moz-border-radius-topleft: 6px;
+	-moz-border-radius-topright: 6px;
+	background-color: #EEEEEE;
+	padding: 5px;
+	border-color: #DFDFDF;
+	border-style: solid;
+	border-width: 1px;
 	position: absolute;
-	border: thin solid #2583AD;
-	background-color: #E4F2FD;
+	top: 15px;
 	display: none;
-	padding: 10px;
+	width: 300px;
 	margin: 0px;
+	z-index: 10;
 }
 
 .bible_quick_view_menu {

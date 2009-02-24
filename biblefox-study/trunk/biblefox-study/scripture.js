@@ -310,13 +310,12 @@ function bfox_edit_quick_note_press_key( e ) {
 	}
 }
 
-function bfox_note_popup_show(note, text) {
-	var offset = jQuery(note).offset();
-	jQuery('#bible_note_popup').html(text).css('top', offset.top + 'px').css('left', offset.left + 'px').show();
+function bfox_note_popup_show(note) {
+	jQuery(note).children('.note_popup').show();
 }
 
-function bfox_note_popup_hide() {
-	jQuery('#bible_note_popup').hide();
+function bfox_note_popup_hide(note) {
+	jQuery(note).children('.note_popup').hide();
 }
 
 function bfox_select_quick_view(selected) {
