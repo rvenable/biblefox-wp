@@ -335,16 +335,18 @@ Blog Commentaries
 Bible Search
 */
 
-#bfox_search .match_all {
+#bible_search #match_all {
 	position: relative;
+	margin-left: 165px;
 }
 
-#bfox_search .verse_map {
+
+#bible_search .verse_map_wrap {
+	clear: left;
 	float: left;
 	position: relative;
+	margin-left: -165px;
 	width: 160px;
-	border: thin solid #2583AD;
-	background-color: #E4F2FD;
 }
 
 .book_group_title {
@@ -362,12 +364,51 @@ Bible Search
 	margin: 1px;
 }
 
-#bfox_search .verse_map .book_count {
+#bible_search .verse_map .book_count {
 	position: absolute;
 	right: 0px;
 }
 
-#bfox_search .results {
-	position: static;
+#bible_search .results_wrap {
+	position: relative;
+	float: left;
 }
 
+/*
+Generic
+*/
+
+.biblebox {
+	background-color: #FFFFFF;
+	-moz-border-radius-bottomleft: 6px;
+	-moz-border-radius-bottomright: 6px;
+	-moz-border-radius-topleft: 6px;
+	-moz-border-radius-topright: 6px;
+	line-height: 1;
+	margin-bottom: 20px;
+	position: relative;
+	width: 99.5%;
+}
+
+.biblebox h3 {
+	color: #464646;
+	background: #DFDFDF url(gray-grad.png) repeat-x scroll left top;
+	text-shadow: 0 1px 0 #FFFFFF;
+	-moz-border-radius-bottomleft: 0;
+	-moz-border-radius-bottomright: 0;
+	-moz-border-radius-topleft: 6px;
+	-moz-border-radius-topright: 6px;
+	-moz-user-select: none;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 1;
+	margin: 0;
+	padding: 7px 9px;
+	display: block;
+}
+
+.biblebox, .biblebox input[type="text"], .biblebox textarea {
+	border-color: #DFDFDF;
+	border-style: solid;
+	border-width: 1px;
+}

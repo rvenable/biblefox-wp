@@ -28,8 +28,8 @@ if (Bible::page_search == $page)
 
 ?>
 
-<div id="bible" class="metabox-holder">
-	<div id="bible_bar" class="postbox">
+<div id="bible" class="">
+	<div id="bible_bar" class="biblebox">
 		<h3>Bible Viewer</h3>
 		<div class="inside">
 			<ul id="bible_page_list">

@@ -824,7 +824,8 @@ function bfox_output_bible_group_counts($group, $counts, $search_text = '')
 		}
 	}
 
-	return array($count, "<span class='book_group_title'>
+	return array($count,
+	"<span class='book_group_title'>
 		" . $bfox_links->search_link($search_text, bfox_get_book_name($group), $group) . "
 		<span class='book_count'>$count</span>
 	</span>
@@ -904,89 +905,6 @@ function bfox_search_boolean_books($text)
 	*/
 
 	return $book_counts;
-}
-
-/**
- * Performs several different text searches and formats output to display them
- *
- * @param string $text search string
- * @param string $ref_where
- * @return string output
- */
-function bfox_bible_text_search($text, $ref_where = '')
-{
-	// Parse the search text into words
-	$words = str_word_count($text, 1);
-
-	$index_words = Translations::get_index_words($text);
-	$index_text = implode(' ', $index_words);
-	$match_all_text = '+' . implode('* +', $index_words) . '*';
-	$book_counts = bfox_search_boolean_books($match_all_text);
-	$book_count = $book_counts['all'];
-
-	/* TODO2: Implement the search suggestions
-	// We can only make phrase suggestions when there are long words
-	if (0 < count($index_words))
-	{
-		$sugg_limit = 10;
-		$sugg_count = 0;
-		if ((1 < count($index_words)) || (0 == $book_count))
-		{
-			$exact = bfox_search_boolean('"' . $index_text . '"', $ref_where, $sugg_limit - $sugg_count);
-			$sugg_count += count($exact);
-		}
-
-		if (0 < $sugg_limit - $sugg_count)
-		{
-			$specific = bfox_search_regular($index_text, $sugg_limit - $sugg_count);
-			$sugg_count += count($specific);
-		}
-
-		if (0 < $sugg_limit - $sugg_count)
-		{
-			$other = bfox_search_expanded($index_text, $sugg_limit - $sugg_count);
-			$sugg_count += count($other);
-		}
-
-		if (0 < $sugg_count)
-		{
-			$content .= "<h3>Suggestions - $text</h3>";
-			$content .= '<table>';
-
-			$content .= bfox_output_verses($exact, $words, 'Exact Matches');
-			$content .= bfox_output_verses($specific, $words, 'Specific Suggestions');
-			$content .= bfox_output_verses($other, $words, 'Other Suggestions');
-
-			$content .= '</table>';
-		}
-	}
-	*/
-
-	// Show the exact matches at the bottom
-	list($count, $map) = bfox_output_bible_group_counts('protest', $book_counts, $text);
-	?>
-	<div id="bfox_search">
-		<h3>Match All Words - <?php echo $text ?></h3>
-		<div id="match_all">
-			<div class="verse_map">
-				<?php echo $map ?>
-			</div>
-			<div class="results">
-				<?php
-					$content .= '<div id="bible_search_results">';
-					$content .= '<table>';
-					$start = microtime();
-					$content .= bfox_output_verses(bfox_search_boolean($match_all_text, $ref_where), $words);
-					$end = microtime();
-					$content .= '</table>';
-					$content .= '<p>Time: ' . ($end - $start) . " $end $start</p>";
-					$content .= '</div>';
-					echo $content;
-				?>
-			</div>
-		</div>
-	</div>
-	<?php
 }
 
 ?>
