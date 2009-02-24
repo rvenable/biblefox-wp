@@ -559,8 +559,7 @@
 				$count = count($open_tags);
 				for ($i = 0; $i < $count; $i++) $this->add_close_tag();
 
-				$bible_verse = new BibleVerse;
-				$bible_verse->set_ref($this->vs['book'], $this->vs['chapter'], $this->vs['verse']);
+				$bible_verse = new BibleVerse($this->vs['book'], $this->vs['chapter'], $this->vs['verse']);
 
 				// Save some stat data
 				$id = $bible_verse->get_string();

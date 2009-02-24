@@ -332,10 +332,11 @@ class Translations
 		{
 			$table_name = self::get_translation_table_name($id);
 
-			// If the table exists, delete its old data
-			// Otherwise create the table
-			if (bfox_does_table_exist($table_name)) $wpdb->query("DELETE FROM $table_name");
-			else self::create_translation_table($table_name);
+			// Drop the table if it already exists
+			$wpdb->query("DROP TABLE IF EXISTS $table_name");
+
+			// Create the table
+			self::create_translation_table($table_name);
 
 			// Add the new verse data
 			self::load_usfx($table_name, $trans->file_name);
