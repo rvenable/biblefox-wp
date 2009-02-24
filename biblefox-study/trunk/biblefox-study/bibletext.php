@@ -1,5 +1,18 @@
 <?php
 
+class Bible
+{
+	const page_passage = 'passage';
+	const page_commentary = 'commentary';
+	const page_search = 'search';
+	const page_history = 'history';
+
+	const var_page = 'bible_page';
+	const var_translation = 'trans_id';
+	const var_reference = 'bible_ref';
+	const var_search = 'bible_search';
+}
+
 	// TODO3: get rid of this function
 	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
 	{

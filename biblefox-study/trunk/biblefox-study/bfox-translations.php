@@ -767,7 +767,7 @@ function bfox_output_verse_map($book_counts, $search_text = '')
 		if (!empty($count) && is_int($book))
 		{
 			$book = bfox_get_book_name($book);
-			$link = $bfox_links->ref_search_link($book, $search_text);
+			$link = $bfox_links->search_link($search_text, $book);
 			$content .= "<tr><td nowrap>$link</td><td>$count</td></tr>";
 		}
 	}
@@ -814,7 +814,7 @@ function bfox_output_bible_group_counts($group, $counts, $search_text = '')
 		else if (isset($counts[$child]))
 		{
 			$child_count = $counts[$child];
-			$child_content = $bfox_links->ref_search_link(bfox_get_book_name($child), $search_text) . "<span class='book_count'>$child_count</span>";
+			$child_content = $bfox_links->search_link($search_text, bfox_get_book_name($child)) . "<span class='book_count'>$child_count</span>";
 		}
 
 		if (0 < $child_count)
@@ -825,7 +825,7 @@ function bfox_output_bible_group_counts($group, $counts, $search_text = '')
 	}
 
 	return array($count, "<span class='book_group_title'>
-		" . $bfox_links->ref_search_link(bfox_get_book_name($group), $search_text, $group) . "
+		" . $bfox_links->search_link($search_text, bfox_get_book_name($group), $group) . "
 		<span class='book_count'>$count</span>
 	</span>
 	<ul class='book_group'>

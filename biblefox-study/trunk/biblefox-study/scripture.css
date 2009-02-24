@@ -145,6 +145,41 @@ Scripture Tags (copied from regular tag CSS - #tagchecklist)
 }
 
 /*
+Bible
+*/
+
+#bible {
+	width: 98%;
+}
+
+#bible_bar {
+	position: relative;
+	width: 100%;
+}
+
+#bible_bar div.inside {
+	position: relative;
+	width: 100%;
+	height: 40px;
+}
+
+ul#bible_page_list {
+}
+
+ul#bible_page_list li {
+	display: inline;
+	list-style: none;
+}
+
+#bible_search_form {
+	text-align:right;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+//	float: right;
+}
+
+/*
 Scripture Viewer
 */
 

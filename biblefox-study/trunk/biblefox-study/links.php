@@ -9,7 +9,7 @@
 		{
 			$this->home = get_option('home');
 			$this->admin = $this->home . '/wp-admin';
-			$this->bible = $this->admin . '/?page=' . BFOX_READ_SUBPAGE;
+			$this->bible = $this->admin . '/?page=' . BFOX_BIBLE_SUBPAGE;
 			$this->special = $this->home . '/?' . BFOX_QUERY_VAR_SPECIAL . '=';
 
 			if (is_admin()) $this->ref_context = 'bible';
@@ -63,7 +63,7 @@
 			else
 			{
 				$prefix = array('blog' => $this->home . '/?',
-								'bible' => $this->bible . '&amp;',
+								'bible' => $this->bible_page_url(Bible::page_passage) . '&amp;',
 								'write' => $this->admin . '/post-new.php?');
 				$url = $prefix[$context] . 'bible_ref=' . $ref_str;
 
@@ -111,16 +111,20 @@
 			return $this->link($this->ref_format_attrs($attrs, $context));
 		}
 
-		public function ref_search_link($ref_str, $search, $url = '', $context = NULL)
+		public function search_link($search, $display_ref_str = '', $actual_ref_str = '')
 		{
-			if (empty($url)) $url = $ref_str;
-			if (!empty($search)) $url .= "&amp;search=$search";
+			if (empty($actual_ref_str)) $actual_ref_str = $display_ref_str;
+			if (!empty($display_ref_str)) $ref_title = " in $display_ref_str";
 
-			return $this->link($this->ref_format_attrs(array(
-				'ref_str' => $ref_str,
-				'href' => $this->ref_url($url, $context),
-				'title' => "Search for \"$search\" in $ref_str"),
-				$context));
+			$url = add_query_arg(Bible::var_search, $search, $this->bible_page_url(Bible::page_search));
+			if (!empty($actual_ref_str)) $url = add_query_arg(Bible::var_reference, $actual_ref_str, $url);
+
+			return "<a href='$url' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
+		}
+
+		public function bible_page_url($page)
+		{
+			return add_query_arg(Bible::var_page, $page, $this->bible);
 		}
 	}
 

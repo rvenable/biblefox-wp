@@ -19,6 +19,7 @@
 	define(BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox-admin-tools');
 	define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 	define(BFOX_READ_SUBPAGE, 'bfox-read');
+	define(BFOX_BIBLE_SUBPAGE, 'bfox-bible');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	/**
@@ -51,12 +52,13 @@
 		// These pages are temporarily only for site admin as they are being tested
 		if (is_site_admin())
 		{
-			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_READ_SUBPAGE, 'bfox_read');
-			add_submenu_page(BFOX_READ_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
+			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible');
+			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Bible', 'Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible');
+			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
 
 			// Add the reading plan page to the Post menu along with the corresponding load action
-			add_submenu_page(BFOX_READ_SUBPAGE, 'My Commentaries', 'My Commentaries', 0, Commentaries::page, array('Commentaries', 'manage_page'));
-			add_action('load-' . get_plugin_page_hookname(Commentaries::page, BFOX_READ_SUBPAGE), array('Commentaries', 'manage_page_load'));
+			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'My Commentaries', 'My Commentaries', 0, Commentaries::page, array('Commentaries', 'manage_page'));
+			add_action('load-' . get_plugin_page_hookname(Commentaries::page, BFOX_BIBLE_SUBPAGE), array('Commentaries', 'manage_page_load'));
 		}
 
 		// These menu pages are only for the site admin
@@ -137,6 +139,11 @@
 	{
 		require_once('read.php');
 		bfox_read_menu();
+	}
+
+	function bfox_bible()
+	{
+		require_once('bible.php');
 	}
 
 	add_action('init', 'bfox_study_init');
