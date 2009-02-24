@@ -30,7 +30,7 @@ if (Bible::page_search == $page)
 
 <div id="bible" class="">
 	<div id="bible_bar" class="biblebox">
-		<h3>Bible Viewer</h3>
+		<div class="head">Bible Viewer</div>
 		<div class="inside">
 			<ul id="bible_page_list">
 				<li><a href="<?php echo $bfox_links->bible_page_url(Bible::page_passage) ?>">Passage</a></li>

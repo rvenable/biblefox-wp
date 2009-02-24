@@ -1,26 +1,39 @@
 <?php
 
+global $bfox_history, $bfox_quicknote, $bfox_trans;
+
 if (!isset($refs)) $refs = RefManager::get_from_str($_GET[Bible::var_reference]);
 
-		global $bfox_history, $bfox_quicknote, $bfox_trans;
+// If we don't have a valid bible ref, we should just create a bible reference
+if (!$refs->is_valid())
+{
+	// First try to create a BibleRefs from the last viewed references
+	list($refs) = $bfox_history->get_refs_array();
 
-		// If we don't have a valid bible ref, we should just create a bible reference
-		if (!$refs->is_valid())
-		{
-			// First try to create a BibleRefs from the last viewed references
-			list($refs) = $bfox_history->get_refs_array();
+	// If there is no history, use Genesis 1
+	// TODO3: Test this
+	if (!isset($refs) || !$refs->is_valid()) $refs = RefManager::get_from_str('Genesis 1');
+}
 
-			// If there is no history, use Genesis 1
-			// TODO3: Test this
-			if (!isset($refs) || !$refs->is_valid()) $refs = RefManager::get_from_str('Genesis 1');
-		}
+$bfox_quicknote->set_biblerefs($refs);
 
-		$bfox_quicknote->set_biblerefs($refs);
+$ref_str = $refs->get_string();
 
-	?>
+?>
 
-<div class="" id="bible_tool">
-<h2 id='bible_text_main_ref'>Bible Viewer</h2>
+<div id="bible_passage">
+	<div class="page_head">
+		Bible Passage
+		<ul id="bible_tool_options">
+			<li><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></li>
+			<li><a class="button" onclick="bfox_toggle_quick_view()">Quick View</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_scripture')">Scripture</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_blogs')">Blogs</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_dict')">Dictionary</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_forum')">Forum</a></li>
+					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_audio')">Audio</a></li>
+		</ul>
+	</div>
 	<div id="bible_note_popup"></div>
 	<div id="verse_select_box">
 		<a href="#close" id="verse_select_box_close" onclick="bfox_close_select_box()">X Close</a>
@@ -46,36 +59,27 @@ if (!isset($refs)) $refs = RefManager::get_from_str($_GET[Bible::var_reference])
 			</form>
 		</div>
 	</div>
-	<div id="bible_tool_header">
-		<ul id="bible_tool_options">
-			<li><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></li>
-			<li><a class="button" onclick="bfox_toggle_quick_view()">Quick View</a></li>
-		</ul>
-	</div>
 	<div id="bible_tool_body">
 		<div id="bible_view">
-			<div id="bible_view_header">
-				<h3><?php echo $refs->get_string() . " ($bfox_trans->short_name)" ?></h3>
-				<?php echo bfox_get_ref_menu($refs, TRUE) ?>
-			</div>
-			<div id="bible_view_content">
-				<?php echo bfox_get_ref_content($refs) ?>
-			</div>
-			<div id="bible_view_footer">
-				<?php
-					echo bfox_get_ref_menu($refs, FALSE);
-					echo $refs->get_toc(TRUE);
-				?>
+			<div class="biblebox">
+				<div class="head"><?php echo $ref_str; Translations::output_select($bfox_trans->id); ?></div>
+				<div class="menu">
+					<?php echo bfox_get_ref_menu($refs, TRUE) ?>
+				</div>
+				<div class="inside">
+					<?php echo bfox_get_ref_content($refs) ?>
+				</div>
+				<div class="menu">
+					<?php
+						echo bfox_get_ref_menu($refs, FALSE);
+						echo $refs->get_toc(TRUE);
+					?>
+				</div>
 			</div>
 		</div>
 		<div id="bible_quick_view">
 			<div id="bible_quick_view_header">
 				<ul class="bible_quick_view_menu">
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_scripture')">Scripture</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_blogs')">Blogs</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_dict')">Dictionary</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_forum')">Forum</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_audio')">Audio</a></li>
 				</ul>
 				<div id="bible_quick_view_scripture_header" class="bible_quick_view_menu_option">
 					<h4 id="bible-text-progress">No Scripture</h4>

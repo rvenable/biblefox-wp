@@ -72,14 +72,17 @@ list($count, $map) = bfox_output_bible_group_counts('protest', $book_counts, $se
 	<div id="match_all">
 		<div class="verse_map_wrap">
 			<div class="verse_map biblebox">
-				<h3>Verse Map</h3>
-				<?php echo $map ?>
+				<div class="head">Verse Map</div>
+				<div class="inside">
+					<?php echo $map ?>
+				</div>
 			</div>
 		</div>
 		<div class="results_wrap">
 			<div class="results biblebox">
-				<h3>Search Results</h3>
-				<?php
+				<div class="head">Search Results</div>
+				<div class="inside">
+					<?php
 					$content .= '<div id="bible_search_results">';
 					$content .= '<table>';
 					$start = microtime(TRUE);
@@ -89,7 +92,8 @@ list($count, $map) = bfox_output_bible_group_counts('protest', $book_counts, $se
 					$content .= '<p>This search took ' . ($end - $start) . " seconds</p>";
 					$content .= '</div>';
 					echo $content;
-				?>
+					?>
+				</div>
 			</div>
 		</div>
 		<div class="clear"></div>
