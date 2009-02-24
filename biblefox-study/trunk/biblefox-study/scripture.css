@@ -417,7 +417,7 @@ Generic
 	display: block;
 }
 
-.biblebox .head select {
+.biblebox .head form {
 	position: absolute;
 	top: 1px;
 	right: 5px;

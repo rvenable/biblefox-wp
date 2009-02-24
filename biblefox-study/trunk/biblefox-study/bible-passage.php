@@ -57,7 +57,16 @@ $ref_str = $refs->get_string();
 	<div id="bible_tool_body">
 		<div id="bible_view">
 			<div class="biblebox">
-				<div class="head"><?php echo $ref_str; Translations::output_select($bfox_trans->id); ?></div>
+				<div class="head">
+					<?php echo $ref_str ?>
+					<form id="bible_view_search" action="admin.php" method="get">
+						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
+						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_passage ?>" />
+						<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $ref_str ?>" />
+							<?php Translations::output_select($bfox_trans->id) ?>
+						<input type="submit" value="Go" class="button">
+					</form>
+				</div>
 				<div class="menu">
 					<?php echo bfox_get_ref_menu($refs, TRUE) ?>
 				</div>

@@ -449,7 +449,7 @@ class Translations
 		$translations = self::get_translations();
 
 		?>
-		<select name="trans_id">
+		<select name="<?php echo Bible::var_translation ?>">
 		<?php foreach ($translations as $translation): ?>
 			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo ($use_short) ? $translation->short_name : $translation->long_name; ?></option>
 		<?php endforeach; ?>
