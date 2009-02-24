@@ -26,12 +26,7 @@ $ref_str = $refs->get_string();
 		Bible Passage
 		<ul id="bible_tool_options">
 			<li><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></li>
-			<li><a class="button" onclick="bfox_toggle_quick_view()">Quick View</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_scripture')">Scripture</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_blogs')">Blogs</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_dict')">Dictionary</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_forum')">Forum</a></li>
-					<li><a class="button" onclick="bfox_select_quick_view('bible_quick_view_audio')">Audio</a></li>
+			<li><a class="button" onclick="bfox_toggle_quick_view()">Commentaries</a></li>
 		</ul>
 	</div>
 	<div id="bible_note_popup"></div>
@@ -78,9 +73,13 @@ $ref_str = $refs->get_string();
 			</div>
 		</div>
 		<div id="bible_quick_view">
-			<div id="bible_quick_view_header">
+			<div class="page_head">
 				<ul class="bible_quick_view_menu">
 				</ul>
+				<div id="bible_quick_view_blogs_header" class="bible_quick_view_menu_option">
+					<strong>Bible Commentary Posts for <?php echo $ref_str ?></strong><br/>
+					<a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">Get more commentaries</a>
+				</div>
 				<div id="bible_quick_view_scripture_header" class="bible_quick_view_menu_option">
 					<h4 id="bible-text-progress">No Scripture</h4>
 					<?php Translations::output_select($bfox_trans->id, TRUE) ?>
@@ -88,9 +87,6 @@ $ref_str = $refs->get_string();
 					<input type="button" class="button" id="view-bible-ref" value="Search" tabindex="3" />
 					<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
 					<div id="bible_quick_view_scripture_menu"></div>
-				</div>
-				<div id="bible_quick_view_blogs_header" class="bible_quick_view_menu_option">
-					This will display blog entries for this scripture.
 				</div>
 				<div id="bible_quick_view_dict_header" class="bible_quick_view_menu_option">
 					This will display dictionary entries for this scripture.
@@ -103,13 +99,13 @@ $ref_str = $refs->get_string();
 				</div>
 			</div>
 			<div id="bible_quick_view_body">
+				<div id="bible_quick_view_blogs_body" class="bible_quick_view_menu_option">
+					<?php Commentaries::output_posts($refs); ?>
+				</div>
 				<div id="bible_quick_view_scripture_body" class="bible_quick_view_menu_option">
 					<div id="bible-text">
 						<p>This is the bible quick view. Try viewing <?php echo $refs->get_link(NULL, 'quick') ?></p>
 					</div>
-				</div>
-				<div id="bible_quick_view_blogs_body" class="bible_quick_view_menu_option">
-					<?php Commentaries::output_posts($refs); ?>
 				</div>
 				<div id="bible_quick_view_dict_body" class="bible_quick_view_menu_option">
 					This will display dictionary entries for this scripture.

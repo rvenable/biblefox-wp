@@ -337,5 +337,5 @@ jQuery(document).ready( function() {
 	jQuery('#edit_quick_note_text').keypress(bfox_edit_quick_note_press_key).val('');
 
 	jQuery('#bible_view_content').mouseup(bfox_text_select);
-	bfox_select_quick_view('bible_quick_view_scripture');
+	bfox_select_quick_view('bible_quick_view_blogs');
 });
