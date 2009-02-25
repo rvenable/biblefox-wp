@@ -66,7 +66,7 @@ class Bible
 		if (empty($blog_id)) $blog_id = $GLOBALS['blog_id'];
 
 		global $wpdb;
-		$table_name = BFOX_TABLE_BIBLE_REF;
+		$table_name = "{$wpdb->base_prefix}{$blog_id}_bfox_bible_ref";
 		$posts_table = "{$wpdb->base_prefix}{$blog_id}_posts";
 
 		// TODO3: This check shouldn't be here permanently
@@ -74,7 +74,7 @@ class Bible
 			return array();
 
 		$posts = array();
-		$equation = bfox_get_posts_equation_for_refs($refs);
+		$equation = bfox_get_posts_equation_for_refs($refs, $table_name);
 		if ('' != $equation)
 			$posts = $wpdb->get_results("
 				SELECT $posts_table.*
