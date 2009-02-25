@@ -140,7 +140,7 @@
 		else
 			$proto = 'http://';
 
-		$old_url = 'redirect_to=' . urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		$old_url = urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 
 		// From site_url()
 		$site_url = 'http';
@@ -152,9 +152,9 @@
 
 		// From wp_loginout()
 		if (!is_user_logged_in())
-			$link = '<a href="' . $site_url . $old_url . '">' . __('Log in') . '</a>';
+			$link = '<a href="' . $site_url . 'redirect_to=' . $old_url . '">' . __('Log in') . '</a>';
 		else
-			$link = '<a href="' . $site_url . 'action=logout&amp;' . $old_url . '">' . __('Log out') . '</a>';
+			$link = '<a href="' . wp_logout_url($old_url) . '">' . __('Log out') . '</a>';
 
 		return $link;
 	}
