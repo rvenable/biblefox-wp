@@ -397,6 +397,32 @@ Bible Search
 	float: left;
 }
 
+#bible_search .result_chapter h3 {
+	font-size: 12px;
+	background-color: #EEEEEE;
+	margin: 0px;
+	border-bottom: #DFDFDF;
+	border-style: solid;
+	border-bottom-width: 1px;
+//	padding: 0px 5px 0px 5px;
+	padding: 5px 5px 5px 150px;
+}
+
+#bible_search .result_verse {
+	position: relative;
+	padding: 5px 5px 5px 150px;
+	border-bottom: #DFDFDF;
+	border-style: solid;
+	border-bottom-width: 1px;
+}
+
+#bible_search .result_verse h4 {
+	font-size: 12px;
+	margin: 0px 0px 0px -145px;
+	float: left;
+	padding: 0px;
+}
+
 /*
 Generic
 */

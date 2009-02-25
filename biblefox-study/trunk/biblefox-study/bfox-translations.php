@@ -732,18 +732,40 @@ function bfox_output_verses($results, $words, $header = '')
 	{
 		global $bfox_links;
 
-		if (!empty($header)) $content .= "<tr><td class='verse_header' colspan=2>$header</td></tr>";
-
 		foreach ($words as &$word) $word = '/(' . addslashes(str_replace('+', '', $word)) . ')/i';
+
+		$book = 0;
+		$chapter = 0;
+		$chapter_content = array();
 
 		foreach ($results as $result)
 		{
-			$ref_str = bfox_get_book_name($result->book_id) . ' ' . $result->chapter_id . ':' . $result->verse_id;
+			if (($book != $result->book_id) || ($chapter != $result->chapter_id))
+			{
+				$book = $result->book_id;
+				$chapter = $result->chapter_id;
+
+				$book_name = bfox_get_book_name($book);
+				$chap_name = "$book_name $chapter";
+
+				$content .= '<tr class="menu"><td>' . bfox_get_book_name($result->book_id) . ' ' . $result->chapter_id . '</td><td><td></tr>';
+			}
+			$ref_str = "$chap_name:$result->verse_id";
 			$link = $bfox_links->ref_link($ref_str);
-			$result->verse = strip_tags($result->verse);
 			$result->verse = preg_replace($words, '<strong>$1</strong>', $result->verse);
-			$content .= "<tr><td valign='top' nowrap>$link</td><td>$result->verse</td></tr>";
+
+			// TODO3: Find a good way to display footnotes in search (until then, just get rid of them)
+			$result->verse = preg_replace('/<footnote>.*<\/footnote>/Ui', '<strong>$1</strong>', $result->verse);
+
+			$chapter_content[$chap_name] .= "<div class='result_verse'><h4>$link</h4>$result->verse</div>";
 		}
+	}
+
+	$content = '';
+	foreach ($chapter_content as $chap_name => $chap_content)
+	{
+		$link = $bfox_links->ref_link($chap_name);
+		$content .= "<div class='result_chapter'><h3>$link</h3>$chap_content</div>";
 	}
 
 	return $content;

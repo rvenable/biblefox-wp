@@ -81,19 +81,17 @@ list($count, $map) = bfox_output_bible_group_counts('protest', $book_counts, $se
 		<div class="results_wrap">
 			<div class="results biblebox">
 				<div class="head">Search Results</div>
-				<div class="inside">
-					<?php
+				<?php
 					$content .= '<div id="bible_search_results">';
 					$content .= '<table>';
 					$start = microtime(TRUE);
 					$content .= bfox_output_verses(bfox_search_boolean($match_all_text, $ref_where), $words);
 					$end = microtime(TRUE);
 					$content .= '</table>';
-					$content .= '<p>This search took ' . ($end - $start) . " seconds</p>";
 					$content .= '</div>';
 					echo $content;
-					?>
-				</div>
+				?>
+				<div class="menu">This search took <?php echo($end - $start) ?> seconds</div>
 			</div>
 		</div>
 		<div class="clear"></div>
