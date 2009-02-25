@@ -1209,7 +1209,7 @@ class BibleRefs extends BibleRefsAbstract
 		// If we haven't set a book string yet, set it to the original str
 		if (!isset($book_str)) $book_str = $str;
 
-		return RefManager::get_from_bcvs(bfox_find_book_id(trim($book_str)), $chapter1, $verse1, $chapter2, $verse2);
+		return RefManager::get_from_bcvs(bfox_find_book_id(trim($book_str), 1), $chapter1, $verse1, $chapter2, $verse2);
 	}
 
 }
