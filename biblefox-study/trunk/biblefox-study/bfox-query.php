@@ -111,7 +111,7 @@
 	function bfox_posts_join($join)
 	{
 		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
-		$table_name = BFOX_TABLE_BIBLE_REF;
+		$table_name = $wpdb->bfox_bible_ref;
 
 		if ((0 < $bfox_bible_refs->get_count()) || ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS]))
 			$join .= " LEFT JOIN $table_name ON " . $wpdb->posts . ".ID = {$table_name}.post_id ";
@@ -121,12 +121,12 @@
 
 	function bfox_posts_fields($fields)
 	{
-		global $bfox_recent_wp_query;
+		global $bfox_recent_wp_query, $wpdb;
 
 		// When we join on bible refs, we want to merge all the bible refs for a single post into that one post
 		// To do this, we use the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
 		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
-			$fields .= ', GROUP_CONCAT(' . BFOX_TABLE_BIBLE_REF . '.verse_begin) AS verse_begin, GROUP_CONCAT(' . BFOX_TABLE_BIBLE_REF . '.verse_end) AS verse_end';
+			$fields .= ', GROUP_CONCAT(' . $wpdb->bfox_bible_ref . '.verse_begin) AS verse_begin, GROUP_CONCAT(' . $wpdb->bfox_bible_ref . '.verse_end) AS verse_end';
 
 		return $fields;
 	}

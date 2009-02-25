@@ -5,8 +5,10 @@
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
 
+		global $wpdb;
+
 		$table_name =
-		$sql = "CREATE TABLE " . BFOX_TABLE_BIBLE_REF . " (
+		$sql = "CREATE TABLE " . $wpdb->bfox_bible_ref . " (
 				post_id int,
 				ref_order int,
 				verse_begin int,
@@ -20,7 +22,7 @@
 	function bfox_set_post_bible_refs($post_id, BibleRefs $refs)
 	{
 		global $wpdb;
-		$table_name = BFOX_TABLE_BIBLE_REF;
+		$table_name = $wpdb->bfox_bible_ref;
 		$id = 1;
 
 		// If the table doesn't exist create it, otherwise remove any previous entries for this post

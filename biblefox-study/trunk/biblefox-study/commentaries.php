@@ -40,8 +40,10 @@ abstract class Commentary
 	 */
 	public static function output_post($post)
 	{
+		$refs = bfox_get_post_bible_refs($post->ID);
 		?>
-		<li><a href="<?php echo $post->permalink ?>"><?php echo $post->post_title ?></a>
+		<li><a href="<?php echo get_permalink($post->ID) ?>"><?php echo $post->post_title ?></a>
+			by <?php echo get_author_name($post->post_author) ?> (<? echo $refs->get_string() ?>)
 			<div class="com_post_content"><?php echo $post->post_content ?></div>
 		</li>
 		<?php
@@ -75,7 +77,8 @@ class InternalCommentary extends Commentary
 	 */
 	public function output_posts(BibleRefs $refs)
 	{
-		$posts = bfox_get_posts_for_refs($refs, $this->blog_id);
+		switch_to_blog($this->blog_id);
+		$posts = bfox_get_posts_for_refs($refs);
 		$class = 'blog_com';
 
 		if (empty($posts)) $class .= ' blog_com_empty';
@@ -90,6 +93,7 @@ class InternalCommentary extends Commentary
 			</ul>
 		</li>
 		<?php
+		restore_current_blog();
 	}
 }
 

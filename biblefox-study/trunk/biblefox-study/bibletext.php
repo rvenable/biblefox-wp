@@ -54,20 +54,19 @@ class Bible
 		echo $content;
 	}
 
-	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = BFOX_TABLE_BIBLE_REF, $verse_begin = 'verse_begin', $verse_end = 'verse_end')
+	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = '', $verse_begin = 'verse_begin', $verse_end = 'verse_end')
 	{
+		if (empty($table_name)) $table_name = $GLOBALS['wpdb']->bfox_bible_ref;
 		$begin = $table_name . '.' . $verse_begin;
 		$end = $table_name . '.' . $verse_end;
 		return $refs->sql_where2($begin, $end);
 	}
 
-	function bfox_get_posts_for_refs(BibleRefs $refs, $blog_id = 0)
+	function bfox_get_posts_for_refs(BibleRefs $refs)
 	{
-		if (empty($blog_id)) $blog_id = $GLOBALS['blog_id'];
-
-		global $wpdb;
-		$table_name = "{$wpdb->base_prefix}{$blog_id}_bfox_bible_ref";
-		$posts_table = "{$wpdb->base_prefix}{$blog_id}_posts";
+		global $wpdb, $blog_id;
+		$table_name = $wpdb->bfox_bible_ref;
+		$posts_table = $wpdb->posts;
 
 		// TODO3: This check shouldn't be here permanently
 		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
@@ -84,17 +83,13 @@ class Bible
 				WHERE $posts_table.post_type = 'post'
 				AND $equation");
 
-		// TODO2: We need a better way to get the permalink
-		foreach ($posts as &$post)
-			$post->permalink = get_blogaddress_by_id($blog_id) . '?p=' . $post->ID;
-
 		return $posts;
 	}
 
 	function bfox_get_post_bible_refs($post_id = 0)
 	{
 		global $wpdb;
-		$table_name = BFOX_TABLE_BIBLE_REF;
+		$table_name = $wpdb->bfox_bible_ref;
 
 		// If the table does not exist then there are obviously no bible references
 		if ((0 != $post_id) && ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name))
