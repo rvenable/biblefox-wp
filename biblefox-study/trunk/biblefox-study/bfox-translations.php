@@ -732,7 +732,8 @@ function bfox_output_verses($results, $words, $header = '')
 	{
 		global $bfox_links;
 
-		foreach ($words as &$word) $word = '/(' . addslashes(str_replace('+', '', $word)) . ')/i';
+		// Turn the words into keys
+		$words = array_fill_keys($words, TRUE);
 
 		$book = 0;
 		$chapter = 0;
@@ -747,15 +748,21 @@ function bfox_output_verses($results, $words, $header = '')
 
 				$book_name = bfox_get_book_name($book);
 				$chap_name = "$book_name $chapter";
-
-				$content .= '<tr class="menu"><td>' . bfox_get_book_name($result->book_id) . ' ' . $result->chapter_id . '</td><td><td></tr>';
 			}
-			$ref_str = "$chap_name:$result->verse_id";
-			$link = $bfox_links->ref_link($ref_str);
-			$result->verse = preg_replace($words, '<strong>$1</strong>', $result->verse);
 
 			// TODO3: Find a good way to display footnotes in search (until then, just get rid of them)
-			$result->verse = preg_replace('/<footnote>.*<\/footnote>/Ui', '<strong>$1</strong>', $result->verse);
+			$result->verse = preg_replace('/<footnote>.*<\/footnote>/Ui', '', $result->verse);
+
+			// Get the words in the verse as an associative array (use '_' as a part of a word)
+			$verse_words = str_word_count($result->verse, 2, '_');
+
+			// For each word in the verse that is also a search word, bold it
+			foreach (array_reverse($verse_words, TRUE) as $pos => $verse_word)
+				if ($words[strtolower($verse_word)])
+					$result->verse = substr_replace($result->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
+
+			$ref_str = "$chap_name:$result->verse_id";
+			$link = $bfox_links->ref_link($ref_str);
 
 			$chapter_content[$chap_name] .= "<div class='result_verse'><h4>$link</h4>$result->verse</div>";
 		}
@@ -765,7 +772,12 @@ function bfox_output_verses($results, $words, $header = '')
 	foreach ($chapter_content as $chap_name => $chap_content)
 	{
 		$link = $bfox_links->ref_link($chap_name);
-		$content .= "<div class='result_chapter'><h3>$link</h3>$chap_content</div>";
+		$content .=
+		"<div class='result_chapter'>
+		<h3>$link</h3>
+		$chap_content
+		</div>
+		";
 	}
 
 	return $content;

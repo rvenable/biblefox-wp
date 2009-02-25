@@ -2,25 +2,26 @@
 Scripture Text
 */
 
-p.bible-psalm-desc {
+p.bible_psalm_desc {
 	font-style: italic;
+	display: block;
 }
 
-.bible-jesus {
+.bible_jesus {
 	font-style: normal;
-//	color: rgb(150, 0, 0);
+	color: #960000;
 }
 
-.bible-verse-id {
+.bible_verse_id {
 	font-style: normal;
 	font-weight: bold;
 }
 
-p.bible-chapter-id {
+p.bible_chapter_id {
 	font-weight: bold;
 }
 
-br.bible-poetry {
+br.bible_poetry {
 	display: none; // HACK - WP is adding an unwanted <p> in front of these so we are hiding this until that is fixed
 }
 

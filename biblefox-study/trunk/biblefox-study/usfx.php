@@ -636,7 +636,7 @@
 
 			$this->vs['chapter']++;
 			$this->vs['verse'] = 0;
-			$this->vs['text'] .= '<p class="bible-chapter-id">' . $this->vs['book_name'] . ' ' . $this->vs['chapter'] . '</p>';
+			$this->vs['text'] .= '<p class="bible_chapter_id">' . $this->vs['book_name'] . ' ' . $this->vs['chapter'] . '</p>';
 
 			return $data;
 		}
@@ -676,12 +676,12 @@
 			$this->set_bcv('book', 'c', 'v');
 			$this->set_element_cbs('p', array($this, 'open_paragraph'));
 			$this->set_element_cbs('q', array($this, 'open_poetry'));
-			$this->set_tag_conv('wj', 'em', 'class="bible-jesus"');
+			$this->set_tag_conv('wj', 'span', 'class="bible_jesus"');
 			$this->set_tag_conv('f', 'footnote');
-			$this->set_tag_conv('add', 'em', 'class="bible-added-words"');
-			$this->set_tag_conv('d', 'p', 'class="bible-psalm-desc"');
+			$this->set_tag_conv('add', 'em', 'class="bible_added_words"');
+			$this->set_tag_conv('d', 'span', 'class="bible_psalm_desc"');
 			$this->set_tag_conv('s', 'h3');
-			$this->set_tag_conv_empty('b', 'br class="bible-poetry"');
+			$this->set_tag_conv_empty('b', 'br class="bible_poetry"');
 			$this->set_hidden_tags(array('id', 'h', 'ide'));
 			$this->set_tag_conv('usfx', 'div');
 
