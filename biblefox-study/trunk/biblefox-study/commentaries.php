@@ -42,10 +42,15 @@ abstract class Commentary
 	{
 		$refs = bfox_get_post_bible_refs($post->ID);
 		?>
-		<li><a href="<?php echo get_permalink($post->ID) ?>"><?php echo $post->post_title ?></a>
-			by <?php echo get_author_name($post->post_author) ?> (<? echo $refs->get_string() ?>)
-			<div class="com_post_content"><?php echo $post->post_content ?></div>
-		</li>
+		<div class="post">
+			<h3>
+				<a href="<?php echo get_permalink($post->ID) ?>"><?php echo $post->post_title ?></a>
+				by <?php echo get_author_name($post->post_author) ?> (<? echo $refs->get_string() ?>)
+			</h3>
+			<div class="post_content">
+				<?php echo $post->post_content ?>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -79,19 +84,15 @@ class InternalCommentary extends Commentary
 	{
 		switch_to_blog($this->blog_id);
 		$posts = bfox_get_posts_for_refs($refs);
-		$class = 'blog_com';
-
-		if (empty($posts)) $class .= ' blog_com_empty';
 
 		?>
-		<li class="<?php echo $class ?> postbox">
-			<h3 class="blog_com_title"><a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
-			<span class="blog_com_status"><?php echo count($posts) ?> posts</span>
-			</h3>
-			<ul class="blog_com_posts">
+		<div class="biblebox">
+			<div class="head">
+				<a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
+				<span class="head_right"><?php echo count($posts) ?> posts</span>
+			</div>
 			<?php foreach ($posts as $post) self::output_post($post);?>
-			</ul>
-		</li>
+		</div>
 		<?php
 		restore_current_blog();
 	}
@@ -151,11 +152,7 @@ class Commentaries
 		$coms = self::get_for_user($user_id);
 
 		// Output the posts for each commentary
-		?>
-		<ul class="blog_coms metabox-holder">
-			<?php foreach ($coms as $com) $com->output_posts($refs); ?>
-		</ul>
-		<?php
+		foreach ($coms as $com) $com->output_posts($refs);
 	}
 
 	/**

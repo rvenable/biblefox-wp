@@ -346,13 +346,22 @@ ul#bible_tool_options li {
 Blog Commentaries
 */
 
-.blog_com_title {
-//	float: left;
+#bible_passage .post h3 {
+	font-size: 12px;
+	background-color: #EEEEEE;
+	margin: 0px;
+	border-bottom: #DFDFDF;
+	border-style: solid;
+	border-bottom-width: 1px;
+	padding: 5px;
 }
 
-.blog_com_status {
-	position: absolute;
-	right: 0px;
+#bible_passage .post_content {
+	position: relative;
+	padding: 5px;
+	border-bottom: #DFDFDF;
+	border-style: solid;
+	border-bottom-width: 1px;
 }
 
 /*
@@ -405,7 +414,6 @@ Bible Search
 	border-bottom: #DFDFDF;
 	border-style: solid;
 	border-bottom-width: 1px;
-//	padding: 0px 5px 0px 5px;
 	padding: 5px 5px 5px 150px;
 }
 
@@ -434,8 +442,7 @@ Generic
 	-moz-border-radius-bottomright: 6px;
 	-moz-border-radius-topleft: 6px;
 	-moz-border-radius-topright: 6px;
-//	line-height: 1;
-	margin: 5px 0px 5px 0px;
+	margin: 8px 0px 8px 0px;
 	position: relative;
 	width: 99.5%;
 }
@@ -463,6 +470,11 @@ Generic
 	right: 5px;
 	margin: 0px;
 	padding: 0px;
+}
+
+.biblebox .head_right {
+	position: absolute;
+	right: 5px;
 }
 
 .biblebox, .biblebox input[type="text"], .biblebox textarea {
