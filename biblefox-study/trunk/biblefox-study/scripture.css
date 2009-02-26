@@ -17,8 +17,10 @@ p.bible_psalm_desc {
 	font-weight: bold;
 }
 
-p.bible_chapter_id {
+.bible_chapter_id {
 	font-weight: bold;
+	margin: 0px;
+	padding: 5px;
 }
 
 br.bible_poetry {
@@ -346,6 +348,29 @@ ul#bible_tool_options li {
 Blog Commentaries
 */
 
+#bible_passage .commentary_list {
+	background-color: #EEEEEE;
+	float: right;
+	width: 50%;
+	position: relative;
+	top: -5px;
+	left: 5px;
+	border-color: #EEEEEE;
+	border-style: solid;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	margin: 0px 0px 5px 5px;
+	padding: 0px;
+	-moz-border-radius-bottomleft: 6px;
+}
+
+#bible_passage .commentary_list_head {
+	border-color: #DFDFDF;
+	border-style: solid;
+	border-bottom-width: 1px;
+	padding: 5px;
+}
+
 #bible_passage .post h3 {
 	font-size: 12px;
 	background-color: #EEEEEE;
@@ -436,35 +461,42 @@ Bible Search
 Generic
 */
 
-.biblebox {
+.roundbox, .biblebox {
 	background-color: #FFFFFF;
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
-	margin: 8px 0px 8px 0px;
 	position: relative;
-	width: 99.5%;
 }
 
-.biblebox .head {
+.roundbox {
+	margin: 8px 0px 8px 0px;
+}
+
+.box_head {
 	color: #464646;
 	background: #DFDFDF url(gray-grad.png) repeat-x scroll left top;
 	text-shadow: 0 1px 0 #FFFFFF;
-	-moz-border-radius-bottomleft: 0;
-	-moz-border-radius-bottomright: 0;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
-	-moz-user-select: none;
 	font-size: 12px;
 	font-weight: bold;
 	line-height: 1;
 	margin: 0;
 	padding: 7px 9px;
-	display: block;
 }
 
-.biblebox .head form {
+.roundbox {
+	-moz-border-radius-bottomleft: 6px;
+	-moz-border-radius-bottomright: 6px;
+}
+
+.roundbox, .roundbox .box_head {
+	-moz-border-radius-topleft: 6px;
+	-moz-border-radius-topright: 6px;
+}
+
+.biblebox .box_head {
+	-moz-border-radius-topleft: 0px;
+	-moz-border-radius-topright: 0px;
+}
+
+.box_head form {
 	position: absolute;
 	top: 1px;
 	right: 5px;
@@ -472,24 +504,25 @@ Generic
 	padding: 0px;
 }
 
-.biblebox .head_right {
+.box_right {
 	position: absolute;
 	right: 5px;
 }
 
-.biblebox, .biblebox input[type="text"], .biblebox textarea {
+.roundbox, .roundbox input[type="text"], .roundbox textarea {
 	border-color: #DFDFDF;
 	border-style: solid;
 	border-width: 1px;
 }
 
-.biblebox .menu {
+.box_menu {
 	background-color: #EEEEEE;
 	position: relative;
 	padding: 5px;
+	margin: 0px;
 }
 
-.biblebox .inside {
+.box_inside {
 	position: relative;
-	padding: 0px 5px 0px 5px;
+	padding: 5px;
 }

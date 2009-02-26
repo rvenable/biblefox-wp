@@ -54,112 +54,42 @@ $ref_str = $refs->get_string();
 			</form>
 		</div>
 	</div>
-	<div id="bible_tool_body">
-		<div id="bible_view">
-			<div class="biblebox">
-				<div class="head">
-					<?php echo $ref_str ?>
-					<form id="bible_view_search" action="admin.php" method="get">
-						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
-						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_passage ?>" />
-						<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $ref_str ?>" />
-							<?php Translations::output_select($bfox_trans->id) ?>
-						<input type="submit" value="Go" class="button">
-					</form>
-				</div>
-				<div class="menu">
-					<?php echo bfox_get_ref_menu($refs, TRUE) ?>
-				</div>
-				<div class="inside">
-					<?php echo bfox_get_ref_content($refs) ?>
-				</div>
-				<div class="menu">
-					<?php
-						echo bfox_get_ref_menu($refs, FALSE);
-						echo $refs->get_toc(TRUE);
-					?>
-				</div>
-			</div>
+	<div class="roundbox">
+		<div class="box_head">
+			<?php echo $ref_str ?>
+			<form id="bible_view_search" action="admin.php" method="get">
+				<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
+				<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_passage ?>" />
+				<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $ref_str ?>" />
+					<?php Translations::output_select($bfox_trans->id) ?>
+				<input type="submit" value="Go" class="button">
+			</form>
 		</div>
-		<div id="bible_quick_view">
-			<div class="page_head">
-				<ul class="bible_quick_view_menu">
-				</ul>
-				<div id="bible_quick_view_blogs_header" class="bible_quick_view_menu_option">
-					<strong>Bible Commentary Posts for <?php echo $ref_str ?></strong><br/>
-					<a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">Get more commentaries</a>
-				</div>
-				<div id="bible_quick_view_scripture_header" class="bible_quick_view_menu_option">
-					<h4 id="bible-text-progress">No Scripture</h4>
-					<?php Translations::output_select($bfox_trans->id, TRUE) ?>
-					<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
-					<input type="button" class="button" id="view-bible-ref" value="Search" tabindex="3" />
-					<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
-					<div id="bible_quick_view_scripture_menu"></div>
-				</div>
-				<div id="bible_quick_view_dict_header" class="bible_quick_view_menu_option">
-					This will display dictionary entries for this scripture.
-				</div>
-				<div id="bible_quick_view_forum_header" class="bible_quick_view_menu_option">
-					This will display forum discussions for this scripture.
-				</div>
-				<div id="bible_quick_view_audio_header" class="bible_quick_view_menu_option">
-					This will display audio bibles for this scripture.
-				</div>
-			</div>
-			<div id="bible_quick_view_body">
-				<div id="bible_quick_view_blogs_body" class="bible_quick_view_menu_option">
-					<?php Commentaries::output_posts($refs); ?>
-				</div>
-				<div id="bible_quick_view_scripture_body" class="bible_quick_view_menu_option">
-					<div id="bible-text">
-						<p>This is the bible quick view. Try viewing <?php echo $refs->get_link(NULL, 'quick') ?></p>
-					</div>
-				</div>
-				<div id="bible_quick_view_dict_body" class="bible_quick_view_menu_option">
-					This will display dictionary entries for this scripture.
-				</div>
-				<div id="bible_quick_view_forum_body" class="bible_quick_view_menu_option">
-					This will display forum discussions for this scripture.
-				</div>
-				<div id="bible_quick_view_audio_body" class="bible_quick_view_menu_option">
-					This will display audio bibles for this scripture.
-				</div>
-			</div>
+		<div class="box_menu">
+			<?php echo bfox_get_ref_menu($refs, TRUE) ?>
 		</div>
-	</div>
-	<div id="bible_tool_footer">
+		<div class="box_inside">
+			<div class="commentary_list">
+				<div class="commentary_list_head">
+					Commentary Blog Posts (<a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">edit</a>)
+				</div>
+				<?php Commentaries::output_posts($refs); ?>
+			</div>
+			<?php echo bfox_get_ref_content($refs) ?>
+			<div class="clear"></div>
+		</div>
+		<div class="box_menu">
+			<?php
+				echo bfox_get_ref_menu($refs, FALSE);
+				echo $refs->get_toc(TRUE);
+			?>
+		</div>
 	</div>
 </div>
 
 <?php
-/*		echo '<table id="quick_note_list">';
-		echo $bfox_quicknote->list_quicknotes();
-		echo '</table>';*/
 
-		// Update the read history to show that we viewed these scriptures
-		$bfox_history->update($refs);
-
-/*	TODO2: Make sure everything on this list is in a task, then remove this list
-	echo '<h2>Blog Post Commentaries</h2>';
-	echo '<p><a href="">Write A Post</a></p>';
-	echo '<h3>My Bible Study Blogs</h3><p>View posts from any Biblefox Bible Studies that you have joined or subscribed to.<br/>Check out the list of Commentary Blogs to find some you can subscribe to.<br/><a href="">Add Commentaries</a></p>';
-	echo '<h3>My Friend Commentaries</h3><p>You can see what other users have written about this passage.<br/><a href="">Add Friends</a></p>';
-	echo '<h2>Tools</h2>';
-	echo '<h3>Bible Search</h3><ul><li>Reference</li><li>Text</li><li>Topic</li></ul>';
-	echo '<h3>Random Passage</h3>';
-	echo '<h3>My Reading Plans</h3>';
-	echo '<h3>Create A Reading Plan</h3>';
-	echo '<h3>Side by Side Passages</h3>';
-	echo '<h3>Table of Contents</h3>';
-	echo '<h3>Quick Table of Contents</h3>';
-	echo '<h3>Bible Dictionary</h3>';
-	echo '<h3>Bible Forum</h3>';
-	echo '<h3>Bible Wiki</h3>';
-	echo '<h3>Bible By Email</h3>';
-	echo '<h3>Topical Cross References</h3><p>From the Topical Search</p>';
-	echo '<h3>Hebrew</h3>';
-	echo '<h3>Greek</h3>';*/
-
+// Update the read history to show that we viewed these scriptures
+$bfox_history->update($refs);
 
 ?>

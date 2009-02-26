@@ -87,9 +87,9 @@ class InternalCommentary extends Commentary
 
 		?>
 		<div class="biblebox">
-			<div class="head">
+			<div class="box_head">
 				<a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
-				<span class="head_right"><?php echo count($posts) ?> posts</span>
+				<span class="box_right"><?php echo count($posts) ?> posts</span>
 			</div>
 			<?php foreach ($posts as $post) self::output_post($post);?>
 		</div>

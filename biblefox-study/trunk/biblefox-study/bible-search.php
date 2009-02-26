@@ -71,22 +71,22 @@ list($count, $map) = bfox_output_bible_group_counts('protest', $book_counts, $se
 	<h3>Match All Words - <?php echo $search_desc ?></h3>
 	<div id="match_all">
 		<div class="verse_map_wrap">
-			<div class="verse_map biblebox">
-				<div class="head">Verse Map</div>
-				<div class="inside">
+			<div class="verse_map roundbox">
+				<div class="box_head">Verse Map</div>
+				<div class="box_inside">
 					<?php echo $map ?>
 				</div>
 			</div>
 		</div>
 		<div class="results_wrap">
-			<div class="results biblebox">
-				<div class="head">Search Results</div>
+			<div class="results roundbox">
+				<div class="box_head">Search Results</div>
 				<?php
 					$start = microtime(TRUE);
 					echo bfox_output_verses(bfox_search_boolean($match_all_text, $ref_where), $words);
 					$end = microtime(TRUE);
 				?>
-				<div class="menu">This search took <?php echo($end - $start) ?> seconds</div>
+				<div class="box_menu">This search took <?php echo($end - $start) ?> seconds</div>
 			</div>
 		</div>
 		<div class="clear"></div>

@@ -636,7 +636,7 @@
 
 			$this->vs['chapter']++;
 			$this->vs['verse'] = 0;
-			$this->vs['text'] .= '<p class="bible_chapter_id">' . $this->vs['book_name'] . ' ' . $this->vs['chapter'] . '</p>';
+			$this->vs['text'] .= '<h4 class="bible_chapter_id">' . $this->vs['book_name'] . ' ' . $this->vs['chapter'] . '</h4>';
 
 			return $data;
 		}
