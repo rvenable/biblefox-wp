@@ -1,3 +1,8 @@
+function bfox_quick_write_set_blog(quick_press_url, publish_string)
+{
+	jQuery('#quick_press').attr('action', quick_press_url);
+	jQuery('#quick_press #publish').attr('value', publish_string);
+}
 
 function bible_ref_remove_tag() {
 	var id = jQuery( this ).attr( 'id' );

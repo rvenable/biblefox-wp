@@ -526,3 +526,16 @@ Generic
 	position: relative;
 	padding: 5px;
 }
+
+.quick_write_input {
+	position: relative;
+	margin-left: 100px;
+}
+
+.quick_write_input h4 {
+	position: absolute;
+	top: 0px;
+	left: -100px;
+	margin: 0;
+	font-weight: normal;
+}
