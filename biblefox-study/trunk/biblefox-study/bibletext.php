@@ -59,16 +59,26 @@
 		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
 			return array();
 
-		$posts = array();
+		$post_ids = array();
 		$equation = bfox_get_posts_equation_for_refs($refs, $table_name);
 		if ('' != $equation)
-			$posts = $wpdb->get_results("
-				SELECT $posts_table.*
+		{
+			$post_ids = $wpdb->get_col("
+				SELECT post_id
 				FROM $table_name
-				INNER JOIN $posts_table
-				ON $table_name.post_id = $posts_table.ID
-				WHERE $posts_table.post_type = 'post'
-				AND $equation");
+				WHERE $equation
+				GROUP BY post_id");
+		}
+
+		$posts = array();
+		if (!empty($post_ids))
+		{
+			$posts = (array) $wpdb->get_results("
+				SELECT *
+				FROM $posts_table
+				WHERE post_type = 'post'
+				AND (ID = " . implode(' OR ID = ', $post_ids) . ")");
+		}
 
 		return $posts;
 	}
