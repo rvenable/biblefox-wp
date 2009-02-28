@@ -52,13 +52,10 @@
 		// These pages are temporarily only for site admin as they are being tested
 		if (is_site_admin())
 		{
-			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible');
-			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Bible', 'Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible');
+			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible_page');
+			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Bible', 'Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible_page');
+			add_action('load-' . get_plugin_page_hookname(BFOX_BIBLE_SUBPAGE, BFOX_BIBLE_SUBPAGE), 'bfox_bible_page_load');
 			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
-
-			// Add the reading plan page to the Post menu along with the corresponding load action
-			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'My Commentaries', 'My Commentaries', 0, Commentaries::page, array('Commentaries', 'manage_page'));
-			add_action('load-' . get_plugin_page_hookname(Commentaries::page, BFOX_BIBLE_SUBPAGE), array('Commentaries', 'manage_page_load'));
 		}
 
 		// These menu pages are only for the site admin
@@ -74,6 +71,19 @@
 		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'bfox_save_post');
+	}
+
+	function bfox_bible_page_load()
+	{
+		global $bfox_bible_viewer;
+		$bfox_bible_viewer = new Bible();
+		$bfox_bible_viewer->page_load($_GET);
+	}
+
+	function bfox_bible_page()
+	{
+		global $bfox_bible_viewer;
+		$bfox_bible_viewer->page();
 	}
 
 	function bfox_save_post($post_id = 0)
@@ -139,11 +149,6 @@
 	{
 		require_once('read.php');
 		bfox_read_menu();
-	}
-
-	function bfox_bible()
-	{
-		require_once('bible.php');
 	}
 
 	add_action('init', 'bfox_study_init');

@@ -44,6 +44,7 @@
 	require_once('usfx.php');
 	require_once('bfox-translations.php');
 	require_once('commentaries.php');
+	require_once('bible.php');
 
 	// Returns the bible study blogs for a given user
 	// Should be used in place of get_blogs_of_user() because the main biblefox.com blog should not count

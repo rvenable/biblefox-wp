@@ -290,7 +290,7 @@ class Commentaries
 	 */
 	public static function manage_page_load()
 	{
-		$bfox_page_url = 'admin.php?page=' . self::page;
+		$bfox_page_url = add_query_arg(Bible::var_page, Bible::page_commentary,  'admin.php?page=' . BFOX_BIBLE_SUBPAGE);
 
 		$action = $_POST['action'];
 		if ( isset($_POST['deleteit']) && isset($_POST['delete']) )
@@ -327,7 +327,7 @@ class Commentaries
 	 */
 	public static function manage_page()
 	{
-		$bfox_page_url = 'admin.php?page=' . self::page;
+		$bfox_page_url = add_query_arg(Bible::var_page, Bible::page_commentary,  'admin.php?page=' . BFOX_BIBLE_SUBPAGE);
 
 		if (!empty($_GET['message'])): ?>
 			<div id="message" class="updated fade"><p><?php echo urldecode($_GET['message']); ?></p></div>
