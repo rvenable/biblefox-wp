@@ -110,7 +110,6 @@
 			if ($header) $menu .= $bfox_history->get_dates_str($refs, false) . '<br/>';
 			$menu .= $bfox_history->get_dates_str($refs, true);
 			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)';
-			if ($header) $menu .= '<br/><a href="http://www.biblegateway.com/passage/?search=' . $refStr . '&version=31" target="_blank">Read on BibleGateway</a>';
 			$menu .= '</small>';
 
 			$write_link = $refs->get_link('Write about this passage', 'write');

@@ -22,12 +22,6 @@ $ref_str = $refs->get_string();
 ?>
 
 <div id="bible_passage">
-	<div class="page_head">
-		Bible Passage
-		<ul id="bible_tool_options">
-			<li><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></li>
-		</ul>
-	</div>
 	<div id="bible_note_popup"></div>
 	<div class="roundbox">
 		<div class="box_head">
@@ -41,6 +35,7 @@ $ref_str = $refs->get_string();
 			</form>
 		</div>
 		<div class="box_menu">
+			<span class="box_right"><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></span>
 			<?php echo bfox_get_ref_menu($refs, TRUE) ?>
 		</div>
 		<div class="box_inside">
@@ -49,7 +44,7 @@ $ref_str = $refs->get_string();
 					Commentary Blog Posts (<a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">edit</a>)
 				</div>
 				<?php Commentaries::output_posts($refs); ?>
-				<?php Bible::output_quick_press(); ?>
+				<?php //Bible::output_quick_press(); ?>
 			</div>
 			<?php echo bfox_get_ref_content($refs) ?>
 			<div class="clear"></div>

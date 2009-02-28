@@ -141,7 +141,6 @@ class Bible
 					<ul id="bible_page_list">
 						<li><a href="<?php echo $bfox_links->bible_page_url(Bible::page_passage) ?>">Passage</a></li>
 						<li><a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">Commentaries</a></li>
-						<li><a href="<?php echo $bfox_links->bible_page_url(Bible::page_history) ?>">History</a></li>
 					</ul>
 					<form id="bible_search_form" action="admin.php" method="get">
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE; ?>" />
