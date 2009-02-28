@@ -13,6 +13,7 @@ class Bible
 	const var_search = 'bible_search';
 
 	private $page;
+	private $refs;
 
 	public static function output_quick_press()
 	{
@@ -127,6 +128,7 @@ class Bible
 		}
 
 		$this->page = $page;
+		if (isset($refs)) $this->refs = $refs;
 	}
 
 	public function page()
@@ -163,6 +165,7 @@ class Bible
 					case Bible::page_history:
 					case Bible::page_passage:
 					default:
+						$refs = $this->refs;
 						include('bible-passage.php');
 				}
 			?>
