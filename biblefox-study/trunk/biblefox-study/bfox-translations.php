@@ -115,6 +115,7 @@ class Translations
 	const min_user_level = 10;
 	const translation_table = BFOX_TRANSLATIONS_TABLE;
 	const book_counts_table = BFOX_BOOK_COUNTS_TABLE;
+	const index_table = BFOX_TRANSLATION_INDEX_TABLE;
 	const dir = BFOX_TRANSLATIONS_DIR;
 
 	/**
@@ -243,6 +244,67 @@ class Translations
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
+	}
+
+	/**
+	 * Create the translation index table
+	 *
+	 */
+	public static function create_translation_index_table()
+	{
+		// TODO3: This function should not be called by admin tools and be private
+
+		// Note this function creates the table with dbDelta() which apparently has some pickiness
+		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+
+		// Creates a FULLTEXT index on the verse data
+		$sql = "
+		CREATE TABLE " . self::index_table . " (
+			unique_id int unsigned NOT NULL,
+			book_id int unsigned NOT NULL,
+			trans_id int unsigned NOT NULL,
+			index_text text NOT NULL,
+			FULLTEXT (index_text)
+		);
+		";
+
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta($sql);
+	}
+
+	/**
+	 * Refresh the index data for a given translation
+	 *
+	 * @param Translation $trans
+	 * @param string $group
+	 */
+	public static function refresh_translation_index(Translation $trans, $group = 'protest')
+	{
+		// TODO3: This function should not be called by admin tools and be private
+
+		global $wpdb;
+
+		// Delete all the old index data for this translation
+		$wpdb->query($wpdb->prepare("DELETE FROM " . self::index_table . " WHERE trans_id = %d", $trans->id));
+
+		// Add the new index data, one book at a time
+		$books = range(BibleGroupPassage::get_first_book($group), BibleGroupPassage::get_last_book($group));
+		foreach ($books as $book)
+		{
+			// Get all the verses to index for this book (we don't index chapter 0 or verse 0)
+			$verses = $wpdb->get_results($wpdb->prepare("SELECT unique_id, book_id, verse FROM $trans->table WHERE book_id = %d AND chapter_id != 0 AND verse_id != 0", $book));
+
+			// If we have verses for this book, insert their index text into the index table
+			if (!empty($verses))
+			{
+				$values = array();
+				foreach ($verses as $verse)
+				{
+					$values []= $wpdb->prepare('(%d, %d, %d, %s)', $verse->unique_id, $verse->book_id, $trans->id, implode(' ', self::get_index_words($verse->verse)));
+				}
+				$wpdb->query("INSERT INTO " . self::index_table . " (unique_id, book_id, trans_id, index_text) VALUES " . implode(', ', $values));
+			}
+		}
 	}
 
 	/**
@@ -718,98 +780,6 @@ function bfox_show_toc($trans_id = 12)
 	echo '</center>';*/
 }
 
-/**
- * Creates an output string with a table row for each verse in the $results data
- *
- * @param array $results results from get_results() select statement with verse data
- * @param array $words the list of words to highlight as having been used in the search
- * @param string $header optional header string
- * @return string
- */
-function bfox_output_verses($results, $words, $header = '')
-{
-	if (0 < count($results))
-	{
-		global $bfox_links;
-
-		// Turn the words into keys
-		$words = array_fill_keys($words, TRUE);
-
-		$book = 0;
-		$chapter = 0;
-		$chapter_content = array();
-
-		foreach ($results as $result)
-		{
-			if (($book != $result->book_id) || ($chapter != $result->chapter_id))
-			{
-				$book = $result->book_id;
-				$chapter = $result->chapter_id;
-
-				$book_name = bfox_get_book_name($book);
-				$chap_name = "$book_name $chapter";
-			}
-
-			// TODO3: Find a good way to display footnotes in search (until then, just get rid of them)
-			$result->verse = preg_replace('/<footnote>.*<\/footnote>/Ui', '', $result->verse);
-
-			// Get the words in the verse as an associative array (use '_' as a part of a word)
-			$verse_words = str_word_count($result->verse, 2, '_');
-
-			// For each word in the verse that is also a search word, bold it
-			foreach (array_reverse($verse_words, TRUE) as $pos => $verse_word)
-				if ($words[strtolower($verse_word)])
-					$result->verse = substr_replace($result->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
-
-			$ref_str = "$chap_name:$result->verse_id";
-			$link = $bfox_links->ref_link($ref_str);
-
-			$chapter_content[$chap_name] .= "<div class='result_verse'><h4>$link</h4>$result->verse</div>";
-		}
-	}
-
-	$content = '';
-	foreach ($chapter_content as $chap_name => $chap_content)
-	{
-		$link = $bfox_links->ref_link($chap_name);
-		$content .=
-		"<div class='result_chapter'>
-		<h3>$link</h3>
-		$chap_content
-		</div>
-		";
-	}
-
-	return $content;
-}
-
-/**
- * Generates the output string for a verse search map
- *
- * @param unknown_type $book_counts
- * @param string $search_text
- * @return unknown
- */
-function bfox_output_verse_map($book_counts, $search_text = '')
-{
-	global $bfox_links;
-
-	$content = '<table>';
-	foreach ($book_counts as $book => $count)
-	{
-		// TODO2: Currently only showing the books, but we should eventually display the book groups too
-		if (!empty($count) && is_int($book))
-		{
-			$book = bfox_get_book_name($book);
-			$link = $bfox_links->search_link($search_text, $book);
-			$content .= "<tr><td nowrap>$link</td><td>$count</td></tr>";
-		}
-	}
-	$content .= '</table>';
-
-	return $content;
-}
-
 function bfox_output_bible_group($group)
 {
 	global $bfox_book_groups, $bfox_links;
@@ -831,41 +801,6 @@ function bfox_output_bible_group($group)
 	<ul class='book_group'>
 		$content
 	</ul>";
-}
-
-function bfox_output_bible_group_counts($group, $counts, $search_text = '')
-{
-	global $bfox_book_groups, $bfox_links;
-
-	$count = 0;
-	$content = '';
-	foreach ($bfox_book_groups[$group] as $child)
-	{
-		$child_count = 0;
-		$child_content = '';
-
-		if (isset($bfox_book_groups[$child])) list($child_count, $child_content) = bfox_output_bible_group_counts($child, $counts, $search_text);
-		else if (isset($counts[$child]))
-		{
-			$child_count = $counts[$child];
-			$child_content = $bfox_links->search_link($search_text, bfox_get_book_name($child)) . "<span class='book_count'>$child_count</span>";
-		}
-
-		if (0 < $child_count)
-		{
-			$count += $child_count;
-			$content .= "<li>$child_content</li>";
-		}
-	}
-
-	return array($count,
-	"<span class='book_group_title'>
-		" . $bfox_links->search_link($search_text, bfox_get_book_name($group), $group) . "
-		<span class='book_count'>$count</span>
-	</span>
-	<ul class='book_group'>
-		$content
-	</ul>");
 }
 
 /**
@@ -896,49 +831,6 @@ function bfox_search_expanded($text)
 	$results = $wpdb->get_results("SELECT *, $match AS match_val FROM $bfox_trans->table WHERE verse_id != 0 AND $match LIMIT 5");
 
 	return $results;
-}
-
-/**
- * Performs a boolean full text search
- *
- * @param string $text
- * @param string $ref_where
- * @param integer $limit
- * @return unknown
- */
-function bfox_search_boolean($text, $ref_where = '', $limit = 40)
-{
-	global $wpdb, $bfox_trans;
-	if (!empty($ref_where)) $ref_where = 'AND ' . $ref_where;
-	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s IN BOOLEAN MODE)", $text);
-	$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $bfox_trans->table WHERE verse_id != 0 $ref_where AND $match ORDER BY unique_id ASC LIMIT %d", $limit));
-
-	return $results;
-}
-
-/**
- * Performs a boolean full text search, but returns results as a list of verse counts per book
- *
- * @param string $text
- * @return array Book counts
- */
-function bfox_search_boolean_books($text)
-{
-	global $wpdb, $bfox_trans;
-	$match = $wpdb->prepare("MATCH(index_text) AGAINST(%s IN BOOLEAN MODE)", $text);
-	$sql = "SELECT book_id, COUNT(*) AS count FROM $bfox_trans->table WHERE verse_id != 0 AND $match GROUP BY book_id";
-	$results = (array) $wpdb->get_results($sql);
-
-	$book_counts = array();
-	foreach ($results as $result) $book_counts[$result->book_id] = $result->count;
-
-	/*
-	global $bfox_bible_groups;
-	foreach ($bfox_bible_groups as $name => $book_ids)
-		foreach ($book_ids as $book_id) $book_counts[$name] += $book_counts[$book_id];
-	*/
-
-	return $book_counts;
 }
 
 ?>

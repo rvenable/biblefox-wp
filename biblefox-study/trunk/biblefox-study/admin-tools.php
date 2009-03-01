@@ -404,6 +404,30 @@
 		}
 
 		/**
+		 * Create the translation index table
+		 *
+		 */
+		function create_translation_index_table()
+		{
+			Translations::create_translation_index_table();
+		}
+
+		/**
+		 * Loop through each enabled bible translation and refresh their index data
+		 *
+		 */
+		function refresh_all_translation_indexes()
+		{
+			$translations = Translations::get_translations();
+			foreach ($translations as $translation)
+			{
+				echo "Refreshing $translation->long_name (ID: $translation->id)...<br/>";
+				Translations::refresh_translation_index($translation);
+			}
+			echo 'Finished<br/>';
+		}
+
+		/**
 		 * A function for dumping temporary functionality to do temporary tasks
 		 *
 		 */
