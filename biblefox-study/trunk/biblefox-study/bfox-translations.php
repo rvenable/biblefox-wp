@@ -122,7 +122,7 @@ class Translations
 	 * Creates the DB table for the translations
 	 *
 	 */
-	private static function create_tables()
+	public static function create_tables()
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
