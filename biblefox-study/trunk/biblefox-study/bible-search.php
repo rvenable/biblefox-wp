@@ -210,19 +210,20 @@ class BibleSearch
 
 				$chapter_content[$chap_name] .= "<div class='result_verse'><h4>$link</h4>$verse->verse</div>";
 			}
-		}
 
-		$content = '';
-		foreach ($chapter_content as $chap_name => $chap_content)
-		{
-			$link = $bfox_links->ref_link($chap_name);
-			$content .=
-			"<div class='result_chapter'>
-			<h3>$link</h3>
-			$chap_content
-			</div>
-			";
+			$content = '';
+			foreach ($chapter_content as $chap_name => $chap_content)
+			{
+				$link = $bfox_links->ref_link($chap_name);
+				$content .=
+				"<div class='result_chapter'>
+				<h3>$link</h3>
+				$chap_content
+				</div>
+				";
+			}
 		}
+		else $content = '<div class="box_inside">No verses match your search</div>';
 
 		return $content;
 	}
