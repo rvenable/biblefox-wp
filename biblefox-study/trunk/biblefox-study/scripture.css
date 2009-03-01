@@ -505,8 +505,7 @@ Generic
 }
 
 .box_right {
-	position: absolute;
-	right: 5px;
+	float: right;
 }
 
 .roundbox, .roundbox input[type="text"], .roundbox textarea {

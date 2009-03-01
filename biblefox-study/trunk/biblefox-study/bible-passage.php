@@ -36,7 +36,8 @@ $ref_str = $refs->get_string();
 		</div>
 		<div class="box_menu">
 			<span class="box_right"><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></span>
-			<?php echo bfox_get_ref_menu($refs, TRUE) ?>
+			<div class="clear"></div>
+			<br/><?php echo bfox_get_ref_menu_nav($refs) ?>
 		</div>
 		<div class="box_inside">
 			<div class="commentary_list">
@@ -51,7 +52,7 @@ $ref_str = $refs->get_string();
 		</div>
 		<div class="box_menu">
 			<?php
-				echo bfox_get_ref_menu($refs, FALSE);
+				echo bfox_get_ref_menu_nav($refs);
 				echo $refs->get_toc(TRUE);
 			?>
 		</div>

@@ -122,9 +122,23 @@
 			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)';
 			$menu .= '</small>';
 
-			$write_link = $refs->get_link('Write about this passage', 'write');
+
 		}
 		else $menu .= '<small><a href="' . $home_dir . '/wp-login.php">Login</a> to track your bible reading</small>';
+
+
+		$menu .= bfox_get_ref_menu_nav($refs, $scripture_links);
+
+		return $menu;
+	}
+
+	function bfox_get_ref_menu_nav(BibleRefs $refs, $scripture_links = NULL)
+	{
+		$menu = '';
+
+		global $user_ID;
+		get_currentuserinfo();
+		if (0 < $user_ID) $write_link = $refs->get_link('Write about this passage', 'write');
 
 		// Scripture navigation links
 		if (is_null($scripture_links))
