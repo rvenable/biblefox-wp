@@ -2,9 +2,10 @@
 
 class BibleSearch
 {
-	public $description;
+	public $text, $description;
 	public $last_search_time;
-	private $text, $words, $index_words;
+	public $ref_str;
+	private $words, $index_words;
 	private $trans_where;
 	private $ref_where;
 	private $limit, $offset;
@@ -12,6 +13,7 @@ class BibleSearch
 	public function __construct($text)
 	{
 		$this->set_text($text);
+		$this->ref_str = '';
 		$this->refs_where = '';
 		$this->last_search_time = 0;
 		$this->set_limit();
@@ -34,8 +36,12 @@ class BibleSearch
 
 	public function set_refs(BibleRefs $refs)
 	{
-		$this->ref_where = 'AND ' . $refs->sql_where();
-		$this->description .= ' in ' . $refs->get_string();
+		if ($refs->is_valid())
+		{
+			$this->ref_str = $refs->get_string();
+			$this->ref_where = 'AND ' . $refs->sql_where();
+			$this->description .= ' in ' . $this->ref_str;
+		}
 	}
 
 	public function set_limit($limit = 40, $offset = 0)
@@ -240,8 +246,7 @@ $refs_where = '';
 if (!empty($_GET[Bible::var_reference]))
 {
 	$refs = RefManager::get_from_str($_GET[Bible::var_reference]);
-	if ($refs->is_valid())
-		$search->set_refs($refs);
+	$search->set_refs($refs);
 }
 
 /* TODO2: Implement the search suggestions
@@ -295,7 +300,19 @@ $book_counts = $search->boolean_book_counts();
 		<?php echo $search->output_verse_map($book_counts) ?>
 		<div class="results_wrap">
 			<div class="results roundbox">
-				<div class="box_head">Search Results</div>
+				<div class="box_head">Search Results
+					<form id="bible_view_search" action="admin.php" method="get">
+						Display as:
+						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
+						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_search ?>" />
+						<input type="hidden" name="<?php echo Bible::var_search ?>" value="<?php echo $search->text ?>" />
+						<?php if (!empty($search->ref_str)): ?>
+						<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $search->ref_str ?>" />
+						<?php endif; ?>
+						<?php Translations::output_select($bfox_trans->id) ?>
+						<input type="submit" value="Go" class="button">
+					</form>
+				</div>
 				<?php
 					$verses = $search->search_boolean();
 					echo $search->output_verses($verses);

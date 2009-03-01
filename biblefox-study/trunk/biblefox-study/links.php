@@ -113,18 +113,22 @@
 
 		public function search_link($search, $display_ref_str = '', $actual_ref_str = '')
 		{
+			global $bfox_trans;
+
 			if (empty($actual_ref_str)) $actual_ref_str = $display_ref_str;
 			if (!empty($display_ref_str)) $ref_title = " in $display_ref_str";
 
 			$url = add_query_arg(Bible::var_search, $search, $this->bible_page_url(Bible::page_search));
 			if (!empty($actual_ref_str)) $url = add_query_arg(Bible::var_reference, $actual_ref_str, $url);
+			$url = add_query_arg(Bible::var_translation, $bfox_trans->id, $url);
 
 			return "<a href='$url' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
 		}
 
 		public function bible_page_url($page)
 		{
-			return add_query_arg(Bible::var_page, $page, $this->bible);
+			global $bfox_trans;
+			return add_query_arg(array(Bible::var_page => $page, Bible::var_translation => $bfox_trans->id), $this->bible);
 		}
 	}
 

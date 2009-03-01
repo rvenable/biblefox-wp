@@ -146,7 +146,8 @@ class Bible
 					</ul>
 					<form id="bible_search_form" action="admin.php" method="get">
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE; ?>" />
-						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_search; ?>" />
+						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_search ?>" />
+						<input type="hidden" name="<?php echo Bible::var_translation ?>" value="<?php echo $bfox_trans->id ?>" />
 						<input type="text" name="<?php echo Bible::var_search ?>" value="" />
 						<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
 					</form>
