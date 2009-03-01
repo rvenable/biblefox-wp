@@ -29,7 +29,7 @@ $bfox_book_groups = array(
 global $bfox_books;
 $bfox_books = array(
 'bible' => array('name' => 'Bible', 'short_name' => 'Bible'),
-'protest' => array('name' => 'Protestant Bible', 'short_name' => 'Bible'),
+'protest' => array('name' => 'Bible', 'short_name' => 'Bible'),
 'old' => array('name' => 'Old Testament', 'short_name' => 'Old'),
 'moses' => array('name' => 'Books of Moses', 'short_name' => 'Moses'),
 'history' => array('name' => 'Books of History', 'short_name' => 'History'),
