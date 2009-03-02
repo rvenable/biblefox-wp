@@ -212,21 +212,13 @@ class Translations
 	}
 
 	/**
-	 * Creates the verse data table, with or without a full text index
+	 * Creates the verse data table
 	 *
-	 * @param boolean $use_index Whether a full text index should be used or not
 	 */
-	private static function create_translation_table($table_name, $use_index = TRUE)
+	private static function create_translation_table($table_name)
 	{
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-
-		// Creates a FULLTEXT index on the verse data
-		if ($use_index)
-		{
-			$index_cols = "index_text text NOT NULL,";
-			$index = ", FULLTEXT (index_text)";
-		}
 
 		global $wpdb;
 		$sql = "
@@ -236,9 +228,7 @@ class Translations
 			chapter_id int unsigned NOT NULL,
 			verse_id int unsigned NOT NULL,
 			verse text NOT NULL,
-			$index_cols
 			PRIMARY KEY  (unique_id)
-			$index
 		);
 		";
 
@@ -354,14 +344,13 @@ class Translations
 	public static function update_verse_text($table_name, BibleVerse $verse, $verse_text)
 	{
 		global $wpdb;
-		$sql = $wpdb->prepare("REPLACE INTO $table_name (unique_id, book_id, chapter_id, verse_id, verse, index_text)
-							  VALUES (%d, %d, %d, %d, %s, %s)",
+		$sql = $wpdb->prepare("REPLACE INTO $table_name (unique_id, book_id, chapter_id, verse_id, verse)
+							  VALUES (%d, %d, %d, %d, %s)",
 							  $verse->unique_id,
 							  $verse->book,
 							  $verse->chapter,
 							  $verse->verse,
-							  $verse_text,
-							  implode(' ', self::get_index_words($verse_text))
+							  $verse_text
 							  );
 		$wpdb->query($sql);
 	}
