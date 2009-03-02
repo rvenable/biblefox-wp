@@ -438,21 +438,19 @@
 
 			require_once('txt_to_blog.php');
 			$file = BFOX_DIR . '/mhcc.txt';
-			//echo $file;
 			$posts = TxtToBlog::parse_file($file);
 
-			$section = $_GET['section'];
-			if (!empty($section))
-			{
-//				echo "<p>$sections[$section]</p>";
-			}
+			echo "<p>Num Posts: " . count($posts) . "</p>";
 
 			foreach ($posts as $num => $post)
 			{
-				if (20 < $num) break;
-//				if (50 < strlen($post->title))
-				echo '<a href="' . add_query_arg('section', $num) . '">' . $post->title . '</a><br/>';
-				echo '<pre>' . $post->get_string() . '</pre>';
+				// if (50 >= strlen($post->title))
+				// if (empty($post->ref_str))
+				if (20 >= $num)
+				{
+					echo '<a href="' . add_query_arg('section', $num) . '">' . $post->title . '</a><br/>';
+					echo $post->output();
+				}
 			}
 		}
 

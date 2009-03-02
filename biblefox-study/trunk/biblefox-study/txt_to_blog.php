@@ -15,6 +15,11 @@ class BlogPost
 	{
 		return "Blog Post:\nTitle: $this->title\nBible References: $this->ref_str\nContent:\n$this->content\n";
 	}
+
+	public function output()
+	{
+		return "<div>Title: $this->title<br/>Bible References: $this->ref_str</div><div>Content:<br/>$this->content</div>";
+	}
 }
 
 class TxtToBlog
@@ -94,45 +99,47 @@ class TxtToBlog
 	private static function parse_chapter($chapter, $body)
 	{
 		$verse_num_pattern = '\d[\s\d,-]*';
-		$verse_titles = array();
-		$verse_title_key = '';
-		$verse_title = '';
 
-		$data = array();
+		// Parse the chapter body into an outline section and verse sections
+		$sections = array();
 		$key = '';
 		foreach ($body as $line)
 		{
 			if (preg_match('/chapter\s*outline/i', $line)) $key = 'outline';
-			elseif (preg_match('/verses?\s*(' . $verse_num_pattern . ')/i', $line, $match))
+			elseif (preg_match('/verses?\s*(' . $verse_num_pattern . ')/i', $line, $match)) $key = $match[1];
+			elseif (!empty($key)) $sections[$key] []= $line;
+		}
+		$outline = (array) $sections['outline'];
+		unset($sections['outline']);
+
+		// Parse the outline section to find the titles for the verse sections
+		$verse_titles = array();
+		$verse_title_key = '';
+		$verse_title = '';
+		foreach ($outline as $line)
+		{
+			if (preg_match('/\((' . $verse_num_pattern . ')\)/i', $line, $match))
 			{
-				$key = $match[1];
+				$verse_title_key = $match[1];
+				$verse_title = trim(trim($verse_title), '.');
+				$verse_titles[$verse_title_key] = $verse_title;
+				$verse_title = '';
 			}
-			elseif (!empty($key))
-			{
-				if ('outline' == $key)
-				{
-					if (preg_match('/\((' . $verse_num_pattern . ')\)/i', $line, $match))
-					{
-						$verse_title_key = $match[1];
-						$verse_title = trim(trim($verse_title), '.');
-						$verse_titles[$verse_title_key] = $verse_title;
-						$verse_title = '';
-					}
-					else $verse_title .= " $line";
-				}
-				$data[$key] []= $line;
-			}
+			else $verse_title .= " $line";
 		}
 
-		$posts = array();
-		foreach ($data as $key => $content)
-		{
-			if ('outline' == $key) $post = new BlogPost($chapter, $content, $chapter);
-			else $post = new BlogPost($verse_titles[$key], $content, "$chapter:$key");
-			$posts []= $post;
-		}
+		// Create a new outline page with links to verse blog posts and bible references
+		$outline = '';
+		foreach ($verse_titles as $verse => $verse_title)
+			$outline .= "<li><h4>[bible ref='$chapter:$verse']Verses ${verse}[/bible]</h4>[link]${verse_title}[/link]</li>";
+
+		// Create the array of blog posts, starting with the outline post, followed by all the verse posts
+		$posts = array(new BlogPost($chapter, "<ol>$outline</ol>", $chapter));
+		foreach ($sections as $key => $content)
+			$posts []= new BlogPost($verse_titles[$key], $content, "$chapter:$key");
 
 		return $posts;
 	}
 }
+
 ?>
