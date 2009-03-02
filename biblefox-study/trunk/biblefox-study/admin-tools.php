@@ -432,6 +432,30 @@
 			echo 'Finished<br/>';
 		}
 
+		function parse_mhcc()
+		{
+			$url = add_query_arg('tool', 'parse_mhcc', bfox_admin_page_url(BFOX_ADMIN_TOOLS_SUBPAGE));
+
+			require_once('txt_to_blog.php');
+			$file = BFOX_DIR . '/mhcc.txt';
+			//echo $file;
+			$posts = TxtToBlog::parse_file($file);
+
+			$section = $_GET['section'];
+			if (!empty($section))
+			{
+//				echo "<p>$sections[$section]</p>";
+			}
+
+			foreach ($posts as $num => $post)
+			{
+				if (20 < $num) break;
+//				if (50 < strlen($post->title))
+				echo '<a href="' . add_query_arg('section', $num) . '">' . $post->title . '</a><br/>';
+				echo '<pre>' . $post->get_string() . '</pre>';
+			}
+		}
+
 		/**
 		 * A function for dumping temporary functionality to do temporary tasks
 		 *
