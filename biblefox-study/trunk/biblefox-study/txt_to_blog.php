@@ -24,10 +24,14 @@ class BlogPost
 
 class TxtToBlog
 {
+	const dir = BFOX_TEXTS_DIR;
 	const divider = '__________________________________________________________________';
+	protected $file;
 
-	public static function parse_file($file)
+	public function parse_file($file = '')
 	{
+		if (empty($file)) $file = $this->file;
+		$file = self::dir . "/$file";
 		$lines = file($file);
 
 		$sections = array();
@@ -139,6 +143,24 @@ class TxtToBlog
 			$posts []= new BlogPost($verse_titles[$key], $content, "$chapter:$key");
 
 		return $posts;
+	}
+}
+
+class MhccTxtToBlog extends TxtToBlog
+{
+	const file = 'mhcc.txt';
+	function __construct()
+	{
+		$this->file = self::file;
+	}
+}
+
+class CalcomTxtToBlog extends TxtToBlog
+{
+	const file = 'calcom/calcom01.txt';
+	function __construct()
+	{
+		$this->file = self::file;
 	}
 }
 

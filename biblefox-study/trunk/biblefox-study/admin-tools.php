@@ -432,15 +432,20 @@
 			echo 'Finished<br/>';
 		}
 
-		function parse_mhcc()
+		private function output_posts($posts, $pre = FALSE, $limit = 20)
 		{
-			$url = add_query_arg('tool', 'parse_mhcc', bfox_admin_page_url(BFOX_ADMIN_TOOLS_SUBPAGE));
-
-			require_once('txt_to_blog.php');
-			$file = BFOX_DIR . '/mhcc.txt';
-			$posts = TxtToBlog::parse_file($file);
+			$url = add_query_arg('tool', $_GET['tool'], bfox_admin_page_url(BFOX_ADMIN_TOOLS_SUBPAGE));
 
 			echo "<p>Num Posts: " . count($posts) . "</p>";
+
+			$post = $_GET['post'];
+			if (!empty($post) && isset($posts[$post]))
+			{
+				$post = $posts[$post];
+				echo '<a href="' . add_query_arg('post', $num, $url) . '">' . $post->title . '</a><br/>';
+				echo ($pre) ? '<pre>' . $post->get_string() . '</pre>' : $post->output();
+			}
+
 
 			foreach ($posts as $num => $post)
 			{
@@ -448,10 +453,24 @@
 				// if (empty($post->ref_str))
 				if (20 >= $num)
 				{
-					echo '<a href="' . add_query_arg('section', $num) . '">' . $post->title . '</a><br/>';
-					echo $post->output();
+					echo '<a href="' . add_query_arg('post', $num, $url) . '">' . $post->title . '</a><br/>';
+//					echo ($pre) ? '<pre>' . $post->get_string() . '</pre>' : $post->output();
 				}
 			}
+		}
+
+		function parse_mhcc()
+		{
+			require_once('txt_to_blog.php');
+			$parser = new MhccTxtToBlog();
+			$this->output_posts($parser->parse_file(), TRUE);
+		}
+
+		function parse_calcom()
+		{
+			require_once('txt_to_blog.php');
+			$parser = new CalcomTxtToBlog();
+			$this->output_posts($parser->parse_file(), TRUE);
 		}
 
 		/**
