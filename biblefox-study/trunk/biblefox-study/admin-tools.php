@@ -470,7 +470,7 @@
 		{
 			require_once('txt_to_blog.php');
 			$parser = new CalcomTxtToBlog();
-			$this->output_posts($parser->parse_file(), TRUE);
+			$this->output_posts($parser->parse_file());
 		}
 
 		/**

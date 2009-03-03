@@ -22,7 +22,7 @@ class BlogPost
 	}
 }
 
-class TxtToBlog
+abstract class TxtToBlog
 {
 	const dir = BFOX_TEXTS_DIR;
 	const divider = '__________________________________________________________________';
@@ -38,69 +38,56 @@ class TxtToBlog
 		foreach ($lines as $line)
 		{
 			$line = trim($line);
-			if (self::divider == $line)
-			{
-				$section_num++;
-			}
-			else
-			{
-				$sections[$section_num] []= $line;
-			}
+			if (self::divider == $line) $section_num++;
+			else $sections[$section_num] []= $line;
 		}
 
 		$posts = array();
 		foreach ($sections as $section)
-		{
-			list ($title, $body) = self::parse_title_body($section);
-			if (preg_match('/chapter\s*(\d+)/i', $title, $match))
-			{
-				$chapter = $match[1];
-				$posts = array_merge($posts, self::parse_chapter("$book $chapter", $body));
-			}
-			else if ($book_id = bfox_find_book_id($title))
-			{
-				//$book = RefManager::get_book_name($book_id);
-				$book = $title;
-				$posts []= new BlogPost($title, $body, $title);
-			}
-			else $posts []= new BlogPost($title, $body);
-		}
+			$posts = array_merge($posts, $this->parse_section($section));
 
 		return $posts;
 	}
 
-	private static function parse_title_body($body)
+	protected abstract function parse_section($section);
+
+	protected static function parse_title_body($body)
 	{
 		while (!is_null($title = array_shift($body)) && empty($title));
 		return array($title, $body);
 	}
 
-	private static function parse_num_list($str)
+}
+
+class MhccTxtToBlog extends TxtToBlog
+{
+	const file = 'mhcc.txt';
+	private $book;
+
+	function __construct()
 	{
-		$nums = array();
-
-		$commas = explode(',', $str);
-		foreach ($commas as $comma)
-		{
-			list($low, $high) = explode('-', $comma, 2);
-			if (isset($high)) array_push($nums, range($low, $high));
-			else array_push($nums, $low);
-		}
-
-		return $nums;
+		$this->file = self::file;
 	}
 
-	private static function data_string($data)
+	protected function parse_section($section)
 	{
-		$str = '';
-		foreach ($data as $key => $lines)
+		list ($title, $body) = self::parse_title_body($section);
+		if (preg_match('/chapter\s*(\d+)/i', $title, $match))
 		{
-			$str .= "\n$key: " . implode("\n", $lines);
+			$chapter = $match[1];
+			$posts = self::parse_chapter("$this->book $chapter", $body);
 		}
-		return $str;
+		else if (bfox_find_book_id($title))
+		{
+			$this->book = $title;
+			$posts = array(new BlogPost($title, $body, $title));
+		}
+		else $posts = array(new BlogPost($title, $body));
+
+		return $posts;
 	}
 
-	private static function parse_chapter($chapter, $body)
+	protected function parse_chapter($chapter, $body)
 	{
 		$verse_num_pattern = '\d[\s\d,-]*';
 
@@ -146,22 +133,94 @@ class TxtToBlog
 	}
 }
 
-class MhccTxtToBlog extends TxtToBlog
-{
-	const file = 'mhcc.txt';
-	function __construct()
-	{
-		$this->file = self::file;
-	}
-}
-
 class CalcomTxtToBlog extends TxtToBlog
 {
 	const file = 'calcom/calcom01.txt';
+	private $footnotes;
+
 	function __construct()
 	{
 		$this->file = self::file;
+		$this->footnotes = array();
 	}
+
+	private function insert_footnote($match)
+	{
+		return "[footnote]{$this->footnotes[$match[1]]}[/footnote]";
+	}
+
+	public function parse_file($file = '')
+	{
+		$posts = parent::parse_file($file);
+
+		foreach ($this->footnotes as &$footnote) $footnote = trim($footnote);
+
+		// Replace all the footnotes
+		foreach ($posts as &$post)
+		{
+			$count++;
+			$post->content = preg_replace_callback('/\[(\d+)\]/', array($this, 'insert_footnote'), $post->content);
+		}
+
+		return $posts;
+	}
+
+	protected function parse_section($section)
+	{
+		list ($title, $body) = self::parse_title_body($section);
+		$refs = RefManager::get_from_str($title);
+
+		$posts = array();
+		if ($refs->is_valid()) $posts = $this->parse_bible_refs($refs, $title, $body);
+		elseif (preg_match('/^\[\d+\]/', $title)) $this->parse_footnotes($section);
+		else $posts = array(new BlogPost($title, $body));
+
+		return $posts;
+	}
+
+	protected function parse_bible_refs(BibleRefs $refs, $title, $body)
+	{
+		$verses = array();
+		foreach ($body as $line)
+		{
+			if (preg_match('/^(\d+)\.?(.*)$/', $line, $match))
+			{
+				$verse_key = $match[1];
+				$verse_count = count($verses[$verse_key]);
+				$verses[$verse_key][$verse_count] = $match[2];
+			}
+			else $verses[$verse_key][$verse_count] .= " $line";
+		}
+
+		list(list($verse_start)) = $refs->get_sets();
+		$verse_ref = new BibleVerse($verse_start);
+
+		$posts = array();
+		foreach ($verses as $verse_num => $verse)
+		{
+			$content = "<blockquote>{$verse[0]}</blockquote>";
+			$content .= "<blockquote>{$verse[1]}</blockquote>";
+			$content .= "<p>{$verse[2]}</p>";
+			$verse_ref->set_ref($verse_ref->book, $verse_ref->chapter, $verse_num);
+			$posts []= new BlogPost($verse_ref->get_string(), $content, $verse_ref->get_string());
+		}
+		return $posts;
+	}
+
+	protected function parse_footnotes($section)
+	{
+		$key = '';
+		foreach ($section as $line)
+		{
+			if (preg_match('/^\[(\d+)\](.*)$/', $line, $match))
+			{
+				$key = $match[1];
+				$this->footnotes[$key] = $match[2];
+			}
+			else $this->footnotes[$key] .= " $line";
+		}
+	}
+
 }
 
 ?>
