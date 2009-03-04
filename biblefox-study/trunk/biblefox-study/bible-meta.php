@@ -32,11 +32,16 @@ class BibleMeta
 	public static function get_book_id($synonym, $max_level = 0)
 	{
 		// Chop the synonym into words
-		$words = str_word_count(strtolower(trim($synonym)), 1, '0123456789');
+		$raw_words = str_word_count(strtolower(trim($synonym)), 1, '0123456789');
 
 		// There needs to be at least one word
-		if (0 < count($words))
+		if (0 < count($raw_words))
 		{
+			// Create a new word array with only the words we don't want to ignore (and get rid of the old array
+			$words = array();
+			foreach ($raw_words as $word) if (!isset(self::$ignore_words[$word])) $words []= $word;
+			unset($raw_words);
+
 			// If the first word is a string representing a number, set it to that number
 			if (isset(self::$num_strings[$words[0]])) $words[0] = self::$num_strings[$words[0]];
 
@@ -255,11 +260,11 @@ class BibleMeta
 		'ecclesiastes' => '21',
 		'sng' => '22',
 		'sos' => '22',
-		'song of songs' => '22',
+		'song songs' => '22',
 		'canticles' => '22',
-		'canticle of canticles' => '22',
+		'canticle canticles' => '22',
 		'song' => '22',
-		'song of solomon' => '22',
+		'song solomon' => '22',
 		'isaiah' => '23',
 		'isa' => '23',
 		'jer' => '24',
@@ -380,8 +385,8 @@ class BibleMeta
 		'jud' => '65',
 		'jude' => '65',
 		'revelation' => '66',
+		'revelations' => '66',
 		'rev' => '66',
-		'the revelation' => '66',
 		'tob' => '67',
 		'tobit' => '67',
 		'judith' => '68',
@@ -391,14 +396,14 @@ class BibleMeta
 		'esg' => '69',
 		'addesth' => '69',
 		'aes' => '69',
-		'the rest of esther' => '69',
+		'rest esther' => '69',
 		'add es' => '69',
 		'add esth' => '69',
 		'additions to esther' => '69',
-		'rest of esther' => '69',
+		'rest esther' => '69',
 		'wis' => '70',
-		'wisd of sol' => '70',
-		'wisdom of solomon' => '70',
+		'wisd sol' => '70',
+		'wisdom solomon' => '70',
 		'wisdom' => '70',
 		'ecclus' => '71',
 		'sir' => '71',
@@ -409,24 +414,21 @@ class BibleMeta
 		'ltr jer' => '73',
 		'lje' => '73',
 		'let jer' => '73',
-		'letter of jeremiah' => '73',
-		'song of three jews' => '74',
-		'song of three children' => '74',
-		'song of thr' => '74',
-		'song of the three holy children' => '74',
-		'the song of three jews' => '74',
-		'the song of the three holy children' => '74',
+		'letter jeremiah' => '73',
+		'song three holy children' => '74',
+		'song three children' => '74',
+		'song three youths' => '74',
+		'song three jews' => '74',
+		'song three' => '74',
+		'song thr' => '74',
+		'prayer azariah' => '74',
 		'azariah' => '74',
 		'pr az' => '74',
-		'the song of three youths' => '74',
-		'song thr' => '74',
-		'song of three' => '74',
-		'song of three youths' => '74',
-		'prayer of azariah' => '74',
 		'susanna' => '75',
 		'sus' => '75',
+		'bel and dragon' => '76',
+		'bel dragon' => '76',
 		'bel' => '76',
-		'bel and the dragon' => '76',
 		'1maccabees' => '77',
 		'1macc' => '77',
 		'1mac' => '77',
@@ -439,11 +441,10 @@ class BibleMeta
 		'1esdr' => '79',
 		'1esd' => '79',
 		'1es' => '79',
-		'prayer of manasses' => '80',
-		'pma' => '80',
+		'prayer manasses' => '80',
+		'prayer manasseh' => '80',
 		'pr man' => '80',
-		'pr of man' => '80',
-		'prayer of manasseh' => '80',
+		'pma' => '80',
 		'2esdras' => '81',
 		'2esdr' => '81',
 		'2esd' => '81',
@@ -518,28 +519,26 @@ class BibleMeta
 	'second' => 2,
 	'third' => 3
 	);
+
+	/**
+	 * Array of words to ignore
+	 *
+	 * If a word is set to true, then the ignore word can begin at the beginning of the book name
+	 *
+	 * @var unknown_type
+	 */
+	static $ignore_words = array(
+	'book' => TRUE,
+	'of' => FALSE,
+	'the' => TRUE
+	);
+
 } // End of BibleMeta class
 
 global $bfox_syn_prefix;
 $bfox_syn_prefix = array();
 
 /* Functions used to generate the initial arrays:
-
-function print_array_decl($array, $level = 0)
-{
-	$elements = array();
-	foreach ($array as $key => $value)
-	{
-		if (is_array($value)) $value = print_array_decl($value, $level + 1);
-		else $value = "'$value'";
-		$elements []= "'$key' => $value";
-	}
-
-	if (0 >= $level) $glue = ",\n";
-	else $glue = ', ';
-
-	return 'array(' . implode($glue, $elements) . ')';
-}
 
 function print_books_array_decl()
 {

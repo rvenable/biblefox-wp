@@ -346,6 +346,11 @@
 
 			// This test was failing (see bug 21)
 			$this->test_ref('Judges 2:6-3:6');
+
+			// Test ignore words
+			$this->test_ref('Book of Judges 2');
+			$this->test_ref('First Book of Judges 2');
+			$this->test_ref('First Book of Samuel 2');
 		}
 
 		/**
@@ -472,6 +477,61 @@
 		{
 			require_once('txt_to_blog.php');
 			$this->output_posts(new CalcomTxtToBlog());
+		}
+
+		/**
+		 * Run this to check if there are any synonyms that need to have their ignore words removed
+		 *
+		 */
+		function clean_ignore_words()
+		{
+			$prefixes = array();
+			foreach (BibleMeta::$synonyms[0] as $synonym => $book_id)
+			{
+				$raw_words = str_word_count($synonym, 1, '0123456789');
+
+				$words = array();
+				foreach ($raw_words as $word) if (!isset(BibleMeta::$ignore_words[$word])) $words []= $word;
+				unset($raw_words);
+
+				$new_syn = implode(' ', $words);
+				if ($synonym != $new_syn)
+				{
+					echo "Replace '$synonym' with '$new_syn'<br/>";
+				}
+			}
+		}
+
+		private static function print_array_decl($array, $level = 0)
+		{
+			$elements = array();
+			foreach ($array as $key => $value)
+			{
+				if (is_array($value)) $value = print_array_decl($value, $level + 1);
+				else $value = "'$value'";
+				$elements []= "'$key' => $value";
+			}
+
+			if (0 >= $level) $glue = ",\n";
+			else $glue = ', ';
+
+			return 'array(' . implode($glue, $elements) . ')';
+		}
+
+		function get_wordy_synonym_array()
+		{
+			$prefixes = array();
+			foreach (BibleMeta::$synonyms[0] as $synonym => $book_id)
+			{
+				$words = str_word_count($synonym, 1, '0123456789');
+				array_pop($words);
+				while (!empty($words))
+				{
+					$prefixes[implode('', $words)] = TRUE;
+					array_pop($words);
+				}
+			}
+			pre(self::print_array_decl($prefixes));
 		}
 
 		/**
