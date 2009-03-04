@@ -31,7 +31,7 @@ class BibleMeta
 	 */
 	public static function get_book_id($synonym, $max_level = 0)
 	{
-		// Chop the synonym into words
+		// Chop the synonym into words (numeric digits count as words)
 		$raw_words = str_word_count(strtolower(trim($synonym)), 1, '0123456789');
 
 		// There needs to be at least one word
@@ -42,17 +42,26 @@ class BibleMeta
 			foreach ($raw_words as $word) if (!isset(self::$ignore_words[$word])) $words []= $word;
 			unset($raw_words);
 
-			// If the first word is a string representing a number, set it to that number
-			if (isset(self::$num_strings[$words[0]])) $words[0] = self::$num_strings[$words[0]];
+			// If the first word is a string representing a number, shift that number off the word list
+			// That number will need to be prepended to the beginning of the first word
+			// For instance: '1 sam' should become '1sam'
+			if (is_numeric($words[0])) $num = array_shift($words);
+			elseif (isset(self::$num_strings[$words[0]])) $num = self::$num_strings[array_shift($words)];
 
-			// Put the words back together but without spaces
-			$synonym = implode('', $words);
-
-			$level = 0;
-			while (empty($book_id) && ($level <= $max_level))
+			if (0 < count($words))
 			{
-				$book_id = self::$synonyms[$level][$synonym];
-				$level++;
+				// Prepend the book number if set
+				if (!empty($num)) $words[0] = $num . $words[0];
+
+				// Put the words back together but without spaces
+				$synonym = implode(' ', $words);
+
+				$level = 0;
+				while (empty($book_id) && ($level <= $max_level))
+				{
+					$book_id = self::$synonyms[$level][$synonym];
+					$level++;
+				}
 			}
 		}
 

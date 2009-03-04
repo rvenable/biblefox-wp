@@ -349,8 +349,11 @@
 
 			// Test ignore words
 			$this->test_ref('Book of Judges 2');
-			$this->test_ref('First Book of Judges 2');
+			$this->test_ref('First Book of Judges 2'); // This one should not work!
 			$this->test_ref('First Book of Samuel 2');
+
+			// Test that we can match synonyms with multiple words
+			$this->test_ref('Song Solomon 2');
 		}
 
 		/**
