@@ -269,7 +269,7 @@ CONTENT;
 					$r->the_post();
 					$ref = $post->bible_refs;
 					$ref_str = '';
-					if ($ref->is_valid()) $ref_str = $ref->get_link($ref->get_string(BFOX_REF_FORMAT_SHORT));
+					if ($ref->is_valid()) $ref_str = $ref->get_link($ref->get_string(BibleMeta::name_short));
 					$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';
 
 					if (0 < $post->comment_count) $comments = ' (' . $post->comment_count . ')';

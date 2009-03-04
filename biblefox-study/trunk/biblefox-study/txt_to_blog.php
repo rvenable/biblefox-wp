@@ -87,7 +87,7 @@ class MhccTxtToBlog extends TxtToBlog
 			$chapter = $match[1];
 			$posts = self::parse_chapter("$this->book $chapter", $body);
 		}
-		else if (bfox_find_book_id($title))
+		else if (BibleMeta::get_book_id($title))
 		{
 			$this->book = $title;
 			$posts = array(new BlogPost($title, $body, $title));

@@ -610,10 +610,10 @@
 
 			// Try to get the book's name from the 'id' attribute
 			// If we can't the ID attribute is invalid
-			if ($book_id = bfox_find_book_id($this->get_attribute('id')))
+			if ($book_id = BibleMeta::get_book_id($this->get_attribute('id')))
 			{
 				$this->vs['book'] = $book_id;
-				$this->vs['book_name'] = bfox_get_book_name($book_id);
+				$this->vs['book_name'] = BibleMeta::get_book_name($book_id);
 			}
 			else
 			{

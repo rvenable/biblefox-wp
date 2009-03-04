@@ -4,23 +4,8 @@ define('BFOX_UNIQUE_ID_PART_SIZE', 8);
 define('BFOX_UNIQUE_ID_MASK', 0xFF);
 define('BFOX_UNIQUE_ID_MAX', 256);
 
-define(BFOX_REF_FORMAT_NORMAL, 'normal');
-define(BFOX_REF_FORMAT_SHORT, 'short');
-
-
 class RefManager
 {
-	public static function get_book_name($book, $name = 'name')
-	{
-		global $bfox_books;
-
-		if (empty($name) || (BFOX_REF_FORMAT_NORMAL == $name)) $name = 'name';
-		elseif (BFOX_REF_FORMAT_SHORT == $name) $name = 'short_name';
-
-		if (isset($bfox_books[$book][$name])) return $bfox_books[$book][$name];
-		return 'Unknown';
-	}
-
 	public static function get_from_str($str)
 	{
 		$refs = new BibleRefs();
@@ -118,61 +103,16 @@ abstract class BibleRefsAbstract
 }
 
 /**
- * Returns the book name for a given book ID
- *
- * @param integer $book_id
- * @param string $format
- * @return string
- */
-function bfox_get_book_name($book_id, $format = '')
-{
-	global $bfox_books;
-
-	if (BFOX_REF_FORMAT_SHORT == $format) $col = 'short_name';
-	else $col = 'name';
-
-	return $bfox_books[$book_id][$col];
-}
-
-/**
- * Returns the book id for a book name synonym.
- *
- * Synonyms have levels for how specific the synonyms. For instance, Isaiah could be abbreviated as 'is', which could be confused with
- * the word 'is'. So 'is' is not in the default level, and thus is not used unless its level is specified.
- *
- * @param string $synonym
- * @param integer $max_level
- * @return integer
- */
-function bfox_find_book_id($synonym, $max_level = 0)
-{
-	global $bfox_synonyms;
-	$synonym = strtolower(trim($synonym));
-
-	// TODO2: Books with First and Second should be handled algorithmically
-
-	$level = 0;
-	while (empty($book_id) && ($level <= $max_level))
-	{
-		$book_id = $bfox_synonyms[$level][$synonym];
-		$level++;
-	}
-
-	if (empty($book_id)) return FALSE;
-	return $book_id;
-}
-
-/**
  * Creates the global synonym prefix array which is necessary for bfox_ref_replace()
  *
  */
 function bfox_create_synonym_data()
 {
-	global $wpdb, $bfox_synonyms, $bfox_syn_prefix;
+	global $wpdb, $bfox_syn_prefix;
 
 	if (empty($bfox_syn_prefix))
 	{
-		foreach ($bfox_synonyms as $level => $level_syns)
+		foreach (BibleMeta::$synonyms as $level => $level_syns)
 		{
 			foreach ($level_syns as $synonym => $book_id)
 			{
@@ -247,7 +187,7 @@ function bfox_ref_replace($text)
 
 		// The word might be a portion of book name (ie, a prefix to the book name),
 		// So we need to detect that using the bfox_syn_prefix array, and save those potential book 'prefixes'
-		if (bfox_find_book_id($pattern)) $book = $pattern;
+		if (BibleMeta::get_book_id($pattern)) $book = $pattern;
 
 		// For each prefix we have saved, append the current word and see if we have a synonym
 		// If we have a synonym then we can use that synonym as the book
@@ -255,7 +195,7 @@ function bfox_ref_replace($text)
 		foreach ($prefixes as $start => &$prefix)
 		{
 			$prefix .= ' ' . $pattern_lc;
-			if (bfox_find_book_id($prefix)) $book = $prefix;
+			if (BibleMeta::get_book_id($prefix)) $book = $prefix;
 
 			// Unset the the prefix if it is no longer valid
 			if (!isset($bfox_syn_prefix[$prefix])) unset($prefixes[$start]);
@@ -390,9 +330,9 @@ class BibleVerse extends BibleRefsAbstract
 		$this->num_str = $num_str;
 	}
 
-	public function get_string($name = 'name')
+	public function get_string($name = '')
 	{
-		$str = RefManager::get_book_name($this->book, $name);
+		$str = BibleMeta::get_book_name($this->book, $name);
 
 		if (!empty($this->num_str)) $str .= ' ' . $this->num_str;
 
@@ -450,9 +390,9 @@ class BiblePassage
 		$this->num_str = $num_str;
 	}
 
-	public function get_string($name = 'name')
+	public function get_string($name = '')
 	{
-		$str = RefManager::get_book_name($this->verse_start->book, $name);
+		$str = BibleMeta::get_book_name($this->verse_start->book, $name);
 
 		if (!empty($this->num_str)) $str .= ' ' . $this->num_str;
 
@@ -639,7 +579,7 @@ class BiblePassage
 		// TODO3: These vars are kind of hacky
 		list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
 
-		$book_name = bfox_get_book_name($this->verse_start->book);
+		$book_name = BibleMeta::get_book_name($this->verse_start->book);
 
 		// Either display the full TOC or just the chapters in the ref
 		$toc = $toc_begin;
@@ -711,7 +651,7 @@ class BiblePassage
 				}
 
 				// TODO2: We don't need the book and chapter for each verse, verses should be nested in chapter and book elements
-				if ($span_verse) $verse_text = "<span class='bible_verse' book='" . bfox_get_book_name($verse->book_id) . "' chapter='$verse->chapter_id' verse='$verse->verse_id'>$verse_text</span>";
+				if ($span_verse) $verse_text = "<span class='bible_verse' book='" . BibleMeta::get_book_name($verse->book_id) . "' chapter='$verse->chapter_id' verse='$verse->verse_id'>$verse_text</span>";
 
 				$content .= $verse_text;
 			}
@@ -741,13 +681,11 @@ class BibleGroupPassage extends BiblePassage
 
 	public static function get_first_book($group)
 	{
-		global $bfox_book_groups;
-
 		$book = 0;
-		if (isset($bfox_book_groups[$group][0]))
+		if (isset(BibleMeta::$book_groups[$group][0]))
 		{
-			$book = $bfox_book_groups[$group][0];
-			if (isset($bfox_book_groups[$book])) $book = self::get_first_book($book);
+			$book = BibleMeta::$book_groups[$group][0];
+			if (isset(BibleMeta::$book_groups[$book])) $book = self::get_first_book($book);
 		}
 
 		return $book;
@@ -755,22 +693,20 @@ class BibleGroupPassage extends BiblePassage
 
 	public static function get_last_book($group)
 	{
-		global $bfox_book_groups;
-
-		$last_index = count($bfox_book_groups[$group]) - 1;
+		$last_index = count(BibleMeta::$book_groups[$group]) - 1;
 		$book = 0;
-		if ((0 < $last_index) && isset($bfox_book_groups[$group][$last_index]))
+		if ((0 < $last_index) && isset(BibleMeta::$book_groups[$group][$last_index]))
 		{
-			$book = $bfox_book_groups[$group][$last_index];
-			if (isset($bfox_book_groups[$book])) $book = self::get_last_book($book);
+			$book = BibleMeta::$book_groups[$group][$last_index];
+			if (isset(BibleMeta::$book_groups[$book])) $book = self::get_last_book($book);
 		}
 
 		return $book;
 	}
 
-	public function get_string($name = 'name')
+	public function get_string($name = '')
 	{
-		return RefManager::get_book_name($this->group, $name);
+		return BibleMeta::get_book_name($this->group, $name);
 	}
 
 	/**
@@ -898,12 +834,11 @@ class BibleRefs extends BibleRefsAbstract
 
 	function push_string($str)
 	{
-		global $bfox_book_groups;
 		$count = 0;
 		$refstrs = preg_split("/[\n,;]/", trim($str));
 		foreach ($refstrs as $refstr)
 		{
-			if (isset($bfox_book_groups[$refstr]))
+			if (isset(BibleMeta::$book_groups[$refstr]))
 			{
 				$ref = new BibleGroupPassage($refstr);
 			}
@@ -1209,7 +1144,7 @@ class BibleRefs extends BibleRefsAbstract
 		// If we haven't set a book string yet, set it to the original str
 		if (!isset($book_str)) $book_str = $str;
 
-		return RefManager::get_from_bcvs(bfox_find_book_id(trim($book_str), 1), $chapter1, $verse1, $chapter2, $verse2);
+		return RefManager::get_from_bcvs(BibleMeta::get_book_id(trim($book_str), 1), $chapter1, $verse1, $chapter2, $verse2);
 	}
 
 }

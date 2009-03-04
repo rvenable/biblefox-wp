@@ -678,19 +678,19 @@ function bfox_books_two_cols()
 	$content .= '<div id="old_testament"><h3>Old Testament</h3>';
 	$content .= '<ul>';
 	foreach ($bfox_bible_groups['old'] as $book_id)
-		$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
+		$content .= '<li>' . $bfox_links->ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
 	$content .= '</ul></div>';
 
 	$content .= '<div id="new_testament"><h3>New Testament</h3>';
 	$content .= '<ul>';
 	foreach ($bfox_bible_groups['new'] as $book_id)
-	$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
+	$content .= '<li>' . $bfox_links->ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
 	$content .= '</ul></div>';
 
 	$content .= '<div id="apocrypha"><h3>Apocryphal Books</h3>';
 	$content .= '<ul>';
 	foreach ($bfox_bible_groups['apocrypha'] as $book_id)
-	$content .= '<li>' . $bfox_links->ref_link(bfox_get_book_name($book_id)) . '</li>';
+	$content .= '<li>' . $bfox_links->ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
 	$content .= '</ul></div>';
 
 	$content .= '</div>';
@@ -713,7 +713,7 @@ function bfox_show_toc_groups($groups, $books, $depth = 3)
 				{
 					if (isset($books[$book_id]))
 					{
-						$book_name = bfox_get_book_name($book_id);
+						$book_name = BibleMeta::get_book_name($book_id);
 						$output .= '<p>' . $book_name;
 						$chaps = array();
 						for ($chapter = 0; $chapter < $books[$book_id]; $chapter++)
@@ -771,21 +771,21 @@ function bfox_show_toc($trans_id = 12)
 
 function bfox_output_bible_group($group)
 {
-	global $bfox_book_groups, $bfox_links;
+	global $bfox_links;
 
 	$content = '';
-	foreach ($bfox_book_groups[$group] as $child)
+	foreach (BibleMeta::$book_groups[$group] as $child)
 	{
 		$child_content = '';
 
-		if (isset($bfox_book_groups[$child])) $child_content = bfox_output_bible_group($child);
-		else $child_content = $bfox_links->ref_link(RefManager::get_book_name($child));
+		if (isset(BibleMeta::$book_groups[$child])) $child_content = bfox_output_bible_group($child);
+		else $child_content = $bfox_links->ref_link(BibleMeta::get_book_name($child));
 
 		$content .= "<li>$child_content</li>";
 	}
 
 	return "<span class='book_group_title'>
-		" . $bfox_links->ref_link(array('ref_str' => RefManager::get_book_name($group), 'href' => $bfox_links->ref_url($group))) . "
+		" . $bfox_links->ref_link(array('ref_str' => BibleMeta::get_book_name($group), 'href' => $bfox_links->ref_url($group))) . "
 	</span>
 	<ul class='book_group'>
 		$content

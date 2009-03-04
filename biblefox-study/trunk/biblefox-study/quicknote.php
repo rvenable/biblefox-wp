@@ -156,7 +156,7 @@ class QuickNote
 	function get_note_link($id, $note, BibleRefs $refs)
 	{
 		$ref_str = $refs->get_string();
-		$ref_str_short = $refs->get_string('short');
+		$ref_str_short = $refs->get_string(BibleMeta::name_short);
 		return
 		"<span class='note' onmouseover=\"bfox_note_popup_show(this)\" onmouseout=\"bfox_note_popup_hide(this)\">
 			<span class='note_popup'><b>$ref_str_short:</b> $note</span>

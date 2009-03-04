@@ -113,20 +113,20 @@ class BibleSearch
 
 	private function output_group_counts($group, $counts)
 	{
-		global $bfox_book_groups, $bfox_links;
+		global $bfox_links;
 
 		$count = 0;
 		$content = '';
-		foreach ($bfox_book_groups[$group] as $child)
+		foreach (BibleMeta::$book_groups[$group] as $child)
 		{
 			$child_count = 0;
 			$child_content = '';
 
-			if (isset($bfox_book_groups[$child])) list($child_count, $child_content) = $this->output_group_counts($child, $counts);
+			if (isset(BibleMeta::$book_groups[$child])) list($child_count, $child_content) = $this->output_group_counts($child, $counts);
 			else if (isset($counts[$child]))
 			{
 				$child_count = $counts[$child];
-				$child_content = $bfox_links->search_link($this->text, bfox_get_book_name($child)) . "<span class='book_count'>$child_count</span>";
+				$child_content = $bfox_links->search_link($this->text, BibleMeta::get_book_name($child)) . "<span class='book_count'>$child_count</span>";
 			}
 
 			if (0 < $child_count)
@@ -138,7 +138,7 @@ class BibleSearch
 
 		return array($count,
 		"<span class='book_group_title'>
-			" . $bfox_links->search_link($this->text, bfox_get_book_name($group), $group) . "
+			" . $bfox_links->search_link($this->text, BibleMeta::get_book_name($group), $group) . "
 			<span class='book_count'>$count</span>
 		</span>
 		<ul class='book_group'>
@@ -196,7 +196,7 @@ class BibleSearch
 					$book = $verse->book_id;
 					$chapter = $verse->chapter_id;
 
-					$book_name = bfox_get_book_name($book);
+					$book_name = BibleMeta::get_book_name($book);
 					$chap_name = "$book_name $chapter";
 				}
 

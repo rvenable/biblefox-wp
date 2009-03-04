@@ -1,24 +1,69 @@
 <?php
 
+class BibleMeta
+{
+	const name_normal = 'name';
+	const name_short = 'short_name';
+
+	/**
+	 * Returns the book name for the given book ID
+	 *
+	 * @param integer $book
+	 * @param string $name Selects a particular book name (ie. name, short_name, ...)
+	 * @return unknown
+	 */
+	public static function get_book_name($book, $name = '')
+	{
+		if (empty($name)) $name = self::name_normal;
+		if (isset(self::$books[$book][$name])) return self::$books[$book][$name];
+		return 'Unknown';
+	}
+
+	/**
+	 * Returns the book id for a book name synonym.
+	 *
+	 * Synonyms have levels for how specific the synonyms. For instance, Isaiah could be abbreviated as 'is', which could be confused with
+	 * the word 'is'. So 'is' is not in the default level, and thus is not used unless its level is specified.
+	 *
+	 * @param string $synonym
+	 * @param integer $max_level
+	 * @return integer
+	 */
+	public static function get_book_id($synonym, $max_level = 0)
+	{
+		$synonym = strtolower(trim($synonym));
+
+		// TODO2: Books with First and Second should be handled algorithmically
+
+		$level = 0;
+		while (empty($book_id) && ($level <= $max_level))
+		{
+			$book_id = self::$synonyms[$level][$synonym];
+			$level++;
+		}
+
+		if (empty($book_id)) return FALSE;
+		return $book_id;
+	}
+
 /**
  * Array for defining book groups (sets of books)
  */
-global $bfox_book_groups;
-$bfox_book_groups = array(
+static $book_groups = array(
 'bible' => array('old', 'new', 'apoc'),
 'protest' => array('old', 'new'),
 'old' => array('moses', 'history', 'wisdom', 'prophets'),
-'moses' => range(1, 5),
-'history' => range(6, 17),
-'wisdom' => range(18, 22),
+'moses' => array(1, 2, 3, 4, 5),
+'history' => array(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17),
+'wisdom' => array(18, 19, 20, 21, 22),
 'prophets' => array('major_prophets', 'minor_prophets'),
-'major_prophets' => range(23, 27),
-'minor_prophets' => range(28, 39),
+'major_prophets' => array(23, 24, 25, 26, 27),
+'minor_prophets' => array(28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39),
 'new' => array('gospels', 44, 'paul', 'epistles', 66),
-'gospels' => range(40, 43),
-'paul' => range(45, 57),
-'epistles' => range(58, 65),
-'apoc' => range(67, 81)
+'gospels' => array(40, 41, 42, 43),
+'paul' => array(45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57),
+'epistles' => array(58, 59, 60, 61, 62, 63, 64, 65),
+'apoc' => array(67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81)
 );
 
 /**
@@ -26,8 +71,7 @@ $bfox_book_groups = array(
  *
  * The numbered ones are books, the ones with string names are book groups
  */
-global $bfox_books;
-$bfox_books = array(
+static $books = array(
 'bible' => array('name' => 'Bible', 'short_name' => 'Bible'),
 'protest' => array('name' => 'Bible', 'short_name' => 'Bible'),
 'old' => array('name' => 'Old Testament', 'short_name' => 'Old'),
@@ -125,14 +169,10 @@ $bfox_books = array(
 '81' => array('name' => '2 Esdras', 'wiki_name' => '2_Esdras', 'short_name' => '2Esd')
 );
 
-global $bfox_syn_prefix;
-$bfox_syn_prefix = array();
-
 /**
  * Array for defining synonyms for bible book names
  */
-global $bfox_synonyms;
-$bfox_synonyms = array(
+static $synonyms = array(
 
 '0' => array(
 'genesis' => '1',
@@ -649,6 +689,11 @@ $bfox_synonyms = array(
 )
 
 );
+
+} // End of BibleMeta class
+
+global $bfox_syn_prefix;
+$bfox_syn_prefix = array();
 
 /* Functions used to generate the initial arrays:
 
