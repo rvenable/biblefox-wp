@@ -432,8 +432,11 @@
 			echo 'Finished<br/>';
 		}
 
-		private function output_posts($posts, $pre = FALSE, $limit = 20)
+		private function output_posts(TxtToBlog $parser, $pre = FALSE, $limit = 20)
 		{
+			$posts = $parser->parse_file();
+//			echo $parser->print_warnings();
+
 			$url = add_query_arg('tool', $_GET['tool'], bfox_admin_page_url(BFOX_ADMIN_TOOLS_SUBPAGE));
 
 			echo "<p>Num Posts: " . count($posts) . "</p>";
@@ -462,15 +465,13 @@
 		function parse_mhcc()
 		{
 			require_once('txt_to_blog.php');
-			$parser = new MhccTxtToBlog();
-			$this->output_posts($parser->parse_file(), TRUE);
+			$this->output_posts(new MhccTxtToBlog(), TRUE);
 		}
 
 		function parse_calcom()
 		{
 			require_once('txt_to_blog.php');
-			$parser = new CalcomTxtToBlog();
-			$this->output_posts($parser->parse_file());
+			$this->output_posts(new CalcomTxtToBlog());
 		}
 
 		/**
@@ -479,6 +480,8 @@
 		 */
 		function temp()
 		{
+			$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
+			echo $refs->get_string();
 		}
 
 	}

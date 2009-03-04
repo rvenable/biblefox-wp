@@ -27,6 +27,7 @@ abstract class TxtToBlog
 	const dir = BFOX_TEXTS_DIR;
 	const divider = '__________________________________________________________________';
 	protected $file;
+	private $warnings;
 
 	public function parse_file($file = '')
 	{
@@ -57,6 +58,15 @@ abstract class TxtToBlog
 		return array($title, $body);
 	}
 
+	protected function warning($str)
+	{
+		$this->warnings []= $str;
+	}
+
+	public function print_warnings()
+	{
+		return implode("<br/>", $this->warnings);
+	}
 }
 
 class MhccTxtToBlog extends TxtToBlog
@@ -146,7 +156,14 @@ class CalcomTxtToBlog extends TxtToBlog
 
 	private function insert_footnote($match)
 	{
-		return "[footnote]{$this->footnotes[$match[1]]}[/footnote]";
+		$footnote = $match[0];
+		if (!isset($this->footnotes[$match[1]])) $this->warning("Missing footnote: $match[0]");
+		else
+		{
+			$footnote = "[footnote]{$this->footnotes[$match[1]]}[/footnote]";
+			unset($this->footnotes[$match[1]]);
+		}
+		return $footnote;
 	}
 
 	public function parse_file($file = '')
