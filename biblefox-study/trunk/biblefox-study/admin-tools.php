@@ -336,7 +336,7 @@
 		function test_refs()
 		{
 			// Test the typical references
-			$this->test_ref('1sam');
+			$this->test_ref('1 sam');
 			$this->test_ref('1sam 1');
 			$this->test_ref('1sam 1-2');
 			$this->test_ref('1sam 1:1');
