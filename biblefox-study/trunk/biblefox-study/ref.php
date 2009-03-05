@@ -169,15 +169,55 @@ class MixedChapters extends Sequence
 		return $sets;
 	}
 
-	public function get_string($book_id)
+	public function get_string()
 	{
-		$sets = array();
-		$book = BibleVerse::calc_unique_id($book_id, 0, 0);
+		$str = '';
+		$prev_ch = 0;
 		foreach ($this->sequences as $seq)
 		{
-			$sets []= array($seq->start + $book, $seq->end + $book);
+			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
+			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+
+			if ($ch1 != $prev_ch)
+			{
+				if (!empty($str)) $str .= '; ';
+				// Whole Chapters
+				if ((0 == $vs1) && (BibleVerse::max_verse_id == $vs2))
+				{
+					$str .= $ch1;
+					if ($ch1 != $ch2) $str .= "-$ch2";
+				}
+				// Inner Chapters
+				elseif ($ch1 == $ch2)
+				{
+					$str .= "$ch1:$vs1";
+					if ($vs1 != $vs2) $str .= "-$vs2";
+				}
+				// Mixed Chapters
+				else
+				{
+					$str .= $ch1;
+					if (0 != $vs1) $str .= ":$vs1";
+					$str .= "-$ch2:$vs2";
+				}
+			}
+			else
+			{
+				$str .= ",$vs1";
+				// Inner Chapters
+				if ($ch1 == $ch2)
+				{
+					if ($vs1 != $vs2) $str .= "-$vs2";
+				}
+				// Mixed Chapters
+				else
+				{
+					$str .= "-$ch2:$vs1";
+				}
+			}
+			$prev_ch = $ch2;
 		}
-		return $sets;
+		return $str;
 	}
 }
 
@@ -277,6 +317,7 @@ class RefManager
 		}
 
 		$flat = self::flatten_seqs($seqs);
+		echo $flat->get_string() . '<br/>';
 
 		$refs = new BibleRefs();
 		$refs->push_sets($flat->get_sets(10));
