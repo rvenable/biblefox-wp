@@ -557,7 +557,9 @@
 		{
 //			$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
 //			echo $refs->get_string();
-			RefManager::parse_nums('14,4:5,1:4-10;11,3:10-4:3,1:5-9');
+			$seq = new RefSequence();
+			$seq->add_string('14,4:5,1:4-10;11,3:10-4:3,1:5-9');
+			echo $seq->get_string() . '<br/>';
 		}
 
 	}

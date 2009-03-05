@@ -4,10 +4,83 @@ define('BFOX_UNIQUE_ID_PART_SIZE', 8);
 define('BFOX_UNIQUE_ID_MASK', 0xFF);
 define('BFOX_UNIQUE_ID_MAX', 256);
 
-class Sequence
+class RefSequence
 {
+	private $working_chapter = 0;
 	protected $sequences = array();
-	public function add_seq($start, $end = 0)
+
+	public function add_string($str)
+	{
+		// Spaces between numbers count as semicolons
+		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
+
+		$semis = explode(';', $str);
+		foreach ($semis as $semi)
+		{
+			$commas = explode(',', $semi);
+
+			$verse_chapter = 0;
+			foreach ($commas as $comma)
+			{
+				$dash = explode('-', $comma, 2);
+
+				$left = explode(':', $dash[0], 2);
+				$ch1 = intval($left[0]);
+				$vs1 = intval($left[1]);
+
+				$right = explode(':', $dash[1], 2);
+				$ch2 = intval($right[0]);
+				$vs2 = intval($right[1]);
+
+				// If verse0 is not 0, but verse1 is 0, we should use chapter1 as verse1, and chapter1 should be 0
+				// This fixes the following type of case: 1:2-3 (1:2-3:0 becomes 1:2-0:3)
+				if ((0 != $vs1) && (0 == $vs2))
+				{
+					$vs2 = $ch2;
+					$ch2 = 0;
+				}
+
+				// Whole Chapters (or whole verses)
+				if ((0 == $vs1) && (0 == $vs2)) $this->add_whole($ch1, $ch2, $verse_chapter);
+				// Inner Chapters
+				elseif ((0 == $ch2) || ($ch1 == $ch2))
+				{
+					$verse_chapter = $ch1;
+					$this->add_inner($verse_chapter, $vs1, $vs2);
+				}
+				// Mixed Chapters
+				else
+				{
+					$this->add_mixed($ch1, $vs1, $ch2, $vs2);
+					$verse_chapter = $ch2;
+				}
+			}
+		}
+	}
+
+	public function add_whole($chapter1, $chapter2 = 0, $verse_chapter = 0)
+	{
+		if (empty($chapter2)) $chapter2 = $chapter1;
+
+		// If the verse chapter is set, then these are actually verses
+		if (empty($verse_chapter)) $this->add_mixed($chapter1, 0, $chapter2, BibleVerse::max_verse_id);
+		else $this->add_inner($this->working_chapter, $chapter1, $chapter2);
+	}
+
+	public function add_inner($chapter1, $verse1, $verse2 = 0)
+	{
+		if (empty($verse2)) $verse2 = $verse1;
+		$this->add_mixed($chapter1, $verse1, $chapter1, $verse2);
+	}
+
+	public function add_mixed($chapter1, $verse1, $chapter2, $verse2)
+	{
+		$this->add_seq(
+			BibleVerse::calc_unique_id(0, $chapter1, $verse1),
+			BibleVerse::calc_unique_id(0, $chapter2, $verse2));
+	}
+
+	private function add_seq($start, $end = 0)
 	{
 		if (empty($end)) $end = $start;
 
@@ -63,109 +136,13 @@ class Sequence
 		$this->sequences = $new_seqs;
 	}
 
-	public function get_sequences()
-	{
-		return $this->sequences;
-	}
-
-	public function add_sequences($sequences)
-	{
-		self::add_single_sequences($sequences);
-	}
-
-	public function add_single_sequences($sequences)
-	{
-		foreach ($sequences as $seq) $this->add_seq($seq->start, $seq->end);
-	}
-
-	public function get_end()
-	{
-		$count = count($this->sequences);
-		if (0 < $count)
-			return $this->sequences[$count - 1]->end;
-		return FALSE;
-	}
-
-	public function get_chapter_seqs()
-	{
-		self::get_sequences();
-	}
-}
-
-class WholeChapters extends Sequence
-{
-	public function get_chapter_seqs()
-	{
-		$seqs = array();
-
-		foreach ($this->sequences as $seq)
-		{
-			$seq->start = BibleVerse::calc_unique_id(0, $seq->start, 0);
-			$seq->end = BibleVerse::calc_unique_id(0, $seq->end, BibleVerse::max_verse_id);
-			$seqs []= $seq;
-		}
-
-		return $seqs;
-	}
-}
-
-class InnerChapter extends Sequence
-{
-	private $chapter;
-
-	public function __construct($chapter)
-	{
-		$this->chapter = $chapter;
-	}
-
-	public function get_chapter_seqs()
-	{
-		$seqs = array();
-
-		foreach ($this->sequences as $seq)
-		{
-			$seq->start = BibleVerse::calc_unique_id(0, $this->chapter, $seq->start);
-			$seq->end = BibleVerse::calc_unique_id(0, $this->chapter, $seq->end);
-			$seqs []= $seq;
-		}
-
-		return $seqs;
-	}
-}
-
-class MixedChapters extends Sequence
-{
-	public function add_ref($chapter1, $verse1, $chapter2, $verse2)
-	{
-		$v1 = BibleVerse::calc_unique_id(0, $chapter1, $verse1);
-		$v2 = BibleVerse::calc_unique_id(0, $chapter2, $verse2);
-		$this->add_seq($v1, $v2);
-	}
-
-	public function add_single_sequences($sequences)
-	{
-		$end = new BibleVerse($this->get_end());
-		foreach ($sequences as $seq)
-		{
-			$v1 = BibleVerse::calc_unique_id($end->unique_id - $end->verse + $seq->start);
-			$v2 = BibleVerse::calc_unique_id($end->unique_id - $end->verse + $seq->end);
-			$this->add_seq($v1, $v2);
-		}
-	}
-
-	public function get_chapter_seqs()
-	{
-		return parent::get_sequences();
-	}
-
 	public function get_sets($book_id)
 	{
-		$sets = array();
 		$book = BibleVerse::calc_unique_id($book_id, 0, 0);
-		foreach ($this->sequences as $seq)
-		{
-			$sets []= array($seq->start + $book, $seq->end + $book);
-		}
+
+		$sets = array();
+		foreach ($this->sequences as $seq) $sets []= array($seq->start + $book, $seq->end + $book);
+
 		return $sets;
 	}
 
@@ -301,98 +278,6 @@ class RefManager
 		$verse_end->set_ref($verse_end->book, $chapter2, $verse2);
 
 		return $verse_end;
-	}
-
-	public static function parse_nums($str)
-	{
-		// Spaces between numbers count as semicolons
-		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
-
-		$semis = explode(';', $str);
-
-		$seqs = array();
-		foreach ($semis as $semi)
-		{
-			$seqs = array_merge($seqs, self::parse_sequences($semi));
-		}
-
-		$flat = self::flatten_seqs($seqs);
-		echo $flat->get_string() . '<br/>';
-
-		$refs = new BibleRefs();
-		$refs->push_sets($flat->get_sets(10));
-		echo $refs->get_string();
-	}
-
-	public static function flatten_seqs($seqs)
-	{
-		$flat = new MixedChapters();
-		foreach ($seqs as $seq)
-		{
-			$flat->add_sequences($seq->get_chapter_seqs());
-		}
-
-		return $flat;
-	}
-
-	public static function parse_sequences($str)
-	{
-		$commas = explode(',', $str);
-		$seqs = array();
-		$prev_seq = new WholeChapters();
-		foreach ($commas as $comma)
-		{
-			$seq = self::parse_sequence($comma);
-			if ('Sequence' == get_class($seq))
-			{
-				$prev_seq->add_single_sequences($seq->get_sequences());
-			}
-			else
-			{
-				$seqs []= $prev_seq;
-				$prev_seq = $seq;
-			}
-		}
-		$seqs []= $prev_seq;
-		return $seqs;
-	}
-
-	public static function parse_sequence($str)
-	{
-		$dash = explode('-', $str, 2);
-
-		$left = explode(':', $dash[0], 2);
-		$ch[0] = intval($left[0]);
-		$vs[0] = intval($left[1]);
-
-		$right = explode(':', $dash[1], 2);
-		$ch[1] = intval($right[0]);
-		$vs[1] = intval($right[1]);
-
-		// If verse0 is not 0, but verse1 is 0, we should use chapter1 as verse1, and chapter1 should be 0
-		// This fixes the following type of case: 1:2-3 (1:2-3:0 becomes 1:2-0:3)
-		if ((0 != $vs[0]) && (0 == $vs[1]))
-		{
-			$vs[1] = $ch[1];
-			$ch[1] = 0;
-		}
-
-		if ((0 == $vs[0]) && (0 == $vs[1]))
-		{
-			$seq = new Sequence();
-			$seq->add_seq($ch[0], $ch[1]);
-		}
-		elseif ((0 == $ch[1]) || ($ch[0] == $ch[1]))
-		{
-			$seq = new InnerChapter($ch[0]);
-			$seq->add_seq($vs[0], $vs[1]);
-		}
-		else
-		{
-			$seq = new MixedChapters();
-			$seq->add_ref($ch[0], $vs[0], $ch[1], $vs[1]);
-		}
-		return $seq;
 	}
 }
 
