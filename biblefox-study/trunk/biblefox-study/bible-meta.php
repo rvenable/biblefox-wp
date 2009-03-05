@@ -4,6 +4,7 @@ class BibleMeta
 {
 	const name_normal = 'name';
 	const name_short = 'short_name';
+	const digits = '0123456789';
 
 	/**
 	 * Returns the book name for the given book ID
@@ -31,36 +32,235 @@ class BibleMeta
 	 */
 	public static function get_book_id($synonym, $max_level = 0)
 	{
+		$words = array();
+
 		// Chop the synonym into words (numeric digits count as words)
-		$raw_words = str_word_count(strtolower(trim($synonym)), 1, '0123456789');
+		$raw_words = str_word_count(strtolower(trim($raw_synonym)), 1, self::digits);
 
 		// There needs to be at least one word
 		if (0 < count($raw_words))
 		{
 			// Create a new word array with only the words we don't want to ignore (and get rid of the old array
-			$words = array();
 			foreach ($raw_words as $word) if (!isset(self::$ignore_words[$word])) $words []= $word;
 			unset($raw_words);
+		}
 
+		return self::get_book_id_from_words($words, $max_level);
+	}
+
+	/**
+	 * Returns an array of arrays, where the first element is a book id, and the second element is the leftover string following the book name
+	 *
+	 * @param string $str
+	 * @param integer $max_level
+	 * @return array of array(book_id, leftovers)
+	 */
+	public static function get_books_in_string($str, $max_level = 0)
+	{
+		$books = array(array(0, ''));
+		$index = 0;
+		$leftover_offset = 0;
+
+		// Commas and semicolons cannot be in a book name, so we must split on them
+		$sections = preg_split('/[,;]/', $str, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
+
+		// We have to operate on each section separately
+		foreach ($sections as $section)
+		{
+			$section_str = $section[0];
+			$section_offset = $section[1];
+
+			// Search for books in this section
+			$section_books = self::search_for_books($section_str, $max_level);
+			foreach ($section_books as $book)
+			{
+				// Get the book id, offset, and length from $book
+				$book_id = $book[0];
+				$book_offset = $book[1] + $section_offset;
+				$book_len = $book[2];
+
+				// If this is a valid book we should add it to our book list
+				if (!empty($book_id))
+				{
+					// Now we can calculate the leftovers from the previous book
+
+					// The length of the leftovers is the book offset minus the leftover offset
+					$leftover_len = $book_offset - $leftover_offset;
+
+					// If the length of the leftovers is greater than 0, we can add the substr to our book array
+					if (0 < $leftover_len) $leftovers = substr($str, $leftover_offset, $leftover_len);
+					else $leftovers = '';
+					$books[$index++] = array($prev_id, $leftovers);
+
+					// Set the new previous id and new leftover offset
+					$prev_id = $book_id;
+					$leftover_offset = $book_offset + $book_len;
+				}
+			}
+		}
+
+		// Now we can calculate any final leftovers
+
+		// The length of the leftovers is the length of str minus the leftover offset
+		$leftover_len = strlen($str) - $leftover_offset;
+
+		// If the length of the leftovers is greater than 0, we can add the substr to our book array
+		if (0 < $leftover_len) $leftovers = substr($str, $leftover_offset, $leftover_len);
+		else $leftovers = '';
+		$books[$index++] = array($prev_id, $leftovers);
+
+		return $books;
+	}
+
+	/**
+	 * Search a string for book names. Returns an array of arrays.
+	 *
+	 * Each element of the return array is an array with these elements:
+	 * Book ID
+	 * Position in the search string at which the book's name began
+	 * Length of the book name
+	 *
+	 * @param string $str
+	 * @param integer $max_level
+	 * @return array of array(book_id, position, length)
+	 */
+	private static function search_for_books($str, $max_level)
+	{
+		$books = array();
+		$prefix_words = array();
+		$prefix_offset = 0;
+
+		// Get all the words (digits count as words) with their offsets
+		$words = str_word_count($str, 2, self::digits);
+
+		// Loop through each word to see if we can find a book name
+		foreach ($words as $pos => $word)
+		{
+			// We should ignore ignore words (unless there are no prefix words)
+			if (isset(self::$ignore_words[$word]))
+			{
+				// If no prefix words, but this ignore word can exist as the first word, add it to the prefix words
+				if (empty($prefix_words) && self::$ignore_words[$word])
+				{
+					$prefix_words []= $word;
+					$prefix_offset = $pos;
+				}
+			}
+			else
+			{
+				$book = array();
+
+				// Add the current word to the prefix list
+				if (empty($prefix_words)) $prefix_offset = $pos;
+				$prefix_words []= $word;
+				$new_prefix_len = $pos + strlen($word) - $prefix_offset;
+
+				// If the prefix words are a valid prefix, we should save them for later to see if we can add the next word
+				// Otherwise, we need to see if we can get book name from the prefix words
+				if (self::is_prefix($prefix_words)) $old_prefix_len = $new_prefix_len;
+				else
+				{
+					// Try to get a book ID from the words
+					$book_id = self::get_book_id_from_words($prefix_words, $max_level);
+
+					// If we got a book ID, then we can add this book and clear our prefixes
+					// Otherwise, this newest word doesn't belong with the prefix list
+					if (!empty($book_id))
+					{
+						$books []= array($book_id, $prefix_offset, $new_prefix_len);
+						$prefix_words = array();
+					}
+					else
+					{
+						// Pop off the newest word which we had just added to the prefix list
+						array_pop($prefix_words);
+
+						// If we still have a prefix list,
+						// Then we should see if it is a book name and clear the prefix list
+						if (!empty($prefix_words))
+						{
+							// If the prefix list is a valid book, we should add the book
+							$book_id = self::get_book_id_from_words($prefix_words, $max_level);
+							if (!empty($book_id)) $books []= array($book_id, $prefix_offset, $old_prefix_len);
+
+							// Clear the prefix words
+							$prefix_words = array();
+						}
+
+						// Now the prefix list should be empty, so we should check this word on its own
+
+						// If this word is a prefix, then we should start a new prefix list with it
+						// Otherwise, if it is a book name, we should add the book
+						if (self::is_prefix(array($word)))
+						{
+							$prefix_offset = $pos;
+							$prefix_words = array($word);
+						}
+						elseif ($book_id = self::get_book_id_from_words(array($word), $max_level))
+						{
+							$books[] = array($book_id, $pos, strlen($word));
+						}
+					}
+				}
+			}
+		}
+
+		// If we still have prefix words, check to see if they are a book
+		if (!empty($prefix_words))
+		{
+			$book_id = self::get_book_id_from_words($prefix_words, $max_level);
+			if (!empty($book_id)) $books []= array($book_id, $prefix_offset, $old_prefix_len);
+		}
+
+		return $books;
+	}
+
+	/**
+	 * Returns whether a given sequence of words can be a valid synonym prefix
+	 *
+	 * @param array $prefix_words
+	 * @return bool
+	 */
+	private static function is_prefix($prefix_words)
+	{
+		$prefix = implode(' ', $prefix_words);
+		return (isset(self::$prefixes[$prefix]) || isset(self::$num_strings[$prefix]));
+	}
+
+	/**
+	 * Get a book id from a list of words
+	 *
+	 * Note: Ignore words should already have been taken out
+	 *
+	 * @param array $words
+	 * @param integer $max_level
+	 * @return integer Book ID or FALSE
+	 */
+	private static function get_book_id_from_words($words, $max_level)
+	{
+		if (0 < count($words))
+		{
 			// If the first word is a string representing a number, shift that number off the word list
 			// That number will need to be prepended to the beginning of the first word
 			// For instance: '1 sam' should become '1sam'
-			if (is_numeric($words[0])) $num = array_shift($words);
-			elseif (isset(self::$num_strings[$words[0]])) $num = self::$num_strings[array_shift($words)];
+			if (isset(self::$num_strings[$words[0]])) $num = self::$num_strings[array_shift($words)];
 
 			if (0 < count($words))
 			{
 				// Prepend the book number if set
 				if (!empty($num)) $words[0] = $num . $words[0];
 
-				// Put the words back together but without spaces
 				$synonym = implode(' ', $words);
 
-				$level = 0;
-				while (empty($book_id) && ($level <= $max_level))
+				if (!empty($synonym))
 				{
-					$book_id = self::$synonyms[$level][$synonym];
-					$level++;
+					// Loop through each allowed level
+					$level = 0;
+					while (empty($book_id) && ($level <= $max_level))
+					{
+						$book_id = self::$synonyms[$level][$synonym];
+						$level++;
+					}
 				}
 			}
 		}
@@ -71,6 +271,8 @@ class BibleMeta
 
 	/**
 	 * Array for defining book groups (sets of books)
+	 *
+	 * @var array
 	 */
 	static $book_groups = array(
 	'bible' => array('old', 'new', 'apoc'),
@@ -93,6 +295,8 @@ class BibleMeta
 	 * Array for defining book information
 	 *
 	 * The numbered ones are books, the ones with string names are book groups
+	 *
+	 * @var array
 	 */
 	static $books = array(
 	'bible' => array('name' => 'Bible', 'short_name' => 'Bible'),
@@ -194,6 +398,10 @@ class BibleMeta
 
 	/**
 	 * Array for defining synonyms for bible book names
+	 *
+	 * This array has levels for how specific the synonyms are allowed to be
+	 *
+	 * @var array
 	 */
 	static $synonyms = array(
 	'0' => array(
@@ -514,7 +722,15 @@ class BibleMeta
 		'2m' => '78'
 	));
 
+	/**
+	 * Array of strings which can be used as the beginning of a numbered book (ex. 1st Samuel)
+	 *
+	 * @var array
+	 */
 	static $num_strings = array(
+	'1' => 1,
+	'2' => 2,
+	'3' => 3,
 	'one' => 1,
 	'two' => 2,
 	'three' => 3,
@@ -534,12 +750,37 @@ class BibleMeta
 	 *
 	 * If a word is set to true, then the ignore word can begin at the beginning of the book name
 	 *
-	 * @var unknown_type
+	 * @var array
 	 */
 	static $ignore_words = array(
 	'book' => TRUE,
 	'of' => FALSE,
 	'the' => TRUE
+	);
+
+	/**
+	 * Array of string which are valid synonym prefixes
+	 *
+	 * @var array
+	 */
+	static $prefixes = array(
+	'song' => TRUE,
+	'canticle' => TRUE,
+	'rest' => TRUE,
+	'add' => TRUE,
+	'additions to' => TRUE,
+	'additions' => TRUE,
+	'wisd' => TRUE,
+	'wisdom' => TRUE,
+	'ltr' => TRUE,
+	'let' => TRUE,
+	'letter' => TRUE,
+	'song three holy' => TRUE,
+	'song three' => TRUE,
+	'prayer' => TRUE,
+	'pr' => TRUE,
+	'bel and' => TRUE,
+	'bel' => TRUE
 	);
 
 } // End of BibleMeta class

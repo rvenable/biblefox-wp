@@ -521,20 +521,32 @@
 			return 'array(' . implode($glue, $elements) . ')';
 		}
 
-		function get_wordy_synonym_array()
+		function create_synonym_prefixes_array()
 		{
 			$prefixes = array();
 			foreach (BibleMeta::$synonyms[0] as $synonym => $book_id)
 			{
-				$words = str_word_count($synonym, 1, '0123456789');
+				$words = str_word_count($synonym, 1, BibleMeta::digits);
 				array_pop($words);
 				while (!empty($words))
 				{
-					$prefixes[implode('', $words)] = TRUE;
+					$prefixes[implode(' ', $words)] = TRUE;
 					array_pop($words);
 				}
 			}
 			pre(self::print_array_decl($prefixes));
+		}
+
+		function test_string_parsing()
+		{
+			$str = 'hello dude genesis 1,2 gen 5 1 sam 4, song ;of song 3';
+			echo "$str<br/>";
+			$books = BibleMeta::get_books_in_string($str);
+			foreach ($books as $book)
+			{
+				$book_name = BibleMeta::get_book_name($book[0]);
+				echo "Book: $book_name ($book[1])<br/>";
+			}
 		}
 
 		/**
