@@ -10,16 +10,28 @@ class RefSequence
 
 	public function add_string($str)
 	{
-		// TODO3: return leftovers
+		$final_leftovers = '';
+
 		$books = BibleMeta::get_books_in_string($str);
 		foreach ($books as $book)
 		{
 			list($book_id, $leftovers) = $book;
-			if (!empty($book_id)) $this->add_book_str($book_id, $leftovers);
+			if (!empty($book_id))
+			{
+				preg_match('/^[\s\d-:,;]*/', $leftovers, $match);
+				if (!empty($match[0]))
+				{
+					$leftovers = substr($leftovers, strlen($match[0]));
+					$this->add_book_str($book_id, $match[0]);
+				}
+			}
+			$final_leftovers .= $leftovers;
 		}
+
+		return $final_leftovers;
 	}
 
-	public function add_book_str($book_id, $str)
+	private function add_book_str($book_id, $str)
 	{
 		// Spaces between numbers count as semicolons
 		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
@@ -42,27 +54,31 @@ class RefSequence
 				$ch2 = intval($right[0]);
 				$vs2 = intval($right[1]);
 
-				// If verse0 is not 0, but verse1 is 0, we should use chapter1 as verse1, and chapter1 should be 0
-				// This fixes the following type of case: 1:2-3 (1:2-3:0 becomes 1:2-0:3)
-				if ((0 != $vs1) && (0 == $vs2))
+				// We must have a chapter1
+				if (0 != $ch1)
 				{
-					$vs2 = $ch2;
-					$ch2 = 0;
-				}
+					// If verse0 is not 0, but verse1 is 0, we should use chapter1 as verse1, and chapter1 should be 0
+					// This fixes the following type of case: 1:2-3 (1:2-3:0 becomes 1:2-0:3)
+					if ((0 != $vs1) && (0 == $vs2))
+					{
+						$vs2 = $ch2;
+						$ch2 = 0;
+					}
 
-				// Whole Chapters (or whole verses)
-				if ((0 == $vs1) && (0 == $vs2)) $this->add_whole($book_id, $ch1, $ch2, $verse_chapter);
-				// Inner Chapters
-				elseif ((0 == $ch2) || ($ch1 == $ch2))
-				{
-					$verse_chapter = $ch1;
-					$this->add_inner($book_id, $verse_chapter, $vs1, $vs2);
-				}
-				// Mixed Chapters
-				else
-				{
-					$this->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2);
-					$verse_chapter = $ch2;
+					// Whole Chapters (or whole verses)
+					if ((0 == $vs1) && (0 == $vs2)) $this->add_whole($book_id, $ch1, $ch2, $verse_chapter);
+					// Inner Chapters
+					elseif ((0 == $ch2) || ($ch1 == $ch2))
+					{
+						$verse_chapter = $ch1;
+						$this->add_inner($book_id, $verse_chapter, $vs1, $vs2);
+					}
+					// Mixed Chapters
+					else
+					{
+						$this->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2);
+						$verse_chapter = $ch2;
+					}
 				}
 			}
 		}
