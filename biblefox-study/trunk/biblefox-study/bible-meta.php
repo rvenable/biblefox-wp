@@ -57,6 +57,8 @@ class BibleMeta
 	 */
 	public static function get_books_in_string($str, $max_level = 0)
 	{
+		$str = strtolower($str);
+
 		$books = array(array(0, ''));
 		$index = 0;
 		$leftover_offset = 0;

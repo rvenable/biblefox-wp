@@ -29,6 +29,7 @@ class RefSequence
 					$leftovers = substr($leftovers, strlen($match[0]));
 					$this->add_book_str($book_id, $match[0]);
 				}
+				else $this->add_whole_book($book_id);
 			}
 			$final_leftovers .= $leftovers;
 		}
@@ -96,6 +97,16 @@ class RefSequence
 	}
 
 	/**
+	 * Add a sequence corresponding to a whole book
+	 *
+	 * @param integer $book_id
+	 */
+	private function add_whole_book($book_id)
+	{
+		$this->add_whole($book_id, 0, BibleVerse::max_chapter_id);
+	}
+
+	/**
 	 * Add a sequence corresponding to whole chapters (or verses, if $verse_chapter is set)
 	 *
 	 * @param integer $book_id
@@ -120,7 +131,7 @@ class RefSequence
 	 * @param integer $verse1
 	 * @param integer $verse2
 	 */
-	public function add_inner($book_id, $chapter1, $verse1, $verse2 = 0)
+	private function add_inner($book_id, $chapter1, $verse1, $verse2 = 0)
 	{
 		if (empty($verse2)) $verse2 = $verse1;
 		$this->add_mixed($book_id, $chapter1, $verse1, $chapter1, $verse2);
@@ -135,7 +146,7 @@ class RefSequence
 	 * @param integer $chapter2
 	 * @param integer $verse2
 	 */
-	public function add_mixed($book_id, $chapter1, $verse1, $chapter2, $verse2)
+	private function add_mixed($book_id, $chapter1, $verse1, $chapter2, $verse2)
 	{
 		$this->add_seq(
 			BibleVerse::calc_unique_id($book_id, $chapter1, $verse1),
@@ -266,6 +277,29 @@ class RefSequence
 		foreach ($books as $book_id => &$str) $str = BibleMeta::get_book_name($book_id) . " $str";
 
 		return implode('; ', $books);
+	}
+
+	/**
+	 * Return the sequences
+	 *
+	 * @return array of objects
+	 */
+	public function get_seqs()
+	{
+		return $this->sequences;
+	}
+
+	/**
+	 * Return unique id sets
+	 *
+	 * @return array of arrays
+	 */
+	public function get_sets()
+	{
+		// TODO3: get rid of this function and always use get_seqs instead
+		$sets = array();
+		foreach ($this->sequences as $seq) $sets []= array($seq->start, $seq->end);
+		return $sets;
 	}
 }
 
@@ -1098,25 +1132,16 @@ class BibleRefs extends BibleRefsAbstract
 
 	function push_string($str)
 	{
-		$count = 0;
-		$refstrs = preg_split("/[\n,;]/", trim($str));
-		foreach ($refstrs as $refstr)
+		if (isset(BibleMeta::$book_groups[$str]))
 		{
-			if (isset(BibleMeta::$book_groups[$refstr]))
-			{
-				$ref = new BibleGroupPassage($refstr);
-			}
-			else
-			{
-				$ref = self::parse_ref_str($refstr);
-			}
-			if ($ref->is_valid())
-			{
-				$this->refs[] = $ref;
-				$count++;
-			}
+			$this->refs []= new BibleGroupPassage($str);
 		}
-		return $count;
+		else
+		{
+			$this->seq = new RefSequence();
+			$this->seq->add_string($str);
+			$this->push_sets($this->seq->get_sets());
+		}
 	}
 
 	/**
