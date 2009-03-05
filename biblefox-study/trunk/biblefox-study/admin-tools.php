@@ -539,7 +539,7 @@
 
 		function test_string_parsing()
 		{
-			$str = 'hello dude genesis 1,2 gen 5 1 sam 4, song ;of song 3';
+			$str = 'hello dude genesis 1,;,2 gen 5 1 sam 4, song ;of song 3';
 			echo "$str<br/>";
 			$books = BibleMeta::get_books_in_string($str);
 			foreach ($books as $book)
@@ -555,8 +555,9 @@
 		 */
 		function temp()
 		{
-			$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
-			echo $refs->get_string();
+//			$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
+//			echo $refs->get_string();
+			RefManager::parse_nums('14,4:5,1:4-10;11,3:10-4:3,1:5-9');
 		}
 
 	}
