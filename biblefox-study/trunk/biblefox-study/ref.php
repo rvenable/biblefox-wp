@@ -8,6 +8,11 @@ class RefSequence
 {
 	protected $sequences = array();
 
+	/**
+	 * Add using a bible reference string
+	 *
+	 * @param string $str
+	 */
 	public function add_string($str)
 	{
 		$final_leftovers = '';
@@ -31,6 +36,12 @@ class RefSequence
 		return $final_leftovers;
 	}
 
+	/**
+	 * Add the number part of a bible reference (ie, the 3:16 in John 3:16)
+	 *
+	 * @param integer $book_id
+	 * @param string $str
+	 */
 	private function add_book_str($book_id, $str)
 	{
 		// Spaces between numbers count as semicolons
@@ -84,7 +95,15 @@ class RefSequence
 		}
 	}
 
-	public function add_whole($book_id, $chapter1, $chapter2 = 0, $verse_chapter = 0)
+	/**
+	 * Add a sequence corresponding to whole chapters (or verses, if $verse_chapter is set)
+	 *
+	 * @param integer $book_id
+	 * @param integer $chapter1
+	 * @param integer $chapter2
+	 * @param integer $verse_chapter If this is non-zero, it will be used as the chapter number and the chapter numbers will be the verse numbers
+	 */
+	private function add_whole($book_id, $chapter1, $chapter2 = 0, $verse_chapter = 0)
 	{
 		if (empty($chapter2)) $chapter2 = $chapter1;
 
@@ -93,12 +112,29 @@ class RefSequence
 		else $this->add_inner($book_id, $verse_chapter, $chapter1, $chapter2);
 	}
 
+	/**
+	 * Add a sequence corresponding to verses within a specific chapter
+	 *
+	 * @param integer $book_id
+	 * @param integer $chapter1
+	 * @param integer $verse1
+	 * @param integer $verse2
+	 */
 	public function add_inner($book_id, $chapter1, $verse1, $verse2 = 0)
 	{
 		if (empty($verse2)) $verse2 = $verse1;
 		$this->add_mixed($book_id, $chapter1, $verse1, $chapter1, $verse2);
 	}
 
+	/**
+	 * Add a sequence of verses which can be in different chapters
+	 *
+	 * @param integer $book_id
+	 * @param integer $chapter1
+	 * @param integer $verse1
+	 * @param integer $chapter2
+	 * @param integer $verse2
+	 */
 	public function add_mixed($book_id, $chapter1, $verse1, $chapter2, $verse2)
 	{
 		$this->add_seq(
@@ -106,12 +142,22 @@ class RefSequence
 			BibleVerse::calc_unique_id($book_id, $chapter2, $verse2));
 	}
 
+	/**
+	 * Adds a new sequence to the the sequence list
+	 *
+	 * This function maintains that there are no overlapping sequences and that they are in order from lowest to highest
+	 *
+	 * @param integer $start
+	 * @param integer $end
+	 */
 	private function add_seq($start, $end = 0)
 	{
+		// If the end is not set, it should equal the start
 		if (empty($end)) $end = $start;
 
 		$new_seq = (object) array('start' => $start, 'end' => $end);
 
+		// If the end is less than the start, just switch them around
 		if ($end < $start)
 		{
 			$new_seq->end = $start;
@@ -162,16 +208,11 @@ class RefSequence
 		$this->sequences = $new_seqs;
 	}
 
-	public function get_unique_ids($book_id)
-	{
-		$book = BibleVerse::calc_unique_id($book_id, 0, 0);
-
-		$sets = array();
-		foreach ($this->sequences as $seq) $sets []= array($seq->start + $book, $seq->end + $book);
-
-		return $sets;
-	}
-
+	/**
+	 * Get the string for this RefSequence
+	 *
+	 * @return string
+	 */
 	public function get_string()
 	{
 		$books = array();
