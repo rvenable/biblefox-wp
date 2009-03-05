@@ -227,6 +227,8 @@ class RefSequence
 	public function get_string()
 	{
 		$books = array();
+
+		$prev_book = 0;
 		$prev_ch = 0;
 
 		foreach ($this->sequences as $seq)
@@ -234,7 +236,11 @@ class RefSequence
 			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
 			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
 
-			if ($ch1 != $prev_ch)
+			// Reset the previous chapter for subsequent books
+			if ($book != $prev_book) $prev_ch = 0;
+
+			if (0 == $ch1) $books[$book] = '';
+			elseif ($ch1 != $prev_ch)
 			{
 				if (!empty($books[$book])) $books[$book] .= '; ';
 				// Whole Chapters
@@ -271,10 +277,14 @@ class RefSequence
 					$books[$book] .= "-$ch2:$vs1";
 				}
 			}
+
+			$prev_book = $book;
 			$prev_ch = $ch2;
 		}
 
-		foreach ($books as $book_id => &$str) $str = BibleMeta::get_book_name($book_id) . " $str";
+		foreach ($books as $book_id => &$str)
+			if (empty($str)) $str = BibleMeta::get_book_name($book_id);
+			else $str = BibleMeta::get_book_name($book_id) . " $str";
 
 		return implode('; ', $books);
 	}
