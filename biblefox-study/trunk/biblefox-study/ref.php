@@ -6,10 +6,20 @@ define('BFOX_UNIQUE_ID_MAX', 256);
 
 class RefSequence
 {
-	private $working_chapter = 0;
 	protected $sequences = array();
 
 	public function add_string($str)
+	{
+		// TODO3: return leftovers
+		$books = BibleMeta::get_books_in_string($str);
+		foreach ($books as $book)
+		{
+			list($book_id, $leftovers) = $book;
+			if (!empty($book_id)) $this->add_book_str($book_id, $leftovers);
+		}
+	}
+
+	public function add_book_str($book_id, $str)
 	{
 		// Spaces between numbers count as semicolons
 		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
@@ -41,43 +51,43 @@ class RefSequence
 				}
 
 				// Whole Chapters (or whole verses)
-				if ((0 == $vs1) && (0 == $vs2)) $this->add_whole($ch1, $ch2, $verse_chapter);
+				if ((0 == $vs1) && (0 == $vs2)) $this->add_whole($book_id, $ch1, $ch2, $verse_chapter);
 				// Inner Chapters
 				elseif ((0 == $ch2) || ($ch1 == $ch2))
 				{
 					$verse_chapter = $ch1;
-					$this->add_inner($verse_chapter, $vs1, $vs2);
+					$this->add_inner($book_id, $verse_chapter, $vs1, $vs2);
 				}
 				// Mixed Chapters
 				else
 				{
-					$this->add_mixed($ch1, $vs1, $ch2, $vs2);
+					$this->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2);
 					$verse_chapter = $ch2;
 				}
 			}
 		}
 	}
 
-	public function add_whole($chapter1, $chapter2 = 0, $verse_chapter = 0)
+	public function add_whole($book_id, $chapter1, $chapter2 = 0, $verse_chapter = 0)
 	{
 		if (empty($chapter2)) $chapter2 = $chapter1;
 
 		// If the verse chapter is set, then these are actually verses
-		if (empty($verse_chapter)) $this->add_mixed($chapter1, 0, $chapter2, BibleVerse::max_verse_id);
-		else $this->add_inner($this->working_chapter, $chapter1, $chapter2);
+		if (empty($verse_chapter)) $this->add_mixed($book_id, $chapter1, 0, $chapter2, BibleVerse::max_verse_id);
+		else $this->add_inner($book_id, $verse_chapter, $chapter1, $chapter2);
 	}
 
-	public function add_inner($chapter1, $verse1, $verse2 = 0)
+	public function add_inner($book_id, $chapter1, $verse1, $verse2 = 0)
 	{
 		if (empty($verse2)) $verse2 = $verse1;
-		$this->add_mixed($chapter1, $verse1, $chapter1, $verse2);
+		$this->add_mixed($book_id, $chapter1, $verse1, $chapter1, $verse2);
 	}
 
-	public function add_mixed($chapter1, $verse1, $chapter2, $verse2)
+	public function add_mixed($book_id, $chapter1, $verse1, $chapter2, $verse2)
 	{
 		$this->add_seq(
-			BibleVerse::calc_unique_id(0, $chapter1, $verse1),
-			BibleVerse::calc_unique_id(0, $chapter2, $verse2));
+			BibleVerse::calc_unique_id($book_id, $chapter1, $verse1),
+			BibleVerse::calc_unique_id($book_id, $chapter2, $verse2));
 	}
 
 	private function add_seq($start, $end = 0)
@@ -136,7 +146,7 @@ class RefSequence
 		$this->sequences = $new_seqs;
 	}
 
-	public function get_sets($book_id)
+	public function get_unique_ids($book_id)
 	{
 		$book = BibleVerse::calc_unique_id($book_id, 0, 0);
 
@@ -148,8 +158,9 @@ class RefSequence
 
 	public function get_string()
 	{
-		$str = '';
+		$books = array();
 		$prev_ch = 0;
+
 		foreach ($this->sequences as $seq)
 		{
 			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
@@ -157,44 +168,47 @@ class RefSequence
 
 			if ($ch1 != $prev_ch)
 			{
-				if (!empty($str)) $str .= '; ';
+				if (!empty($books[$book])) $books[$book] .= '; ';
 				// Whole Chapters
 				if ((0 == $vs1) && (BibleVerse::max_verse_id == $vs2))
 				{
-					$str .= $ch1;
-					if ($ch1 != $ch2) $str .= "-$ch2";
+					$books[$book] .= $ch1;
+					if ($ch1 != $ch2) $books[$book] .= "-$ch2";
 				}
 				// Inner Chapters
 				elseif ($ch1 == $ch2)
 				{
-					$str .= "$ch1:$vs1";
-					if ($vs1 != $vs2) $str .= "-$vs2";
+					$books[$book] .= "$ch1:$vs1";
+					if ($vs1 != $vs2) $books[$book] .= "-$vs2";
 				}
 				// Mixed Chapters
 				else
 				{
-					$str .= $ch1;
-					if (0 != $vs1) $str .= ":$vs1";
-					$str .= "-$ch2:$vs2";
+					$books[$book] .= $ch1;
+					if (0 != $vs1) $books[$book] .= ":$vs1";
+					$books[$book] .= "-$ch2:$vs2";
 				}
 			}
 			else
 			{
-				$str .= ",$vs1";
+				$books[$book] .= ",$vs1";
 				// Inner Chapters
 				if ($ch1 == $ch2)
 				{
-					if ($vs1 != $vs2) $str .= "-$vs2";
+					if ($vs1 != $vs2) $books[$book] .= "-$vs2";
 				}
 				// Mixed Chapters
 				else
 				{
-					$str .= "-$ch2:$vs1";
+					$books[$book] .= "-$ch2:$vs1";
 				}
 			}
 			$prev_ch = $ch2;
 		}
-		return $str;
+
+		foreach ($books as $book_id => &$str) $str = BibleMeta::get_book_name($book_id) . " $str";
+
+		return implode('; ', $books);
 	}
 }
 
