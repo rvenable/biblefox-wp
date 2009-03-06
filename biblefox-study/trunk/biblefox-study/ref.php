@@ -88,7 +88,7 @@ class RefSequence
 					// Mixed Chapters
 					else
 					{
-						$this->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2);
+						$this->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2, $verse_chapter);
 						$verse_chapter = $ch2;
 					}
 				}
@@ -146,8 +146,15 @@ class RefSequence
 	 * @param integer $chapter2
 	 * @param integer $verse2
 	 */
-	private function add_mixed($book_id, $chapter1, $verse1, $chapter2, $verse2)
+	private function add_mixed($book_id, $chapter1, $verse1, $chapter2, $verse2, $verse_chapter = 0)
 	{
+		// Handle verse chapters, in case this is following a verse and comma
+		if (!empty($verse_chapter) && empty($verse1))
+		{
+			$verse1 = $chapter1;
+			$chapter1 = $verse_chapter;
+		}
+
 		$this->add_seq(
 			BibleVerse::calc_unique_id($book_id, $chapter1, $verse1),
 			BibleVerse::calc_unique_id($book_id, $chapter2, $verse2));

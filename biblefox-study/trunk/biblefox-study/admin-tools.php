@@ -354,6 +354,9 @@
 
 			// Test that we can match synonyms with multiple words
 			$this->test_ref('Song Solomon 2');
+
+			// This should be Gen 1:1, 1:3 - 2:3
+			$this->test_ref('gen 1:1,3-2:3');
 		}
 
 		/**
