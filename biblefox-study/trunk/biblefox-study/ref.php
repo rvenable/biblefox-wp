@@ -8,6 +8,11 @@ class RefSequence
 {
 	protected $sequences = array();
 
+	public function add_seqs($seqs)
+	{
+		foreach ($seqs as $seq) $this->add_seq($seq);
+	}
+
 	/**
 	 * Add using a bible reference string
 	 *
@@ -168,8 +173,15 @@ class RefSequence
 	 * @param integer $start
 	 * @param integer $end
 	 */
-	private function add_seq($start, $end = 0)
+	public function add_seq($start, $end = 0)
 	{
+		if (is_array($start)) list($start, $end) = $start;
+		elseif (is_object($start))
+		{
+			$end = $start->end;
+			$start = $start->start;
+		}
+
 		// If the end is not set, it should equal the start
 		if (empty($end)) $end = $start;
 
@@ -336,7 +348,7 @@ class RefSequence
 				$partitions[$index] = new RefSequence();
 			}
 
-			$partitions[$index]->add_seq($seq->start, $seq->end);
+			$partitions[$index]->add_seq($seq);
 
 			$prev_ch = $ch2;
 		}
@@ -426,20 +438,6 @@ class RefManager
 
 		return $verse_end;
 	}
-}
-
-abstract class BibleRefsAbstract
-{
-//	abstract public function is_valid();
-	abstract public function get_string($format = '');
-//	abstract public function get_url($context = NULL);
-//	abstract public function get_link($text = NULL, $context = NULL);
-//	abstract public function get_num_chapters();
-//	abstract public function sql_where($col1 = 'unique_id');
-//	abstract public function sql_where2($col1, $col2);
-//	abstract public function increment($factor = 1);
-//	abstract public function get_toc($is_full = FALSE);
-//	abstract public function get_scripture($pre_format = FALSE);
 }
 
 /**
@@ -586,7 +584,7 @@ function bfox_ref_replace($text)
  * BibleRef Class for a single bible verse
  *
  */
-class BibleVerse extends BibleRefsAbstract
+class BibleVerse
 {
 	const max_num_books = 256;
 	const max_num_chapters = self::max_num_books;
@@ -1064,7 +1062,7 @@ class BibleGroupPassage extends BiblePassage
 /*
  This class is a wrapper around BiblePassage to store it in an array
  */
-class BibleRefs extends BibleRefsAbstract
+class BibleRefs extends RefSequence
 {
 	private $refs;
 
@@ -1151,10 +1149,19 @@ class BibleRefs extends BibleRefsAbstract
 
 	function push_ref_single(BiblePassage $ref)
 	{
-		$this->refs[] = $ref;
+		$ids = $ref->get_unique_ids();
+		parent::add_seq($ids);
+		$this->push_sets_to_refs(array($ids));
 	}
 
 	function push_sets($unique_id_sets)
+	{
+		parent::add_seqs($unique_id_sets);
+		$this->push_sets_to_refs($unique_id_sets);
+	}
+
+	// TODO3: Get rid of this function, it is just here as a temporary way to keep old $refs
+	private function push_sets_to_refs($unique_id_sets)
 	{
 		$count = 0;
 		if (is_array($unique_id_sets))
@@ -1180,9 +1187,8 @@ class BibleRefs extends BibleRefsAbstract
 		}
 		else
 		{
-			$this->seq = new RefSequence();
-			$this->seq->add_string($str);
-			$this->push_sets($this->seq->get_sets());
+			parent::add_string($str);
+			$this->push_sets_to_refs(parent::get_sets());
 		}
 	}
 
