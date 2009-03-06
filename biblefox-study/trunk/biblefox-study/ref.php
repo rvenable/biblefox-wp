@@ -311,6 +311,31 @@ class RefSequence
 		foreach ($this->sequences as $seq) $sets []= array($seq->start, $seq->end);
 		return $sets;
 	}
+
+	public function partition_by_chapters()
+	{
+		$partitions = array();
+		$index = 0;
+
+		foreach ($this->sequences as $seq)
+		{
+			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
+			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+
+			if (!isset($prev_ch)) $partitions[$index] = new RefSequence();
+			elseif ($ch1 != $prev_ch)
+			{
+				$index++;
+				$partitions[$index] = new RefSequence();
+			}
+
+			$partitions[$index]->add_seq($seq->start, $seq->end);
+
+			$prev_ch = $ch2;
+		}
+
+		return $partitions;
+	}
 }
 
 class RefManager

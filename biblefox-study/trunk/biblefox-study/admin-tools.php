@@ -558,8 +558,13 @@
 //			$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
 //			echo $refs->get_string();
 			$seq = new RefSequence();
-			$left = $seq->add_string('genesis 14,4:5,lala1:4-10;11,3:10-4:3,1:5-9 yoy 1sam 5');
+			$left = $seq->add_string('genesis 14,4:5,2-3:3,1:4-10;11,3:10-4:3,1:5-9 yoy 1sam 5');
 			echo $seq->get_string() . " ($left)<br/>";
+			$parts = $seq->partition_by_chapters();
+			foreach ($parts as $part)
+			{
+				echo $part->get_string() . "<br/>";
+			}
 		}
 
 	}
