@@ -568,6 +568,11 @@
 			{
 				echo $part->get_string() . "<br/>";
 			}
+
+			$refs = RefManager::get_from_str('moses');
+			pre($refs);
+			echo $refs->sql_where() . '<br/>';
+
 		}
 
 	}

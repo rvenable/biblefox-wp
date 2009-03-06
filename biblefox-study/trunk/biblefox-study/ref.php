@@ -8,6 +8,11 @@ class RefSequence
 {
 	protected $sequences = array();
 
+	function is_valid()
+	{
+		return (!empty($this->sequences));
+	}
+
 	public function add_seqs($seqs)
 	{
 		foreach ($seqs as $seq) $this->add_seq($seq);
@@ -106,7 +111,7 @@ class RefSequence
 	 *
 	 * @param integer $book_id
 	 */
-	private function add_whole_book($book_id)
+	protected function add_whole_book($book_id)
 	{
 		$this->add_whole($book_id, 0, BibleVerse::max_chapter_id);
 	}
@@ -243,7 +248,7 @@ class RefSequence
 	 *
 	 * @return string
 	 */
-	public function get_string()
+	public function get_string($name = '')
 	{
 		$books = array();
 
@@ -302,8 +307,8 @@ class RefSequence
 		}
 
 		foreach ($books as $book_id => &$str)
-			if (empty($str)) $str = BibleMeta::get_book_name($book_id);
-			else $str = BibleMeta::get_book_name($book_id) . " $str";
+			if (empty($str)) $str = BibleMeta::get_book_name($book_id, $name);
+			else $str = BibleMeta::get_book_name($book_id, $name) . " $str";
 
 		return implode('; ', $books);
 	}
@@ -329,6 +334,57 @@ class RefSequence
 		$sets = array();
 		foreach ($this->sequences as $seq) $sets []= array($seq->start, $seq->end);
 		return $sets;
+	}
+
+	/**
+	 * Returns an SQL expression for comparing these bible references against one unique id column
+	 *
+	 * @param string $col1
+	 * @return string
+	 */
+	public function sql_where($col1 = 'unique_id')
+	{
+		global $wpdb;
+
+		$wheres = array();
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $seq->start, $seq->end);
+
+		return '(' . implode(' OR ', $wheres) . ')';
+	}
+
+	/**
+	 * Returns an SQL expression for comparing these bible references against two unique id columns
+	 *
+	 * @param string $col1
+	 * @param string $col2
+	 * @return string
+	 */
+	public function sql_where2($col1, $col2)
+	{
+		/*
+		 Equation for determining whether one bible reference overlaps another
+
+		 a1 <= b1 and b1 <= a2 or
+		 a1 <= b2 and b2 <= a2
+		 or
+		 b1 <= a1 and a1 <= b2 or
+		 b1 <= a2 and a2 <= b2
+
+		 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
+		 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
+
+		 */
+
+		global $wpdb;
+
+		$wheres = array();
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+			"((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
+			((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
+			$seq->end, $seq->start, $seq->end,
+			$seq->start, $seq->start, $seq->end);
+
+		return '(' . implode(' OR ', $wheres) . ')';
 	}
 
 	public function partition_by_chapters()
@@ -361,7 +417,9 @@ class RefManager
 {
 	public static function get_from_str($str)
 	{
-		$refs = new BibleRefs();
+		if (isset(BibleMeta::$book_groups[$str])) $refs = new BibleGroupPassage();
+		else $refs = new BibleRefs();
+
 		$refs->push_string($str);
 		return $refs;
 	}
@@ -1004,17 +1062,21 @@ class BiblePassage
 	}
 }
 
-class BibleGroupPassage extends BiblePassage
+class BibleGroupPassage extends BibleRefs
 {
 	private $group;
 
-	public function __construct($group)
+	public function __construct($group = '')
+	{
+		if (!empty($group)) $this->push_string($group);
+	}
+
+	public function push_string($group)
 	{
 		$this->group = $group;
-		parent::__construct(
-			new BibleVerse(self::get_first_book($group), 0, 0),
-			new BibleVerse(self::get_last_book($group), BibleVerse::max_chapter_id, BibleVerse::max_verse_id)
-			);
+		$start = self::get_first_book($group);
+		$end = self::get_last_book($group);
+		for ($i = $start; $i <= $end; $i++) $this->add_whole_book($i);
 	}
 
 	public static function get_first_book($group)
@@ -1077,11 +1139,6 @@ class BibleRefs extends RefSequence
 		else if (is_array($value)) $this->push_sets($value);
 	}
 
-	function is_valid()
-	{
-		return (0 < count($this->refs));
-	}
-
 	// Returns the internal array of BiblePassage instances converted to an
 	// array of BibleRefs where each element has just one BiblePassage
 	function get_refs_array()
@@ -1101,13 +1158,6 @@ class BibleRefs extends RefSequence
 		$unique_id_sets = array();
 		foreach ($this->refs as $ref) $unique_id_sets[] = $ref->get_unique_ids();
 		return $unique_id_sets;
-	}
-
-	function get_string($format = '')
-	{
-		$strs = array();
-		foreach ($this->refs as $ref) $strs[] = $ref->get_string($format);
-		return implode('; ', $strs);
 	}
 
 	function get_count()
@@ -1181,15 +1231,8 @@ class BibleRefs extends RefSequence
 
 	function push_string($str)
 	{
-		if (isset(BibleMeta::$book_groups[$str]))
-		{
-			$this->refs []= new BibleGroupPassage($str);
-		}
-		else
-		{
-			parent::add_string($str);
-			$this->push_sets_to_refs(parent::get_sets());
-		}
+		parent::add_string($str);
+		$this->push_sets_to_refs(parent::get_sets());
 	}
 
 	/**
@@ -1217,23 +1260,9 @@ class BibleRefs extends RefSequence
 		return $this->push_sets($sets);
 	}
 
-	function sql_where($col1 = 'unique_id')
-	{
-		$strs = array();
-		foreach ($this->refs as $ref) $strs[] = $ref->sql_where($col1);
-		return '(' . implode(' OR ', $strs) . ')';
-	}
-
-	function sql_where2($col1, $col2)
-	{
-		$strs = array();
-		foreach ($this->refs as $ref) $strs[] = $ref->sql_where2($col1, $col2);
-		return '(' . implode(' OR ', $strs) . ')';
-	}
-
 	function increment($factor = 1)
 	{
-		foreach ($this->refs as &$ref) $ref->increment($factor);
+		// TODO3: fix this function for the new RefSequence
 	}
 
 	/*
