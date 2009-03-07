@@ -92,7 +92,7 @@
 		$refStr = $_POST['bible_ref'];
 
 		$refs = RefManager::get_from_str($refStr);
-		if ((0 != $post_id) && (0 < $refs->get_count()))
+		if ((0 != $post_id) && $refs->is_valid())
 		{
 			require_once("bfox-write.php");
 			bfox_set_post_bible_refs($post_id, $refs);

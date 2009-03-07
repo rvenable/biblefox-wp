@@ -386,31 +386,6 @@ class RefSequence
 
 		return '(' . implode(' OR ', $wheres) . ')';
 	}
-
-	public function partition_by_chapters()
-	{
-		$partitions = array();
-		$index = 0;
-
-		foreach ($this->sequences as $seq)
-		{
-			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
-			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
-
-			if (!isset($prev_ch)) $partitions[$index] = new RefSequence();
-			elseif ($ch1 != $prev_ch)
-			{
-				$index++;
-				$partitions[$index] = new RefSequence();
-			}
-
-			$partitions[$index]->add_seq($seq);
-
-			$prev_ch = $ch2;
-		}
-
-		return $partitions;
-	}
 }
 
 class RefManager
@@ -1153,18 +1128,6 @@ class BibleRefs extends RefSequence
 		return $refs_array;
 	}
 
-	function get_sets()
-	{
-		$unique_id_sets = array();
-		foreach ($this->refs as $ref) $unique_id_sets[] = $ref->get_unique_ids();
-		return $unique_id_sets;
-	}
-
-	function get_count()
-	{
-		return count($this->refs);
-	}
-
 	function get_url($context = NULL)
 	{
 		global $bfox_links;
@@ -1179,9 +1142,10 @@ class BibleRefs extends RefSequence
 
 	function get_links()
 	{
+		// TODO3: This function is only used in one place, and may be unnecessary
 		global $bfox_links;
-		$links = array();
-		foreach ($this->refs as $ref) $links[] = $bfox_links->ref_link($ref->get_string());
+		$parts = $this->partition_by_chapters();
+		foreach ($parts as $refs) $links []= $refs->get_link();
 		return implode('; ', $links);
 	}
 
@@ -1206,7 +1170,7 @@ class BibleRefs extends RefSequence
 
 	function push_sets($unique_id_sets)
 	{
-		parent::add_seqs($unique_id_sets);
+		parent::add_seqs((array) $unique_id_sets);
 		$this->push_sets_to_refs($unique_id_sets);
 	}
 
@@ -1513,6 +1477,30 @@ class BibleRefs extends RefSequence
 		return RefManager::get_from_bcvs(BibleMeta::get_book_id(trim($book_str), 1), $chapter1, $verse1, $chapter2, $verse2);
 	}
 
+	public function partition_by_chapters()
+	{
+		$partitions = array();
+		$index = 0;
+
+		foreach ($this->sequences as $seq)
+		{
+			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
+			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+
+			if (!isset($prev_ch)) $partitions[$index] = new BibleRefs();
+			elseif ($ch1 != $prev_ch)
+			{
+				$index++;
+				$partitions[$index] = new BibleRefs();
+			}
+
+			$partitions[$index]->add_seq($seq);
+
+			$prev_ch = $ch2;
+		}
+
+		return $partitions;
+	}
 }
 
 ?>

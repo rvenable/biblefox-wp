@@ -100,7 +100,7 @@
 		$GLOBALS['bfox_recent_wp_query'] =& $wp_query;
 
 		// If we have refs, check for any needed ref modifications
-		if (0 < $bfox_bible_refs->get_count())
+		if ($bfox_bible_refs->is_valid())
 		{
 			// Save the refs in a global variable
 			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars[BFOX_QUERY_VAR_ACTION]);
@@ -113,7 +113,7 @@
 		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
 		$table_name = $wpdb->bfox_bible_ref;
 
-		if ((0 < $bfox_bible_refs->get_count()) || ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS]))
+		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
 			$join .= " LEFT JOIN $table_name ON " . $wpdb->posts . ".ID = {$table_name}.post_id ";
 
 		return $join;
@@ -136,7 +136,7 @@
 	{
 		global $bfox_bible_refs;
 
-		if (0 < $bfox_bible_refs->get_count())
+		if ($bfox_bible_refs->is_valid())
 		{
 			// NOTE: Searches can currently return unpublished results too!!! (because of this OR)
 			if (is_search())
@@ -155,7 +155,7 @@
 	{
 		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
 
-		if ((0 < $bfox_bible_refs->get_count()) || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
+		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
 		{
 			// Group on post ID
 			$mygroupby = "{$wpdb->posts}.ID";
@@ -265,7 +265,7 @@
 				// So we create an array of posts with scripture and add that to the current array of posts*/
 
 			}
-			else if (0 < $bfox_bible_refs->get_count())
+			else if ($bfox_bible_refs->is_valid())
 			{
 				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
 				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
@@ -352,7 +352,7 @@
 
 		// If this post have bible references, mention them at the beginning of the post
 		$refs = bfox_get_post_bible_refs($post->ID);
-		if (0 < $refs->get_count()) $content = '<p>Scriptures Referenced: ' . $refs->get_links() . '</p>' . $content;
+		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . $refs->get_links() . '</p>' . $content;
 
 		return $content;
 	}
