@@ -1,5 +1,40 @@
 <?php
 
+function bfox_bible_passage_ref_content(BibleRefs $refs)
+{
+	$book_refs_array = $refs->partition_by_books();
+	foreach ($book_refs_array as $book_refs)
+	{
+		$seqs = $book_refs->get_seqs();
+
+		foreach ($seqs as $seq)
+		{
+			if (!isset($ch1)) list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
+			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+		}
+
+		// Get the previous and next chapters as well
+		$ch1 = max($ch1 - 1, 1);
+		$ch2 = min($ch2 + 1, bfox_get_num_chapters($book));
+
+		$content .= "
+			<div class='ref_partition'>
+				<div class='partition_header box_menu'>" . $book_refs->get_string() . " (Context:
+					<a onclick='bfox_set_context_none(this)'>none</a>
+					<a onclick='bfox_set_context_verses(this)'>verses</a>
+					<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
+				</div>
+				<div class='partition_body'>
+					" . Translations::get_chapters_content($book, $ch1, $ch2, $book_refs->sql_where()) . "
+				</div>
+			</div>
+			";
+	}
+
+	return $content;
+}
+
+
 global $bfox_history, $bfox_quicknote, $bfox_trans;
 
 if (!isset($refs)) $refs = RefManager::get_from_str($_GET[Bible::var_reference]);
@@ -27,6 +62,7 @@ $ref_str = $refs->get_string();
 		<div class="box_head">
 			<?php echo $ref_str ?>
 			<form id="bible_view_search" action="admin.php" method="get">
+				<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
 				<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
 				<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_passage ?>" />
 				<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $ref_str ?>" />
@@ -34,12 +70,7 @@ $ref_str = $refs->get_string();
 				<input type="submit" value="Go" class="button">
 			</form>
 		</div>
-		<div class="box_menu">
-			<span class="box_right"><a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a></span>
-			<div class="clear"></div>
-			<br/><?php echo bfox_get_ref_menu_nav($refs) ?>
-		</div>
-		<div class="box_inside">
+		<div>
 			<div class="commentary_list">
 				<div class="commentary_list_head">
 					Commentary Blog Posts (<a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">edit</a>)
@@ -47,14 +78,13 @@ $ref_str = $refs->get_string();
 				<?php Commentaries::output_posts($refs); ?>
 				<?php //Bible::output_quick_press(); ?>
 			</div>
-			<?php echo bfox_get_ref_content($refs) ?>
+			<div class="reference">
+				<?php echo bfox_bible_passage_ref_content($refs); ?>
+			</div>
 			<div class="clear"></div>
 		</div>
 		<div class="box_menu">
-			<?php
-				echo bfox_get_ref_menu_nav($refs);
-				echo $refs->get_toc(TRUE);
-			?>
+			<?php echo $refs->get_toc(TRUE); ?>
 		</div>
 	</div>
 </div>

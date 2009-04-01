@@ -977,64 +977,6 @@ class BiblePassage
 		$toc .= $links . $toc_end;
 		return $toc;
 	}
-
-	/**
-	 * Returns a string with the scripture content for these BibleRefs
-	 *
-	 * @param boolean $pre_format Should we pre format the scriptures?
-	 * @return string
-	 */
-	public function get_scripture($pre_format = FALSE)
-	{
-		global $bfox_trans, $bfox_quicknote;
-
-		$content = '';
-
-		// Get the verse data from the bible translation
-		$verses = $bfox_trans->get_verses($this->sql_where());
-		if (!empty($verses))
-		{
-			if (!$pre_format)
-			{
-				$span_verse = TRUE;
-			}
-
-			// Try to get quick notes if we have any
-			$notes = $bfox_quicknote->get_indexed_notes();
-
-			// For each verse, do any required formatting and add it to our content
-			foreach ($verses as $verse)
-			{
-				$verse_text = '';
-				if ($verse->verse_id != 0)
-					$verse_text .= '<b class="bible-verse-id">' . $verse->verse_id . '</b> ';
-				if ($span_verse) $verse_text .= $bfox_quicknote->list_verse_notes($notes, $verse->unique_id);
-				$verse_text .= $verse->verse;
-
-				// Pre formatting is for when we can't use CSS (ie. in an email)
-				// We just replace the tags which would have been formatted by css with tags that don't need formatting
-				if ($pre_format)
-				{
-					$verse_text = str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n", $verse_text);
-					$verse_text = str_replace('<span class="bible_end_poetry"></span>', "<br/>\n", $verse_text);
-					$verse_text = str_replace('<span class="bible_poetry_indent_1"></span>', '', $verse_text);
-					$verse_text = str_replace('<span class="bible_poetry_indent_2"></span>', '<span style="margin-left: 20px"></span>', $verse_text);
-				}
-
-				// TODO2: We don't need the book and chapter for each verse, verses should be nested in chapter and book elements
-				if ($span_verse) $verse_text = "<span class='bible_verse' book='" . BibleMeta::get_book_name($verse->book_id) . "' chapter='$verse->chapter_id' verse='$verse->verse_id'>$verse_text</span>";
-
-				$content .= $verse_text;
-			}
-
-			// Add any remaining quick notes
-			if ($span_verse) $content .= $bfox_quicknote->list_verse_notes($notes);
-
-			$content = bfox_special_syntax($content);
-		}
-
-		return $content;
-	}
 }
 
 class BibleGroupPassage extends BibleRefs
@@ -1082,17 +1024,6 @@ class BibleGroupPassage extends BibleRefs
 	public function get_string($name = '')
 	{
 		return BibleMeta::get_book_name($this->group, $name);
-	}
-
-	/**
-	 * Returns a string with the scripture content for these BibleRefs
-	 *
-	 * @param boolean $pre_format Should we pre format the scriptures?
-	 * @return string
-	 */
-	public function get_scripture($pre_format = FALSE)
-	{
-		return bfox_output_bible_group($this->group);
 	}
 }
 
@@ -1356,29 +1287,6 @@ class BibleRefs extends RefSequence
 		return $toc;
 	}
 
-	/**
-	 * Returns a string with the scripture content for these BibleRefs
-	 *
-	 * @param boolean $pre_format Should we pre format the scriptures?
-	 * @return string
-	 */
-	function get_scripture($pre_format = FALSE)
-	{
-		global $bfox_trans, $bfox_quicknote;
-
-		$content = '';
-		if ($this->is_valid())
-		{
-			foreach ($this->refs as $ref)
-				$content .= $ref->get_scripture();
-
-			if (empty($content)) $content = 'No verse data exists for this translation.';
-		}
-		else $content = 'No bible reference to display.';
-
-		return $content;
-	}
-
 	private static function parse_ref_str($str)
 	{
 		// Convert all whitespace to single spaces
@@ -1497,6 +1405,30 @@ class BibleRefs extends RefSequence
 			$partitions[$index]->add_seq($seq);
 
 			$prev_ch = $ch2;
+		}
+
+		return $partitions;
+	}
+
+	public function partition_by_books()
+	{
+		$partitions = array();
+		$index = 0;
+
+		foreach ($this->sequences as $seq)
+		{
+			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
+
+			if (!isset($prev_book)) $partitions[$index] = new BibleRefs();
+			elseif ($book != $prev_book)
+			{
+				$index++;
+				$partitions[$index] = new BibleRefs();
+			}
+
+			$partitions[$index]->add_seq($seq);
+
+			$prev_book = $book;
 		}
 
 		return $partitions;

@@ -90,7 +90,7 @@
 				<?php echo bfox_get_ref_menu($refs, TRUE) ?>
 			</div>
 			<div id="bible_view_content">
-				<?php echo bfox_get_ref_content($refs) ?>
+				<?php echo Translations::get_verse_content($refs) ?>
 			</div>
 			<div id="bible_view_footer">
 				<?php

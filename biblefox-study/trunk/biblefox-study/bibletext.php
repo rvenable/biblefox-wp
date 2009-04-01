@@ -1,11 +1,5 @@
 <?php
 
-	// TODO3: get rid of this function
-	function bfox_get_ref_content(BibleRefs $refs, $version_id = -1, $id_text_begin = '<em class="bible-verse-id">', $id_text_end = '</em> ')
-	{
-		return $refs->get_scripture();
-	}
-
 	/**
 	 * Returns an output string with scripture text for the Scripture Quick View
 	 *
@@ -23,7 +17,7 @@
 		$num_chapters = $refs->get_num_chapters();
 		if ($limit >= $num_chapters)
 		{
-			$content = bfox_get_ref_content($refs);
+			$content = Translations::get_verse_content($refs);
 			$content .= '<hr/>';
 			$is_full = TRUE;
 		}
@@ -32,13 +26,6 @@
 		$content .= $refs->get_toc($is_full);
 
 		return $content;
-	}
-
-	// Function for echoing scripture
-	function bfox_echo_scripture($version_id, BibleRefs $ref)
-	{
-		$content = bfox_get_ref_content($ref, $version_id);
-		echo $content;
 	}
 
 	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = '', $verse_begin = 'verse_begin', $verse_end = 'verse_end')

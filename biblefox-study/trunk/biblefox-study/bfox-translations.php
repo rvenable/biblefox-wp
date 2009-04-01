@@ -100,9 +100,34 @@ class Translation
 		return $verses;
 	}
 
-	/* TODO2:
-	function search();
-*/
+	/**
+	 * Get the verse content for a sequence of chapters
+	 *
+	 * @param integer $book
+	 * @param integer $chapter1
+	 * @param integer $chapter2
+	 * @param string $visible SQL WHERE statement to determine which scriptures are visible (ex. as returned from BibleRefs::sql_where())
+	 * @return string Formatted bible verse output
+	 */
+	public function get_chapter_verses($book, $chapter1, $chapter2, $visible)
+	{
+		$chapters = array();
+
+		// We can only grab verses if the verse data exists
+		if (!empty($this->table))
+		{
+			global $wpdb;
+			$verses = (array) $wpdb->get_results($wpdb->prepare("
+				SELECT unique_id, chapter_id, verse_id, verse, ($visible) as visible
+				FROM $this->table
+				WHERE book_id = %d AND chapter_id >= %d AND chapter_id <= %d",
+				$book, $chapter1, $chapter2));
+
+			foreach ($verses as $verse) $chapters[$verse->chapter_id] []= $verse;
+		}
+
+		return $chapters;
+	}
 }
 
 /**
@@ -623,9 +648,170 @@ class Translations
 		$bfox_trans = self::get_translation(self::get_default_id());
 	}
 
-	/* TODO2:
-	function search_all();
-	*/
+	/**
+	 * Return verse content for the given bible refs with minimum formatting
+	 *
+	 * @param BibleRefs $refs
+	 * @param Translation $trans
+	 * @return string
+	 */
+	public static function get_verse_content(BibleRefs $refs, Translation $trans = NULL)
+	{
+		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
+
+		$content = '';
+
+		$verses = $trans->get_verses($refs->sql_where());
+
+		foreach ($verses as $verse)
+		{
+			if ($verse->verse_id != 0) $content .= '<b>' . $verse->verse_id . '</b> ';
+			$content .= $verse->verse;
+		}
+
+		// Fix the footnotes
+		// TODO3: this function does more than just footnotes
+		$content = bfox_special_syntax($content);
+
+		return $content;
+	}
+
+	/**
+	 * Return verse content for the given bible refs formatted for email output
+	 *
+	 * @param BibleRefs $refs
+	 * @param Translation $trans
+	 * @return unknown
+	 */
+	public static function get_verse_content_email(BibleRefs $refs, Translation $trans = NULL)
+	{
+		// Pre formatting is for when we can't use CSS (ie. in an email)
+		// We just replace the tags which would have been formatted by css with tags that don't need formatting
+		$content =
+			str_replace('<span class="bible_poetry_indent_2"></span>', '<span style="margin-left: 20px"></span>',
+				str_replace('<span class="bible_poetry_indent_1"></span>', '',
+					str_replace('<span class="bible_end_poetry"></span>', "<br/>\n",
+						str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n",
+							self::get_verse_content($refs, $trans)))));
+
+		return $content;
+	}
+
+	/**
+	 * Return verse content for display in chapter groups
+	 *
+	 * @param integer $book
+	 * @param integer $chapter1
+	 * @param integer $chapter2
+	 * @param string $visible
+	 * @param Translation $trans
+	 * @return string
+	 */
+	public static function get_chapters_content($book, $chapter1, $chapter2, $visible, Translation $trans = NULL)
+	{
+		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
+
+		$content = '';
+
+		$book_name = BibleMeta::get_book_name($book);
+
+		// Get the verse data from the bible translation
+		$chapters = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible);
+
+		if (!empty($chapters))
+		{
+			// We don't want to start with a hidden rule
+			$add_rule = FALSE;
+
+			foreach ($chapters as $chapter_id => $verses)
+			{
+				$is_hidden_chapter = TRUE;
+				$prev_visible = TRUE;
+				$index = 0;
+
+				$sections = array();
+
+				foreach ($verses as $verse)
+				{
+					if (0 == $verse->verse_id) continue;
+
+					if ($verse->visible) $is_hidden_chapter = FALSE;
+
+					if ($prev_visible != $verse->visible) $index++;
+					$prev_visible = $verse->visible;
+
+					$sections[$index] .= "
+						<span class='bible_verse' verse='$verse->verse_id'>
+							<b>$verse->verse_id</b>
+							$verse->verse
+						</span>
+						";
+				}
+				$last_index = $index;
+
+				if ($is_hidden_chapter)
+				{
+					$content .= "
+						<span class='chapter hidden_chapter'>
+							<h5>$chapter_id</h5>
+							$sections[1]
+						</span>
+						";
+
+					// Don't show a hidden rule immediately following a hidden chapter
+					$add_rule = FALSE;
+				}
+				else
+				{
+					$chapter_content = '';
+					foreach ($sections as $index => $section)
+					{
+						// Every odd numbered section is hidden
+						if ($index % 2)
+						{
+							$chapter_content .= "
+								<span class='hidden_verses'>
+									$section
+								</span>
+								";
+
+							// If we can add a rule, do it now
+							// We don't want to add a rule for the last section, though
+							if ($add_rule)// && ($last_index != $index))
+							{
+								$chapter_content .= "<hr class='hidden_verses_rule' />";
+
+								// Don't add a rule immediately after this one
+								$add_rule = FALSE;
+							}
+						}
+						else
+						{
+							$chapter_content .= $section;
+
+							// We only want to add a rule if the previous section was not hidden
+							$add_rule = TRUE;
+						}
+					}
+
+					$content .= "
+						<span class='chapter visible_chapter'>
+							<h5>$chapter_id</h5>
+							$chapter_content
+						</span>
+						";
+				}
+
+			}
+
+		}
+
+		// Fix the footnotes
+		// TODO3: this function does more than just footnotes
+		$content = bfox_special_syntax($content);
+
+		return $content;
+	}
 }
 
 // Set the global translation (using the default translation)
@@ -638,8 +824,10 @@ Translations::set_global_translations();
  * @param int $trans_id
  * @return int The number of chapters in a book
  */
-function bfox_get_num_chapters($book_id, $trans_id)
+function bfox_get_num_chapters($book_id, $trans_id = NULL)
 {
+	if (is_null($trans_id)) $trans_id = $GLOBALS['bfox_trans']->id;
+
 	global $wpdb;
 	$num = $wpdb->get_var($wpdb->prepare('SELECT value
 											FROM ' . BFOX_BOOK_COUNTS_TABLE . '

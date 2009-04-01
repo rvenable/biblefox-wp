@@ -1,3 +1,40 @@
+function bfox_get_context_parent(toggle)
+{
+	return jQuery(toggle).parents('.ref_partition').children('.partition_body');
+}
+
+function bfox_get_context_chapters(parent)
+{
+	return parent.children('.visible_chapter');
+}
+
+function bfox_set_context_none(toggle)
+{
+	var parent = bfox_get_context_parent(toggle);
+	var chapters = bfox_get_context_chapters(parent);
+	chapters.children('.hidden_verses').hide();
+	chapters.children('.hidden_verses_rule').show();
+	parent.children('.hidden_chapter').hide();
+}
+
+function bfox_set_context_verses(toggle)
+{
+	var parent = bfox_get_context_parent(toggle);
+	var chapters = bfox_get_context_chapters(parent);
+	chapters.children('.hidden_verses').show();
+	chapters.children('.hidden_verses_rule').hide();
+	parent.children('.hidden_chapter').hide();
+}
+
+function bfox_set_context_chapters(toggle)
+{
+	var parent = bfox_get_context_parent(toggle);
+	var chapters = bfox_get_context_chapters(parent);
+	chapters.children('.hidden_verses').show();
+	chapters.children('.hidden_verses_rule').hide();
+	parent.children('.hidden_chapter').show();
+}
+
 function bfox_quick_write_set_blog(quick_press_url, publish_string)
 {
 	jQuery('#quick_press').attr('action', quick_press_url);

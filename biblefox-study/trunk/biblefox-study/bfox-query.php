@@ -220,7 +220,7 @@
 						$refStr = $ref->get_string();
 						$new_post['ID'] = -1;
 						$new_post['post_title'] = $refStr;
-						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
+						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
 						$new_post['bible_ref_str'] = $refStr;
 						$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
@@ -286,7 +286,7 @@
 					$refStr = $ref->get_string();
 					$new_post['ID'] = -1;
 					$new_post['post_title'] = $title . $refStr;
-					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . bfox_get_ref_content($ref) . bfox_get_ref_menu($ref, false);
+					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false);
 					$new_post['bible_ref_str'] = $refStr;
 					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 					$new_post['post_date'] = current_time('mysql', false);

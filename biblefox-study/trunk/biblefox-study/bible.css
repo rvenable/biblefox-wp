@@ -6,6 +6,11 @@ Scripture Text
 	color: #960000;
 }
 
+#bible .hidden_verses, #bible .hidden_verses .bible_jesus,
+#bible .hidden_chapter, #bible .hidden_chapter .bible_jesus {
+	color: #A0A0A0;
+}
+
 /*
 Scripture Tags (copied from regular tag CSS - #tagchecklist)
 */
@@ -253,6 +258,53 @@ ul#bible_tool_options li {
 	text-align: left;
 }
 
+/*
+Scripture Layout
+*/
+
+#bible .partition_body {
+	padding: 5px;
+}
+
+#bible .chapter h5 {
+	background-color: #EEEEEE;
+	min-width: 18px;
+	text-align: center;
+	font-size: 18px;
+	float: left;
+	width: auto;
+	padding: 2px 6px;
+	margin: 2px 4px 2px 4px;
+	border: #DFDFDF;
+	border-style: solid;
+	border-width: 1px;
+	border-left-width: 0px;
+	-moz-border-radius: 6px;
+}
+
+#bible .sequence {
+	border-bottom: #DFDFDF;
+	border-style: solid;
+	border-bottom-width: 1px;
+}
+
+#bible .hidden_chapter {
+	display: none;
+}
+
+#bible .hidden_verses {
+	width: 100%;
+	display: none;
+}
+
+#bible .hidden_verses_rule {
+	border: 0;
+	color: #DFDFDF;
+	background-color: #DFDFDF;
+	height: 1px;
+	width: auto;
+	clear: left;
+}
 
 /*
 Blog Commentaries
@@ -263,8 +315,6 @@ Blog Commentaries
 	float: right;
 	width: 50%;
 	position: relative;
-	top: -5px;
-	left: 5px;
 	border-color: #EEEEEE;
 	border-style: solid;
 	border-bottom-width: 1px;

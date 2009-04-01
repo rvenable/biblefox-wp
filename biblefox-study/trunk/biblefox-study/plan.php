@@ -471,7 +471,7 @@
 
 			$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
 			$message .= "<h2><a href='" . $bfox_links->reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
-			$message .= $refs->get_scripture(TRUE);
+			$message .= Translations::get_verse_content_email($refs);
 			$message .= "<hr/><p>$blog</p>";
 
 			// If this isn't the first reading, we should show any blog activity since the previous reading
