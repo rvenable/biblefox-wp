@@ -120,11 +120,6 @@
 		include('my-blogs.php');
 	}
 
-	function bfox_plan()
-	{
-		bfox_create_plan();
-	}
-
 	function bfox_share()
 	{
 		echo "<h2>Share with Friends</h2>";

@@ -2,15 +2,17 @@
 
 function bfox_bible_passage_ref_content(BibleRefs $refs)
 {
-	$book_refs_array = $refs->partition_by_books();
-	foreach ($book_refs_array as $book_refs)
+	$visible = $refs->sql_where();
+	$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+	foreach ($bcvs as $book => $cvs)
 	{
+		$book_str = BibleRefs::create_book_string($book, $cvs);
 		$seqs = $book_refs->get_seqs();
 
-		foreach ($seqs as $seq)
+		foreach ($cvs as $cv)
 		{
-			if (!isset($ch1)) list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
-			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+			if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
+			list($ch2, $vs2) = $cv->end;
 		}
 
 		// Get the previous and next chapters as well
@@ -19,13 +21,13 @@ function bfox_bible_passage_ref_content(BibleRefs $refs)
 
 		$content .= "
 			<div class='ref_partition'>
-				<div class='partition_header box_menu'>" . $book_refs->get_string() . " (Context:
+				<div class='partition_header box_menu'>" . $book_str . " (Context:
 					<a onclick='bfox_set_context_none(this)'>none</a>
 					<a onclick='bfox_set_context_verses(this)'>verses</a>
 					<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
 				</div>
 				<div class='partition_body'>
-					" . Translations::get_chapters_content($book, $ch1, $ch2, $book_refs->sql_where()) . "
+					" . Translations::get_chapters_content($book, $ch1, $ch2, $visible) . "
 				</div>
 			</div>
 			";

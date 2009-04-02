@@ -103,28 +103,6 @@ How often will you be reading this plan?<br/>
 <?php
 	}
 
-	/*
-	 * TODO3: This function is not used anymore and should be removed
-	function bfox_get_sections_slow($text, $size)
-	{
-		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
-		// It ended up being much slower however, since it is doing way too many DB queries
-		// The DB queries are called by $this->get_size()
-		$refs = RefManager::get_from_str($text);
-		$size_vector = new BibleRefVector(array(0, $size, 0));
-
-		$sections = array();
-		while ($refs->is_valid())
-		{
-			$shifted_refs = $refs->shift($size_vector);
-			if ($shifted_refs->is_valid())
-				$sections[] = $shifted_refs;
-		}
-
-		return $sections;
-	}
-	*/
-
 	function bfox_echo_plan($plan, $num_cols = 3, $skip_read = false)
 	{
 		// Divide the plan into 3 columns
@@ -336,105 +314,6 @@ How often will you be reading this plan?<br/>
 	{
 		// Only level 7 users can edit/create plans
 		return current_user_can(BFOX_USER_LEVEL_MANAGE_PLANS);
-	}
-
-	function bfox_create_plan()
-	{
-		global $bfox_plan, $bfox_plan_progress, $blog_id;
-
-		$can_edit = bfox_can_user_edit_plans();
-
-		if($can_edit && ($_GET['hidden_field'] == 'Y'))
-		{
-			$plan = array();
-			if (isset($_GET['plan_name'])) $plan['name'] = (string) $_GET['plan_name'];
-			if (isset($_GET['plan_summary'])) $plan['summary'] = (string) $_GET['plan_summary'];
-
-			if (isset($_GET['plan_id']) && ('' != $_GET['plan_id']))
-			{
-				$plan['id'] = (int) $_GET['plan_id'];
-				$text = (string) trim($_GET['books']);
-
-				$old_refs = $bfox_plan->get_plan_refs($plan['id']);
-				$sections = explode("\n", $text);
-				$plan['refs_array'] = array();
-
-				$index = 0;
-				$is_edited = false;
-				foreach ($sections as $section)
-				{
-					$section = trim($section);
-
-					// Determine if the text we got from input is different from the text already saved for this plan
-					if (!isset($old_refs->unread[$index]) || ($old_refs->unread[$index]->get_string() != $section))
-						$is_edited = true;
-
-					$refs = RefManager::get_from_str($section);
-					if ($refs->is_valid()) $plan['refs_array'][] = $refs;
-					$index++;
-				}
-
-				// If we didn't actually make any changes to the refs_array then there is no need to send it
-				if (!$is_edited && (count($old_refs->unread) == count($plan['refs_array'])))
-					unset($plan['refs_array']);
-
-				$bfox_plan->edit_plan((object) $plan);
-			}
-			else
-			{
-				$text = (string) $_GET['books'];
-				$period_length = (string) $_GET['frequency'];
-				$section_size = (int) $_GET['num_chapters'];
-				if ($section_size == 0) $section_size = 1;
-
-				$refs = RefManager::get_from_str($text);
-				$plan['refs_array'] = $refs->get_sections($section_size);
-				$bfox_plan->add_new_plan((object) $plan);
-			}
-		}
-
-		if (isset($_GET['plan_id']))
-		{
-			if ($_GET['action'] == 'delete')
-			{
-				if ($can_edit) $bfox_plan->delete($_GET['plan_id']);
-			}
-			else if ($_GET['action'] == 'track')
-				$bfox_plan_progress->track_plan($blog_id, $_GET['plan_id']);
-
-			$display_plans = $bfox_plan->get_plans($_GET['plan_id']);
-		}
-
-		echo "<div class=\"wrap\">";
-		if (0 < count($display_plans))
-		{
-			$plan_url_base = 'admin.php?page=' . BFOX_PLAN_SUBPAGE . '&amp;';
-			echo "<h2>View Reading Plan</h2><br/>";
-			echo "You have selected the following Reading Plan: (<a href=\"$plan_url_base\">view all</a>)";
-			echo bfox_blog_reading_plans($display_plans, $can_edit);
-
-			if ($can_edit)
-				foreach ($display_plans as $plan) bfox_edit_plan_menu($plan);
-		}
-		else
-		{
-			$display_plans = $bfox_plan->get_plans();
-
-			echo "<h2>Available Reading Plans</h2><br/>";
-			if (0 < count($display_plans))
-			{
-				echo "This Bible Study Blog has the following Reading Plans:";
-				echo bfox_blog_reading_plans($display_plans, $can_edit);
-			}
-			else
-			{
-				echo "This Bible Study Blog has no bible reading plans.<br/>";
-			}
-
-			if ($can_edit) bfox_edit_plan_menu();
-		}
-		echo "</div>";
-
 	}
 
 	function bfox_get_recent_scriptures_output($max = 1, $read = false)

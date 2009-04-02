@@ -560,7 +560,7 @@
 		{
 //			$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
 //			echo $refs->get_string();
-			$seq = new RefSequence();
+/*			$seq = new RefSequence();
 			$left = $seq->add_string('genesis 14,4:5,2-3:3,1:4-10;11,3:10-4:3,1:5-9 yoy 1sam 5');
 			echo $seq->get_string() . " ($left)<br/>";
 			$parts = $seq->partition_by_chapters();
@@ -571,8 +571,12 @@
 
 			$refs = RefManager::get_from_str('moses');
 			pre($refs);
-			echo $refs->sql_where() . '<br/>';
-
+			echo $refs->sql_where() . '<br/>';*/
+			$seq = new BibleRefs();
+			$seq->push_string('john, acts, romans, 1 john, 2 john, 3 john');
+			echo $seq->get_string() . '<br/>';
+//			pre($seq);
+			foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 		}
 
 	}

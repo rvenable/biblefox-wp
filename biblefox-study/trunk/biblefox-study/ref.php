@@ -33,7 +33,7 @@ class RefSequence
 			list($book_id, $leftovers) = $book;
 			if (!empty($book_id))
 			{
-				preg_match('/^[\s\d-:,;]*/', $leftovers, $match);
+				preg_match('/^\s*\d[\s\d-:,;]*/', $leftovers, $match);
 				if (!empty($match[0]))
 				{
 					$leftovers = substr($leftovers, strlen($match[0]));
@@ -244,6 +244,55 @@ class RefSequence
 	}
 
 	/**
+	 * Returns a BCV array. These are useful for situations where the sequences need to be divided by books (such as in get_string()).
+	 *
+	 * A BCV array has book_ids for keys and CVS arrays for elements.
+	 * A CVS array is an array of CVs.
+	 * A CV is an object with start and end values that are arrays of (chapter, verse).
+	 *
+	 * BCV = array([book_id] => CVS, ...)
+	 * CVS = array(CV, ...)
+	 * CV = object(start => array(chapter, verse), end => array(chapter, verse))
+	 *
+	 * @param unknown_type $sequences
+	 * @return unknown
+	 */
+	public static function get_bcvs($sequences)
+	{
+		$bcvs = array();
+		foreach ($sequences as $seq)
+		{
+			list($book1, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
+			list($book2, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+
+			$books = array();
+			$books[$book1]->start = array($ch1, $vs1);
+			if ($book2 > $book1)
+			{
+				$start = array(0, 0);
+				$end = array(BibleVerse::max_chapter_id, BibleVerse::max_verse_id);
+
+				$books[$book1]->end = $end;
+
+				$middle_books = $book2 - $book1;
+				for ($i = 0; $i < $middle_books; $i++)
+				{
+					$book = $book1 + $i;
+					$books[$book]->start = $start;
+					$books[$book]->end = $end;
+				}
+
+				$books[$book2]->start = $start;
+			}
+			$books[$book2]->end = array($ch2, $vs2);
+
+			foreach ($books as $book => $cv) $bcvs[$book] []= $cv;
+		}
+
+		return $bcvs;
+	}
+
+	/**
 	 * Get the string for this RefSequence
 	 *
 	 * @return string
@@ -252,65 +301,75 @@ class RefSequence
 	{
 		$books = array();
 
-		$prev_book = 0;
+		$bcvs = self::get_bcvs($this->sequences);
+		foreach ($bcvs as $book => $cvs) $books[$book] = self::create_book_string($book, $cvs, $name);
+
+		return implode('; ', $books);
+	}
+
+	/**
+	 * Creates a string for a book with CVS values (see get_bcvs())
+	 *
+	 * @param integer $book
+	 * @param array $cvs
+	 * @param string $name
+	 * @return string
+	 */
+	public static function create_book_string($book, $cvs, $name = '')
+	{
+		$str = '';
 		$prev_ch = 0;
 
-		foreach ($this->sequences as $seq)
+		foreach ((array) $cvs as $cv)
 		{
-			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
-			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+			list($ch1, $vs1) = $cv->start;
+			list($ch2, $vs2) = $cv->end;
 
-			// Reset the previous chapter for subsequent books
-			if ($book != $prev_book) $prev_ch = 0;
-
-			if (0 == $ch1) $books[$book] = '';
+			if (0 == $ch1) $str = '';
 			elseif ($ch1 != $prev_ch)
 			{
-				if (!empty($books[$book])) $books[$book] .= '; ';
+				if (!empty($str)) $str .= '; ';
 				// Whole Chapters
 				if ((0 == $vs1) && (BibleVerse::max_verse_id == $vs2))
 				{
-					$books[$book] .= $ch1;
-					if ($ch1 != $ch2) $books[$book] .= "-$ch2";
+					$str .= $ch1;
+					if ($ch1 != $ch2) $str .= "-$ch2";
 				}
 				// Inner Chapters
 				elseif ($ch1 == $ch2)
 				{
-					$books[$book] .= "$ch1:$vs1";
-					if ($vs1 != $vs2) $books[$book] .= "-$vs2";
+					$str .= "$ch1:$vs1";
+					if ($vs1 != $vs2) $str .= "-$vs2";
 				}
 				// Mixed Chapters
 				else
 				{
-					$books[$book] .= $ch1;
-					if (0 != $vs1) $books[$book] .= ":$vs1";
-					$books[$book] .= "-$ch2:$vs2";
+					$str .= $ch1;
+					if (0 != $vs1) $str .= ":$vs1";
+					$str .= "-$ch2:$vs2";
 				}
 			}
 			else
 			{
-				$books[$book] .= ",$vs1";
+				$str .= ",$vs1";
 				// Inner Chapters
 				if ($ch1 == $ch2)
 				{
-					if ($vs1 != $vs2) $books[$book] .= "-$vs2";
+					if ($vs1 != $vs2) $str .= "-$vs2";
 				}
 				// Mixed Chapters
 				else
 				{
-					$books[$book] .= "-$ch2:$vs1";
+					$str .= "-$ch2:$vs1";
 				}
 			}
 
-			$prev_book = $book;
 			$prev_ch = $ch2;
 		}
 
-		foreach ($books as $book_id => &$str)
-			if (empty($str)) $str = BibleMeta::get_book_name($book_id, $name);
-			else $str = BibleMeta::get_book_name($book_id, $name) . " $str";
+		if (!empty($str)) $str = " $str";
 
-		return implode('; ', $books);
+		return BibleMeta::get_book_name($book, $name) . $str;
 	}
 
 	/**
@@ -871,47 +930,6 @@ class BiblePassage
 		return $this->verse_end->chapter - $this->verse_start->chapter + 1;
 	}
 
-	/*
-	function shift(BibleRefVector $size_vector)
-	{
-		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
-		// It ended up being much slower however, since it is doing way too many DB queries
-		// The DB queries are called by $this->get_size()
-
-		$verse_size = 0;
-
-		// Try to use the chapter size first
-		$size = $size_vector->values['chapter'];
-		if (0 != $size) $size_vector->update(array(0, $size, 0));
-		else
-		{
-			// If the chapter size was set to 0, try to use the verse size instead
-			$size = $size_vector->values['verse'];
-			$size_vector->update(array(0, 0, $size));
-		}
-
-		// If the size of $this is less or equal to the target size,
-		// Then we shift everything off of this,
-		// Otherwise we have to partition off a portion of this bible ref
-		if ($this->get_size($size_vector) <= $size)
-		{
-			$shifted = clone $this;
-			$this->update();
-		}
-		else
-		{
-			// The new shifted value should be of size $size_vector
-			$shifted = new BiblePassage(array($this->verse_start->unique_id,
-												$this->verse_start->unique_id + $size_vector->value - 1));
-
-			// This bible ref gets whatever remains
-			$this->update(array($this->verse_start->unique_id + $size_vector->value,
-								$this->verse_end->unique_id));
-		}
-		return $shifted;
-	}
-	*/
-
 	/**
 	 * Returns the first and last chapters of the bible reference (accurate)
 	 *
@@ -1160,117 +1178,6 @@ class BibleRefs extends RefSequence
 		// TODO3: fix this function for the new RefSequence
 	}
 
-	/*
-	function shift(BibleRefVector $size_vector)
-	{
-		// NOTE: This function was designed to replace the bfox_get_sections() function for creating a reading plan
-		// It ended up being much slower however, since it is doing way too many DB queries
-		// The DB queries are called by $this->get_size()
-
-		// Try to use the chapter size first
-		$size = $size_vector->values['chapter'];
-		if (0 != $size) $size_vector->update(array(0, $size, 0));
-		else
-		{
-			// If the chapter size was set to 0, try to use the verse size instead
-			$size = $size_vector->values['verse'];
-			$size_vector->update(array(0, 0, $size));
-		}
-
-		// Create a new BibleRefs instance to hold all the shifted values
-		$shifted = new BibleRefs;
-
-		// Shift each ref in $this->refs until we run out of refs or our size quota is reached
-		while ((0 < $size) && (0 < count($this->refs)))
-		{
-			// Shift the first ref in $this->refs
-			$shifted_ref = $this->refs[0]->shift($size_vector);
-
-			// If the shifted ref is valid,
-			// Then push it onto our new BibleRefs and update our size quota
-			if ($shifted_ref->is_valid())
-			{
-				$shifted->push_sets(array($shifted_ref->get_unique_ids()));
-				$size -= $shifted_ref->get_size($size_vector);
-			}
-
-			// If the first ref is no longer valid, get rid of it
-			if (!$this->refs[0]->is_valid()) array_shift($this->refs);
-		}
-
-		return $shifted;
-	}
-	*/
-
-	function get_sections($size)
-	{
-		// NOTE: This function was supposed to be replaced by using the shift() functions, but they were too slow
-		// It is currently being hacked to work with the new BibleRefs system
-
-		$sections = array();
-		$period = 0;
-		$section = 0;
-		$remainder = 0;
-		$remainderStr = "";
-		foreach ($this->refs as $ref)
-		{
-			$unique_ids = $ref->get_unique_ids();
-			$chapters = bfox_get_chapters($unique_ids[0], $unique_ids[1]);
-			$num_chapters = count($chapters);
-			$num_sections = (int) floor(($num_chapters + $remainder) / $size);
-
-			$tmpRef['book_id'] = $ref->get_book_id();
-			$chapter1_index = 0;
-			$chapter2_index = $size - $remainder - 1;
-			for ($index = 0; $index < $num_sections; $index++)
-			{
-				$tmpRefStr = "";
-				if (($index == 0) && ($remainder > 0))
-				{
-					$tmpRefStr .= "$remainderStr, ";
-					$remainderStr = "";
-					$remainder = 0;
-				}
-
-				$tmpRef['chapter1'] = $chapters[$chapter1_index];
-				if ($chapter2_index > $chapter1_index)
-					$tmpRef['chapter2'] = $chapters[$chapter2_index];
-				else $tmpRef['chapter2'] = 0;
-
-				$tmpRefParsed = RefManager::get_from_bcvs($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
-				$tmpRefStr .= $tmpRefParsed->get_string();
-
-				$sections[] = $tmpRefStr;
-
-				$chapter1_index = $chapter2_index + 1;
-				$chapter2_index = $chapter1_index + $size - 1;
-			}
-
-			if ($chapter1_index < $num_chapters)
-			{
-				$remainder += $num_chapters - $chapter1_index;
-				$chapter2_index = $num_chapters - 1;
-
-				$tmpRef['chapter1'] = $chapters[$chapter1_index];
-				if ($chapter2_index > $chapter1_index)
-					$tmpRef['chapter2'] = $chapters[$chapter2_index];
-				else $tmpRef['chapter2'] = 0;
-
-				if ($remainderStr != "")
-					$remainderStr .= ", ";
-
-				$tmpRefParsed = RefManager::get_from_bcvs($tmpRef['book_id'], $tmpRef['chapter1'], $tmpRef['verse1'], $tmpRef['chapter2'], $tmpRef['verse2']);
-				$remainderStr .= $tmpRefParsed->get_string();
-			}
-		}
-		if ($remainderStr != "")
-			$sections[] = $remainderStr;
-
-		$sectionRefs = array();
-		foreach ($sections as $section) $sectionRefs[] = RefManager::get_from_str($section);
-		return $sectionRefs;
-	}
-
 	/**
 	 * Returns an output string for the Table of Contents for these refs
 	 *
@@ -1385,54 +1292,85 @@ class BibleRefs extends RefSequence
 		return RefManager::get_from_bcvs(BibleMeta::get_book_id(trim($book_str), 1), $chapter1, $verse1, $chapter2, $verse2);
 	}
 
-	public function partition_by_chapters()
+	/**
+	 * Converts a sequence in bcv form to an array of sequences, with each element being a separate chapter
+	 *
+	 * @param integer $book
+	 * @param object $cv
+	 * @return array
+	 */
+	private static function bcv_to_chapter_seqs($book, $cv)
 	{
-		$partitions = array();
-		$index = 0;
+		list($ch1, $vs1) = $cv->start;
+		list($ch2, $vs2) = $cv->end;
 
-		foreach ($this->sequences as $seq)
+		if (0 == $ch1) $ch1 = 1;
+		if (BibleVerse::max_chapter_id == $ch2) $ch2 = bfox_get_num_chapters($book);
+
+		$seqs = array();
+		$seqs[$ch1]->start = BibleVerse::calc_unique_id($book, $ch1, $vs1);
+		if ($ch2 > $ch1)
 		{
-			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
-			list($book, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
+			$seqs[$ch1]->end = BibleVerse::calc_unique_id($book, $ch1, BibleVerse::max_verse_id);
 
-			if (!isset($prev_ch)) $partitions[$index] = new BibleRefs();
-			elseif ($ch1 != $prev_ch)
+			$middle_chapters = $ch2 - $ch1;
+			for ($i = 0; $i < $middle_chapters; $i++)
 			{
-				$index++;
-				$partitions[$index] = new BibleRefs();
+				$ch = $ch1 + $i;
+				$seqs[$ch]->start = BibleVerse::calc_unique_id($book, $ch);
+				$seqs[$ch]->end = BibleVerse::calc_unique_id($book, $ch, BibleVerse::max_verse_id);
 			}
 
-			$partitions[$index]->add_seq($seq);
-
-			$prev_ch = $ch2;
+			$seqs[$ch2]->start = BibleVerse::calc_unique_id($book, $ch2);
 		}
+		$seqs[$ch2]->end = BibleVerse::calc_unique_id($book, $ch2, $vs2);
 
-		return $partitions;
+		return $seqs;
 	}
 
-	public function partition_by_books()
+	/**
+	 * Divides a bible reference into smaller references of chapter size $chapter_size
+	 *
+	 * @param integer $chapter_size
+	 * @return array of BibleRefs
+	 */
+	public function get_sections($chapter_size)
 	{
-		$partitions = array();
+		$sections = array(new BibleRefs());
 		$index = 0;
+		$ch_count = 0;
 
-		foreach ($this->sequences as $seq)
+		$bcvs = self::get_bcvs($this->sequences);
+
+		foreach ($bcvs as $book => $cvs)
 		{
-			list($book, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
-
-			if (!isset($prev_book)) $partitions[$index] = new BibleRefs();
-			elseif ($book != $prev_book)
+			$prev_ch = 0;
+			foreach ($cvs as $cv)
 			{
-				$index++;
-				$partitions[$index] = new BibleRefs();
-			}
+				$ch_seqs = self::get_chapter_seqs_from_cv($book, $cv);
+				foreach ($ch_seqs as $chapter => $seq)
+				{
+					if ($prev_ch != $chapter) $ch_count++;
+					if ($ch_count > $chapter_size)
+					{
+						$index++;
+						$ch_count = 1;
+						$sections[$index] = new BibleRefs();
+					}
 
-			$partitions[$index]->add_seq($seq);
+					$sections[$index]->add_seq($seq);
+
+					$prev_ch = $chapter;
+				}
+			}
 
 			$prev_book = $book;
 		}
 
-		return $partitions;
+		return $sections;
 	}
+
+
 }
 
 ?>
