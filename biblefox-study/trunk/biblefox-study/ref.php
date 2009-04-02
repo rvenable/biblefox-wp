@@ -916,46 +916,6 @@ class BiblePassage
 	*/
 
 	/**
-	 * Returns the number of chapters in the bible ref (inaccurate)
-	 *
-	 * Results are inaccurate for the bible references that don't have a valid ending chapter.
-	 * For instance, if a bible ref is set to be a whole book, the end chapter will be set to a
-	 * special constant (BFOX_UNIQUE_ID_MASK) instead of the actual last chapter of the book.
-	 * For more accurate results, use get_actual_chapters()
-	 *
-	 * @return unknown
-	 */
-	function get_num_chapters()
-	{
-		return $this->verse_end->chapter - $this->verse_start->chapter + 1;
-	}
-
-	/**
-	 * Returns the first and last chapters of the bible reference (accurate)
-	 *
-	 * @return array An array with two elements: the first and last chapters
-	 */
-	function get_actual_chapters()
-	{
-		global $bfox_trans;
-
-		$low = $this->verse_start->chapter;
-		$high = $this->verse_end->chapter;
-
-		// If the first chapter is 0, then it should really be chapter 1
-		if (0 == $low) $low = 1;
-
-		// If the last chapter is the max it can be, we should get the actual last chapter from the DB
-		// TODO2: The user could also input a chapter number which is beyond the actual last chapter, but below the max
-		if (BFOX_UNIQUE_ID_MASK == $high)
-		{
-			$high = bfox_get_num_chapters($this->verse_start->book, $bfox_trans->id);
-		}
-
-		return array($low, $high);
-	}
-
-	/**
 	 * Returns an output string with a Table of Contents for the ref
 	 *
 	 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref
@@ -1089,27 +1049,6 @@ class BibleRefs extends RefSequence
 		return $bfox_links->ref_link(array('ref_str' => $this->get_string(), 'text' => $text), $context);
 	}
 
-	function get_links()
-	{
-		// TODO3: This function is only used in one place, and may be unnecessary
-		global $bfox_links;
-		$parts = $this->partition_by_chapters();
-		foreach ($parts as $refs) $links []= $refs->get_link();
-		return implode('; ', $links);
-	}
-
-	/**
-	 * Returns the number of chapters (inaccurate) for the refs by accumulating the number of chapters per ref
-	 *
-	 * @return unknown
-	 */
-	function get_num_chapters()
-	{
-		$num_chapters = 0;
-		foreach ($this->refs as $ref) $num_chapters += $ref->get_num_chapters();
-		return $num_chapters;
-	}
-
 	function push_ref_single(BiblePassage $ref)
 	{
 		$ids = $ref->get_unique_ids();
@@ -1192,104 +1131,6 @@ class BibleRefs extends RefSequence
 			$toc .= $ref->get_toc($is_full);
 		}
 		return $toc;
-	}
-
-	private static function parse_ref_str($str)
-	{
-		// Convert all whitespace to single spaces
-		$str = preg_replace('/\s+/', ' ', $str);
-
-		// Find the last dash in the string and use it to divide the ref
-		$dash_left = trim($str);
-		if ($pos = strrpos($dash_left, '-'))
-		{
-			$dash_right = trim(substr($dash_left, $pos + 1));
-			$dash_left = trim(substr($dash_left, 0, $pos));
-		}
-
-		// Parse the left side of the dash
-		$left_colon_list = explode(':', $dash_left);
-		$left_colon_count = count($left_colon_list);
-
-		// We can only have one dash
-		if (2 >= $left_colon_count)
-		{
-			// If there was a dash, then save the right side as an integer verse number
-			if (1 < $left_colon_count)
-				$verse_num = (int) trim($left_colon_list[1]);
-
-			// If we didn't have any problems with the right side of the colon (verse_num)
-			if ((!isset($verse_num)) || (0 < $verse_num))
-			{
-				if (isset($verse_num)) $verse1 = $verse_num;
-
-				// Parse the left side of the colon to get the book name and the chapter num
-				$colon_left = trim($left_colon_list[0]);
-				if ($pos = strrpos($colon_left, ' '))
-				{
-					// Get the chapter number which must be greater than 0
-					$chapter_num = (int) trim(substr($colon_left, $pos + 1));
-					if (0 < $chapter_num)
-					{
-						$chapter1 = $chapter_num;
-						$book_str = trim(substr($colon_left, 0, $pos));
-					}
-				}
-			}
-		}
-
-		// Parse the right side of the dash if the left side worked (yielding at least a chapter id)
-		if ((isset($dash_right)) && (isset($chapter1)))
-		{
-			$right_colon_list = explode(':', $dash_right);
-			$right_colon_count = count($right_colon_list);
-
-			// We can only have one dash
-			if (2 >= $right_colon_count)
-			{
-				// If there was a dash, then save the right side as an integer
-				if (1 < $right_colon_count)
-					$num2 = (int) trim($right_colon_list[1]);
-
-				// If we didn't have any problems with the right side of the colon (num2)
-				// Then save the left side as an integer
-				if ((!isset($num2)) || (0 < $num2))
-					$num1 = (int) trim($right_colon_list[0]);
-			}
-
-			// If we got at least one integer and it is greater than zero,
-			// then everything went fine on this side of the dash
-			if ((isset($num1)) && (0 < $num1))
-			{
-				if (isset($num2))
-				{
-					// If we have 2 numbers then the first is a chapter and the second is a verse
-					$chapter2 = $num1;
-					$verse2 = $num2;
-				}
-				else
-				{
-					// If there is only one number on the right side of the dash,
-					// then it can be either a chapter or a verse
-
-					// If the left side of the dash yielded a verse2,
-					// then we must have a verse on the right side of the dash also
-					if (isset($verse1)) $verse2 = $num1;
-					else $chapter2 = $num1;
-				}
-			}
-			else
-			{
-				// If we didn't get any numbers on this side of the dash
-				// then the string is misformatted
-				unset($chapter1);
-			}
-		}
-
-		// If we haven't set a book string yet, set it to the original str
-		if (!isset($book_str)) $book_str = $str;
-
-		return RefManager::get_from_bcvs(BibleMeta::get_book_id(trim($book_str), 1), $chapter1, $verse1, $chapter2, $verse2);
 	}
 
 	/**

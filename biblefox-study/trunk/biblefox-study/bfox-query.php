@@ -352,7 +352,7 @@
 
 		// If this post have bible references, mention them at the beginning of the post
 		$refs = bfox_get_post_bible_refs($post->ID);
-		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . $refs->get_links() . '</p>' . $content;
+		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . $refs->get_link() . '</p>' . $content;
 
 		return $content;
 	}
