@@ -291,7 +291,7 @@
 					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
-					$new_post['bfox_permalink'] = $ref->get_link(NULL, 'blog');
+					$new_post['bfox_permalink'] = BfoxLinks::get_ref_link($ref, NULL, 'blog');
 
 					// Turn off comments
 					$new_post['comment_status'] = 'closed';
@@ -352,7 +352,7 @@
 
 		// If this post have bible references, mention them at the beginning of the post
 		$refs = bfox_get_post_bible_refs($post->ID);
-		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . $refs->get_link() . '</p>' . $content;
+		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . BfoxLinks::get_ref_link($refs) . '</p>' . $content;
 
 		return $content;
 	}

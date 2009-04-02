@@ -204,7 +204,7 @@ endif; ?>
 				echo $td . ' width="60%">' . $plan->summary . '</td>';
 //				echo $td . $plan->start_date . ' - ' . $plan->end_date . '</td>';
 				$ref = $plan->refs[$plan->current_reading];
-				if (isset($ref)) $str = $ref->get_link();
+				if (isset($ref)) $str = BfoxLinks::get_ref_link($ref);
 				else $str = '';
 				echo $td . ' width="20%">' . $str . '</td>';
 				unset($ref);

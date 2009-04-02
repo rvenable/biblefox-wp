@@ -134,7 +134,7 @@
 			<div id="bible_quick_view_body">
 				<div id="bible_quick_view_scripture_body" class="bible_quick_view_menu_option">
 					<div id="bible-text">
-						<p>This is the bible quick view. Try viewing <?php echo $refs->get_link(NULL, 'quick') ?></p>
+						<p>This is the bible quick view. Try viewing <?php echo BfoxLinks::get_ref_link($refs, NULL, 'quick') ?></p>
 					</div>
 				</div>
 				<div id="bible_quick_view_blogs_body" class="bible_quick_view_menu_option">

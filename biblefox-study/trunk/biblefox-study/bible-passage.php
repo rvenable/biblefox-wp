@@ -7,7 +7,6 @@ function bfox_bible_passage_ref_content(BibleRefs $refs)
 	foreach ($bcvs as $book => $cvs)
 	{
 		$book_str = BibleRefs::create_book_string($book, $cvs);
-		$seqs = $book_refs->get_seqs();
 
 		foreach ($cvs as $cv)
 		{
@@ -75,7 +74,7 @@ $ref_str = $refs->get_string();
 		<div>
 			<div class="commentary_list">
 				<div class="commentary_list_head">
-					Commentary Blog Posts (<a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">edit</a>)
+					Commentary Blog Posts (<a href="<?php echo BfoxLinks::bible_page_url(Bible::page_commentary) ?>">edit</a>)
 				</div>
 				<?php Commentaries::output_posts($refs); ?>
 				<?php //Bible::output_quick_press(); ?>

@@ -93,7 +93,7 @@
 
 		// Use the current_url param if it is passed
 		if (isset($scripture_links['current_url'])) $page_url = $scripture_links['current_url'];
-		else $page_url = $refs->get_url();
+		else $page_url = BfoxLinks::get_ref_url($refs);
 
 		$menu = '';
 
@@ -125,7 +125,7 @@
 
 		global $user_ID;
 		get_currentuserinfo();
-		if (0 < $user_ID) $write_link = $refs->get_link('Write about this passage', 'write');
+		if (0 < $user_ID) $write_link = BfoxLinks::write_link($refs, 'Write about this passage');
 
 		// Scripture navigation links
 		if (is_null($scripture_links))
@@ -136,8 +136,8 @@
 			$previous_refs->increment(-1);
 
 			$scripture_links = array();
-			$scripture_links['next'] = $next_refs->get_link($next_refs->get_string() . ' >');
-			$scripture_links['previous'] = $previous_refs->get_link('< ' . $previous_refs->get_string());
+			$scripture_links['next'] = BfoxLinks::get_ref_link($next_refs, $next_refs->get_string() . ' >');
+			$scripture_links['previous'] = BfoxLinks::get_ref_link($previous_refs, '< ' . $previous_refs->get_string());
 		}
 
 		$menu .= '<table width="100%"><tr>';
@@ -195,10 +195,10 @@
 	 */
 	function bfox_ajax_send_bible_text()
 	{
-		global $bfox_quicknote, $bfox_links;
+		global $bfox_quicknote;
 
 		// All the links on the quick view should link to the quick view by default
-		$bfox_links->set_ref_context('quick');
+		BfoxLinks::set_ref_context('quick');
 
 		$ref_str = $_POST['ref_str'];
 		$ref = RefManager::get_from_str($ref_str);

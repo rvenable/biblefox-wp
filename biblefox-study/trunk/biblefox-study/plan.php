@@ -457,8 +457,6 @@
 		 */
 		function send_plan_emails($plan)
 		{
-			global $bfox_links;
-
 			// Create the email content
 			$refs = $plan->refs[$plan->todays_reading];
 			$subject = "$plan->name (Reading " . ($plan->todays_reading + 1) . "): " . $refs->get_string();
@@ -466,11 +464,11 @@
 
 			// Create the email message
 
-			$blog = 'Share your thoughts about this reading: ' . $refs->get_link('Add a blog entry', 'write');
-			$instructions = "If you would not like to receive reading plan emails, go to your " . $bfox_links->admin_link('profile.php#bfox_email_readings', 'profile page') . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
+			$blog = 'Share your thoughts about this reading: ' . BfoxLinks::write_link($refs, 'Add a blog entry');
+			$instructions = "If you would not like to receive reading plan emails, go to your " . BfoxLinks::admin_link('profile.php#bfox_email_readings', 'profile page') . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
 
 			$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
-			$message .= "<h2><a href='" . $bfox_links->reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
+			$message .= "<h2><a href='" . BfoxLinks::reading_plan_url($plan->id, NULL, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
 			$message .= Translations::get_verse_content_email($refs);
 			$message .= "<hr/><p>$blog</p>";
 

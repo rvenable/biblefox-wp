@@ -838,8 +838,6 @@ function bfox_get_num_chapters($book_id, $trans_id = NULL)
 
 function bfox_books_two_cols()
 {
-	global $bfox_links;
-
 	$groups = array();
 	$groups['all'] = range(1, 81);
 	$groups['bible'] = range(1, 66);
@@ -866,19 +864,19 @@ function bfox_books_two_cols()
 	$content .= '<div id="old_testament"><h3>Old Testament</h3>';
 	$content .= '<ul>';
 	foreach ($bfox_bible_groups['old'] as $book_id)
-		$content .= '<li>' . $bfox_links->ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
+		$content .= '<li>' . BfoxLinks::ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
 	$content .= '</ul></div>';
 
 	$content .= '<div id="new_testament"><h3>New Testament</h3>';
 	$content .= '<ul>';
 	foreach ($bfox_bible_groups['new'] as $book_id)
-	$content .= '<li>' . $bfox_links->ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
+	$content .= '<li>' . BfoxLinks::ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
 	$content .= '</ul></div>';
 
 	$content .= '<div id="apocrypha"><h3>Apocryphal Books</h3>';
 	$content .= '<ul>';
 	foreach ($bfox_bible_groups['apocrypha'] as $book_id)
-	$content .= '<li>' . $bfox_links->ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
+	$content .= '<li>' . BfoxLinks::ref_link(BibleMeta::get_book_name($book_id)) . '</li>';
 	$content .= '</ul></div>';
 
 	$content .= '</div>';
@@ -887,7 +885,7 @@ function bfox_books_two_cols()
 
 function bfox_show_toc_groups($groups, $books, $depth = 3)
 {
-	global $bfox_bible_groups, $bfox_links;
+	global $bfox_bible_groups;
 
 	foreach ($groups as $key => $group)
 	{
@@ -905,7 +903,7 @@ function bfox_show_toc_groups($groups, $books, $depth = 3)
 						$output .= '<p>' . $book_name;
 						$chaps = array();
 						for ($chapter = 0; $chapter < $books[$book_id]; $chapter++)
-							$chaps[] = $bfox_links->ref_link(array('ref_str' => $book_name . ' ' .($chapter + 1), 'text' => $chapter + 1));
+							$chaps[] = BfoxLinks::ref_link(array('ref_str' => $book_name . ' ' .($chapter + 1), 'text' => $chapter + 1));
 //						$output .= '<br/>' . implode(', ', $chaps);
 						$output .= '</p>';
 					}
@@ -959,21 +957,19 @@ function bfox_show_toc($trans_id = 12)
 
 function bfox_output_bible_group($group)
 {
-	global $bfox_links;
-
 	$content = '';
 	foreach (BibleMeta::$book_groups[$group] as $child)
 	{
 		$child_content = '';
 
 		if (isset(BibleMeta::$book_groups[$child])) $child_content = bfox_output_bible_group($child);
-		else $child_content = $bfox_links->ref_link(BibleMeta::get_book_name($child));
+		else $child_content = BfoxLinks::ref_link(BibleMeta::get_book_name($child));
 
 		$content .= "<li>$child_content</li>";
 	}
 
 	return "<span class='book_group_title'>
-		" . $bfox_links->ref_link(array('ref_str' => BibleMeta::get_book_name($group), 'href' => $bfox_links->ref_url($group))) . "
+		" . BfoxLinks::ref_link(array('ref_str' => BibleMeta::get_book_name($group), 'href' => BfoxLinks::ref_url($group))) . "
 	</span>
 	<ul class='book_group'>
 		$content

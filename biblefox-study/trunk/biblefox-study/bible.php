@@ -94,7 +94,7 @@ class Bible
 	 */
 	public function page_load($args)
 	{
-		global $bfox_trans, $bfox_links, $bfox_bible_page;
+		global $bfox_trans, $bfox_bible_page;
 
 		// Override the global translation using the translation passed in
 		// TODO3: Do we really need to override the global translation?
@@ -133,7 +133,7 @@ class Bible
 
 	public function page()
 	{
-		global $bfox_trans, $bfox_links;
+		global $bfox_trans;
 
 		?>
 		<div id="bible" class="">
@@ -141,8 +141,8 @@ class Bible
 				<div class="box_head">Bible Viewer</div>
 				<div class="box_inside">
 					<ul id="bible_page_list">
-						<li><a href="<?php echo $bfox_links->bible_page_url(Bible::page_passage) ?>">Passage</a></li>
-						<li><a href="<?php echo $bfox_links->bible_page_url(Bible::page_commentary) ?>">Commentaries</a></li>
+						<li><a href="<?php echo BfoxLinks::bible_page_url(Bible::page_passage) ?>">Passage</a></li>
+						<li><a href="<?php echo BfoxLinks::bible_page_url(Bible::page_commentary) ?>">Commentaries</a></li>
 					</ul>
 					<form id="bible_search_form" action="admin.php" method="get">
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE; ?>" />

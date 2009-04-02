@@ -113,8 +113,6 @@ class BibleSearch
 
 	private function output_group_counts($group, $counts)
 	{
-		global $bfox_links;
-
 		$count = 0;
 		$content = '';
 		foreach (BibleMeta::$book_groups[$group] as $child)
@@ -126,7 +124,7 @@ class BibleSearch
 			else if (isset($counts[$child]))
 			{
 				$child_count = $counts[$child];
-				$child_content = $bfox_links->search_link($this->text, BibleMeta::get_book_name($child)) . "<span class='book_count'>$child_count</span>";
+				$child_content = BfoxLinks::search_link($this->text, BibleMeta::get_book_name($child)) . "<span class='book_count'>$child_count</span>";
 			}
 
 			if (0 < $child_count)
@@ -138,7 +136,7 @@ class BibleSearch
 
 		return array($count,
 		"<span class='book_group_title'>
-			" . $bfox_links->search_link($this->text, BibleMeta::get_book_name($group), $group) . "
+			" . BfoxLinks::search_link($this->text, BibleMeta::get_book_name($group), $group) . "
 			<span class='book_count'>$count</span>
 		</span>
 		<ul class='book_group'>
@@ -174,7 +172,7 @@ class BibleSearch
 		$count = count($verses);
 		if (0 < $count)
 		{
-			global $wpdb, $bfox_trans, $bfox_links;
+			global $wpdb, $bfox_trans;
 
 			// Get the verse data for these verses (from the global bible translation)
 			$queries = array();
@@ -212,7 +210,7 @@ class BibleSearch
 						$verse->verse = substr_replace($verse->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
 
 				$ref_str = "$chap_name:$verse->verse_id";
-				$link = $bfox_links->ref_link($ref_str);
+				$link = BfoxLinks::ref_link($ref_str);
 
 				$chapter_content[$chap_name] .= "<div class='result_verse'><h4>$link</h4>$verse->verse</div>";
 			}
@@ -220,7 +218,7 @@ class BibleSearch
 			$content = '';
 			foreach ($chapter_content as $chap_name => $chap_content)
 			{
-				$link = $bfox_links->ref_link($chap_name);
+				$link = BfoxLinks::ref_link($chap_name);
 				$content .=
 				"<div class='result_chapter'>
 				<h3>$link</h3>

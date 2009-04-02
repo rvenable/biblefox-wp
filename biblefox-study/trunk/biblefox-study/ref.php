@@ -923,7 +923,7 @@ class BiblePassage
 	 */
 	function get_toc($is_full = FALSE)
 	{
-		global $bfox_links, $bfox_trans;
+		global $bfox_trans;
 
 		// TODO3: These vars are kind of hacky
 		list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
@@ -949,7 +949,7 @@ class BiblePassage
 		foreach (range($low, $high) as $chapter)
 		{
 			if (!empty($links)) $links .= $separator;
-			$links .= $ref_begin . $bfox_links->ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter)) . $ref_end;
+			$links .= $ref_begin . BfoxLinks::ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter)) . $ref_end;
 		}
 
 		$toc .= $links . $toc_end;
@@ -1035,18 +1035,6 @@ class BibleRefs extends RefSequence
 			$refs_array[] = $new_ref;
 		}
 		return $refs_array;
-	}
-
-	function get_url($context = NULL)
-	{
-		global $bfox_links;
-		return $bfox_links->ref_url($this->get_string(), $context);
-	}
-
-	function get_link($text = NULL, $context = NULL)
-	{
-		global $bfox_links;
-		return $bfox_links->ref_link(array('ref_str' => $this->get_string(), 'text' => $text), $context);
 	}
 
 	function push_ref_single(BiblePassage $ref)
