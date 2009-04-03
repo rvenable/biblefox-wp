@@ -30,7 +30,7 @@ class BibleMeta
 	 * @param integer $max_level
 	 * @return integer
 	 */
-	public static function get_book_id($synonym, $max_level = 0)
+	public static function get_book_id($raw_synonym, $max_level = 0)
 	{
 		$words = array();
 

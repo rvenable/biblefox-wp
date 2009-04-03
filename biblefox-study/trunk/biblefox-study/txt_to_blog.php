@@ -27,6 +27,8 @@ abstract class TxtToBlog
 	const dir = BFOX_TEXTS_DIR;
 	const divider = '__________________________________________________________________';
 	protected $file;
+	protected $posts;
+	private $post_index;
 	private $warnings;
 
 	public function parse_file($file = '')
@@ -43,11 +45,21 @@ abstract class TxtToBlog
 			else $sections[$section_num] []= $line;
 		}
 
-		$posts = array();
+		$this->posts = array();
+		$this->post_index = 0;
 		foreach ($sections as $section)
-			$posts = array_merge($posts, $this->parse_section($section));
+			$this->parse_section($section);
 
-		return $posts;
+		return $this->posts;
+	}
+
+	protected function add_post(BlogPost $post, $index = 0)
+	{
+		if (empty($index)) $index = $this->post_index++;
+
+		$this->posts[$index] = $post;
+
+		return $index;
 	}
 
 	protected abstract function parse_section($section);
@@ -67,16 +79,47 @@ abstract class TxtToBlog
 	{
 		return implode("<br/>", $this->warnings);
 	}
+
+	public static function footnote_code($note)
+	{
+		return "[footnote]{$note}[/footnote]";
+	}
+
+	public static function link_code($page, $title = '')
+	{
+		if (empty($title)) $title = $page;
+		return "[link page='$page']{$title}[/link]";
+	}
+
+	public static function bible_code($ref, $title = '')
+	{
+		if (empty($title)) $title = $ref;
+		return "[bible ref='$ref']{$title}[/bible]";
+	}
 }
 
 class MhccTxtToBlog extends TxtToBlog
 {
 	const file = 'mhcc.txt';
-	private $book;
+	private $book_index, $book_names, $book_tocs;
 
 	function __construct()
 	{
 		$this->file = self::file;
+	}
+
+	public function parse_file($file = '')
+	{
+		$this->book_toc = array();
+		$posts = parent::parse_file($file);
+
+		foreach ($this->book_tocs as $index => $toc)
+		{
+			$posts[$index]->content .= "<h4>Chapters</h4><ul>$toc</ul>";
+			$posts[2]->content .= "<h4>" . self::link_code($this->book_names[$index]) . "</h4><ul>$toc</ul>";
+		}
+
+		return $posts;
 	}
 
 	protected function parse_section($section)
@@ -85,16 +128,18 @@ class MhccTxtToBlog extends TxtToBlog
 		if (preg_match('/chapter\s*(\d+)/i', $title, $match))
 		{
 			$chapter = $match[1];
-			$posts = self::parse_chapter("$this->book $chapter", $body);
+			$ref = $this->book_names[$this->book_index] . " $chapter";
+			$this->book_tocs[$this->book_index] .= "<li style='display: inline; padding-right: 10px;'>" . self::link_code($ref, $chapter) . "</li>";
+
+			self::parse_chapter($ref, $body);
 		}
 		else if (BibleMeta::get_book_id($title))
 		{
-			$this->book = $title;
-			$posts = array(new BlogPost($title, $body, $title));
+			$this->book_index = $this->add_post(new BlogPost($title, $body, $title));
+			$this->book_names[$this->book_index] = $title;
+			$this->book_tocs[$this->book_index] = '';
 		}
-		else $posts = array(new BlogPost($title, $body));
-
-		return $posts;
+		else $this->add_post(new BlogPost($title, $body));
 	}
 
 	protected function parse_chapter($chapter, $body)
@@ -132,14 +177,12 @@ class MhccTxtToBlog extends TxtToBlog
 		// Create a new outline page with links to verse blog posts and bible references
 		$outline = '';
 		foreach ($verse_titles as $verse => $verse_title)
-			$outline .= "<li><h4>[bible ref='$chapter:$verse']Verses ${verse}[/bible]</h4>[link]${verse_title}[/link]</li>";
+			$outline .= "<li><h4>" . self::bible_code("$chapter:$verse", "]Verses ${verse}") . "</h4>" . self::link_code($verse_title) . "</li>";
 
 		// Create the array of blog posts, starting with the outline post, followed by all the verse posts
-		$posts = array(new BlogPost($chapter, "<ol>$outline</ol>", $chapter));
+		$this->add_post(new BlogPost($chapter, "<ol>$outline</ol>", $chapter));
 		foreach ($sections as $key => $content)
-			$posts []= new BlogPost($verse_titles[$key], $content, "$chapter:$key");
-
-		return $posts;
+			$this->add_post(new BlogPost($verse_titles[$key], $content, "$chapter:$key"));
 	}
 }
 
@@ -160,7 +203,7 @@ class CalcomTxtToBlog extends TxtToBlog
 		if (!isset($this->footnotes[$match[1]])) $this->warning("Missing footnote: $match[0]");
 		else
 		{
-			$footnote = "[footnote]{$this->footnotes[$match[1]]}[/footnote]";
+			$footnote = self::footnote_code($this->footnotes[$match[1]]);
 			unset($this->footnotes[$match[1]]);
 		}
 		return $footnote;
@@ -190,9 +233,7 @@ class CalcomTxtToBlog extends TxtToBlog
 		$posts = array();
 		if ($refs->is_valid()) $posts = $this->parse_bible_refs($refs, $title, $body);
 		elseif (preg_match('/^\[\d+\]/', $title)) $this->parse_footnotes($section);
-		else $posts = array(new BlogPost($title, $body));
-
-		return $posts;
+		else $this->add_post(new BlogPost($title, $body));
 	}
 
 	protected function parse_bible_refs(BibleRefs $refs, $title, $body)
@@ -212,16 +253,14 @@ class CalcomTxtToBlog extends TxtToBlog
 		list(list($verse_start)) = $refs->get_sets();
 		$verse_ref = new BibleVerse($verse_start);
 
-		$posts = array();
 		foreach ($verses as $verse_num => $verse)
 		{
 			$content = "<blockquote>{$verse[0]}</blockquote>";
 			$content .= "<blockquote>{$verse[1]}</blockquote>";
 			$content .= "<p>{$verse[2]}</p>";
 			$verse_ref->set_ref($verse_ref->book, $verse_ref->chapter, $verse_num);
-			$posts []= new BlogPost($verse_ref->get_string(), $content, $verse_ref->get_string());
+			$this->add_post(new BlogPost($verse_ref->get_string(), $content, $verse_ref->get_string()));
 		}
-		return $posts;
 	}
 
 	protected function parse_footnotes($section)
