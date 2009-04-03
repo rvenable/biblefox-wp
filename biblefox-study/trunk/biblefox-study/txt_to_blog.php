@@ -2,24 +2,29 @@
 
 class BlogPost
 {
-	public $title, $content, $ref_str;
+	public $title, $content, $ref_str, $excerpt;
 	public function __construct($title, $content, $ref_str = '')
 	{
 		$this->title = $title;
 		if (is_array($content)) $content = implode("\n", $content);
 		$this->content = $content;
 		$this->ref_str = $ref_str;
+		$this->excerpt = '';
 	}
 
 	public function get_string()
 	{
-		return "Blog Post:\nTitle: $this->title\nBible References: $this->ref_str\nContent:\n$this->content\n";
+		return "Blog Post:\nTitle: $this->title\nBible References: $this->ref_str\nExcerpt:$this->excerpt\nContent:\n$this->content\n";
 	}
 
 	public function output()
 	{
-		return "<div>Title: $this->title<br/>Bible References: $this->ref_str</div><div>Content:<br/>$this->content</div>";
+		return "<div>Title: $this->title<br/>Bible References: $this->ref_str</div><div>Excerpt:<br/>$this->excerpt</div><div>Content:<br/>$this->content</div>";
 	}
+}
+
+class BlogPage extends BlogPost
+{
 }
 
 abstract class TxtToBlog
@@ -113,6 +118,14 @@ class MhccTxtToBlog extends TxtToBlog
 		$this->book_toc = array();
 		$posts = parent::parse_file($file);
 
+		// Make some hardcoded changes
+		unset($posts[1]);
+		$posts[2]->title = 'Matthew Henry\'s Commentary on the Bible';
+		$posts[2]->content = 'An abridgment of the 6 volume "Matthew Henry\'s Commentary on the Bible".';
+
+		// Use the book content as an except before we add the TOC
+		foreach ($this->book_names as $book => $name) $posts[$book]->excerpt = $posts[$book]->content;
+
 		foreach ($this->book_tocs as $index => $toc)
 		{
 			$posts[$index]->content .= "<h4>Chapters</h4><ul>$toc</ul>";
@@ -139,7 +152,7 @@ class MhccTxtToBlog extends TxtToBlog
 			$this->book_names[$this->book_index] = $title;
 			$this->book_tocs[$this->book_index] = '';
 		}
-		else $this->add_post(new BlogPost($title, $body));
+		else $this->add_post(new BlogPage($title, $body));
 	}
 
 	protected function parse_chapter($chapter, $body)
