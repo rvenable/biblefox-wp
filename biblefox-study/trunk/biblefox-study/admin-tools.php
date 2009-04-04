@@ -479,6 +479,13 @@
 			$this->output_posts(new MhccTxtToBlog(), TRUE);
 		}
 
+		function update_mhcc()
+		{
+			require_once('txt_to_blog.php');
+			$txt = new MhccTxtToBlog();
+			$txt->update();
+		}
+
 		function parse_calcom()
 		{
 			require_once('txt_to_blog.php');

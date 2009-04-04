@@ -2,9 +2,11 @@
 
 class BlogPost
 {
-	public $title, $content, $ref_str, $excerpt;
+	public $id, $type, $title, $content, $ref_str, $excerpt;
 	public function __construct($title, $content, $ref_str = '')
 	{
+		$this->id = 0;
+		$this->type = 'post';
 		$this->title = $title;
 		if (is_array($content)) $content = implode("\n", $content);
 		$this->content = $content;
@@ -14,27 +16,87 @@ class BlogPost
 
 	public function get_string()
 	{
-		return "Blog Post:\nTitle: $this->title\nBible References: $this->ref_str\nExcerpt:$this->excerpt\nContent:\n$this->content\n";
+		return "Blog $this->type:\nTitle: $this->title\nBible References: $this->ref_str\nExcerpt:$this->excerpt\nContent:\n$this->content\n";
 	}
 
 	public function output()
 	{
 		return "<div>Title: $this->title<br/>Bible References: $this->ref_str</div><div>Excerpt:<br/>$this->excerpt</div><div>Content:<br/>$this->content</div>";
 	}
+
+	public function get_array($globals = array())
+	{
+		return array_merge(array(
+				'ID' => $this->id,
+				'post_type' => $this->type,
+				'post_content' => $this->content,
+				'post_title' => $this->title,
+				'post_excerpt' => $this->excerpt
+			),
+			$globals
+		);
+	}
 }
 
 class BlogPage extends BlogPost
 {
+	public function __construct($title, $content, $ref_str = '')
+	{
+		parent::__construct($title, $content, $ref_str);
+		$this->type = 'page';
+	}
 }
 
 abstract class TxtToBlog
 {
 	const dir = BFOX_TEXTS_DIR;
 	const divider = '__________________________________________________________________';
+	const prev_posts_option = 'bfox_txt_to_blog_prev_posts';
 	protected $file;
 	protected $posts;
 	private $post_index;
 	private $warnings;
+	private $global_post_vals;
+
+	public function get_post_indexing_title(BlogPost $post)
+	{
+		return "{$post->type}_{$this->global_post_vals['post_category']}:$post->title";
+	}
+
+	public function update()
+	{
+		return $this->update_posts($this->parse_file());
+	}
+
+	public function update_posts($posts)
+	{
+		$prev_posts = get_option(self::prev_posts_option, array());
+
+		foreach ($posts as &$post)
+		{
+			$index = $this->get_post_indexing_title($post);
+			if (isset($prev_posts[$index]))
+			{
+				$post->id = $prev_posts[$index];
+				unset($prev_posts[$index]);
+			}
+		}
+
+		// Remove any remaining posts
+		foreach ($prev_posts as $id)
+		{
+			echo "Deleting: $id<br/>";
+			wp_delete_post($id);
+		}
+
+		$prev_posts = array();
+		foreach ($posts as $post) $prev_posts[$this->get_post_indexing_title($post)] = wp_insert_post($post->get_array($this->global_post_vals));
+
+		update_option(self::prev_posts_option, $prev_posts);
+		pre($prev_posts);
+
+		return count($prev_posts);
+	}
 
 	public function parse_file($file = '')
 	{
@@ -65,6 +127,16 @@ abstract class TxtToBlog
 		$this->posts[$index] = $post;
 
 		return $index;
+	}
+
+	protected function set_global_category($category)
+	{
+		$this->global_post_vals['post_category'] = $category;
+	}
+
+	protected function set_global_publish_status($status = 'publish')
+	{
+		$this->global_post_vals['post_status'] = $status;
 	}
 
 	protected abstract function parse_section($section);
@@ -111,6 +183,14 @@ class MhccTxtToBlog extends TxtToBlog
 	function __construct()
 	{
 		$this->file = self::file;
+		$this->set_global_category(0);
+		$this->set_global_publish_status();
+	}
+
+	public function update()
+	{
+		$posts = $this->parse_file();
+		return $this->update_posts(array($posts[3]));
 	}
 
 	public function parse_file($file = '')
@@ -190,7 +270,7 @@ class MhccTxtToBlog extends TxtToBlog
 		// Create a new outline page with links to verse blog posts and bible references
 		$outline = '';
 		foreach ($verse_titles as $verse => $verse_title)
-			$outline .= "<li><h4>" . self::bible_code("$chapter:$verse", "]Verses ${verse}") . "</h4>" . self::link_code($verse_title) . "</li>";
+			$outline .= "<li><h4>" . self::bible_code("$chapter:$verse", "Verses ${verse}") . "</h4>" . self::link_code($verse_title) . "</li>";
 
 		// Create the array of blog posts, starting with the outline post, followed by all the verse posts
 		$this->add_post(new BlogPost($chapter, "<ol>$outline</ol>", $chapter));
