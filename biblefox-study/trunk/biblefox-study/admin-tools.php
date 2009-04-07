@@ -463,14 +463,17 @@
 
 			foreach ($posts as $num => $post)
 			{
-				// if (50 >= strlen($post->title))
-				// if (empty($post->ref_str))
-				if (20 >= $num)
+//				$show = (20 >= $num);
+				$show = ((20 >= $num) || (stristr($post->title, 'Luke')));
+
+				if ($show)
 				{
 					echo '<a href="' . add_query_arg('post', $num, $url) . '">' . $post->title . '</a><br/>';
 //					echo ($pre) ? '<pre>' . $post->get_string() . '</pre>' : $post->output();
 				}
 			}
+
+			echo '<div><h4>Warnings</h4>' . $parser->print_warnings() . '</div>';
 		}
 
 		function parse_mhcc()
