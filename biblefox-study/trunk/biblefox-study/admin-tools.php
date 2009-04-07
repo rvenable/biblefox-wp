@@ -563,6 +563,64 @@
 			}
 		}
 
+		public function verse_count()
+		{
+			global $wpdb;
+			$translations = Translations::get_translations();
+
+			$errors = array();
+			$vs_counts = array();
+
+			foreach ($translations as $trans)
+			{
+				$vals = array('name' => $trans->short_name, 'id' => $trans->id);
+				$vals['total_count'] = $wpdb->get_var("SELECT COUNT(*) FROM $trans->table");
+				$vals['book_count'] = $wpdb->get_var("SELECT COUNT(DISTINCT book_id) FROM $trans->table");
+				$vals['ch_count'] = $wpdb->get_var("SELECT COUNT(DISTINCT book_id, chapter_id) FROM $trans->table");
+				$vals['vs_count'] = $wpdb->get_var("SELECT COUNT(*) FROM $trans->table WHERE book_id != 0 AND chapter_id != 0 AND verse_id != 0");
+				$vals['ch_count66'] = $wpdb->get_var("SELECT COUNT(DISTINCT book_id, chapter_id) FROM $trans->table WHERE book_id <= 66");
+				$vals['vs_count66'] = $wpdb->get_var("SELECT COUNT(*) FROM $trans->table WHERE book_id <= 66 AND book_id != 0 AND chapter_id != 0 AND verse_id != 0");
+				pre($vals);
+
+				$this_ch_counts = $wpdb->get_col("SELECT COUNT(DISTINCT chapter_id) FROM $trans->table WHERE chapter_id != 0 GROUP BY book_id");
+				foreach ($this_ch_counts as $book => $ch_count)
+				{
+					$book++;
+					if (isset($vs_counts[$book][0]) && ($ch_count != $vs_counts[$book][0]))
+					{
+						$errors []= "($trans->id) Chapter Count Error: Book $book";
+						$vs_counts[$book][0] = min($ch_count, $vs_counts[$book][0]);
+					}
+					else $vs_counts[$book][0] = $ch_count;
+				}
+
+				$this_vs_counts = $wpdb->get_results("SELECT book_id, chapter_id, COUNT(DISTINCT verse_id) as vs_count FROM $trans->table WHERE verse_id != 0 GROUP BY book_id, chapter_id");
+				foreach ($this_vs_counts as $vs_count)
+				{
+					if (isset($vs_counts[$vs_count->book_id][$vs_count->chapter_id]) && ($vs_count->vs_count != $vs_counts[$vs_count->book_id][$vs_count->chapter_id]))
+					{
+						$errors []= "($trans->id) Verse Count Error: Book $vs_count->book_id, Chapter $vs_count->chapter_id";
+						$vs_counts[$vs_count->book_id][$vs_count->chapter_id] = min($vs_count->vs_count, $vs_counts[$vs_count->book_id][$vs_count->chapter_id]);
+					}
+					else $vs_counts[$vs_count->book_id][$vs_count->chapter_id] = $vs_count->vs_count;
+				}
+			}
+
+			// Hard-code error fixing
+			// WEB only has 24 real verses, but has a verse 25 which is just a footnote, so lets just use 24
+			$vs_counts[45][16] = min(24, $vs_counts[45][16]);
+
+			pre($errors);
+
+			$str = '';
+			foreach ($vs_counts as $book => $counts)
+			{
+				$str .= "$book => array(" . implode(', ', $counts) . "),\n";
+			}
+			pre($str);
+//			pre($vs_counts);
+		}
+
 		/**
 		 * A function for dumping temporary functionality to do temporary tasks
 		 *
