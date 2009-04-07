@@ -474,6 +474,7 @@
 			}
 
 			echo '<div><h4>Warnings</h4>' . $parser->print_warnings() . '</div>';
+			echo '<div><h4>Refs</h4>' . $parser->get_refs()->get_string() . '</div>';
 		}
 
 		function parse_mhcc()

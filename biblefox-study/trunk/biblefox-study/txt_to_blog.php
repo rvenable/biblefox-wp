@@ -61,6 +61,12 @@ abstract class TxtToBlog
 	private $warnings = array();
 	private $global_post_vals;
 	private $used_titles;
+	private $refs;
+
+	public function __construct()
+	{
+		$this->refs = new BibleRefs();
+	}
 
 	public function get_post_indexing_title(BlogPost $post)
 	{
@@ -224,6 +230,17 @@ abstract class TxtToBlog
 		return implode("<br/>", $this->warnings);
 	}
 
+	public function add_refs($ref_str)
+	{
+		// Keep track of which verses have been added
+		if (!empty($ref_str)) $this->refs->add_string($ref_str);
+	}
+
+	public function get_refs()
+	{
+		return $this->refs;
+	}
+
 	public static function footnote_code($note)
 	{
 		return "[footnote]{$note}[/footnote]";
@@ -255,6 +272,7 @@ class MhccTxtToBlog extends TxtToBlog
 
 	function __construct()
 	{
+		parent::__construct();
 		$this->file = self::file;
 		$this->set_global_category(0);
 		$this->set_global_publish_status();
@@ -388,7 +406,11 @@ class MhccTxtToBlog extends TxtToBlog
 			// Add verse posts for each remaining section
 			$section_posts = array();
 			foreach ($sections as $key => $content)
-				$section_posts[$key] = $this->add_post(new BlogPost($verse_titles[$key], $content, "$chapter:$key"));
+			{
+				$ref_str = "$chapter:$key";
+				$section_posts[$key] = $this->add_post(new BlogPost($verse_titles[$key], $content, $ref_str));
+				$this->add_refs($ref_str);
+			}
 
 			// Make sure the title/section counts are equal
 			if (count($verse_titles) != count($section_posts)) $this->warning("Unequal title/section counts: " . count($verse_titles) . '/' . count($section_posts));
@@ -403,7 +425,11 @@ class MhccTxtToBlog extends TxtToBlog
 		{
 			$outline = '';
 			foreach ($sections as $key => $content)
-				$outline .= "<h4>" . self::bible_code("$chapter:$key", "Verses {$key}") . "</h4>\n" . implode("\n", $content);
+			{
+				$ref_str = "$chapter:$key";
+				$outline .= "<h4>" . self::bible_code($ref_str, "Verses {$key}") . "</h4>\n" . implode("\n", $content);
+				$this->add_refs($ref_str);
+			}
 		}
 
 		// Add the outline to the end of the chapter post
@@ -418,6 +444,7 @@ class CalcomTxtToBlog extends TxtToBlog
 
 	function __construct()
 	{
+		parent::__construct();
 		$this->file = self::file;
 		$this->footnotes = array();
 	}
