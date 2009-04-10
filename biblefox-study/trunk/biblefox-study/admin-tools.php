@@ -310,23 +310,26 @@
 		 *
 		 * @param string $ref_str Bible Reference string to test
 		 */
-		private function test_ref($ref_str)
+		private function test_ref($ref_str, $expected = '')
 		{
-			echo "<p><strong>$ref_str</strong><br/>";
 
 			// Test setting a BibleRefs by a string
 			$ref = RefManager::get_from_str($ref_str);
-			echo '$ref->get_string(): ' . $ref->get_string() . '<br/>';
+			$result = $ref->get_string();
 
 			// Test setting a BibleRefs by a set of unique ids
 			$sets = $ref->get_sets();
 			$ref2 = RefManager::get_from_sets($sets);
-			echo '$ref2->get_string(): ' . $ref2->get_string() . '<br/>';
+			$result2 = $ref2->get_string();
 
-			// Both BibleRefs should be equal since they were created from the same reference
-			if ($ref2->get_string() != $ref->get_string()) echo 'ERROR! Strings not equal!<br/>';
-
-			echo '</p>';
+			echo "$ref_str -> <strong>$result</strong>";
+			if (!empty($expected))
+			{
+				if ($expected != $result) echo " (ERROR: expected $expected)";
+				else echo " (Expected...)";
+			}
+			if ($result != $result2) echo " (ERROR: Result2 not equal - $result2)";
+			echo '<br/>';
 		}
 
 		/**
@@ -336,27 +339,37 @@
 		function test_refs()
 		{
 			// Test the typical references
-			$this->test_ref('1 sam');
-			$this->test_ref('1sam 1');
-			$this->test_ref('1sam 1-2');
-			$this->test_ref('1sam 1:1');
-			$this->test_ref('1sam 1:1-5');
-			$this->test_ref('1sam 1:1-2:5');
-			$this->test_ref('1sam 1-2:5');
+			$this->test_ref('1 sam', '1 Samuel');
+			$this->test_ref('1sam 1', '1 Samuel 1');
+			$this->test_ref('1sam 1-2', '1 Samuel 1-2');
+			$this->test_ref('1sam 1:1', '1 Samuel 1:1');
+			$this->test_ref('1sam 1:1-5', '1 Samuel 1:1-5');
+			$this->test_ref('1sam 1:1-2:5', '1 Samuel 1-2:5');
+			$this->test_ref('1sam 1:2-2:5', '1 Samuel 1:2-2:5');
+			$this->test_ref('1sam 1-2:5', '1 Samuel 1-2:5');
 
 			// This test was failing (see bug 21)
-			$this->test_ref('Judges 2:6-3:6');
+			$this->test_ref('Judges 2:6-3:6', 'Judges 2:6-3:6');
 
 			// Test ignore words
-			$this->test_ref('Book of Judges 2');
-			$this->test_ref('First Book of Judges 2'); // This one should not work!
-			$this->test_ref('First Book of Samuel 2');
+			$this->test_ref('Book of Judges 2', 'Judges 2');
+			$this->test_ref('First Book of Judges 2', 'error'); // This one should not work!
+			$this->test_ref('First Book of Samuel 2', '1 Samuel 2');
 
 			// Test that we can match synonyms with multiple words
-			$this->test_ref('Song Solomon 2');
+			$this->test_ref('Song Solomon 2', 'Song of Solomon 2');
 
 			// This should be Gen 1:1, 1:3 - 2:3
-			$this->test_ref('gen 1:1,3-2:3');
+			$this->test_ref('gen 1:1,3-2:3', 'Genesis 1:1,3-2:3');
+
+			$this->test_ref('gen 1-100', 'Genesis');
+			$this->test_ref('gen 2-100', 'Genesis 2-50');
+			$this->test_ref('gen 49:1-100', 'Genesis 49');
+			$this->test_ref('gen 49:2-100', 'Genesis 49:2-33');
+			$this->test_ref('gen 50:1-100', 'Genesis 50');
+			$this->test_ref('gen 50:2-100', 'Genesis 50:2-26');
+			$this->test_ref('gen 50:1,2-100', 'Genesis 50');
+			$this->test_ref('gen 50:1,3-100', 'Genesis 50:1,3-26');
 		}
 
 		/**
@@ -601,6 +614,7 @@
 					{
 						$errors []= "($trans->id) Verse Count Error: Book $vs_count->book_id, Chapter $vs_count->chapter_id";
 						$vs_counts[$vs_count->book_id][$vs_count->chapter_id] = min($vs_count->vs_count, $vs_counts[$vs_count->book_id][$vs_count->chapter_id]);
+						$max_vs_counts[$vs_count->book_id][$vs_count->chapter_id] = max($vs_count->vs_count, $vs_counts[$vs_count->book_id][$vs_count->chapter_id], $max_vs_counts[$vs_count->book_id][$vs_count->chapter_id]);
 					}
 					else $vs_counts[$vs_count->book_id][$vs_count->chapter_id] = $vs_count->vs_count;
 				}
@@ -613,12 +627,19 @@
 			pre($errors);
 
 			$str = '';
-			foreach ($vs_counts as $book => $counts)
+			foreach ($vs_counts as $book => $counts) $str .= "$book => array(" . implode(', ', $counts) . "),\n";
+			pre($str);
+			echo '<pre>';
+			var_export($max_vs_counts);
+			echo '</pre>';
+			$str = '';
+			foreach ($max_vs_counts as $book => $counts)
 			{
-				$str .= "$book => array(" . implode(', ', $counts) . "),\n";
+				$chs = array();
+				foreach ($counts as $ch => $count) $chs []= "$ch => $count";
+				$str .= "$book => array(" . implode(', ', $chs) . "),\n";
 			}
 			pre($str);
-//			pre($vs_counts);
 		}
 
 		/**

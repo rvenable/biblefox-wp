@@ -165,13 +165,40 @@ class RefSequence
 			$chapter1 = $verse_chapter;
 		}
 
-		$this->add_seq(
-			BibleVerse::calc_unique_id($book_id, $chapter1, $verse1),
-			BibleVerse::calc_unique_id($book_id, $chapter2, $verse2));
+		$this->add_verse_seq($book_id, $chapter1, $verse1, $chapter2, $verse2);
 	}
 
 	/**
-	 * Adds a new sequence to the the sequence list
+	 * Add a sequence of verses. This prepares the verses before calling add_seq()
+	 *
+	 * @param integer $book
+	 * @param integer $chapter1
+	 * @param integer $verse1
+	 * @param integer $chapter2
+	 * @param integer $verse2
+	 */
+	private function add_verse_seq($book, $chapter1, $verse1, $chapter2, $verse2)
+	{
+		// Adjust verse1 to be zero if it is one
+		if (1 == $verse1) $verse1 = 0;
+
+		// Adjust chapter1 to zero if this is the first verse of the first chapter
+		if ((1 == $chapter1) && (0 == $verse1)) $chapter1 = 0;
+
+		// Adjust verse2 to be max_verse_id if it is greater than equal to the end verse (min) for chapter2,
+		// or if chapter2 is greater than the end chapter for this verse
+		if (($verse2 >= BibleMeta::end_verse_min($book, $chapter2)) || ($chapter2 > BibleMeta::end_verse_min($book))) $verse2 = BibleVerse::max_verse_id;
+
+		// Adjust chapter2 to be max_chapter_id if it is greater than or equal to the last chapter of this book
+		if ((BibleVerse::max_verse_id == $verse2) && ($chapter2 >= BibleMeta::end_verse_min($book))) $chapter2 = BibleVerse::max_chapter_id;
+
+		$this->add_seq(
+			BibleVerse::calc_unique_id($book, $chapter1, $verse1),
+			BibleVerse::calc_unique_id($book, $chapter2, $verse2));
+	}
+
+	/**
+	 * Adds a new sequence to the sequence list
 	 *
 	 * This function maintains that there are no overlapping sequences and that they are in order from lowest to highest
 	 *
@@ -242,6 +269,7 @@ class RefSequence
 
 		$this->sequences = $new_seqs;
 	}
+
 
 	/**
 	 * Returns a BCV array. These are useful for situations where the sequences need to be divided by books (such as in get_string()).
@@ -325,46 +353,70 @@ class RefSequence
 			list($ch1, $vs1) = $cv->start;
 			list($ch2, $vs2) = $cv->end;
 
-			if (0 == $ch1) $str = '';
-			elseif ($ch1 != $prev_ch)
+			$is_whole_book = FALSE;
+
+			// If chapter1 is 0, then this is either a whole book, or needs to begin at chapter 1
+			if (0 == $ch1)
 			{
-				if (!empty($str)) $str .= '; ';
-				// Whole Chapters
-				if ((0 == $vs1) && (BibleVerse::max_verse_id == $vs2))
-				{
-					$str .= $ch1;
-					if ($ch1 != $ch2) $str .= "-$ch2";
-				}
-				// Inner Chapters
-				elseif ($ch1 == $ch2)
-				{
-					$str .= "$ch1:$vs1";
-					if ($vs1 != $vs2) $str .= "-$vs2";
-				}
-				// Mixed Chapters
-				else
-				{
-					$str .= $ch1;
-					if (0 != $vs1) $str .= ":$vs1";
-					$str .= "-$ch2:$vs2";
-				}
-			}
-			else
-			{
-				$str .= ",$vs1";
-				// Inner Chapters
-				if ($ch1 == $ch2)
-				{
-					if ($vs1 != $vs2) $str .= "-$vs2";
-				}
-				// Mixed Chapters
-				else
-				{
-					$str .= "-$ch2:$vs1";
-				}
+				if (BibleVerse::max_chapter_id == $ch2) $is_whole_book = TRUE;
+				else $ch1 = BibleMeta::start_chapter;
 			}
 
-			$prev_ch = $ch2;
+			if (!$is_whole_book)
+			{
+				$is_whole_chapters = FALSE;
+
+				// If verse1 is 0, then this is either a whole chapter(s), or needs to begin at verse 1
+				if (0 == $vs1)
+				{
+					if (BibleVerse::max_verse_id == $vs2) $is_whole_chapters = TRUE;
+					else $vs1 = BibleMeta::start_verse;
+				}
+
+				// Adjust the end chapter and verse to be the actual maximum chapter/verse we can display
+				$ch2 = min($ch2, BibleMeta::end_verse_max($book));
+				$vs2 = min($vs2, BibleMeta::end_verse_max($book, $ch2));
+
+				if ($ch1 != $prev_ch)
+				{
+					if (!empty($str)) $str .= '; ';
+					// Whole Chapters
+					if ($is_whole_chapters)
+					{
+						$str .= $ch1;
+						if ($ch1 != $ch2) $str .= "-$ch2";
+					}
+					// Inner Chapters
+					elseif ($ch1 == $ch2)
+					{
+						$str .= "$ch1:$vs1";
+						if ($vs1 != $vs2) $str .= "-$vs2";
+					}
+					// Mixed Chapters
+					else
+					{
+						$str .= $ch1;
+						if (BibleMeta::start_verse != $vs1) $str .= ":$vs1";
+						$str .= "-$ch2:$vs2";
+					}
+				}
+				else
+				{
+					$str .= ",$vs1";
+					// Inner Chapters
+					if ($ch1 == $ch2)
+					{
+						if ($vs1 != $vs2) $str .= "-$vs2";
+					}
+					// Mixed Chapters
+					else
+					{
+						$str .= "-$ch2:$vs2";
+					}
+				}
+
+				$prev_ch = $ch2;
+			}
 		}
 
 		if (!empty($str)) $str = " $str";
