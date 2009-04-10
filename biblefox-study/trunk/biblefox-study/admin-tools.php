@@ -370,6 +370,12 @@
 			$this->test_ref('gen 50:2-100', 'Genesis 50:2-26');
 			$this->test_ref('gen 50:1,2-100', 'Genesis 50');
 			$this->test_ref('gen 50:1,3-100', 'Genesis 50:1,3-26');
+
+			// Test min/max in Romans 14
+			$this->test_ref('rom 14:2-100', 'Romans 14:2-26');
+			$this->test_ref('rom 14:1-22', 'Romans 14:1-22');
+			$this->test_ref('rom 14:1-23', 'Romans 14');
+			$this->test_ref('rom 14:2-23', 'Romans 14:2-26');
 		}
 
 		/**
