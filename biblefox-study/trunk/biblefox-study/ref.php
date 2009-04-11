@@ -303,7 +303,7 @@ class RefSequence
 				$books[$book1]->end = $end;
 
 				$middle_books = $book2 - $book1;
-				for ($i = 0; $i < $middle_books; $i++)
+				for ($i = 1; $i < $middle_books; $i++)
 				{
 					$book = $book1 + $i;
 					$books[$book]->start = $start;

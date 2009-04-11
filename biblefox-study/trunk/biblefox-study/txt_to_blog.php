@@ -61,11 +61,13 @@ abstract class TxtToBlog
 	private $warnings = array();
 	private $global_post_vals;
 	private $used_titles;
-	private $refs;
+	public $book_refs, $chapter_refs, $verse_refs;
 
 	public function __construct()
 	{
-		$this->refs = new BibleRefs();
+		$this->book_refs = new BibleRefs();
+		$this->chapter_refs = new BibleRefs();
+		$this->verse_refs = new BibleRefs();
 	}
 
 	public function get_post_indexing_title(BlogPost $post)
@@ -230,15 +232,19 @@ abstract class TxtToBlog
 		return implode("<br/>", $this->warnings);
 	}
 
-	public function add_refs($ref_str)
+	public function add_bible_books($ref_str)
 	{
-		// Keep track of which verses have been added
-		if (!empty($ref_str)) $this->refs->add_string($ref_str);
+		$this->book_refs->add_string($ref_str);
 	}
 
-	public function get_refs()
+	public function add_bible_chapters($ref_str)
 	{
-		return $this->refs;
+		$this->chapter_refs->add_string($ref_str);
+	}
+
+	public function add_bible_verses($ref_str)
+	{
+		$this->verse_refs->add_string($ref_str);
 	}
 
 	public static function footnote_code($note)
@@ -322,6 +328,7 @@ class MhccTxtToBlog extends TxtToBlog
 		else if (BibleMeta::get_book_id($title))
 		{
 			$this->book_index = $this->add_post(new BlogPost($title, $body, $title));
+			$this->add_bible_books($title);
 			$this->book_names[$this->book_index] = $title;
 			$this->book_tocs[$this->book_index] = '';
 		}
@@ -351,6 +358,7 @@ class MhccTxtToBlog extends TxtToBlog
 
 		// Add the chapter post
 		$chapter_post_index = $this->add_post(new BlogPost($chapter, $intro_lines, $chapter));
+		$this->add_bible_chapters($chapter);
 
 		if (!empty($outline))
 		{
@@ -409,7 +417,7 @@ class MhccTxtToBlog extends TxtToBlog
 			{
 				$ref_str = "$chapter:$key";
 				$section_posts[$key] = $this->add_post(new BlogPost($verse_titles[$key], $content, $ref_str));
-				$this->add_refs($ref_str);
+				$this->add_bible_verses($ref_str);
 			}
 
 			// Make sure the title/section counts are equal
@@ -421,15 +429,19 @@ class MhccTxtToBlog extends TxtToBlog
 				$outline .= "<li><h4>" . self::bible_code("$chapter:$verse", "Verses {$verse}") . "</h4>" . $this->post_link_code($section_index) . "</li>";
 			$outline .= '</ol>';
 		}
-		else
+		elseif (!empty($sections))
 		{
 			$outline = '';
 			foreach ($sections as $key => $content)
 			{
 				$ref_str = "$chapter:$key";
 				$outline .= "<h4>" . self::bible_code($ref_str, "Verses {$key}") . "</h4>\n" . implode("\n", $content);
-				$this->add_refs($ref_str);
+				$this->add_bible_verses($ref_str);
 			}
+		}
+		else
+		{
+			$this->add_bible_verses($chapter);
 		}
 
 		// Add the outline to the end of the chapter post

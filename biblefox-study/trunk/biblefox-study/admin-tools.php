@@ -376,6 +376,10 @@
 			$this->test_ref('rom 14:1-22', 'Romans 14:1-22');
 			$this->test_ref('rom 14:1-23', 'Romans 14');
 			$this->test_ref('rom 14:2-23', 'Romans 14:2-26');
+
+			// Test having consecutive books
+			$this->test_ref('Gen 2-100, Exodus', 'Genesis 2-50; Exodus');
+			$this->test_ref('Gen 2-100, Exodus, Lev', 'Genesis 2-50; Exodus; Leviticus');
 		}
 
 		/**
@@ -462,6 +466,22 @@
 			echo 'Finished<br/>';
 		}
 
+		private static function test_whole_bible(BibleRefs $refs, $header = 'Refs')
+		{
+			$bible_start = BibleVerse::calc_unique_id(1);
+			$bible_end = BibleVerse::calc_unique_id(66, BibleVerse::max_chapter_id, BibleVerse::max_verse_id);
+
+			echo "<div><h4>$header</h4>";
+			$seqs = $refs->get_seqs();
+			if (($bible_start == $seqs[0]->start) && ($bible_end == $seqs[0]->end)) echo 'Complete Bible!<br/>';
+			else
+			{
+				echo "Incomplete Bible:<br/>" . $refs->get_string();
+				pre($refs->get_seqs());
+			}
+			echo '</div>';
+		}
+
 		private function output_posts(TxtToBlog $parser, $pre = FALSE, $limit = 20)
 		{
 			$posts = $parser->parse_file();
@@ -483,7 +503,7 @@
 			foreach ($posts as $num => $post)
 			{
 //				$show = (20 >= $num);
-				$show = ((20 >= $num) || (stristr($post->title, 'Luke')));
+				$show = ((20 >= $num) || (stristr($post->title, 'Genesis')));
 
 				if ($show)
 				{
@@ -493,7 +513,10 @@
 			}
 
 			echo '<div><h4>Warnings</h4>' . $parser->print_warnings() . '</div>';
-			echo '<div><h4>Refs</h4>' . $parser->get_refs()->get_string() . '</div>';
+
+			self::test_whole_bible($parser->book_refs, 'Book Refs');
+			self::test_whole_bible($parser->chapter_refs, 'Chapter Refs');
+			self::test_whole_bible($parser->verse_refs, 'Verse Refs');
 		}
 
 		function parse_mhcc()
