@@ -59,6 +59,7 @@ class BibleMeta
 	{
 		$str = strtolower($str);
 
+		// NOTE: The first element of the books array will contain any initial leftovers before the first book
 		$books = array(array(0, ''));
 		$index = 0;
 		$leftover_offset = 0;
@@ -213,6 +214,9 @@ class BibleMeta
 			$book_id = self::get_book_id_from_words($prefix_words, $max_level);
 			if (!empty($book_id)) $books []= array($book_id, $prefix_offset, $old_prefix_len);
 		}
+
+		// Check to see if a period is at the end of each book string, and include it if so
+		foreach ($books as &$book) if ('.' == $str[$book[1] + $book[2]]) $book[2]++;
 
 		return $books;
 	}
