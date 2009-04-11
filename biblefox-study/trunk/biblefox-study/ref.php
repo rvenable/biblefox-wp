@@ -1228,7 +1228,7 @@ class BibleRefs extends RefSequence
 			$prev_ch = 0;
 			foreach ($cvs as $cv)
 			{
-				$ch_seqs = self::get_chapter_seqs_from_cv($book, $cv);
+				$ch_seqs = self::bcv_to_chapter_seqs($book, $cv);
 				foreach ($ch_seqs as $chapter => $seq)
 				{
 					if ($prev_ch != $chapter) $ch_count++;

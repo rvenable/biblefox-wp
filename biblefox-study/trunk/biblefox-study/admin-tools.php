@@ -503,7 +503,11 @@
 			foreach ($posts as $num => $post)
 			{
 //				$show = (20 >= $num);
-				$show = ((20 >= $num) || (stristr($post->title, 'Genesis')));
+				$book = 'Eccl';
+				$show = FALSE;
+				$show = $show || (20 >= $num);
+				$show = $show || (stristr($post->title, $book));
+				$show = $show || (stristr($post->ref_str, $book));
 
 				if ($show)
 				{
@@ -671,6 +675,14 @@
 			pre($str);
 		}
 
+		public function test_reading_plan_dividing()
+		{
+			$seq = new BibleRefs();
+			$seq->push_string('john, acts, romans, 1 john, 2 john, 3 john');
+			echo $seq->get_string() . '<br/>';
+			foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
+		}
+
 		/**
 		 * A function for dumping temporary functionality to do temporary tasks
 		 *
@@ -691,11 +703,6 @@
 			$refs = RefManager::get_from_str('moses');
 			pre($refs);
 			echo $refs->sql_where() . '<br/>';*/
-			$seq = new BibleRefs();
-			$seq->push_string('john, acts, romans, 1 john, 2 john, 3 john');
-			echo $seq->get_string() . '<br/>';
-//			pre($seq);
-			foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 		}
 
 	}
