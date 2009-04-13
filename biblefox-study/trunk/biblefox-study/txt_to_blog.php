@@ -318,6 +318,19 @@ class MhccTxtToBlog extends TxtToBlog
 		$posts[1]->title = 'Matthew Henry\'s Commentary on the Bible';
 		$posts[1]->content = 'An abridgment of the 6 volume "Matthew Henry\'s Commentary on the Bible".';
 
+		// Remove the following posts from the end of the array
+		$titles = array(
+			'This document is from the Christian Classics Ethereal',
+			'Index of Scripture Commentary',
+			'Index of Scripture References',
+			'Indexes',
+		);
+		foreach ($titles as $title)
+		{
+			$popped = array_pop($posts);
+			if ($title != $popped->title) $this->warning("Expecting '$title', but found '$popped->title'");
+		}
+
 		// Use the book content as an except before we add the TOC
 		foreach ($this->book_names as $book => $name) $posts[$book]->excerpt = $posts[$book]->content;
 
