@@ -23,10 +23,10 @@ class RefSequence
 	 *
 	 * @param string $str
 	 */
-	public function add_string($str)
+	public function add_string($str, $max_level = 0)
 	{
 		// Get all the bible reference substrings in this string
-		$substrs = BibleMeta::get_bcv_substrs($str);
+		$substrs = BibleMeta::get_bcv_substrs($str, $max_level);
 
 		// Add each substring to our sequences
 		foreach ($substrs as $substr)
@@ -1110,9 +1110,9 @@ class BibleRefs extends RefSequence
 		return $count;
 	}
 
-	function push_string($str)
+	function push_string($str, $max_level = 0)
 	{
-		parent::add_string($str);
+		parent::add_string($str, $max_level);
 		$this->push_sets_to_refs(parent::get_sets());
 	}
 

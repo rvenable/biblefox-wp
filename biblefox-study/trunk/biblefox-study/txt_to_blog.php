@@ -357,95 +357,135 @@ class MhccTxtToBlog extends TxtToBlog
 	{
 		// Parse the chapter body into an outline section and verse sections
 		$sections = array();
+		$intro_lines = array();
 		$key = '';
 		foreach ($body as $line)
 		{
-			if (preg_match('/chapter\s*outline/i', $line)) $key = 'outline';
-			elseif (preg_match('/verses?\s*(' . self::verse_num_pattern . ')/i', $line, $match)) $key = $match[1];
+			if (preg_match('/^\s*chapter\s*outline\s*$/i', $line)) $key = 'outline';
+			elseif (preg_match('/^\s*verses?\s*(' . self::verse_num_pattern . ')\s*$/i', $line, $match)) $key = $match[1];
 			elseif (!empty($key)) $sections[$key] []= $line;
-			else $intro_lines .= $line;
+			else $intro_lines []= $line;
 		}
 		$outline = (array) $sections['outline'];
 		unset($sections['outline']);
 
-		$intro_lines = trim($intro_lines);
+		$intro_lines = trim(implode("\n", $intro_lines));
 		if (!empty($intro_lines)) $intro_lines .= "\n";
-		// if (!empty($intro_lines)) $this->warning("Intro: $intro_lines");
+		//if (!empty($intro_lines)) $this->warning("Intro for $chapter: $intro_lines");
 
 		// Add the chapter post
-		$chapter_post_index = $this->add_post(new BlogPost($chapter, $intro_lines, $chapter));
+		$chapter_post_index = $this->add_post(new BlogPost($chapter, '', $chapter));
 		$this->add_bible_chapters($chapter);
 
+		// Parse the outline to try to find verse titles
+		$verse_titles = $this->parse_normal_outline($outline);
+
 		// Normal chapter: outline section followed by verse sections
-		if (!empty($outline))
+		if (!empty($verse_titles))
 		{
-			// Parse the outline to find the verse titles
-			$verse_titles = $this->parse_normal_outline($outline);
+			if (empty($sections)) $this->warning("Verse titles, but no sections: $chapter");
 
 			// Create the new outline from the verse titles and verse sections
-			$this->parse_verse_sections($chapter, $verse_titles, $sections);
+			$outline = $this->parse_verse_sections($chapter, $verse_titles, $sections);
 		}
 		// No Outline chapter: verse sections, but no outline section
 		elseif (!empty($sections))
 		{
 			//$this->warning("Chapter has no TOC: $chapter");
-			$outline = '';
-			foreach ($sections as $key => $content)
-			{
-				$ref_str = "$chapter:$key";
-				$outline .= "<h4>" . self::bible_code($ref_str, "Verses {$key}") . "</h4>\n" . implode("\n", $content);
-				$this->add_bible_verses($ref_str);
-			}
+			$outline = $this->create_outline_from_sections($chapter, $sections);
 		}
-		// Sloppy or Simple chapter
 		else
 		{
-			$outline = '';
-			$paragraphs = self::parse_paragraphs($body);
+			$intro_lines = '';
 
-			// Parse the intro paragraph to see if it is an outline
-			$verse_titles = array();
-			if (0 < count($paragraphs)) list($verse_titles, $chapter_abbreviation) = $this->parse_sloppy_outline(array_shift($paragraphs));
-
-			// Sloppy chapter: actually has an outline and verse sections, but sloppy
-			if (0 < count($verse_titles))
-			{
-				// Parse the remaining paragraphs into verse sections
-				$verse_key = '';
-				$verse_sections = array();
-				foreach ($paragraphs as $paragraph)
-				{
-					$content = trim(implode("\n", $paragraph));
-					if (preg_match('/^' . preg_quote($chapter_abbreviation) . ':(' . self::verse_num_pattern . ')/', $content, $match))
-					{
-						$verse_key = trim($match[1]);
-						$verse_sections[$verse_key] = trim(substr($content, strlen($match[0])));
-					}
-					else
-					{
-						if (!empty($verse_key)) $verse_sections[$verse_key] .= "\n\n$content";
-						else $this->warning("Unknown paragraph at start of chapter $chapter");
-					}
-				}
-
-				// Sloppy chapters shouldn't have any intro content
-				$this->posts[$chapter_post_index]->content = '';
-
-				// Create the new outline from the verse titles and verse sections
-				$outline = $this->parse_verse_sections($chapter, $verse_titles, $verse_sections);
-			}
-			// Simple chapter: no outline or verse sections, just one single post for this chapter
-			else
-			{
-				// If there are more than two paragraphs, we might be wrong by thinking this is an all in one chapter post
-				if (1 < count($paragraphs)) $this->warning("Multiple paragraphs in $chapter, but no verse titles");
-
-				$this->add_bible_verses($chapter);
-			}
+			// This might be a sloppy chapter, so try to parse it as such
+			$outline = $this->parse_sloppy_chapter($chapter, $body);
 		}
 
 		// Add the outline to the end of the chapter post
-		$this->posts[$chapter_post_index]->content .= $outline;
+		$this->posts[$chapter_post_index]->content .= $intro_lines . $outline;
+	}
+
+	protected function parse_sloppy_chapter($chapter, $body)
+	{
+		// Parse the body into paragraphs
+		$paragraphs = self::parse_paragraphs($body);
+		$pcount = count($paragraphs);
+
+		// Create a ref string for this chapter, to compare with upcoming paragraphs
+		$chapter_ref = new BibleRefs();
+		$chapter_ref->push_string($chapter);
+		$ch_ref_str = $chapter_ref->get_string();
+
+		// Try to parse the first paragraph as an outline
+		$verse_titles = $this->parse_sloppy_outline($paragraphs[0]);
+
+		// If we got verse titles from the first paragraph, we can get rid of it now
+		if (!empty($verse_titles)) unset($paragraphs[0]);
+
+		// Parse the remaining paragraphs into sections
+		$sections = array();
+		$key = 'intro';
+		foreach ($paragraphs as $paragraph)
+		{
+			// See if the paragraph begins with a bible reference in this chapter
+			$paragraph = trim(implode(" ", $paragraph));
+			$substrs = BibleMeta::get_bcv_substrs(substr($paragraph, 0, 25), 1);
+			if (isset($substrs[0]))
+			{
+				$substr = $substrs[0];
+				if (0 == $substr->offset)
+				{
+					list($ch, $new_key) = explode(':', substr($paragraph, 0, $substr->length), 2);
+
+					$ref = new BibleRefs();
+					$ref->push_string($ch, 1);
+					$ref_str = $ref->get_string();
+
+					// If this reference matches the chapter's reference, this reference should be marking a section
+					if ($ref_str == $ch_ref_str)
+					{
+						$key = $new_key;
+						$paragraph = substr($paragraph, $substr->length);
+						if (isset($sections[$key])) $this->warning("Duplicate Section Key in $chapter: $key");
+					}
+					else $this->warning("Wrong chapter mentioned: '$ref_str' != '$ch_ref_str'");
+				}
+			}
+
+			if (!empty($sections[$key])) $sections[$key] .= "\n\n";
+			$sections[$key] .= $paragraph;
+		}
+
+		// Pull the intro off of the sections array
+		$intro = $sections['intro'];
+		unset($sections['intro']);
+
+		$outline = '';
+
+		// Normal chapter: outline section followed by verse sections
+		if (!empty($verse_titles))
+		{
+			//$this->warning("Sloppy outline found: $chapter");
+			if (empty($sections)) $this->warning("Verse titles, but no sections: $chapter");
+
+			// Create the new outline from the verse titles and verse sections
+			$outline = $this->parse_verse_sections($chapter, $verse_titles, $sections);
+		}
+		// No Outline chapter: verse sections, but no outline section
+		elseif (!empty($sections))
+		{
+			//$this->warning("Sloppy chapter has no TOC: $chapter");
+			$outline = $this->create_outline_from_sections($chapter, $sections);
+		}
+		// Simple chapter
+		else
+		{
+			if (2 < $pcount) $this->warning("Multiple ($pcount) paragraphs but no sub sections (possible error): $chapter");
+			$this->add_bible_verses($chapter);
+		}
+
+		return $intro . $outline;
 	}
 
 	protected function parse_normal_outline($outline)
@@ -478,7 +518,7 @@ class MhccTxtToBlog extends TxtToBlog
 		if (!empty($outline))
 		{
 			$matches = array();
-			preg_match_all('/([^\(\)]*)\(([^\(\):]*):([^\(\):]*)\)/', implode(" ", $outline), $matches, PREG_SET_ORDER);
+			preg_match_all('/([^\(\)]*)\(([^\(\):]*):([^\(\):]*)\)/', implode(' ', $outline), $matches, PREG_SET_ORDER);
 
 			foreach ($matches as $match)
 			{
@@ -492,7 +532,7 @@ class MhccTxtToBlog extends TxtToBlog
 			}
 		}
 
-		return array($verse_titles, $chapter_abbreviation);
+		return $verse_titles;
 	}
 
 	protected function parse_verse_sections($chapter, $verse_titles, $sections)
@@ -554,6 +594,21 @@ class MhccTxtToBlog extends TxtToBlog
 		foreach ($section_posts as $verse => $section_index)
 			$outline .= "<li><h4>" . self::bible_code("$chapter:$verse", "Verses {$verse}") . "</h4>" . $this->post_link_code($section_index) . "</li>";
 		$outline .= '</ol>';
+
+		return $outline;
+	}
+
+	protected function create_outline_from_sections($chapter, $sections)
+	{
+		$outline = '';
+
+		foreach ($sections as $key => $content)
+		{
+			if (is_array($content)) $content = implode("\n", $content);
+			$ref_str = "$chapter:$key";
+			$outline .= "<h4>" . self::bible_code($ref_str, "Verses {$key}") . "</h4>\n" . $content;
+			$this->add_bible_verses($ref_str);
+		}
 
 		return $outline;
 	}

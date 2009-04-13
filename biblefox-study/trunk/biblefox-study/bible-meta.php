@@ -84,7 +84,7 @@ class BibleMeta
 			if (preg_match('/^\s*\d[\s\d-:,;]*/', $leftovers, $match))
 			{
 				$substr->cv_offset = $cv_offset;
-				$substr->length += strlen($match[0]);
+				$substr->length += strlen(rtrim($match[0]));
 			}
 		}
 
@@ -481,6 +481,7 @@ class BibleMeta
 		'prv' => '20',
 		'prov' => '20',
 		'proverbs' => '20',
+		'eccl' => '21',
 		'ecc' => '21',
 		'qoheleth' => '21',
 		'qoh' => '21',

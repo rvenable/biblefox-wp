@@ -514,10 +514,10 @@
 
 			foreach ($posts as $num => $post)
 			{
-//				$show = (20 >= $num);
-				$book = 'Eccl';
 				$show = FALSE;
 				$show = $show || (20 >= $num);
+
+				$book = 'isaiah';
 				$show = $show || (stristr($post->title, $book));
 				$show = $show || (stristr($post->ref_str, $book));
 
