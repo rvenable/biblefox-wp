@@ -32,7 +32,7 @@ class RefSequence
 		foreach ($substrs as $substr)
 		{
 			// If there is a chapter, verse string use it
-			if ($substr->cv_offset) $this->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length));
+			if ($substr->cv_offset) $this->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
 			else $this->add_whole_book($substr->book);
 		}
 	}
