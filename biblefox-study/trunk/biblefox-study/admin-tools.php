@@ -511,22 +511,74 @@
 				echo ($pre) ? '<pre>' . $post->get_string() . '</pre>' : $post->output();
 			}
 
+			$non_books = array();
+			$books = array();
+			$chapters = array();
+			$verses = array();
 
 			foreach ($posts as $num => $post)
 			{
 				$show = FALSE;
 				$show = $show || (20 >= $num);
 
-				$book = 'isaiah';
-				$show = $show || (stristr($post->title, $book));
-				$show = $show || (stristr($post->ref_str, $book));
+				$target_book = 'isaiah';
+				$show = $show || (stristr($post->title, $target_book));
+				$show = $show || (stristr($post->ref_str, $target_book));
+
+				$show = TRUE;
 
 				if ($show)
 				{
-					echo '<a href="' . add_query_arg('post', $num, $url) . '">' . $post->title . '</a><br/>';
-//					echo ($pre) ? '<pre>' . $post->get_string() . '</pre>' : $post->output();
+					$anchor = '<a href="' . add_query_arg('post', $num, $url) . '">' . $post->title . '</a>';
+					//echo ($pre) ? '<pre>' . $post->get_string() . '</pre>' : $post->output();
+
+					if (preg_match('/\d$/', $post->ref_str))
+					{
+						list($chapter, $verse) = explode(':', $post->ref_str, 2);
+						if (empty($verse))
+						{
+							$book = rtrim(rtrim($chapter, '0123456789'));
+							$chapters[$book][$chapter] = $anchor;
+						}
+						else
+						{
+							$verses[$chapter][$verse] = $anchor;
+						}
+					}
+					else
+					{
+						$book = $post->ref_str;
+						if (!empty($book)) $books[$book] = $anchor;
+						else $non_books []= $anchor;
+					}
 				}
 			}
+
+			echo "<ol style='list-style-type:decimal; padding-left:15px'>";
+			foreach ($non_books as $anchor) echo "<li>$anchor</li>";
+			echo "</ol><ol style='list-style-type:decimal; padding-left:15px'>";
+			foreach ($books as $book => $book_anchor)
+			{
+				echo "<li>$book_anchor";
+				if (isset($chapters[$book]))
+				{
+					echo '<ol style="list-style-type:decimal; padding-left:15px">';
+					foreach ($chapters[$book] as $chapter => $ch_anchor)
+					{
+						echo "<li>$ch_anchor";
+						if (isset($verses[$chapter]))
+						{
+							echo '<ol style="list-style-type:decimal; padding-left:15px">';
+							foreach ($verses[$chapter] as $verse => $vs_anchor) echo "<li>$vs_anchor</li>";
+							echo '</ol>';
+						}
+						echo '</li>';
+					}
+					echo '</ol>';
+				}
+				echo '</li>';
+			}
+			echo "</ol>";
 
 			echo '<div><h4>Warnings</h4>' . $parser->print_warnings() . '</div>';
 
