@@ -24,28 +24,22 @@
 	define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
 	define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
 
-	require_once('bible-meta.php');
 	require_once("bfox-settings.php");
-	require_once("bfox-blog-specific.php");
-	require_once("plan.php");
 	require_once('links.php');
-	require_once('marketing.php');
 
-	// BibleRefs class
-	require_once("ref.php");
+	require_once('biblerefs/ref.php');
+	include_once('admin/admin.php');
+	include_once('blog/biblefox-study.php');
+	include_once('translations/bfox-translations.php');
 
 	// Include files which need BibleRefs
-	require_once("bibletext.php");
 	require_once('quicknote.php');
-	require_once("history.php");
-	require_once('message.php');
-	require_once("bfox-query.php");
-	require_once('special.php');
-	require_once('bfox-widgets.php');
-	require_once('usfx.php');
-	require_once('bfox-translations.php');
 	require_once('commentaries.php');
 	require_once('bible.php');
+
+	// TODO3: These files are probably obsolete
+	require_once('admin/marketing.php');
+	require_once('admin/message.php');
 
 	// Returns the bible study blogs for a given user
 	// Should be used in place of get_blogs_of_user() because the main biblefox.com blog should not count

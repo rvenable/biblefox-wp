@@ -1,5 +1,7 @@
 <?php
 
+require_once('bible-meta.php');
+
 define('BFOX_UNIQUE_ID_PART_SIZE', 8);
 define('BFOX_UNIQUE_ID_MASK', 0xFF);
 define('BFOX_UNIQUE_ID_MAX', 256);
@@ -1242,5 +1244,8 @@ class BibleRefs extends RefSequence
 
 
 }
+
+// TODO3: Get rid of bibletext.php
+require_once("bibletext.php");
 
 ?>
