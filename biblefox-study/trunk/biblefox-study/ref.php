@@ -25,26 +25,16 @@ class RefSequence
 	 */
 	public function add_string($str)
 	{
-		$final_leftovers = '';
+		// Get all the bible reference substrings in this string
+		$substrs = BibleMeta::get_bcv_substrs($str);
 
-		$books = BibleMeta::get_books_in_string($str);
-		foreach ($books as $book)
+		// Add each substring to our sequences
+		foreach ($substrs as $substr)
 		{
-			list($book_id, $leftovers) = $book;
-			if (!empty($book_id))
-			{
-				preg_match('/^\s*\d[\s\d-:,;]*/', $leftovers, $match);
-				if (!empty($match[0]))
-				{
-					$leftovers = substr($leftovers, strlen($match[0]));
-					$this->add_book_str($book_id, $match[0]);
-				}
-				else $this->add_whole_book($book_id);
-			}
-			$final_leftovers .= $leftovers;
+			// If there is a chapter, verse string use it
+			if ($substr->cv_offset) $this->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length));
+			else $this->add_whole_book($substr->book);
 		}
-
-		return $final_leftovers;
 	}
 
 	/**
@@ -269,7 +259,6 @@ class RefSequence
 
 		$this->sequences = $new_seqs;
 	}
-
 
 	/**
 	 * Returns a BCV array. These are useful for situations where the sequences need to be divided by books (such as in get_string()).

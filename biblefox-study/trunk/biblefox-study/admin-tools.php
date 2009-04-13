@@ -383,6 +383,15 @@
 			// Test having consecutive books
 			$this->test_ref('Gen 2-100, Exodus', 'Genesis 2-50; Exodus');
 			$this->test_ref('Gen 2-100, Exodus, Lev', 'Genesis 2-50; Exodus; Leviticus');
+
+			// Test long strings with lots of garbage
+			$this->test_ref('hello dude genesis 1,;,2 gen 5 1 sam 4, song ;of song 3', 'Genesis 1-2; 5; 1 Samuel 4; Song of Solomon'); // TODO3: words like song get detected as the entire book Song of Solomon
+			$this->test_ref("<xml>
+			<p>I like Gen 1.</p>
+			<p>What do you think? john. 21 Do you prefer<d><d> ex 2 or 1sam 3 - 4 or 1 th 4? gen 3:4-8:2 gen 3ddd:2 fff- 1 1 3 </p>
+			<p>exodus lala yoyo 4:5</p>
+			</xml>
+			", 'Genesis 1; 3-8:2; Exodus; 1 Samuel 3-4; John 21; 1 Thessalonians 4'); // TODO3: 'ex' is not detected because it is only 2 letters
 		}
 
 		/**

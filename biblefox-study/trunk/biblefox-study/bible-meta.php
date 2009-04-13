@@ -1,5 +1,18 @@
 <?php
 
+class BibleBcvSubstr
+{
+	public $book, $offset, $length, $cv_offset;
+
+	public function __construct($book, $offset, $length, $cv_offset = 0)
+	{
+		$this->book = $book;
+		$this->offset = $offset;
+		$this->length = $length;
+		$this->cv_offset = $cv_offset;
+	}
+}
+
 class BibleMeta
 {
 	const name_normal = 'name';
@@ -49,20 +62,47 @@ class BibleMeta
 	}
 
 	/**
-	 * Returns an array of arrays, where the first element is a book id, and the second element is the leftover string following the book name
+	 * Returns an array of bcv (book, chapter, verse) reference strings found in the given string
 	 *
 	 * @param string $str
 	 * @param integer $max_level
-	 * @return array of array(book_id, leftovers)
+	 * @return array of BibleBcvSubstr
 	 */
-	public static function get_books_in_string($str, $max_level = 0)
+	public static function get_bcv_substrs($str, $max_level = 0)
+	{
+		// Get all the book substrings in this string
+		$substrs = self::get_book_substrs($str, $max_level);
+
+		// For each book substring, check the characters immediately following it to see if there are chapter, verse references
+		foreach ($substrs as $index => &$substr)
+		{
+			$cv_offset = $substr->offset + $substr->length;
+			if (isset($substrs[$index + 1])) $next_offset = $substrs[$index + 1]->offset;
+			else $next_offset = strlen($str);
+
+			$leftovers = substr($str, $cv_offset, $next_offset - $cv_offset);
+			if (preg_match('/^\s*\d[\s\d-:,;]*/', $leftovers, $match))
+			{
+				$substr->cv_offset = $cv_offset;
+				$substr->length += strlen($match[0]);
+			}
+		}
+
+		return $substrs;
+	}
+
+	/**
+	 * Returns an array of books whose names were found in the given string
+	 *
+	 * @param string $str
+	 * @param integer $max_level
+	 * @return array of BibleBcvSubstr
+	 */
+	private static function get_book_substrs($str, $max_level = 0)
 	{
 		$str = strtolower($str);
 
-		// NOTE: The first element of the books array will contain any initial leftovers before the first book
-		$books = array(array(0, ''));
-		$index = 0;
-		$leftover_offset = 0;
+		$substrs = array();
 
 		// Commas and semicolons cannot be in a book name, so we must split on them
 		$sections = preg_split('/[,;]/', $str, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
@@ -74,58 +114,23 @@ class BibleMeta
 			$section_offset = $section[1];
 
 			// Search for books in this section
-			$section_books = self::search_for_books($section_str, $max_level);
-			foreach ($section_books as $book)
+			$section_substrs = self::search_for_books($section_str, $max_level);
+			foreach ($section_substrs as $substr)
 			{
-				// Get the book id, offset, and length from $book
-				$book_id = $book[0];
-				$book_offset = $book[1] + $section_offset;
-				$book_len = $book[2];
-
-				// If this is a valid book we should add it to our book list
-				if (!empty($book_id))
-				{
-					// Now we can calculate the leftovers from the previous book
-
-					// The length of the leftovers is the book offset minus the leftover offset
-					$leftover_len = $book_offset - $leftover_offset;
-
-					// If the length of the leftovers is greater than 0, we can add the substr to our book array
-					if (0 < $leftover_len) $leftovers = substr($str, $leftover_offset, $leftover_len);
-					else $leftovers = '';
-					$books[$index++] = array($prev_id, $leftovers);
-
-					// Set the new previous id and new leftover offset
-					$prev_id = $book_id;
-					$leftover_offset = $book_offset + $book_len;
-				}
+				$substr->offset += $section_offset;
+				$substrs []= $substr;
 			}
 		}
 
-		// Now we can calculate any final leftovers
-
-		// The length of the leftovers is the length of str minus the leftover offset
-		$leftover_len = strlen($str) - $leftover_offset;
-
-		// If the length of the leftovers is greater than 0, we can add the substr to our book array
-		if (0 < $leftover_len) $leftovers = substr($str, $leftover_offset, $leftover_len);
-		else $leftovers = '';
-		$books[$index++] = array($prev_id, $leftovers);
-
-		return $books;
+		return $substrs;
 	}
 
 	/**
 	 * Search a string for book names. Returns an array of arrays.
 	 *
-	 * Each element of the return array is an array with these elements:
-	 * Book ID
-	 * Position in the search string at which the book's name began
-	 * Length of the book name
-	 *
 	 * @param string $str
 	 * @param integer $max_level
-	 * @return array of array(book_id, position, length)
+	 * @return array of BibleBcvSubstr
 	 */
 	private static function search_for_books($str, $max_level)
 	{
@@ -170,7 +175,7 @@ class BibleMeta
 					// Otherwise, this newest word doesn't belong with the prefix list
 					if (!empty($book_id))
 					{
-						$books []= array($book_id, $prefix_offset, $new_prefix_len);
+						$books []= new BibleBcvSubstr($book_id, $prefix_offset, $new_prefix_len);
 						$prefix_words = array();
 					}
 					else
@@ -184,7 +189,7 @@ class BibleMeta
 						{
 							// If the prefix list is a valid book, we should add the book
 							$book_id = self::get_book_id_from_words($prefix_words, $max_level);
-							if (!empty($book_id)) $books []= array($book_id, $prefix_offset, $old_prefix_len);
+							if (!empty($book_id)) $books []= new BibleBcvSubstr($book_id, $prefix_offset, $old_prefix_len);
 
 							// Clear the prefix words
 							$prefix_words = array();
@@ -201,7 +206,7 @@ class BibleMeta
 						}
 						elseif ($book_id = self::get_book_id_from_words(array($word), $max_level))
 						{
-							$books[] = array($book_id, $pos, strlen($word));
+							$books[] = new BibleBcvSubstr($book_id, $pos, strlen($word));
 						}
 					}
 				}
@@ -212,11 +217,11 @@ class BibleMeta
 		if (!empty($prefix_words))
 		{
 			$book_id = self::get_book_id_from_words($prefix_words, $max_level);
-			if (!empty($book_id)) $books []= array($book_id, $prefix_offset, $old_prefix_len);
+			if (!empty($book_id)) $books []= new BibleBcvSubstr($book_id, $prefix_offset, $old_prefix_len);
 		}
 
 		// Check to see if a period is at the end of each book string, and include it if so
-		foreach ($books as &$book) if ('.' == $str[$book[1] + $book[2]]) $book[2]++;
+		foreach ($books as &$book) if ('.' == $str[$book->offset + $book->length]) $book->length++;
 
 		return $books;
 	}
