@@ -489,7 +489,7 @@ foreach( $this->menu as $topstub => $menu ) {
 <?php
 	if ($is_logged_in)
 	{
-		$blogs = bfox_get_bible_study_blogs($user_ID);
+		$blogs = BiblefoxSite::get_bible_study_blogs($user_ID);
 		if (0 < count($blogs))
 		{
 			echo '<li class="wpabar-menupop" onmouseover="showNav(this)" onmouseout="hideNav(this)">';
@@ -506,7 +506,7 @@ foreach( $this->menu as $topstub => $menu ) {
 
 	?>
 
-			<li><?php echo bfox_loginout(); ?></li>
+			<li><?php echo BiblefoxSite::loginout(); ?></li>
 		</ul>
 	</div>
 </div>

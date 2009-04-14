@@ -279,7 +279,7 @@ How often will you be reading this plan?<br/>
 	{
 		global $user_ID;
 		// Get the bible study blogs for the current user
-		$blogs = bfox_get_bible_study_blogs($user_ID);
+		$blogs = BiblefoxSite::get_bible_study_blogs($user_ID);
 
 		echo "<div class=\"wrap\">";
 		echo "<h2>Bible Study Blogs</h2>";

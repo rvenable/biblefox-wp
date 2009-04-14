@@ -177,7 +177,7 @@ endif; ?>
 <?php
 
 	global $user_ID, $bfox_specials;
-	$blogs = bfox_get_bible_study_blogs($user_ID);
+	$blogs = BiblefoxSite::get_bible_study_blogs($user_ID);
 
 	foreach ($blogs as $blog_id => $blog)
 	{
