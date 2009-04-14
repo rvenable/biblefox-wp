@@ -29,7 +29,7 @@
 
 	require_once('biblerefs/ref.php');
 	include_once('translations/bfox-translations.php');
-	include_once('admin/admin.php');
+	include_once('admin/admin-tools.php');
 	include_once('blog/biblefox-study.php');
 	include_once('bible/bible.php');
 

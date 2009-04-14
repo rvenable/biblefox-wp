@@ -14,7 +14,6 @@
 	define(BFOX_TEXTS_DIR, BFOX_DIR . '/texts');
 
 	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
-	define(BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox-admin-tools');
 	define(BFOX_READ_SUBPAGE, 'bfox-read');
 	define(BFOX_BIBLE_SUBPAGE, 'bfox-bible');
 	define(BFOX_DOMAIN, 'biblefox-study');
@@ -56,8 +55,6 @@
 			// Add the translation page to the WPMU admin menu along with the corresponding load action
 			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', Translations::min_user_level, Translations::page, array('Translations', 'manage_page'));
 			add_action('load-' . get_plugin_page_hookname(Translations::page, 'wpmu-admin.php'), array('Translations', 'manage_page_load'));
-
-			add_submenu_page('wpmu-admin.php', 'Admin Tools', 'Admin Tools', 10, BFOX_ADMIN_TOOLS_SUBPAGE, 'bfox_admin_tools');
 		}
 	}
 
@@ -72,12 +69,6 @@
 	{
 		global $bfox_bible_viewer;
 		$bfox_bible_viewer->page();
-	}
-
-	function bfox_admin_tools()
-	{
-		require_once("admin-tools.php");
-		bfox_admin_tools_menu();
 	}
 
 	function bfox_study_init()
