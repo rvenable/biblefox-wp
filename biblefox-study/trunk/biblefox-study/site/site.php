@@ -1,6 +1,7 @@
 <?php
 
 include_once('wordpress-admin-bar/wordpress-admin-bar.php');
+include_once('marketing.php');
 
 class BiblefoxSite
 {

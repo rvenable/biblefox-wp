@@ -10,7 +10,6 @@
 	include_once('site/site.php');
 
 	// TODO3: These files are probably obsolete
-	require_once('admin/marketing.php');
 	require_once('admin/message.php');
 
 	require_once('links.php');
