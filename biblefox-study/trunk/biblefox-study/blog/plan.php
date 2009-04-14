@@ -339,7 +339,7 @@
 				// The scheduled timestamp should be 'today' but in our blog's time
 				// TODO2: If the the blog's time settings change, this needs to be rescheduled
 				if (!$plan->is_finished && !wp_next_scheduled('bfox_plan_emails_send_action'))
-					wp_schedule_event((int) bfox_format_local_date('today', 'U'), 'daily', 'bfox_plan_emails_send_action');
+					wp_schedule_event((int) BfoxUtility::format_local_date('today', 'U'), 'daily', 'bfox_plan_emails_send_action');
 			}
 		}
 
@@ -406,7 +406,7 @@
 			$plan->days_of_week = array_fill_keys(str_split($plan->frequency_options), TRUE);
 
 			// Get today according to the local blog settings, formatted as an integer number of seconds
-			$now = (int) date('U', strtotime(bfox_format_local_date('today')));
+			$now = (int) date('U', strtotime(BfoxUtility::format_local_date('today')));
 
 			$frequency_str = $this->frequency[$plan->frequency];
 			$dates = array();
@@ -877,7 +877,7 @@
 			$plan['name'] = stripslashes($_POST['plan_name']);
 			$plan['summary'] = stripslashes($_POST['plan_description']);
 			$plan['refs_array'] = $refs->get_sections($section_size);
-			$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
+			$plan['start_date'] = BfoxUtility::format_local_date($_POST['schedule_start_date']);
 			$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 			$plan['frequency_options'] = implode('', (array) $_POST['schedule_frequency_options']);
 			$plan_id = $bfox_plan->add_new_plan((object) $plan);
@@ -921,7 +921,7 @@
 			$plan['name'] = stripslashes($_POST['plan_name']);
 			$plan['summary'] = stripslashes($_POST['plan_description']);
 			$plan['refs_array'] = array();
-			$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
+			$plan['start_date'] = BfoxUtility::format_local_date($_POST['schedule_start_date']);
 			$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 			$plan['frequency_options'] = implode('', (array) $_POST['schedule_frequency_options']);
 

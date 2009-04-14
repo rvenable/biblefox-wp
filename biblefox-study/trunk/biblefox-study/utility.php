@@ -1,6 +1,8 @@
 <?php
 
-	function bfox_divide_into_cols($array, $max_cols, $height_threshold = 0)
+class BfoxUtility
+{
+	public static function divide_into_cols($array, $max_cols, $height_threshold = 0)
 	{
 		$count = count($array);
 		if (0 < $count)
@@ -35,7 +37,7 @@
 	 desired timezone, we have to temporarily change the timezone, get the timestamp from strtotime(), format it using date(),
 	 then finally reset the timezone back to its original state.
 	 */
-	function bfox_format_local_date($date_str, $format = 'm/d/Y')
+	function format_local_date($date_str, $format = 'm/d/Y')
 	{
 		// Get the current default timezone because we need to set it back when we are done
 		$tz = date_default_timezone_get();
@@ -62,28 +64,20 @@
 		return $date_str;
 	}
 
-	function bfox_add_head_files()
+	/**
+	 * Returns whether a table exists or not
+	 *
+	 * @param string $table_name
+	 * @return boolean
+	 */
+	function does_table_exist($table_name)
 	{
-		?>
-		<link rel="stylesheet" href="<?php echo get_option('siteurl') ?>/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>
-		<?php
+		global $wpdb;
+		return (bool) ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name);
 	}
-	add_action('wp_head', 'bfox_add_head_files');
-	add_action('admin_head', 'bfox_add_head_files');
+}
 
-	// TODO3: Move this function to somewhere specific to the bible viewer
-	function bfox_add_admin_head_files()
-	{
-		// use JavaScript SACK library for Ajax
-		wp_print_scripts( array( 'sack' ));
-
-		$url = get_option('siteurl');
-		?>
-		<link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible/bible.css" type="text/css"/>
-		<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible/bible.js"></script>
-		<?php
-	}
-	add_action('admin_head', 'bfox_add_admin_head_files');
+// TODO3: The remaining functions may be obsolete
 
 	function bfox_admin_page_url($page_name)
 	{
@@ -137,16 +131,6 @@
 		return preg_replace('/<[^<>]*[^<>\s][^<>]*>/', '', $html);
 	}
 
-	/**
-	 * Returns whether a table exists or not
-	 *
-	 * @param string $table_name
-	 * @return boolean
-	 */
-	function bfox_does_table_exist($table_name)
-	{
-		global $wpdb;
-		return (bool) ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name);
-	}
+
 
 ?>

@@ -106,7 +106,7 @@ How often will you be reading this plan?<br/>
 	function bfox_echo_plan($plan, $num_cols = 3, $skip_read = false)
 	{
 		// Divide the plan into 3 columns
-		$originals = bfox_divide_into_cols($plan->refs, $num_cols, 5);
+		$originals = BfoxUtility::divide_into_cols($plan->refs, $num_cols, 5);
 
 		$headers = '<th width="1*"></th><th width="10*">Passage</th>';
 		if (isset($plan->dates))

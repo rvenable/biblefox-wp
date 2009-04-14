@@ -30,7 +30,7 @@ case 'addplan':
 	$plan['name'] = stripslashes($_POST['plan_name']);
 	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = $refs->get_sections($section_size);
-	$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
+	$plan['start_date'] = BfoxUtility::format_local_date($_POST['schedule_start_date']);
 	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
 	$plan_id = $bfox_plan->add_new_plan((object) $plan);
@@ -104,7 +104,7 @@ case 'editedplan':
 	$plan['name'] = stripslashes($_POST['plan_name']);
 	$plan['summary'] = stripslashes($_POST['plan_description']);
 	$plan['refs_array'] = array();
-	$plan['start_date'] = bfox_format_local_date($_POST['schedule_start_date']);
+	$plan['start_date'] = BfoxUtility::format_local_date($_POST['schedule_start_date']);
 	$plan['frequency'] = $bfox_plan->frequency[$_POST['schedule_frequency']];
 	$plan['frequency_options'] = $_POST['schedule_frequency_options'];
 

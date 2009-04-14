@@ -81,7 +81,7 @@ class Translation
 
 		// Set the translation table if it exists
 		$table = Translations::get_translation_table_name($this->id);
-		if (bfox_does_table_exist($table)) $this->table = $table;
+		if (BfoxUtility::does_table_exist($table)) $this->table = $table;
 		else $this->table = '';
 	}
 
@@ -488,7 +488,7 @@ class Translations
 
 		// Drop the verse data table if it exists
 		$table_name = self::get_translation_table_name($trans_id);
-		if (bfox_does_table_exist($table_name)) $wpdb->query("DROP TABLE $table_name");
+		if (BfoxUtility::does_table_exist($table_name)) $wpdb->query("DROP TABLE $table_name");
 
 		// Delete the translation data from the translation table
 		$wpdb->query($wpdb->prepare("DELETE FROM " . self::translation_table . " WHERE id = %d", $trans_id));
