@@ -1,5 +1,5 @@
 <?php
 
-include_once('toolbar/biblefox-toolbar.php');
+include_once('wordpress-admin-bar/wordpress-admin-bar.php');
 
 ?>
