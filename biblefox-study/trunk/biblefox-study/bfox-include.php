@@ -2,28 +2,11 @@
 
 	define('BFOX_BASE_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
-	// Defines for tables which only have one table name
-	define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
-	define('BFOX_BOOK_COUNTS_TABLE', BFOX_BASE_TABLE_PREFIX . 'book_counts');
-	define('BFOX_TRANSLATION_INDEX_TABLE', BFOX_BASE_TABLE_PREFIX . 'trans_index');
-
 	// User Levels
 	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 	define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
 
-	// Column Definitions
-	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
-
-	// Query Variables
-	define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
-	define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
-	define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
-	define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
-	define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
-	define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
-
 	require_once("bfox-settings.php");
-	require_once('links.php');
 
 	require_once('biblerefs/ref.php');
 	include_once('translations/bfox-translations.php');
@@ -34,6 +17,8 @@
 	// TODO3: These files are probably obsolete
 	require_once('admin/marketing.php');
 	require_once('admin/message.php');
+
+	require_once('links.php');
 
 	// Returns the bible study blogs for a given user
 	// Should be used in place of get_blogs_of_user() because the main biblefox.com blog should not count

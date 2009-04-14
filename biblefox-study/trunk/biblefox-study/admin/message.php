@@ -1,5 +1,7 @@
 <?php
 
+	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
+
 	class BfoxMessage
 	{
 		private $table_name;

@@ -3,6 +3,14 @@
 define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
 define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 
+// Query Variables
+define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
+define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
+define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
+define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
+define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
+define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
+
 require_once('bfox-blog-specific.php');
 require_once('plan.php');
 require_once('history.php');
