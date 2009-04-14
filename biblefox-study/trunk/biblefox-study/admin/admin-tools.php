@@ -12,6 +12,7 @@ class BfoxAdminTools
 		if (is_site_admin())
 		{
 			include_once('admin_toolbox.php');
+			include_once('txt_to_blog/toolbox.php');
 
 			add_action('admin_menu', array('BfoxAdminTools', 'add_menu'));
 		}
