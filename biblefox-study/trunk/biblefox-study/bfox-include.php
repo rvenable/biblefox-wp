@@ -28,14 +28,10 @@
 	require_once('links.php');
 
 	require_once('biblerefs/ref.php');
+	include_once('translations/bfox-translations.php');
 	include_once('admin/admin.php');
 	include_once('blog/biblefox-study.php');
-	include_once('translations/bfox-translations.php');
-
-	// Include files which need BibleRefs
-	require_once('quicknote.php');
-	require_once('commentaries.php');
-	require_once('bible.php');
+	include_once('bible/bible.php');
 
 	// TODO3: These files are probably obsolete
 	require_once('admin/marketing.php');
@@ -181,6 +177,7 @@
 	add_action('wp_head', 'bfox_add_head_files');
 	add_action('admin_head', 'bfox_add_head_files');
 
+	// TODO3: Move this function to somewhere specific to the bible viewer
 	function bfox_add_admin_head_files()
 	{
 		// use JavaScript SACK library for Ajax
@@ -188,8 +185,8 @@
 
 		$url = get_option('siteurl');
 		?>
-		<link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible.css" type="text/css"/>
-		<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible.js"></script>
+		<link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible/bible.css" type="text/css"/>
+		<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible/bible.js"></script>
 		<?php
 	}
 	add_action('admin_head', 'bfox_add_admin_head_files');
