@@ -5,7 +5,7 @@
 	require_once('biblerefs/ref.php');
 	include_once('translations/bfox-translations.php');
 	include_once('admin/admin-tools.php');
-	include_once('blog/biblefox-study.php');
+	include_once('blog/blog.php');
 	include_once('bible/bible.php');
 	include_once('site/site.php');
 
