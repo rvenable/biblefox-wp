@@ -3,8 +3,6 @@
 	define('BFOX_BASE_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 	// Defines for tables which only have one table name
-	define('BFOX_BOOKS_TABLE', BFOX_BASE_TABLE_PREFIX . 'books');
-	define('BFOX_SYNONYMS_TABLE', BFOX_BASE_TABLE_PREFIX . 'synonyms');
 	define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
 	define('BFOX_BOOK_COUNTS_TABLE', BFOX_BASE_TABLE_PREFIX . 'book_counts');
 	define('BFOX_TRANSLATION_INDEX_TABLE', BFOX_BASE_TABLE_PREFIX . 'trans_index');

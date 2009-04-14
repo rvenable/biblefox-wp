@@ -899,45 +899,4 @@ class BibleMeta
 
 } // End of BibleMeta class
 
-global $bfox_syn_prefix;
-$bfox_syn_prefix = array();
-
-/* Functions used to generate the initial arrays:
-
-function print_books_array_decl()
-{
-	global $wpdb;
-	$arrays = $wpdb->get_results("SELECT * FROM " . BFOX_BOOKS_TABLE, ARRAY_A);
-
-	$books = array();
-	foreach ($arrays as $array)
-	{
-		$id = $array['id'];
-		unset($array['id']);
-		$books[$id] = $array;
-	}
-	echo "\n" . print_array_decl($books);
-}
-
-function print_syns_array_decl()
-{
-	global $wpdb;
-	$arrays = $wpdb->get_results("SELECT * FROM " . BFOX_SYNONYMS_TABLE . " ORDER BY book_id ASC", ARRAY_A);
-
-	$books1 = array();
-	$books2 = array();
-	foreach ($arrays as $array)
-	{
-		$syn = $array['synonym'];
-		if (2 < strlen($syn))
-			$books1[$syn] = $array['book_id'];
-		else
-			$books2[$syn] = $array['book_id'];
-	}
-	echo "\n" . print_array_decl(array($books1, $books2), -1);
-//	echo "\n" . print_array_decl($books2);
-}
-
-*/
-
 ?>
