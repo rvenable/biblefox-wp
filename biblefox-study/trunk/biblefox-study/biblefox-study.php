@@ -10,13 +10,13 @@
 
 	define(BFOX_FILE, __FILE__);
 	define(BFOX_DIR, dirname(__FILE__));
-	define(BFOX_TRANSLATIONS_DIR, BFOX_DIR . '/translations');
-	define(BFOX_TEXTS_DIR, BFOX_DIR . '/texts');
 
 	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
 	define(BFOX_READ_SUBPAGE, 'bfox-read');
 	define(BFOX_BIBLE_SUBPAGE, 'bfox-bible');
 	define(BFOX_DOMAIN, 'biblefox-study');
+
+	define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 	require_once("bfox-include.php");
 

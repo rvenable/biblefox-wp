@@ -1,5 +1,7 @@
 <?php
 
+define(BFOX_TEXTS_DIR, BFOX_DIR . '/texts');
+
 class BlogPost
 {
 	public $id, $type, $title, $full_title, $content, $ref_str, $excerpt;

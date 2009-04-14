@@ -1,11 +1,5 @@
 <?php
 
-	define('BFOX_BASE_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
-
-	// User Levels
-	define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
-	define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
-
 	require_once("bfox-settings.php");
 
 	require_once('biblerefs/ref.php');

@@ -3,6 +3,7 @@
 define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
 define('BFOX_BOOK_COUNTS_TABLE', BFOX_BASE_TABLE_PREFIX . 'book_counts');
 define('BFOX_TRANSLATION_INDEX_TABLE', BFOX_BASE_TABLE_PREFIX . 'trans_index');
+define('BFOX_TRANSLATIONS_DIR', BFOX_DIR . '/translations');
 
 /*
  * FULLTEXT Indexing Workaround:

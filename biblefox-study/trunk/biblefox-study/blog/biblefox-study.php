@@ -11,6 +11,10 @@ define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
 define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
 define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
 
+// User Levels
+define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
+define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
+
 require_once('bfox-blog-specific.php');
 require_once('plan.php');
 require_once('history.php');
