@@ -12,8 +12,6 @@
 	define(BFOX_DIR, dirname(__FILE__));
 
 	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
-	define(BFOX_READ_SUBPAGE, 'bfox-read');
-	define(BFOX_BIBLE_SUBPAGE, 'bfox-bible');
 	define(BFOX_DOMAIN, 'biblefox-study');
 
 	define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
@@ -40,15 +38,6 @@
 
 	function bfox_study_menu()
 	{
-		// These pages are temporarily only for site admin as they are being tested
-		if (is_site_admin())
-		{
-			add_menu_page('Study the Bible', 'The Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible_page');
-			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Bible', 'Bible', 0, BFOX_BIBLE_SUBPAGE, 'bfox_bible_page');
-			add_action('load-' . get_plugin_page_hookname(BFOX_BIBLE_SUBPAGE, BFOX_BIBLE_SUBPAGE), 'bfox_bible_page_load');
-			add_submenu_page(BFOX_BIBLE_SUBPAGE, 'Advanced Reading Pane', 'Read', 0, BFOX_READ_SUBPAGE, 'bfox_read');
-		}
-
 		// These menu pages are only for the site admin
 		if (is_site_admin())
 		{
@@ -58,19 +47,6 @@
 		}
 	}
 
-	function bfox_bible_page_load()
-	{
-		global $bfox_bible_viewer;
-		$bfox_bible_viewer = new Bible();
-		$bfox_bible_viewer->page_load($_GET);
-	}
-
-	function bfox_bible_page()
-	{
-		global $bfox_bible_viewer;
-		$bfox_bible_viewer->page();
-	}
-
 	function bfox_study_init()
 	{
 
@@ -78,12 +54,6 @@
 
 		bfox_query_init();
 		bfox_widgets_init();
-	}
-
-	function bfox_read()
-	{
-		require_once('read.php');
-		bfox_read_menu();
 	}
 
 	add_action('init', 'bfox_study_init');
