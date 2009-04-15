@@ -36,7 +36,7 @@ class WPAdminBar {
 	var $menu = array();
 	var $submenu = array();
 	// No need to change this. If you are using this with WPMU, then install normally and move just "wordpress-admin-bar.php" to "mu-plugins"
-	var $folder = '/wp-content/mu-plugins/biblefox-study/site/wordpress-admin-bar';
+	var $folder = '/wp-content/mu-plugins/biblefox/site/wordpress-admin-bar';
 
 
 	// Plugin initialization

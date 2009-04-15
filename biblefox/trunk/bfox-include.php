@@ -17,7 +17,7 @@
 	function bfox_add_head_files()
 	{
 		?>
-		<link rel="stylesheet" href="<?php echo get_option('siteurl') ?>/wp-content/mu-plugins/biblefox-study/scripture.css" type="text/css"/>
+		<link rel="stylesheet" href="<?php echo get_option('siteurl') ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
 		<?php
 	}
 	add_action('wp_head', 'bfox_add_head_files');
@@ -31,8 +31,8 @@
 
 		$url = get_option('siteurl');
 		?>
-		<link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible/bible.css" type="text/css"/>
-		<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox-study/bible/bible.js"></script>
+		<link rel="stylesheet" href="<?php echo $url; ?>/wp-content/mu-plugins/biblefox/bible/bible.css" type="text/css"/>
+		<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox/bible/bible.js"></script>
 		<?php
 	}
 	add_action('admin_head', 'bfox_add_admin_head_files');

@@ -1,7 +1,7 @@
 <?php
 	/*
-	 Plugin Name: biblefox-study
-	 Plugin URI: http://tools.biblefox.com/study/
+	 Plugin Name: biblefox
+	 Plugin URI: http://tools.biblefox.com/
 	 Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
 	 Version: 0.1
 	 Author: Biblefox
@@ -11,8 +11,8 @@
 	define(BFOX_FILE, __FILE__);
 	define(BFOX_DIR, dirname(__FILE__));
 
-	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox-study/biblefox-study.php');
-	define(BFOX_DOMAIN, 'biblefox-study');
+	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox/biblefox.php');
+	define(BFOX_DOMAIN, 'biblefox');
 
 	define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
