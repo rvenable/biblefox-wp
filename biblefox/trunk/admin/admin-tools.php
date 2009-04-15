@@ -63,7 +63,7 @@ class BfoxToolbox
 			$wpdb->show_errors(TRUE);
 
 			echo '<h2>' . $tool . '</h2>';
-			$admin_tools = new BfoxAdminTools();
+			$admin_tools = new $class;
 			$func = array($admin_tools, $tool);
 			if (is_callable($func)) call_user_func($func);
 

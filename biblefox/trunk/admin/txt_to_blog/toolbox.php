@@ -95,6 +95,22 @@ class TxtToBlogToolbox extends BfoxToolBox
 		self::test_whole_bible($parser->verse_refs, 'Verse Refs');
 	}
 
+	private static function test_whole_bible(BibleRefs $refs, $header = 'Refs')
+	{
+		$bible_start = BibleVerse::calc_unique_id(1);
+		$bible_end = BibleVerse::calc_unique_id(66, BibleVerse::max_chapter_id, BibleVerse::max_verse_id);
+
+		echo "<div><h4>$header</h4>";
+		$seqs = $refs->get_seqs();
+		if (($bible_start == $seqs[0]->start) && ($bible_end == $seqs[0]->end)) echo 'Complete Bible!<br/>';
+		else
+		{
+			echo "Incomplete Bible:<br/>" . $refs->get_string();
+			pre($refs->get_seqs());
+		}
+		echo '</div>';
+	}
+
 	function parse_mhcc()
 	{
 		require_once('txt_to_blog.php');
