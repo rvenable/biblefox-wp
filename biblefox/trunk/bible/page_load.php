@@ -2,9 +2,6 @@
 
 require_once BFOX_BIBLE_DIR . '/quicknote.php';
 require_once BFOX_BIBLE_DIR . '/commentaries.php';
-require_once BFOX_BIBLE_DIR . '/bible.php';
-
-BfoxQuery::set_url();
 
 global $bfox_bible_page, $bfox_trans;
 

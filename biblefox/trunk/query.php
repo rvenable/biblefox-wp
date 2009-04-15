@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * For generating HTTP Bible queries
+ *
+ */
 class BfoxQuery
 {
 	const page_passage = 'passage';
@@ -14,9 +18,8 @@ class BfoxQuery
 
 	private static $url = '';
 
-	public static function set_url($url = '')
+	public static function set_url($url)
 	{
-		if (empty($url)) $url = get_option('home') . '/wp-admin?page=' . BFOX_BIBLE_SUBPAGE;
 		self::$url = $url;
 	}
 
