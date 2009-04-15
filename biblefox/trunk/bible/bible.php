@@ -1,6 +1,6 @@
 <?php
 
-class Bible
+class BfoxQuery
 {
 	const page_passage = 'passage';
 	const page_commentary = 'commentary';

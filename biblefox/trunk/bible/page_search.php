@@ -23,15 +23,15 @@ class BfoxPageSearch extends BfoxRefPage
 		$search_text = $this->search_text;
 
 		// Try to get some search text
-		if (empty($search_text)) $search_text = (string) $_GET[Bible::var_search];
+		if (empty($search_text)) $search_text = (string) $_GET[BfoxQuery::var_search];
 
 		$search = new BibleSearch($search_text, $this->translation);
 
 		// See if we need to filter these search results by a bible reference
 		$refs_where = '';
-		if (!empty($_GET[Bible::var_reference]))
+		if (!empty($_GET[BfoxQuery::var_reference]))
 		{
-			$refs = RefManager::get_from_str($_GET[Bible::var_reference]);
+			$refs = RefManager::get_from_str($_GET[BfoxQuery::var_reference]);
 			$search->set_refs($refs);
 		}
 
@@ -90,10 +90,10 @@ class BfoxPageSearch extends BfoxRefPage
 							<form id="bible_view_search" action="admin.php" method="get">
 								Display as:
 								<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
-								<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_search ?>" />
-								<input type="hidden" name="<?php echo Bible::var_search ?>" value="<?php echo $search->text ?>" />
+								<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_search ?>" />
+								<input type="hidden" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo $search->text ?>" />
 								<?php if (!empty($search->ref_str)): ?>
-								<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $search->ref_str ?>" />
+								<input type="hidden" name="<?php echo BfoxQuery::var_reference ?>" value="<?php echo $search->ref_str ?>" />
 								<?php endif; ?>
 								<?php Translations::output_select($this->translation->id) ?>
 								<input type="submit" value="Go" class="button">

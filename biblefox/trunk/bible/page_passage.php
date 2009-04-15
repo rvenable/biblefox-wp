@@ -116,7 +116,7 @@ class BfoxPagePassage extends BfoxRefPage
 	{
 		global $bfox_history, $bfox_quicknote, $bfox_viewer;
 
-		if (!isset($refs)) $refs = RefManager::get_from_str($_GET[Bible::var_reference]);
+		if (!isset($refs)) $refs = RefManager::get_from_str($_GET[BfoxQuery::var_reference]);
 
 		// If we don't have a valid bible ref, we should just create a bible reference
 		if (!$refs->is_valid())
@@ -143,8 +143,8 @@ class BfoxPagePassage extends BfoxRefPage
 					<form id="bible_view_search" action="admin.php" method="get">
 						<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
-						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_passage ?>" />
-						<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $ref_str ?>" />
+						<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_passage ?>" />
+						<input type="hidden" name="<?php echo BfoxQuery::var_reference ?>" value="<?php echo $ref_str ?>" />
 							<?php Translations::output_select($this->translation->id) ?>
 						<input type="submit" value="Go" class="button">
 					</form>
@@ -152,7 +152,7 @@ class BfoxPagePassage extends BfoxRefPage
 				<div>
 					<div class="commentary_list">
 						<div class="commentary_list_head">
-							Commentary Blog Posts (<a href="<?php echo Bible::page_url(Bible::page_commentary) ?>">edit</a>)
+							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
 						</div>
 						<?php Commentaries::output_posts($refs); ?>
 						<?php //self::output_quick_press(); ?>

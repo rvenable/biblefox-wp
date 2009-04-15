@@ -73,7 +73,7 @@ class BfoxLinks
 		else
 		{
 			$prefix = array('blog' => $bfox_link_options->home . '/?',
-							'bible' => Bible::page_url(Bible::page_passage) . '&amp;',
+							'bible' => BfoxQuery::page_url(BfoxQuery::page_passage) . '&amp;',
 							'write' => $bfox_link_options->admin . '/post-new.php?');
 			$url = $prefix[$context] . 'bible_ref=' . $ref_str;
 

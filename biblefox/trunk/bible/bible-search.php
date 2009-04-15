@@ -63,7 +63,7 @@ class BibleSearch
 		if (empty($actual_ref_str)) $actual_ref_str = $display_ref_str;
 		if (!empty($display_ref_str)) $ref_title = " in $display_ref_str";
 
-		return "<a href='" . Bible::search_page_url($search, $actual_ref_str, $this->display_translation) . "' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
+		return "<a href='" . BfoxQuery::search_page_url($search, $actual_ref_str, $this->display_translation) . "' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
 	}
 
 	/**
@@ -226,7 +226,7 @@ class BibleSearch
 						$verse->verse = substr_replace($verse->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
 
 				$ref_str = "$chap_name:$verse->verse_id";
-				$chapter_content[$chap_name] .= "<div class='result_verse'><h4><a href='" . Bible::passage_page_url($ref_str, $this->display_translation) . "'>$ref_str</a></h4>$verse->verse</div>";
+				$chapter_content[$chap_name] .= "<div class='result_verse'><h4><a href='" . BfoxQuery::passage_page_url($ref_str, $this->display_translation) . "'>$ref_str</a></h4>$verse->verse</div>";
 			}
 
 			$content = '';
@@ -234,7 +234,7 @@ class BibleSearch
 			{
 				$content .=
 				"<div class='result_chapter'>
-				<h3><a href='" . Bible::passage_page_url($chap_name, $this->display_translation) . "'>$chap_name</a></h3>
+				<h3><a href='" . BfoxQuery::passage_page_url($chap_name, $this->display_translation) . "'>$chap_name</a></h3>
 				$chap_content
 				</div>
 				";
