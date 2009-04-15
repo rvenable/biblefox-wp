@@ -199,7 +199,7 @@ class Translations
 	 * Returns the translation data for one particular translation
 	 *
 	 * @param int $trans_id
-	 * @return unknown
+	 * @return Translation
 	 */
 	public static function get_translation($trans_id)
 	{

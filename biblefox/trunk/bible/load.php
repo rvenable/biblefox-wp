@@ -19,8 +19,8 @@ function bfox_bible_page_load()
 
 function bfox_bible_page()
 {
-	global $bfox_viewer;
-	$bfox_viewer->page();
+	global $bfox_bible_page;
+	$bfox_bible_page->page();
 }
 
 function bfox_bible_menu()
