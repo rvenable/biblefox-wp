@@ -1,8 +1,5 @@
 <?php
 
-require_once('quicknote.php');
-require_once('commentaries.php');
-
 class Bible
 {
 	const page_passage = 'passage';

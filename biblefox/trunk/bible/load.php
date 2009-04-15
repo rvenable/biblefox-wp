@@ -1,5 +1,7 @@
 <?php
 
+define(BFOX_BIBLE_DIR, dirname(__FILE__));
+
 // TODO3: get rid of old bfox-read page
 define(BFOX_READ_SUBPAGE, 'bfox-read');
 function bfox_read()
@@ -12,17 +14,13 @@ define(BFOX_BIBLE_SUBPAGE, 'bfox-bible');
 
 function bfox_bible_page_load()
 {
-	require_once('bible.php');
-
-	global $bfox_bible_viewer;
-	$bfox_bible_viewer = new Bible();
-	$bfox_bible_viewer->page_load($_GET);
+	require BFOX_BIBLE_DIR . '/page_load.php';
 }
 
 function bfox_bible_page()
 {
-	global $bfox_bible_viewer;
-	$bfox_bible_viewer->page();
+	global $bfox_viewer;
+	$bfox_viewer->page();
 }
 
 function bfox_bible_menu()
