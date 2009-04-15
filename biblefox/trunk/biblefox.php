@@ -10,6 +10,7 @@
 
 	define(BFOX_FILE, __FILE__);
 	define(BFOX_DIR, dirname(__FILE__));
+	define(BFOX_DATA_DIR, BFOX_DIR . '/data');
 
 	define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox/biblefox.php');
 	define(BFOX_DOMAIN, 'biblefox');

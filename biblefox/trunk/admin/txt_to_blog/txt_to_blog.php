@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_TEXTS_DIR, BFOX_DIR . '/texts');
+define(BFOX_TEXTS_DIR, BFOX_DATA_DIR . '/texts');
 
 class BlogPost
 {
