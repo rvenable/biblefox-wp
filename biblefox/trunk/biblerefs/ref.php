@@ -911,47 +911,6 @@ class BiblePassage
 			}
 		}
 	}
-
-	/**
-	 * Returns an output string with a Table of Contents for the ref
-	 *
-	 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref
-	 * @return string Table of Contents
-	 */
-	function get_toc($is_full = FALSE)
-	{
-		global $bfox_trans;
-
-		// TODO3: These vars are kind of hacky
-		list($toc_begin, $toc_end, $ref_begin, $ref_end, $separator) = array('<center>', '</center>', '', '', ' | ');
-
-		$book_name = BibleMeta::get_book_name($this->verse_start->book);
-
-		// Either display the full TOC or just the chapters in the ref
-		$toc = $toc_begin;
-		if ($is_full)
-		{
-			$high = bfox_get_num_chapters($this->verse_start->book, $bfox_trans->id);
-			$low = 1;
-			$toc .= $book_name;
-		}
-		else
-		{
-			list($low, $high) = $this->get_actual_chapters();
-			$toc .= $this->get_string();
-		}
-		$toc .= '<br/>';
-
-		// Loop through the actual chapter numbers for this reference, adding links for each of them
-		foreach (range($low, $high) as $chapter)
-		{
-			if (!empty($links)) $links .= $separator;
-			$links .= $ref_begin . BfoxLinks::ref_link(array('ref_str' => "$book_name $chapter", 'text' => $chapter)) . $ref_end;
-		}
-
-		$toc .= $links . $toc_end;
-		return $toc;
-	}
 }
 
 class BibleGroupPassage extends BibleRefs
@@ -1100,22 +1059,6 @@ class BibleRefs extends RefSequence
 	function increment($factor = 1)
 	{
 		// TODO3: fix this function for the new RefSequence
-	}
-
-	/**
-	 * Returns an output string for the Table of Contents for these refs
-	 *
-	 * @param boolean $is_full Should we display the full TOC for this book or just the chapters in the ref
-	 * @return string Table of Contents
-	 */
-	function get_toc($is_full = FALSE)
-	{
-		$book_content = array();
-		foreach ($this->refs as $ref)
-		{
-			$toc .= $ref->get_toc($is_full);
-		}
-		return $toc;
 	}
 
 	/**

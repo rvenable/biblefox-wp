@@ -220,7 +220,8 @@ class QuickNote
 			$refs = RefManager::get_from_concat_values($note->verse_start, $note->verse_end);
 			$edit = '<a class="edit_quick_note_link" onClick="bfox_edit_quick_note(' . $note->id . ')">[edit]</a>';
 			$note_content = '<span id="quick_note_' . $note->id . '">' . $note->note . '</span>';
-			$content .= "<tr><td>" . BfoxLinks::get_ref_link($refs) . "</td><td>$edit</td><td>$note_content</td></tr>";
+			$ref_str = $refs->get_string();
+			$content .= "<tr><td><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>$ref_str</a></td><td>$edit</td><td>$note_content</td></tr>";
 //			$content .= '<tr><td><input type="text" value="' . $refs->get_string() . '" /></td><td></td><td><textarea rows="1" style="width: 100%; height: auto;">' . $note->note . '</textarea></td></tr>';
 		}
 //		$content .= '</form>';

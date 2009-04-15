@@ -498,3 +498,8 @@ Generic
 	margin: 0;
 	font-weight: normal;
 }
+
+ul.flat_toc li {
+	display: inline;
+	padding-right: 3px;
+}

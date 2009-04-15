@@ -23,7 +23,20 @@
 		}
 
 		// Add the Table of Contents to the end of the output
-		$content .= $refs->get_toc($is_full);
+		$links = '';
+		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+		foreach ($bcvs as $book => $cvs)
+		{
+			$book_name = BibleMeta::get_book_name($book);
+			$end_chapter = BibleMeta::end_verse_max($book);
+
+			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++)
+			{
+				if (!empty($links)) $links .= ' | ';
+				$links .= BfoxLinks::ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch));
+			}
+		}
+		$content .= "<center>$links</center>";
 
 		return $content;
 	}

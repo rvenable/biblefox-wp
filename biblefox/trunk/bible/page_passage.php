@@ -19,8 +19,9 @@ class BfoxPagePassage extends BfoxRefPage
 			}
 
 			// Get the previous and next chapters as well
-			$ch1 = max($ch1 - 1, 1);
-			$ch2 = min($ch2 + 1, bfox_get_num_chapters($book));
+			$ch1 = max($ch1 - 1, BibleMeta::start_chapter);
+			$ch2++;
+			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
 
 			$content .= "
 				<div class='ref_partition'>
@@ -37,6 +38,26 @@ class BfoxPagePassage extends BfoxRefPage
 		}
 
 		return $content;
+	}
+
+	private function ref_toc(BibleRefs $refs)
+	{
+		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+
+		foreach ($bcvs as $book => $cvs)
+		{
+			$book_name = BibleMeta::get_book_name($book);
+			$end_chapter = BibleMeta::end_verse_max($book);
+
+			?>
+			<?php echo $book_name ?>
+			<ul class='flat_toc'>
+			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
+				<li><a href='<?php echo BfoxQuery::passage_page_url("$book_name $ch", $this->translation) ?>'><?php echo $ch ?></a></li>
+			<?php endfor; ?>
+			</ul>
+			<?php
+		}
 	}
 
 	public static function output_quick_press()
@@ -163,7 +184,9 @@ class BfoxPagePassage extends BfoxRefPage
 					<div class="clear"></div>
 				</div>
 				<div class="box_menu">
-					<?php echo $refs->get_toc(TRUE); ?>
+					<center>
+						<?php echo $this->ref_toc($refs); ?>
+					</center>
 				</div>
 			</div>
 		</div>
