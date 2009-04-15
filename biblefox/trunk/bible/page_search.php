@@ -25,7 +25,7 @@ class BfoxPageSearch extends BfoxRefPage
 		// Try to get some search text
 		if (empty($search_text)) $search_text = (string) $_GET[Bible::var_search];
 
-		$search = new BibleSearch($search_text);
+		$search = new BibleSearch($search_text, $this->translation);
 
 		// See if we need to filter these search results by a bible reference
 		$refs_where = '';
@@ -95,7 +95,7 @@ class BfoxPageSearch extends BfoxRefPage
 								<?php if (!empty($search->ref_str)): ?>
 								<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $search->ref_str ?>" />
 								<?php endif; ?>
-								<?php Translations::output_select($bfox_trans->id) ?>
+								<?php Translations::output_select($this->translation->id) ?>
 								<input type="submit" value="Go" class="button">
 							</form>
 						</div>

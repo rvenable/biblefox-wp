@@ -41,7 +41,7 @@ class BfoxPagePassage extends BfoxRefPage
 
 	public function content()
 	{
-		global $bfox_history, $bfox_quicknote, $bfox_trans, $bfox_viewer;
+		global $bfox_history, $bfox_quicknote, $bfox_viewer;
 
 		if (!isset($refs)) $refs = RefManager::get_from_str($_GET[Bible::var_reference]);
 
@@ -72,14 +72,14 @@ class BfoxPagePassage extends BfoxRefPage
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
 						<input type="hidden" name="<?php echo Bible::var_page ?>" value="<?php echo Bible::page_passage ?>" />
 						<input type="hidden" name="<?php echo Bible::var_reference ?>" value="<?php echo $ref_str ?>" />
-							<?php Translations::output_select($bfox_trans->id) ?>
+							<?php Translations::output_select($this->translation->id) ?>
 						<input type="submit" value="Go" class="button">
 					</form>
 				</div>
 				<div>
 					<div class="commentary_list">
 						<div class="commentary_list_head">
-							Commentary Blog Posts (<a href="<?php echo BfoxLinks::bible_page_url(Bible::page_commentary) ?>">edit</a>)
+							Commentary Blog Posts (<a href="<?php echo Bible::page_url(Bible::page_commentary) ?>">edit</a>)
 						</div>
 						<?php Commentaries::output_posts($refs); ?>
 						<?php //Bible::output_quick_press(); ?>

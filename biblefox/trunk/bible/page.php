@@ -18,8 +18,8 @@ abstract class BfoxPage
 				<div class="box_head">Bible Viewer</div>
 				<div class="box_inside">
 					<ul id="bible_page_list">
-						<li><a href="<?php echo BfoxLinks::bible_page_url(Bible::page_passage) ?>">Passage</a></li>
-						<li><a href="<?php echo BfoxLinks::bible_page_url(Bible::page_commentary) ?>">Commentaries</a></li>
+						<li><a href="<?php echo Bible::page_url(Bible::page_passage) ?>">Passage</a></li>
+						<li><a href="<?php echo Bible::page_url(Bible::page_commentary) ?>">Commentaries</a></li>
 					</ul>
 					<form id="bible_search_form" action="admin.php" method="get">
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE; ?>" />

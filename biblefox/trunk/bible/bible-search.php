@@ -10,9 +10,17 @@ class BibleSearch
 	private $ref_where;
 	private $limit, $offset;
 
-	public function __construct($text)
+	/**
+	 * The bible translation to display the verses in
+	 *
+	 * @var Translation
+	 */
+	private $display_translation;
+
+	public function __construct($text, Translation $translation)
 	{
 		$this->set_text($text);
+		$this->display_translation = $translation;
 		$this->ref_str = '';
 		$this->refs_where = '';
 		$this->last_search_time = 0;
@@ -48,6 +56,14 @@ class BibleSearch
 	{
 		global $wpdb;
 		$this->limit = $wpdb->prepare('LIMIT %d, %d', $offset, $limit);
+	}
+
+	private function link($search, $display_ref_str = '', $actual_ref_str = '')
+	{
+		if (empty($actual_ref_str)) $actual_ref_str = $display_ref_str;
+		if (!empty($display_ref_str)) $ref_title = " in $display_ref_str";
+
+		return "<a href='" . Bible::search_page_url($search, $actual_ref_str, $this->display_translation) . "' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
 	}
 
 	/**
@@ -124,7 +140,7 @@ class BibleSearch
 			else if (isset($counts[$child]))
 			{
 				$child_count = $counts[$child];
-				$child_content = BfoxLinks::search_link($this->text, BibleMeta::get_book_name($child)) . "<span class='book_count'>$child_count</span>";
+				$child_content = $this->link($this->text, BibleMeta::get_book_name($child)) . "<span class='book_count'>$child_count</span>";
 			}
 
 			if (0 < $child_count)
@@ -136,7 +152,7 @@ class BibleSearch
 
 		return array($count,
 		"<span class='book_group_title'>
-			" . BfoxLinks::search_link($this->text, BibleMeta::get_book_name($group), $group) . "
+			" . $this->link($this->text, BibleMeta::get_book_name($group), $group) . "
 			<span class='book_count'>$count</span>
 		</span>
 		<ul class='book_group'>
@@ -172,12 +188,12 @@ class BibleSearch
 		$count = count($verses);
 		if (0 < $count)
 		{
-			global $wpdb, $bfox_trans;
+			global $wpdb;
 
 			// Get the verse data for these verses (from the global bible translation)
 			$queries = array();
 			foreach ($verses as $unique_id => $match) $queries []= $wpdb->prepare('unique_id = %d', $unique_id);
-			$verses = $wpdb->get_results("SELECT * FROM $bfox_trans->table WHERE " . implode(' OR ', $queries));
+			$verses = $wpdb->get_results("SELECT * FROM {$this->display_translation->table} WHERE " . implode(' OR ', $queries));
 			unset($queries);
 
 			// Turn the words into keys
@@ -210,18 +226,15 @@ class BibleSearch
 						$verse->verse = substr_replace($verse->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
 
 				$ref_str = "$chap_name:$verse->verse_id";
-				$link = BfoxLinks::ref_link($ref_str);
-
-				$chapter_content[$chap_name] .= "<div class='result_verse'><h4>$link</h4>$verse->verse</div>";
+				$chapter_content[$chap_name] .= "<div class='result_verse'><h4><a href='" . Bible::passage_page_url($ref_str, $this->display_translation) . "'>$ref_str</a></h4>$verse->verse</div>";
 			}
 
 			$content = '';
 			foreach ($chapter_content as $chap_name => $chap_content)
 			{
-				$link = BfoxLinks::ref_link($chap_name);
 				$content .=
 				"<div class='result_chapter'>
-				<h3>$link</h3>
+				<h3><a href='" . Bible::passage_page_url($chap_name, $this->display_translation) . "'>$chap_name</a></h3>
 				$chap_content
 				</div>
 				";

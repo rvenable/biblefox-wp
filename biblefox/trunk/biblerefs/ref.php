@@ -605,41 +605,6 @@ function bfox_create_synonym_data()
 	}
 }
 
-function bfox_get_chapters($first_verse, $last_verse)
-{
-	global $wpdb, $bfox_trans;
-
-	$query = $wpdb->prepare("SELECT chapter_id
-							FROM $bfox_trans->table
-							WHERE unique_id >= %d
-							AND unique_id <= %d
-							AND chapter_id != 0
-							GROUP BY chapter_id",
-							$first_verse,
-							$last_verse);
-	return $wpdb->get_col($query);
-}
-
-function bfox_get_passage_size($first_verse, $last_verse, $group_by = '')
-{
-	global $wpdb, $bfox_trans;
-
-	if ('' != $group_by) $group_by = 'GROUP BY ' . $group_by;
-
-	$query = $wpdb->prepare("SELECT COUNT(*)
-							FROM $bfox_trans->table
-							WHERE unique_id >= %d
-							AND unique_id <= %d
-							AND chapter_id != 0
-							$group_by",
-							$first_verse,
-							$last_verse);
-	$size = $wpdb->get_var($query);
-
-	if (0 < $size) return $size;
-	return 0;
-}
-
 function bfox_ref_replace($text)
 {
 	global $bfox_syn_prefix;
@@ -946,17 +911,6 @@ class BiblePassage
 			}
 		}
 	}
-
-	/*
-	function get_size(BibleRefVector $size_vector)
-	{
-		if (0 != $size_vector->values['chapter'])
-			return bfox_get_passage_size($this->verse_start->unique_id, $this->verse_end->unique_id, 'chapter_id');
-		if (0 != $size_vector->values['verse'])
-			return bfox_get_passage_size($this->verse_start->unique_id, $this->verse_end->unique_id);
-		return 0;
-	}
-	*/
 
 	/**
 	 * Returns an output string with a Table of Contents for the ref

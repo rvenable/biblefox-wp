@@ -73,7 +73,7 @@ class BfoxLinks
 		else
 		{
 			$prefix = array('blog' => $bfox_link_options->home . '/?',
-							'bible' => self::bible_page_url(Bible::page_passage) . '&amp;',
+							'bible' => Bible::page_url(Bible::page_passage) . '&amp;',
 							'write' => $bfox_link_options->admin . '/post-new.php?');
 			$url = $prefix[$context] . 'bible_ref=' . $ref_str;
 
@@ -120,26 +120,6 @@ class BfoxLinks
 	public static function ref_link($attrs, $context = NULL)
 	{
 		return self::link(self::ref_format_attrs($attrs, $context));
-	}
-
-	public static function search_link($search, $display_ref_str = '', $actual_ref_str = '')
-	{
-		global $bfox_trans;
-
-		if (empty($actual_ref_str)) $actual_ref_str = $display_ref_str;
-		if (!empty($display_ref_str)) $ref_title = " in $display_ref_str";
-
-		$url = add_query_arg(Bible::var_search, $search, self::bible_page_url(Bible::page_search));
-		if (!empty($actual_ref_str)) $url = add_query_arg(Bible::var_reference, $actual_ref_str, $url);
-		$url = add_query_arg(Bible::var_translation, $bfox_trans->id, $url);
-
-		return "<a href='$url' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
-	}
-
-	public static function bible_page_url($page)
-	{
-		global $bfox_trans, $bfox_link_options;
-		return add_query_arg(array(Bible::var_page => $page, Bible::var_translation => $bfox_trans->id), $bfox_link_options->bible);
 	}
 
 	public static function get_ref_url(BibleRefs $refs, $context = NULL)
