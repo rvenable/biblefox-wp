@@ -6,6 +6,18 @@
  */
 abstract class BfoxPage
 {
+	/**
+	 * The bible translation being used
+	 *
+	 * @var Translation
+	 */
+	protected $translation;
+
+	public function __construct(Translation $translation)
+	{
+		$this->translation = $translation;
+	}
+
 	public function page_load() {}
 
 	protected abstract function content();

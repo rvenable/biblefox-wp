@@ -12,17 +12,10 @@ abstract class BfoxRefPage extends BfoxPage
 	 */
 	protected $refs;
 
-	/**
-	 * The bible translation being used
-	 *
-	 * @var Translation
-	 */
-	protected $translation;
-
 	public function __construct(BibleRefs $refs, Translation $translation)
 	{
+		parent::__construct($translation);
 		$this->refs = $refs;
-		$this->translation = $translation;
 	}
 }
 

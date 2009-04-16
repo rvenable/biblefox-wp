@@ -137,22 +137,22 @@ class BfoxPagePassage extends BfoxRefPage
 	{
 		global $bfox_history, $bfox_quicknote, $bfox_viewer;
 
-		if (!isset($refs)) $refs = RefManager::get_from_str($_GET[BfoxQuery::var_reference]);
+		if (!$this->refs->is_valid()) $this->refs = RefManager::get_from_str($_GET[BfoxQuery::var_reference]);
 
 		// If we don't have a valid bible ref, we should just create a bible reference
-		if (!$refs->is_valid())
+		if (!$this->refs->is_valid())
 		{
 			// First try to create a BibleRefs from the last viewed references
-			list($refs) = $bfox_history->get_refs_array();
+			list($this->refs) = $bfox_history->get_refs_array();
 
 			// If there is no history, use Genesis 1
 			// TODO3: Test this
-			if (!isset($refs) || !$refs->is_valid()) $refs = RefManager::get_from_str('Genesis 1');
+			if (!$this->refs->is_valid()) $this->refs = RefManager::get_from_str('Genesis 1');
 		}
 
-		$bfox_quicknote->set_biblerefs($refs);
+		$bfox_quicknote->set_biblerefs($this->refs);
 
-		$ref_str = $refs->get_string();
+		$ref_str = $this->refs->get_string();
 
 		?>
 
@@ -175,17 +175,17 @@ class BfoxPagePassage extends BfoxRefPage
 						<div class="commentary_list_head">
 							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
 						</div>
-						<?php Commentaries::output_posts($refs); ?>
+						<?php Commentaries::output_posts($this->refs); ?>
 						<?php //self::output_quick_press(); ?>
 					</div>
 					<div class="reference">
-						<?php echo self::ref_content($refs); ?>
+						<?php echo self::ref_content($this->refs); ?>
 					</div>
 					<div class="clear"></div>
 				</div>
 				<div class="box_menu">
 					<center>
-						<?php echo $this->ref_toc($refs); ?>
+						<?php echo $this->ref_toc($this->refs); ?>
 					</center>
 				</div>
 			</div>
@@ -194,7 +194,7 @@ class BfoxPagePassage extends BfoxRefPage
 		<?php
 
 		// Update the read history to show that we viewed these scriptures
-		$bfox_history->update($refs);
+		$bfox_history->update($this->refs);
 	}
 }
 
