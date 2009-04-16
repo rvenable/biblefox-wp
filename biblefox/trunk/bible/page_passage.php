@@ -154,12 +154,7 @@ class BfoxPagePassage extends BfoxPage
 		// If we don't have a valid bible ref, we should just create a bible reference
 		if (!$this->refs->is_valid())
 		{
-			// First try to create a BibleRefs from the last viewed references
-			list($this->refs) = $bfox_history->get_refs_array();
-
-			// If there is no history, use Genesis 1
-			// TODO3: Test this
-			if (!$this->refs->is_valid()) $this->refs = RefManager::get_from_str('Genesis 1');
+			$this->refs = RefManager::get_from_str('Genesis 1');
 		}
 
 		$bfox_quicknote->set_biblerefs($this->refs);

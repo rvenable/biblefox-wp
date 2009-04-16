@@ -17,10 +17,17 @@ class BfoxQuery
 	const var_search = 'bible_search';
 
 	private static $url = '';
+	private static $post_url = '';
 
 	public static function set_url($url)
 	{
 		self::$url = $url;
+		list(self::$post_url, $args) = explode('?', $url);
+	}
+
+	public static function post_url()
+	{
+		return self::$post_url;
 	}
 
 	public static function page_url($page)
