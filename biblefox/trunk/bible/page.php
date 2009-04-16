@@ -7,15 +7,17 @@
 abstract class BfoxPage
 {
 	/**
-	 * The bible translation being used
+	 * The bible translation to use for displaying scripture
 	 *
 	 * @var Translation
 	 */
 	protected $translation;
 
-	public function __construct(Translation $translation)
+	public function __construct($trans_str = '')
 	{
-		$this->translation = $translation;
+		// TODO3: if (empty($trans)) $translation = get_from_history
+		if (empty($trans_str)) $this->translation = $GLOBALS['bfox_trans'];
+		else $this->translation = Translations::get_translation($trans_str);
 	}
 
 	public function page_load() {}

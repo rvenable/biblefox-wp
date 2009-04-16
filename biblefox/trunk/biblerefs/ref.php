@@ -492,6 +492,12 @@ class RefSequence
 
 class RefManager
 {
+	/**
+	 * Returns a BibleRefs
+	 *
+	 * @param string $str
+	 * @return BibleRefs
+	 */
 	public static function get_from_str($str)
 	{
 		if (isset(BibleMeta::$book_groups[$str])) $refs = new BibleGroupPassage();

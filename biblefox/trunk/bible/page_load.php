@@ -2,41 +2,34 @@
 
 require_once BFOX_BIBLE_DIR . '/quicknote.php';
 require_once BFOX_BIBLE_DIR . '/commentaries.php';
+require_once BFOX_BIBLE_DIR . '/page.php';
 
-global $bfox_bible_page, $bfox_trans;
-
-// Override the global translation using the translation passed in
-// TODO3: Do we really need to override the global translation?
-if (!empty($_GET[BfoxQuery::var_translation])) $translation = Translations::get_translation($_GET[BfoxQuery::var_translation]);
-else $translation = $bfox_trans;
+$search_str = $_GET[BfoxQuery::var_search];
+$ref_str = $_GET[BfoxQuery::var_reference];
+$trans_str = $_GET[BfoxQuery::var_translation];
 
 // Get the bible page to view
 $page_name = $_GET[BfoxQuery::var_page];
 
-// If there is search text, we should search
-if (!empty($_GET[BfoxQuery::var_search])) $page_name = BfoxQuery::page_search;
-
-$refs = new BibleRefs();
-
-if (BfoxQuery::page_search == $page_name)
+if (empty($page_name)) $page_name = BfoxQuery::page_passage;
+elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str))
 {
-	// Try to get some search text
-	$search_text = (string) $_GET[BfoxQuery::var_search];
-
-	// If there is no bible reference, see if this search string is actually a bible reference
-	if (empty($_GET[BfoxQuery::var_reference]))
+	// See if the search is really a passage
+	$refs = RefManager::get_from_str($search_str);
+	if ($refs->is_valid())
 	{
-		// If it is a valid bible reference, show the bible passage page instead of the search page
-		$refs = RefManager::get_from_str($_GET[BfoxQuery::var_search]);
-		if ($refs->is_valid()) $page_name = BfoxQuery::page_passage;
+		$page_name = BfoxQuery::page_passage;
+		$ref_str = $refs->get_string();
 	}
 }
+
+global $bfox_bible_page;
 
 switch ($page_name)
 {
 	case BfoxQuery::page_search:
 		require BFOX_BIBLE_DIR . '/page_search.php';
-		$bfox_bible_page = new BfoxPageSearch($search_text, $refs, $translation);
+		$bfox_bible_page = new BfoxPageSearch($search_str, $ref_str, $trans_str);
 		break;
 		/*
 	case BfoxQuery::page_commentary:
@@ -46,7 +39,7 @@ switch ($page_name)
 	case BfoxQuery::page_passage:
 	default:
 		require BFOX_BIBLE_DIR . '/page_passage.php';
-		$bfox_bible_page = new BfoxPagePassage($refs, $translation);
+		$bfox_bible_page = new BfoxPagePassage($ref_str, $trans_str);
 		break;
 }
 

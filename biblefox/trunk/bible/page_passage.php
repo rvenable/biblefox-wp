@@ -1,9 +1,21 @@
 <?php
 
-require_once BFOX_BIBLE_DIR . '/refpage.php';
-
-class BfoxPagePassage extends BfoxRefPage
+class BfoxPagePassage extends BfoxPage
 {
+	/**
+	 * The bible references being used
+	 *
+	 * @var BibleRefs
+	 */
+	protected $refs;
+
+	public function __construct($ref_str, $trans_str = '')
+	{
+		$this->refs = RefManager::get_from_str($ref_str);
+
+		parent::__construct($trans_str);
+	}
+
 	private static function ref_content(BibleRefs $refs)
 	{
 		$visible = $refs->sql_where();
