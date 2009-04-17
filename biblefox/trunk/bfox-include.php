@@ -37,6 +37,7 @@
 		<script type="text/javascript" src="<?php echo $url; ?>/wp-content/mu-plugins/biblefox/bible/bible.js"></script>
 		<?php
 	}
+	add_action('wp_head', 'bfox_add_admin_head_files');
 	add_action('admin_head', 'bfox_add_admin_head_files');
 
 ?>

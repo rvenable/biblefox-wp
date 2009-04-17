@@ -2,6 +2,7 @@
 Global Reset: http://meyerweb.com/eric/tools/css/reset/index.html
 */
 
+/*
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -33,6 +34,7 @@ q:before, q:after {
 	content: '';
 	content: none;
 }
+*/
 
 /* remember to define focus styles! */
 :focus {
@@ -56,6 +58,7 @@ table {
 /*
 Global
 */
+/*
 body, td {
 	font-family:"Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif;
 	font-size:13px;
@@ -65,6 +68,7 @@ body, td {
 	font-weight:normal;
 	line-height:normal;
 }
+*/
 
 /*
 Scripture Text
@@ -136,7 +140,8 @@ Bible
 
 #bible {
 	position: relative;
-	width: 98%;
+	width: 96%;
+	padding: 0% 2%;
 }
 
 #bible #bible_bar {
@@ -170,9 +175,7 @@ ul#bible_page_list li {
 	background-color: #EEEEEE;
 	position: relative;
 	padding: 5px;
-	border-color: #DFDFDF;
-	border-style: solid;
-	border-width: 1px;
+	border: 1px solid #DFDFDF;
 	margin: 5px 0px 5px 0px;
 }
 
@@ -283,9 +286,7 @@ ul#bible_tool_options li {
 	-moz-border-radius-topright: 6px;
 	background-color: #EEEEEE;
 	padding: 5px;
-	border-color: #DFDFDF;
-	border-style: solid;
-	border-width: 1px;
+	border: 1px solid #DFDFDF;
 	position: absolute;
 	top: 15px;
 	display: none;
@@ -343,17 +344,13 @@ Scripture Layout
 	width: auto;
 	padding: 2px 6px;
 	margin: 2px 4px 2px 4px;
-	border: #DFDFDF;
-	border-style: solid;
-	border-width: 1px;
+	border: 1px solid #DFDFDF;
 	border-left-width: 0px;
 	-moz-border-radius: 6px;
 }
 
 #bible .sequence {
-	border-bottom: #DFDFDF;
-	border-style: solid;
-	border-bottom-width: 1px;
+	border-bottom: 1px solid #DFDFDF;
 }
 
 #bible .hidden_chapter {
@@ -383,8 +380,7 @@ Blog Commentaries
 	float: right;
 	width: 50%;
 	position: relative;
-	border-color: #EEEEEE;
-	border-style: solid;
+	border: 0px solid #EEEEEE;
 	border-bottom-width: 1px;
 	border-left-width: 1px;
 	margin: 0px 0px 5px 5px;
@@ -393,9 +389,7 @@ Blog Commentaries
 }
 
 #bible_passage .commentary_list_head {
-	border-color: #DFDFDF;
-	border-style: solid;
-	border-bottom-width: 1px;
+	border-bottom: 1px solid #DFDFDF;
 	padding: 5px;
 }
 
@@ -403,18 +397,14 @@ Blog Commentaries
 	font-size: 12px;
 	background-color: #EEEEEE;
 	margin: 0px;
-	border-bottom: #DFDFDF;
-	border-style: solid;
-	border-bottom-width: 1px;
+	border-bottom: 1px solid #DFDFDF;
 	padding: 5px;
 }
 
 #bible_passage .post_content {
 	position: relative;
 	padding: 5px;
-	border-bottom: #DFDFDF;
-	border-style: solid;
-	border-bottom-width: 1px;
+	border-bottom: 1px solid #DFDFDF;
 }
 
 /*
@@ -464,18 +454,14 @@ Bible Search
 	font-size: 12px;
 	background-color: #EEEEEE;
 	margin: 0px;
-	border-bottom: #DFDFDF;
-	border-style: solid;
-	border-bottom-width: 1px;
+	border-bottom: 1px solid #DFDFDF;
 	padding: 5px 5px 5px 150px;
 }
 
 #bible_search .result_verse {
 	position: relative;
 	padding: 5px 5px 5px 150px;
-	border-bottom: #DFDFDF;
-	border-style: solid;
-	border-bottom-width: 1px;
+	border-bottom: 1px solid #DFDFDF;
 }
 
 #bible_search .result_verse h4 {
@@ -537,9 +523,7 @@ Generic
 }
 
 .roundbox, .roundbox input[type="text"], .roundbox textarea {
-	border-color: #DFDFDF;
-	border-style: solid;
-	border-width: 1px;
+	border: 1px solid #DFDFDF;
 }
 
 .box_menu {
