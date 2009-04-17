@@ -8,6 +8,10 @@ BfoxQuery::set_url(get_option('home') . '/?');
 
 get_header();
 get_sidebar();
-bfox_bible_page();
+?>
+<div id="content">
+	<? bfox_bible_page(); ?>
+</div>
+<?php
 get_footer();
 ?>

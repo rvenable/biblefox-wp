@@ -253,6 +253,21 @@ body {
 	height: 200px;
 	width: 100%;
 	}
+	
+#sidebar {
+	padding: 20px 5px 10px 5px;
+	float: left;
+	margin-left: -190px;
+	width: 180px;
+	}
+
+#sidebar form {
+	margin: 0;
+	}
+
+#main {
+	margin-left: 190px;
+	}
 
 .narrowcolumn {
 	float: left;
@@ -563,21 +578,6 @@ select {
 	display: block;
 	}
 /* End Comments */
-
-
-
-/* Begin Sidebar */
-#sidebar
-{
-	padding: 20px 0 10px 0;
-	margin-left: 545px;
-	width: 190px;
-	}
-
-#sidebar form {
-	margin: 0;
-	}
-/* End Sidebar */
 
 
 

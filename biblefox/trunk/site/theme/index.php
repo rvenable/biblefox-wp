@@ -6,6 +6,8 @@
 
 get_header(); ?>
 
+<?php get_sidebar(); ?>
+
 	<div id="content" class="narrowcolumn">
 
 	<?php if (have_posts()) : ?>
@@ -39,7 +41,5 @@ get_header(); ?>
 	<?php endif; ?>
 
 	</div>
-
-<?php get_sidebar(); ?>
 
 <?php get_footer(); ?>

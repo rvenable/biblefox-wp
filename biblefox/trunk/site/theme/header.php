@@ -32,3 +32,5 @@
 	</div>
 </div>
 <hr />
+
+<div id="main">
