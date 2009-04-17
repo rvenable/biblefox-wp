@@ -12,7 +12,7 @@ class BfoxQuery
 	const page_history = 'history';
 
 	const var_page = 'bible_page';
-	const var_translation = 'trans_id';
+	const var_translation = 'bible_trans';
 	const var_reference = 'bible_ref';
 	const var_search = 'bible_search';
 

@@ -59,7 +59,36 @@ class BiblefoxSite
 		return $link;
 	}
 
+	public static function query_vars($qvars)
+	{
+		// Add a query variable for bible references
+		$qvars[] = BfoxQuery::var_page;
+		return $qvars;
+	}
+
+	public static function parse_query($wp_query)
+	{
+		$wp_query->bfox_is_bible_page = isset($wp_query->query_vars[BfoxQuery::var_page]);
+	}
+
+	public static function launch_bible()
+	{
+		global $wp_query;
+		if ($wp_query->bfox_is_bible_page)
+		{
+			require dirname(__FILE__) . '/bible-index.php';
+			exit;
+		}
+	}
+
+	public function init()
+	{
+		add_filter('query_vars', 'BiblefoxSite::query_vars');
+		add_action('parse_query', 'BiblefoxSite::parse_query');
+		add_action('template_redirect', 'BiblefoxSite::launch_bible');
+	}
 }
+add_action('init', array('BiblefoxSite', 'init'));
 
 /**
  * Filter function for changine the email from name to Biblefox

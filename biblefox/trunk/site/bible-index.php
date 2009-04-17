@@ -4,9 +4,7 @@
 //require '../wp-load.php';
 
 bfox_bible_page_load();
-BfoxQuery::set_url(get_option('home') . '/bible/index.php?');
-
-$url = get_option('siteurl');
+BfoxQuery::set_url(get_option('home') . '/?');
 
 get_header();
 get_sidebar();
