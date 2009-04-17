@@ -31,7 +31,7 @@ function kubrick_head() {
 		echo $head . $output . $foot;
 }
 
-add_action('wp_head', 'kubrick_head');
+//add_action('wp_head', 'kubrick_head');
 
 function kubrick_header_image() {
 	return apply_filters('kubrick_header_image', get_option('kubrick_header_image'));
@@ -148,7 +148,7 @@ function kubrick_add_theme_page() {
 			wp_redirect("themes.php?page=functions.php&saved=true");
 			die;
 		}
-		add_action('admin_head', 'kubrick_theme_page_head');
+		//add_action('admin_head', 'kubrick_theme_page_head');
 	}
 	add_theme_page(__('Customize Header'), __('Header Image and Color'), 'edit_themes', basename(__FILE__), 'kubrick_theme_page');
 }

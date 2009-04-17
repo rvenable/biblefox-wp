@@ -1,10 +1,10 @@
 /*
-Theme Name: WordPress mu Default
-Theme URI: http://mu.wordpress.org/
-Description: The default WordPress mu theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.
+Theme Name: Biblefox Default
+Theme URI: http://biblefox.com
+Description: The default Biblefox theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.
 Version: 1.6
-Author: Michael Heilemann
-Author URI: http://binarybonsai.com/
+Author: Richard Venable
+Author URI: http://biblefox.com
 Tags: blue, custom header, fixed width, two columns, widgets
 
 	Kubrick v1.5
@@ -24,7 +24,7 @@ Tags: blue, custom header, fixed width, two columns, widgets
 body {
 	font-size: 62.5%; /* Resets 1em to 10px */
 	font-family: 'Lucida Grande', Verdana, Arial, Sans-Serif;
-	background: #d5d6d7 url('images/kubrickbgcolor.jpg');
+	background: #d5d6d7;
 	color: #333;
 	text-align: center;
 	}
@@ -36,7 +36,7 @@ body {
 	}
 
 #header {
-	background: #73a0c5 url('images/kubrickheader.jpg') no-repeat bottom center;
+	background: #73a0c5;
 	}
 
 #headerimg 	{
@@ -81,7 +81,7 @@ border: 1px solid #ddd;
 }
 
 #footer {
-	background: #eee url('images/kubrickfooter.jpg') no-repeat top;
+	background: #eee;
 	border: none;
 	}
 
@@ -237,16 +237,15 @@ body {
 	background-color: white;
 	margin: 20px auto;
 	padding: 0;
-	width: 760px;
+	width: 100%;
 	border: 1px solid #959596;
 	}
 
 #header {
 	background-color: #73a0c5;
-	margin: 0 0 0 1px;
 	padding: 0;
 	height: 200px;
-	width: 758px;
+	width: 100%;
 	}
 
 #headerimg {
@@ -312,7 +311,7 @@ body {
 #footer {
 	padding: 0;
 	margin: 0 auto;
-	width: 760px;
+	width: 100%;
 	clear: both;
 	}
 
