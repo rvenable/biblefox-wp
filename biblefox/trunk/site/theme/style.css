@@ -31,18 +31,11 @@ body {
 
 #page {
 	background-color: white;
-	border: 1px solid #959596;
 	text-align: left;
 	}
 
 #header {
 	background: #73a0c5;
-	}
-
-#headerimg 	{
-	margin: 7px 9px 0;
-	height: 192px;
-	width: 740px;
 	}
 
 #content {
@@ -92,18 +85,16 @@ small {
 	}
 
 h1, h2, h3 {
-	font-family: 'Trebuchet MS', 'Lucida Grande', Verdana, Arial, Sans-Serif;
+	font-family: 'Lucida Grande', Verdana, Arial, Sans-Serif;
 	font-weight: bold;
 	}
 
 h1 {
 	font-size: 4em;
-	text-align: center;
 	}
 
-#headerimg .description {
+#header .description {
 	font-size: 1.2em;
-	text-align: center;
 	}
 
 h2 {
@@ -123,7 +114,7 @@ h3 {
 	font-size: 1.3em;
 	}
 
-h1, h1 a, h1 a:hover, h1 a:visited, #headerimg .description {
+h1, h1 a, h1 a:hover, h1 a:visited, #header .description {
 	text-decoration: none;
 	color: white;
 	}
@@ -234,24 +225,19 @@ body {
 	}
 
 #page {
-	background-color: white;
-	margin: 20px auto;
 	padding: 0;
 	width: 100%;
-	border: 1px solid #959596;
 	}
 
 #header {
 	background-color: #73a0c5;
 	padding: 0;
-	height: 200px;
+	height: 80px;
 	width: 100%;
 	}
 
-#headerimg {
-	margin: 0;
-	height: 200px;
-	width: 100%;
+#header_content {
+	padding-left: 10px;
 	}
 	
 #sidebar {
@@ -341,7 +327,6 @@ body {
 
 /*	Begin Headers */
 h1 {
-	padding-top: 70px;
 	margin: 0;
 	}
 
