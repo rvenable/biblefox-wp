@@ -29,7 +29,7 @@
 	function bfox_add_admin_head_files()
 	{
 		// use JavaScript SACK library for Ajax
-		wp_print_scripts( array( 'sack' ));
+		wp_print_scripts( array( 'sack' , 'jquery'));
 
 		$url = get_option('siteurl');
 		?>
