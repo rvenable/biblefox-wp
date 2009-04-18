@@ -20,10 +20,12 @@ class BfoxPagePassage extends BfoxPage
 	{
 		$visible = $refs->sql_where();
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+
 		foreach ($bcvs as $book => $cvs)
 		{
 			$book_str = BibleRefs::create_book_string($book, $cvs);
 
+			unset($ch1);
 			foreach ($cvs as $cv)
 			{
 				if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
