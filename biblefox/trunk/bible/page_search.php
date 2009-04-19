@@ -21,6 +21,11 @@ class BfoxPageSearch extends BfoxPage
 		if (!empty($ref_str)) $this->search->set_refs(RefManager::get_from_str($ref_str));
 	}
 
+	public function get_search_str()
+	{
+		return $this->search->text;
+	}
+
 	public function content()
 	{
 		$book_counts = $this->search->boolean_book_counts();

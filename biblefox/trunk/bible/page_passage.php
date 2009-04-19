@@ -13,10 +13,18 @@ class BfoxPagePassage extends BfoxPage
 	{
 		$this->refs = RefManager::get_from_str($ref_str);
 
+		// If we don't have a valid bible ref, we should just create a bible reference
+		if (!$this->refs->is_valid()) $this->refs = RefManager::get_from_str('Genesis 1');
+
 		parent::__construct($trans_str);
 	}
 
-	private static function ref_content(BibleRefs $refs)
+	public function get_search_str()
+	{
+		return $this->refs->get_string(BibleMeta::name_short);
+	}
+
+	private static function ref_content(BibleRefs $refs, Translation $translation)
 	{
 		$visible = $refs->sql_where();
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
@@ -45,7 +53,7 @@ class BfoxPagePassage extends BfoxPage
 						<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
 					</div>
 					<div class='partition_body'>
-						" . Translations::get_chapters_content($book, $ch1, $ch2, $visible) . "
+						" . Translations::get_chapters_content($book, $ch1, $ch2, $visible, $translation) . "
 					</div>
 				</div>
 				";
@@ -151,14 +159,6 @@ class BfoxPagePassage extends BfoxPage
 	{
 		global $bfox_history, $bfox_quicknote, $bfox_viewer;
 
-		if (!$this->refs->is_valid()) $this->refs = RefManager::get_from_str($_GET[BfoxQuery::var_reference]);
-
-		// If we don't have a valid bible ref, we should just create a bible reference
-		if (!$this->refs->is_valid())
-		{
-			$this->refs = RefManager::get_from_str('Genesis 1');
-		}
-
 		$bfox_quicknote->set_biblerefs($this->refs);
 
 		$ref_str = $this->refs->get_string();
@@ -170,14 +170,7 @@ class BfoxPagePassage extends BfoxPage
 			<div class="roundbox">
 				<div class="box_head">
 					<?php echo $ref_str ?>
-					<form id="bible_view_search" action="admin.php" method="get">
-						<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
-						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE ?>" />
-						<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_passage ?>" />
-						<input type="hidden" name="<?php echo BfoxQuery::var_reference ?>" value="<?php echo $ref_str ?>" />
-							<?php Translations::output_select($this->translation->id) ?>
-						<input type="submit" value="Go" class="button">
-					</form>
+					<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
 				</div>
 				<div>
 					<div class="commentary_list">
@@ -188,7 +181,7 @@ class BfoxPagePassage extends BfoxPage
 						<?php //self::output_quick_press(); ?>
 					</div>
 					<div class="reference">
-						<?php echo self::ref_content($this->refs); ?>
+						<?php echo self::ref_content($this->refs, $this->translation); ?>
 					</div>
 					<div class="clear"></div>
 				</div>
