@@ -76,10 +76,20 @@ class BiblefoxSite
 		}
 	}
 
+	public static function widget_bible_pages($args)
+	{
+		extract($args);
+		$title = 'Bible';
+		echo $before_widget . $before_title . $title . $after_title;
+		BfoxQuery::sidebar_list();
+		echo $after_widget;
+	}
+
 	public function init()
 	{
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
+		register_sidebar_widget('Bible Pages', array('BiblefoxSite', 'widget_bible_pages'));
 	}
 }
 add_action('init', array('BiblefoxSite', 'init'));

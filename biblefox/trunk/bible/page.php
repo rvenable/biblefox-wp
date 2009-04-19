@@ -24,16 +24,6 @@ abstract class BfoxPage
 
 	protected abstract function content();
 
-	public function sidebar_list()
-	{
-		?>
-		<ul id="bible_page_list">
-			<li><a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>">Passage</a></li>
-			<li><a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">Commentaries</a></li>
-		</ul>
-		<?php
-	}
-
 	public function page()
 	{
 		?>
@@ -41,7 +31,6 @@ abstract class BfoxPage
 			<div id="bible_bar" class="roundbox">
 				<div class="box_head">Bible Viewer</div>
 				<div class="box_inside">
-					<?php $this->sidebar_list() ?>
 					<form id="bible_search_form" action="<?php echo BfoxQuery::post_url() ?>" method="get">
 						<input type="hidden" name="page" value="<?php echo BFOX_BIBLE_SUBPAGE; ?>" />
 						<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_search ?>" />

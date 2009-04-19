@@ -51,6 +51,16 @@ class BfoxQuery
 
 		return $url;
 	}
+
+	public static function sidebar_list()
+	{
+		?>
+		<ul>
+			<li><a href="<?php echo self::page_url(self::page_passage) ?>">Passage</a></li>
+			<li><a href="<?php echo self::page_url(self::page_commentary) ?>">Commentaries</a></li>
+		</ul>
+		<?php
+	}
 }
 
 ?>
