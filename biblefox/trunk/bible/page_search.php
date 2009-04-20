@@ -41,22 +41,34 @@ class BfoxPageSearch extends BfoxPage
 		// Show the exact matches at the bottom
 		?>
 		<div id="bible_search">
-			<h3>Match All Words - <?php echo $this->search->description ?></h3>
-			Note: Biblefox searches all available bible translations at once, and displays the results in your preferred translation, so the exact search words may not appear in all results.
-			<div id="match_all">
-				<?php echo $this->search->output_verse_map($book_counts) ?>
-				<div class="results_wrap">
-					<div class="results roundbox">
-						<div class="box_head">Search Results
-						</div>
-						<?php
-							$verses = $this->search->search_boolean();
-							echo $this->search->output_verses($verses);
-						?>
-						<div class="box_menu">This search took <?php echo $this->search->last_search_time ?> seconds</div>
+			<div id="search_header">
+				<h3>Match All Words - <?php echo $this->search->description ?></h3>
+				Note: Biblefox searches all available bible translations at once, and displays the results in your preferred translation, so the exact search words may not appear in all results.
+			</div>
+			<div id="search_sidebar">
+				<div class="verse_map roundbox">
+					<div class="box_head">Bible Verses</div>
+					<div id="verse_map_list">
+						<ul>
+							<li>
+								<?php echo $this->search->output_verse_map($book_counts) ?>
+							</li>
+						</ul>
 					</div>
 				</div>
-				<div class="clear"></div>
+			</div>
+			<div id="search_content">
+				<div class="results roundbox">
+					<div class="box_head">Search Results
+					</div>
+					<?php
+						$verses = $this->search->search_boolean();
+						echo $this->search->output_verses($verses);
+					?>
+					<div class="box_menu">This search took <?php echo $this->search->last_search_time ?> seconds</div>
+				</div>
+			</div>
+			<div id="search_footer">
 			</div>
 		</div>
 		<?php

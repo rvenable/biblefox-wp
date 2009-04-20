@@ -58,14 +58,6 @@ class BibleSearch
 		$this->limit = $wpdb->prepare('LIMIT %d, %d', $offset, $limit);
 	}
 
-	private function link($search, $display_ref_str = '', $actual_ref_str = '')
-	{
-		if (empty($actual_ref_str)) $actual_ref_str = $display_ref_str;
-		if (!empty($display_ref_str)) $ref_title = " in $display_ref_str";
-
-		return "<a href='" . BfoxQuery::search_page_url($search, $actual_ref_str, $this->display_translation) . "' title='Search for \"$search\"$ref_title'>$display_ref_str</a>";
-	}
-
 	/**
 	 * Performs a boolean full text search
 	 *
@@ -140,7 +132,11 @@ class BibleSearch
 			else if (isset($counts[$child]))
 			{
 				$child_count = $counts[$child];
-				$child_content = $this->link($this->text, BibleMeta::get_book_name($child)) . "<span class='book_count'>$child_count</span>";
+				$ref_str = BibleMeta::get_book_name($child);
+
+				$child_content = "<a href='" .
+					BfoxQuery::search_page_url($this->text, $ref_str, $this->display_translation) .
+					"' title='Search for \"$this->text\" in $ref_str'>$ref_str<span class='book_count'>$child_count</span></a>";
 			}
 
 			if (0 < $child_count)
@@ -150,34 +146,22 @@ class BibleSearch
 			}
 		}
 
+		$ref_str = BibleMeta::get_book_name($group);
+
 		return array($count,
-		"<span class='book_group_title'>
-			" . $this->link($this->text, BibleMeta::get_book_name($group), $group) . "
-			<span class='book_count'>$count</span>
-		</span>
-		<ul class='book_group'>
-			$content
-		</ul>");
+			"<a href='" .
+			BfoxQuery::search_page_url($this->text, $group, $this->display_translation) .
+			"' title='Search for \"$this->text\" in $ref_str'>$ref_str<span class='book_count'>$count</span></a>
+			<ul>
+				$content
+			</ul>");
 	}
 
 	public function output_verse_map($book_counts, $group = 'protest')
 	{
 		list($count, $map) = $this->output_group_counts($group, $book_counts);
 
-		?>
-		<div class="verse_map_wrap">
-			<div class="verse_map roundbox">
-				<div class="box_head">Verse Map</div>
-				<div id="verse_map_list">
-					<ul class='book_group'>
-						<li>
-							<?php echo $map ?>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<?php
+		echo $map;
 	}
 
 	/**

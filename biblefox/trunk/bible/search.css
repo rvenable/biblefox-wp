@@ -2,44 +2,19 @@
 Bible Search
 */
 
-#bible_search #match_all {
-	position: relative;
-	margin-left: 165px;
+#search_header h3 {
+	margin: .4em 0;
 }
 
-
-#bible_search .verse_map_wrap {
+#search_sidebar {
 	float: left;
 	position: relative;
-	margin-left: -165px;
 	width: 160px;
 }
 
-#verse_map_list {
+#search_content {
 	position: relative;
-	padding: 0;
-	margin-left: -6px;
-}
-
-.book_group_title {
-	margin: 2px;
-	font-weight: bold;
-}
-
-.book_group {
-	padding-left: 6px;
-	margin: 0px;
-	list-style-type: none;
-}
-
-.book_group li {
-	position: relative;
-	margin: 0px;
-}
-
-#bible_search .verse_map .book_count {
-	position: absolute;
-	right: 0px;
+	margin-left: 165px;
 }
 
 #bible_search .results_wrap {
@@ -67,3 +42,71 @@ Bible Search
 	float: left;
 	padding: 0px;
 }
+
+/*
+Verse Map
+*/
+
+#verse_map_list {
+	background-color: #EEE;
+}
+
+#verse_map_list ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+#verse_map_list li:hover {
+	background-color: #EEE;
+}
+
+#verse_map_list li li:hover {
+	background-color: #DDD;
+}
+
+#verse_map_list li li li:hover {
+	background-color: #CCC;
+}
+
+#verse_map_list li li li li:hover {
+	background-color: #BBB;
+}
+
+#verse_map_list li li li li li:hover {
+	background-color: #AAA;
+}
+
+#verse_map_list a {
+	position: relative;
+	display: block;
+	width: 128px;
+	padding: 0 25px 0 5px;
+	text-decoration: none;
+}
+
+#verse_map_list li li a {
+	padding: 0 20px 0 10px;
+}
+
+#verse_map_list li li li a {
+	padding: 0 15px 0 15px;
+}
+
+#verse_map_list li li li li a {
+	padding: 0 10px 0 20px;
+}
+
+#verse_map_list li li li li li a {
+	padding: 0 5px 0 25px;
+}
+
+#verse_map_list a:hover {
+	background-color: #AAA;
+}
+
+#verse_map_list a .book_count {
+	position: absolute;
+	right: 5px;
+}
+
