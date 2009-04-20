@@ -223,7 +223,10 @@ class BfoxMainToolbox extends BfoxToolBox
 	 */
 	function create_translation_index_table()
 	{
+		global $wpdb;
+		$wpdb->query('DROP TABLE ' . Translations::index_table);
 		Translations::create_translation_index_table();
+		echo "Dropped and recreated the index table. Please run refresh_all_translation_indexes().";
 	}
 
 	/**

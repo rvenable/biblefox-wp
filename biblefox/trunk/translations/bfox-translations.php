@@ -280,11 +280,12 @@ class Translations
 		// Creates a FULLTEXT index on the verse data
 		$sql = "
 		CREATE TABLE " . self::index_table . " (
-			unique_id int unsigned NOT NULL,
-			book_id int unsigned NOT NULL,
-			trans_id int unsigned NOT NULL,
-			index_text text NOT NULL,
-			FULLTEXT (index_text)
+			unique_id MEDIUMINT UNSIGNED NOT NULL,
+			book_id TINYINT UNSIGNED NOT NULL,
+			trans_id SMALLINT UNSIGNED NOT NULL,
+			index_text TEXT NOT NULL,
+			FULLTEXT (index_text),
+			INDEX (unique_id)
 		);
 		";
 
