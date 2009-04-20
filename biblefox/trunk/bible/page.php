@@ -29,6 +29,15 @@ abstract class BfoxPage
 		return '';
 	}
 
+	public function print_scripts($base_url)
+	{
+		?>
+		<link rel="stylesheet" href="<?php echo $base_url ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
+		<link rel="stylesheet" href="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/bible.css" type="text/css"/>
+		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/bible.js"></script>
+		<?php
+	}
+
 	public function page()
 	{
 		// TODO3: Remove 'page' form input when removing from admin pages

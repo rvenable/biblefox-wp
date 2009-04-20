@@ -168,8 +168,12 @@ class BibleSearch
 		<div class="verse_map_wrap">
 			<div class="verse_map roundbox">
 				<div class="box_head">Verse Map</div>
-				<div class="box_inside">
-					<?php echo $map ?>
+				<div id="verse_map_list">
+					<ul class='book_group'>
+						<li>
+							<?php echo $map ?>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</div>

@@ -7,12 +7,22 @@ function bfox_bible_page_load()
 {
 	BfoxQuery::set_url(get_option('home') . '/wp-admin?page=' . BFOX_BIBLE_SUBPAGE);
 	require BFOX_BIBLE_DIR . '/page_load.php';
+
+	add_action('wp_head', 'bfox_bible_wp_head');
 }
 
 function bfox_bible_page()
 {
 	global $bfox_bible_page;
 	$bfox_bible_page->page();
+}
+
+function bfox_bible_wp_head()
+{
+	wp_print_scripts(array('jquery'));
+
+	global $bfox_bible_page;
+	$bfox_bible_page->print_scripts(get_option('siteurl'));
 }
 
 function bfox_bible_menu()

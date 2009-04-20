@@ -1,0 +1,69 @@
+/*
+Bible Search
+*/
+
+#bible_search #match_all {
+	position: relative;
+	margin-left: 165px;
+}
+
+
+#bible_search .verse_map_wrap {
+	float: left;
+	position: relative;
+	margin-left: -165px;
+	width: 160px;
+}
+
+#verse_map_list {
+	position: relative;
+	padding: 0;
+	margin-left: -6px;
+}
+
+.book_group_title {
+	margin: 2px;
+	font-weight: bold;
+}
+
+.book_group {
+	padding-left: 6px;
+	margin: 0px;
+	list-style-type: none;
+}
+
+.book_group li {
+	position: relative;
+	margin: 0px;
+}
+
+#bible_search .verse_map .book_count {
+	position: absolute;
+	right: 0px;
+}
+
+#bible_search .results_wrap {
+	position: relative;
+	float: left;
+}
+
+#bible_search .result_chapter h3 {
+	font-size: 12px;
+	background-color: #EEEEEE;
+	margin: 0px;
+	border-bottom: 1px solid #DFDFDF;
+	padding: 5px 5px 5px 150px;
+}
+
+#bible_search .result_verse {
+	position: relative;
+	padding: 5px 5px 5px 150px;
+	border-bottom: 1px solid #DFDFDF;
+}
+
+#bible_search .result_verse h4 {
+	font-size: 12px;
+	margin: 0px 0px 0px -145px;
+	float: left;
+	padding: 0px;
+}
