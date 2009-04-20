@@ -354,16 +354,12 @@ Scripture Layout
 }
 
 #bible .chapter h5 {
-	background-color: #EEEEEE;
-	min-width: 18px;
-	text-align: center;
-	font-size: 18px;
+	font-size: 2em;
 	float: left;
-	width: auto;
-	padding: 2px 6px;
-	margin: 2px 4px 2px 4px;
-	border: 1px solid #DFDFDF;
-	border-left-width: 0px;
+	margin: 0 4px 0 0;
+	padding: 0 6px;
+	text-align: center;
+	background-color: #EEEEEE;
 	-moz-border-radius: 6px;
 }
 
