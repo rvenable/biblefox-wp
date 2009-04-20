@@ -241,8 +241,9 @@ body {
 	}
 	
 #sidebar {
-	padding: 20px 5px 10px 5px;
+	padding: 5px;
 	float: left;
+	margin: 0;
 	margin-left: -190px;
 	width: 180px;
 	}
@@ -253,6 +254,10 @@ body {
 
 #main {
 	margin-left: 190px;
+	}
+	
+#content {
+	float: left;
 	}
 
 .narrowcolumn {

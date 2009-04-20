@@ -177,7 +177,7 @@ class Commentaries
 
 		// Get this user's blogs and make sure they are all in our commentary list
 		// If we find any that aren't we need to add them to our list
-		$blogs = get_blogs_of_user($user_id);
+		$blogs = (array) get_blogs_of_user($user_id);
 		foreach ($blogs as $blog)
 		{
 			if (!isset($coms[$blog->userblog_id]))
