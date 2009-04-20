@@ -19,6 +19,11 @@ class BfoxPagePassage extends BfoxPage
 		parent::__construct($trans_str);
 	}
 
+	public function get_title()
+	{
+		return $this->refs->get_string();
+	}
+
 	public function get_search_str()
 	{
 		return $this->refs->get_string(BibleMeta::name_short);

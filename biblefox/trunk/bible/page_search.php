@@ -21,6 +21,12 @@ class BfoxPageSearch extends BfoxPage
 		if (!empty($ref_str)) $this->search->set_refs(RefManager::get_from_str($ref_str));
 	}
 
+	public function get_title()
+	{
+		if (!empty($this->search->ref_str)) $ref_str = " in {$this->search->ref_str}";
+		return "Search for '{$this->search->text}'$ref_str";
+	}
+
 	public function get_search_str()
 	{
 		return $this->search->text;

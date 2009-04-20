@@ -24,6 +24,11 @@ abstract class BfoxPage
 
 	protected abstract function content();
 
+	public function get_title()
+	{
+		return 'Biblefox Bible Viewer';
+	}
+
 	public function get_search_str()
 	{
 		return '';
