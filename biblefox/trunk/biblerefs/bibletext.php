@@ -124,25 +124,6 @@
 		return (RefManager::get_from_sets($sets));
 	}
 
-	function bfox_get_next_refs(BibleRefs $refs, $action)
-	{
-		// Determine if we need to modify the refs using a next/previous action
-		$next_factor = 0;
-		if ('next' == $action) $next_factor = 1;
-		else if ('previous' == $action) $next_factor = -1;
-		else if ('mark_read' == $action)
-		{
-			$next_factor = 0;
-			global $bfox_history;
-			$bfox_history->update($refs, true);
-		}
-
-		// Modify the refs for the next factor
-		if (0 != $next_factor) $refs->increment($next_factor);
-
-		return $refs;
-	}
-
 	/*
 	 AJAX function for sending the bible text
 	 */

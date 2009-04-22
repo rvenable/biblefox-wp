@@ -98,13 +98,6 @@
 		  (see the warning on http://nz.php.net/manual/en/language.references.whatdo.php )
 		 */
 		$GLOBALS['bfox_recent_wp_query'] =& $wp_query;
-
-		// If we have refs, check for any needed ref modifications
-		if ($bfox_bible_refs->is_valid())
-		{
-			// Save the refs in a global variable
-			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars[BfoxBlog::var_action]);
-		}
 	}
 
 	// Function for modifying the query JOIN statement
