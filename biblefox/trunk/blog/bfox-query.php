@@ -200,7 +200,7 @@
 			$book_name = BibleMeta::get_book_name($book);
 			$ref_str = BibleRefs::create_book_string($book, $cvs);
 
-			// Create a new bible refs for just this book (so we can later pass it into Translations::get_verse_content())
+			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
 			$book_refs = new BibleRefs();
 
 			// Get the first and last chapters
@@ -232,7 +232,7 @@
 			$new_post = array();
 			$new_post['ID'] = -1;
 			$new_post['post_title'] = $title . $ref_str;
-			$new_post['post_content'] = $nav_bar . Translations::get_verse_content($book_refs) . $nav_bar;
+			$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($book_refs) . $nav_bar;
 			$new_post['bible_ref_str'] = $ref_str;
 			$new_post['post_type'] = BfoxBlog::var_bible_ref;
 			$new_post['post_date'] = current_time('mysql', false);
@@ -286,7 +286,7 @@
 						$new_post = array();
 						$new_post['ID'] = -1;
 						$new_post['post_title'] = $ref_str;
-						$new_post['post_content'] = $nav_bar . Translations::get_verse_content($refs) . $nav_bar;
+						$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($refs) . $nav_bar;
 						$new_post['bible_ref_str'] = $ref_str;
 						$new_post['post_type'] = BfoxBlog::var_bible_ref;
 						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);

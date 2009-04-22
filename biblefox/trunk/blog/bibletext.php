@@ -20,7 +20,7 @@
 			$book_name = BibleMeta::get_book_name($book);
 			$ref_str = BibleRefs::create_book_string($book, $cvs);
 
-			// Create a new bible refs for just this book (so we can later pass it into Translations::get_verse_content())
+			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
 			$book_refs = new BibleRefs();
 
 			unset($ch1);
@@ -48,7 +48,7 @@
 			}
 			$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
 
-			$content = $nav_bar . Translations::get_verse_content($book_refs) . $nav_bar;
+			$content = $nav_bar . BfoxBlog::get_verse_content($book_refs) . $nav_bar;
 			$content .= '<hr/>';
 
 			// Add the Table of Contents to the end of the output

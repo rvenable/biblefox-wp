@@ -123,6 +123,55 @@ class BfoxBlog
 		if (!empty($reading_id)) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
 		return $url;
 	}
+
+	/**
+	 * Return verse content for the given bible refs with minimum formatting
+	 *
+	 * @param BibleRefs $refs
+	 * @param Translation $trans
+	 * @return string
+	 */
+	public static function get_verse_content(BibleRefs $refs, Translation $trans = NULL)
+	{
+		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
+
+		$content = '';
+
+		$verses = $trans->get_verses($refs->sql_where());
+
+		foreach ($verses as $verse)
+		{
+			if ($verse->verse_id != 0) $content .= '<b>' . $verse->verse_id . '</b> ';
+			$content .= $verse->verse;
+		}
+
+		// Fix the footnotes
+		// TODO3: this function does more than just footnotes
+		$content = bfox_special_syntax($content);
+
+		return $content;
+	}
+
+	/**
+	 * Return verse content for the given bible refs formatted for email output
+	 *
+	 * @param BibleRefs $refs
+	 * @param Translation $trans
+	 * @return unknown
+	 */
+	public static function get_verse_content_email(BibleRefs $refs, Translation $trans = NULL)
+	{
+		// Pre formatting is for when we can't use CSS (ie. in an email)
+		// We just replace the tags which would have been formatted by css with tags that don't need formatting
+		$content =
+			str_replace('<span class="bible_poetry_indent_2"></span>', '<span style="margin-left: 20px"></span>',
+				str_replace('<span class="bible_poetry_indent_1"></span>', '',
+					str_replace('<span class="bible_end_poetry"></span>', "<br/>\n",
+						str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n",
+							self::get_verse_content($refs, $trans)))));
+
+		return $content;
+	}
 }
 
 add_action('init', array('BfoxBlog', 'init'));

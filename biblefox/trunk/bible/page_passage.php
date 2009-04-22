@@ -58,7 +58,7 @@ class BfoxPagePassage extends BfoxPage
 						<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
 					</div>
 					<div class='partition_body'>
-						" . Translations::get_chapters_content($book, $ch1, $ch2, $visible, $translation) . "
+						" . self::get_chapters_content($book, $ch1, $ch2, $visible, $translation) . "
 					</div>
 				</div>
 				";
@@ -202,6 +202,122 @@ class BfoxPagePassage extends BfoxPage
 
 		// Update the read history to show that we viewed these scriptures
 		$bfox_history->update($this->refs);
+	}
+
+	/**
+	 * Return verse content for display in chapter groups
+	 *
+	 * @param integer $book
+	 * @param integer $chapter1
+	 * @param integer $chapter2
+	 * @param string $visible
+	 * @param Translation $trans
+	 * @return string
+	 */
+	public static function get_chapters_content($book, $chapter1, $chapter2, $visible, Translation $trans = NULL)
+	{
+		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
+
+		$content = '';
+
+		$book_name = BibleMeta::get_book_name($book);
+
+		// Get the verse data from the bible translation
+		$chapters = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible);
+
+		if (!empty($chapters))
+		{
+			// We don't want to start with a hidden rule
+			$add_rule = FALSE;
+
+			foreach ($chapters as $chapter_id => $verses)
+			{
+				$is_hidden_chapter = TRUE;
+				$prev_visible = TRUE;
+				$index = 0;
+
+				$sections = array();
+
+				foreach ($verses as $verse)
+				{
+					if (0 == $verse->verse_id) continue;
+
+					if ($verse->visible) $is_hidden_chapter = FALSE;
+
+					if ($prev_visible != $verse->visible) $index++;
+					$prev_visible = $verse->visible;
+
+					$sections[$index] .= "
+						<span class='bible_verse' verse='$verse->verse_id'>
+							<b>$verse->verse_id</b>
+							$verse->verse
+						</span>
+						";
+				}
+				$last_index = $index;
+
+				if ($is_hidden_chapter)
+				{
+					$content .= "
+						<span class='chapter hidden_chapter'>
+							<h5>$chapter_id</h5>
+							$sections[1]
+						</span>
+						";
+
+					// Don't show a hidden rule immediately following a hidden chapter
+					$add_rule = FALSE;
+				}
+				else
+				{
+					$chapter_content = '';
+					foreach ($sections as $index => $section)
+					{
+						// Every odd numbered section is hidden
+						if ($index % 2)
+						{
+							$chapter_content .= "
+								<span class='hidden_verses'>
+									$section
+								</span>
+								";
+
+							// If we can add a rule, do it now
+							// We don't want to add a rule for the last section, though
+							if ($add_rule)// && ($last_index != $index))
+							{
+								$chapter_content .= "<hr class='hidden_verses_rule' />";
+
+								// Don't add a rule immediately after this one
+								$add_rule = FALSE;
+							}
+						}
+						else
+						{
+							$chapter_content .= $section;
+
+							// We only want to add a rule if the previous section was not hidden
+							$add_rule = TRUE;
+						}
+					}
+
+					$content .= "
+						<span class='chapter visible_chapter'>
+							<h5>$chapter_id</h5>
+							$chapter_content
+						</span>
+						";
+				}
+
+			}
+
+		}
+
+		// Fix the footnotes
+		// TODO3: this function does more than just footnotes
+		$content = bfox_special_syntax($content);
+
+		return $content;
 	}
 }
 
