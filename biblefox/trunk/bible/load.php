@@ -5,7 +5,6 @@ define(BFOX_BIBLE_SUBPAGE, 'bfox-bible');
 
 function bfox_bible_page_load()
 {
-	BfoxQuery::set_url(get_option('home') . '/wp-admin?page=' . BFOX_BIBLE_SUBPAGE);
 	require BFOX_BIBLE_DIR . '/page_load.php';
 
 	add_action('wp_head', 'bfox_bible_wp_head');
