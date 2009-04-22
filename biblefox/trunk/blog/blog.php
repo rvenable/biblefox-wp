@@ -77,11 +77,11 @@ class BfoxBlog
 		return self::$home_url . '/?' . self::var_bible_ref . '=' . $ref_str;
 	}
 
-	public static function ref_link($ref_str, $text = '')
+	public static function ref_link($ref_str, $text = '', $attrs = '')
 	{
 		if (empty($text)) $text = $ref_str;
 
-		return "<a href='" . self::ref_url($ref_str) . "'>$text</a>";
+		return "<a href='" . self::ref_url($ref_str) . "' $attrs>$text</a>";
 	}
 
 	public static function ref_write_link($ref_str, $text = '')

@@ -98,54 +98,6 @@
 		return (RefManager::get_from_sets($sets));
 	}
 
-	function bfox_get_ref_menu(BibleRefs $refs, $header = true, $scripture_links = NULL)
-	{
-		$home_dir = get_option('home');
-		$admin_dir = $home_dir . '/wp-admin';
-		$refStr = $refs->get_string();
-
-		// Use the current_url param if it is passed
-		if (isset($scripture_links['current_url'])) $page_url = $scripture_links['current_url'];
-		else $page_url = BfoxBlog::ref_url($refStr);
-
-		$menu = '';
-
-		$menu .= '<br/>' . bfox_get_ref_menu_nav($refs, $scripture_links);
-
-		return $menu;
-	}
-
-	function bfox_get_ref_menu_nav(BibleRefs $refs, $scripture_links = NULL)
-	{
-		$menu = '';
-
-		global $user_ID;
-		get_currentuserinfo();
-		if (0 < $user_ID) $write_link = BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
-
-		// Scripture navigation links
-		if (is_null($scripture_links))
-		{
-			$next_refs = RefManager::get_from_sets($refs->get_sets());
-			$previous_refs = RefManager::get_from_sets($refs->get_sets());
-			$next_refs->increment(1);
-			$previous_refs->increment(-1);
-
-			$scripture_links = array();
-			$scripture_links['next'] = BfoxBlog::ref_link($next_refs->get_string(), $next_refs->get_string() . ' >');
-			$scripture_links['previous'] = BfoxBlog::ref_link($previous_refs->get_string(), '< ' . $previous_refs->get_string());
-		}
-
-		$menu .= '<table width="100%"><tr>';
-		$menu .= '<td align="left" width="33%">' . $scripture_links['previous'] . '</td>';
-		$menu .= '<td align="center" width="33%">' . $write_link . '</td>';
-		$menu .= '<td align="right" width="33%">' . $scripture_links['next'] . '</a></td>';
-		$menu .= '</tr>';
-		$menu .= '</table>';
-
-		return $menu;
-	}
-
 	function bfox_get_next_refs(BibleRefs $refs, $action)
 	{
 		// Determine if we need to modify the refs using a next/previous action

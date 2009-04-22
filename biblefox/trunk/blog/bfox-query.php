@@ -72,13 +72,13 @@
 		$vars = $wp_query->query_vars;
 
 		if ($wp_query->is_search)
-			$refStrs = $vars['s'];
+			$ref_strs = $vars['s'];
 		else if ($wp_query->is_bfox_bible_ref)
-			$refStrs = $vars[BfoxBlog::var_bible_ref];
+			$ref_strs = $vars[BfoxBlog::var_bible_ref];
 
 		// Global array for storing bible references used in a search
 		global $bfox_bible_refs;
-		$bfox_bible_refs = RefManager::get_from_str($refStrs);
+		$bfox_bible_refs = RefManager::get_from_str($ref_strs);
 
 		/*
 		 Problem:
@@ -191,68 +191,69 @@
 		return $posts;
 	}
 
-	function bfox_blog_get_ref_posts(BibleRefs $bfox_bible_refs)
+	/**
+	 * Returns an array of posts with content for the given bible references
+	 *
+	 * @param BibleRefs $refs
+	 * @param string $title
+	 * @return array of posts
+	 */
+	function bfox_blog_get_ref_posts(BibleRefs $refs, $title = '')
 	{
-				// If there are bible references, then we should display them as posts
-				// So we create an array of posts with scripture and add that to the current array of posts
-				$new_posts = array();
-				foreach ($bfox_bible_refs->get_refs_array() as $ref)
-				{
-					$new_post = array();
-					$refStr = $ref->get_string();
-					$new_post['ID'] = -1;
-					$new_post['post_title'] = $title . $refStr;
-					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false);
-					$new_post['bible_ref_str'] = $refStr;
-					$new_post['post_type'] = BfoxBlog::var_bible_ref;
-					$new_post['post_date'] = current_time('mysql', false);
-					$new_post['post_date_gmt'] = current_time('mysql', true);
-					$new_post['bfox_permalink'] = BfoxBlog::ref_url($refStr);
-
-					// Turn off comments
-					$new_post['comment_status'] = 'closed';
-					$new_post['ping_status'] = 'closed';
-
-					$new_posts[] = ((object) $new_post);
-				}
-
-				/*
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 
 		foreach ($bcvs as $book => $cvs)
 		{
-			$book_str = BibleRefs::create_book_string($book, $cvs);
+			$book_name = BibleMeta::get_book_name($book);
+			$ref_str = BibleRefs::create_book_string($book, $cvs);
 
+			// Create a new bible refs for just this book (so we can later pass it into Translations::get_verse_content())
+			$book_refs = new BibleRefs();
+
+			// Get the first and last chapters
 			unset($ch1);
 			foreach ($cvs as $cv)
 			{
 				if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
 				list($ch2, $vs2) = $cv->end;
+
+				// Add the cv onto our book bible refs
+				$book_refs->add_bcv($book, $cv);
 			}
 
-			// Get the previous and next chapters as well
-			if ($ch1 > BibleMeta::start_chapter) $prev_link = BfoxBlog::ref_link()
-			$ch1 = max($ch1 - 1, BibleMeta::start_chapter);
-			$ch2++;
-			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
+			// Create the navigation bar with the prev/write/next links
+			$nav_bar = "<div class='bible_post_nav'>";
+			if ($ch1 > BibleMeta::start_chapter)
+			{
+				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
+				$nav_bar .= BfoxBlog::ref_link($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
+			}
+			$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
+			if ($ch2 < BibleMeta::end_verse_max($book))
+			{
+				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
+				$nav_bar .= BfoxBlog::ref_link($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");
+			}
+			$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
 
-			$content .= "
-				<div class='ref_partition'>
-					<div class='partition_header box_menu'>" . $book_str . " (Context:
-						<a onclick='bfox_set_context_none(this)'>none</a>
-						<a onclick='bfox_set_context_verses(this)'>verses</a>
-						<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
-					</div>
-					<div class='partition_body'>
-						" . Translations::get_chapters_content($book, $ch1, $ch2, $visible, $translation) . "
-					</div>
-				</div>
-				";
+			$new_post = array();
+			$new_post['ID'] = -1;
+			$new_post['post_title'] = $title . $ref_str;
+			$new_post['post_content'] = $nav_bar . Translations::get_verse_content($book_refs) . $nav_bar;
+			$new_post['bible_ref_str'] = $ref_str;
+			$new_post['post_type'] = BfoxBlog::var_bible_ref;
+			$new_post['post_date'] = current_time('mysql', false);
+			$new_post['post_date_gmt'] = current_time('mysql', true);
+			$new_post['bfox_permalink'] = BfoxBlog::ref_url($ref_str);
+
+			// Turn off comments
+			$new_post['comment_status'] = 'closed';
+			$new_post['ping_status'] = 'closed';
+
+			$new_posts[] = ((object) $new_post);
 		}
 
-		return $content;
-*/
-				return $new_posts;
+		return $new_posts;
 	}
 
 	// Function for adjusting the posts after they have been queried
@@ -271,21 +272,29 @@
 				{
 					foreach ($plan->query_readings as $reading_id)
 					{
-						$ref = $plan->refs[$reading_id];
-						$new_post = array();
-						$url_prefix = BfoxBlog::var_plan_id . '=' . $plan->id . '&' . BfoxBlog::var_reading_id . '=';
-						$scripture_links = array();
-						$scripture_links['current_url'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
-						if (isset($plan->refs[$reading_id - 1]))
-							$scripture_links['previous'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id - 1) . '">< ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
-						if (isset($plan->refs[$reading_id + 1]))
-							$scripture_links['next'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id + 1) . '">' . $plan->refs[$reading_id + 1]->get_string() . ' ></a>';
+						$refs = $plan->refs[$reading_id];
+						$ref_str = $refs->get_string();
 
-						$refStr = $ref->get_string();
+						// Create the navigation bar with the prev/write/next links
+						$nav_bar = "<div class='bible_post_nav'>";
+						if (isset($plan->refs[$reading_id - 1]))
+						{
+							$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
+							$nav_bar .= '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
+						}
+						$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
+						if (isset($plan->refs[$reading_id + 1]))
+						{
+							$next_ref_str = $book_name . ' ' . ($ch2 + 1);
+							$nav_bar .= '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id + 1) . '" class="bible_post_next">' . $plan->refs[$reading_id + 1]->get_string() . ' &gt;</a>';
+						}
+						$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
+
+						$new_post = array();
 						$new_post['ID'] = -1;
-						$new_post['post_title'] = $refStr;
-						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
-						$new_post['bible_ref_str'] = $refStr;
+						$new_post['post_title'] = $ref_str;
+						$new_post['post_content'] = $nav_bar . Translations::get_verse_content($refs) . $nav_bar;
+						$new_post['bible_ref_str'] = $ref_str;
 						$new_post['post_type'] = BfoxBlog::var_bible_ref;
 						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
 						$new_post['bfox_author'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
@@ -341,7 +350,9 @@
 					$title = $plan->name . ' - Reading ' . $reading_id . ': ';
 				}
 
-				$new_posts = bfox_blog_get_ref_posts($bfox_bible_refs);
+				// If there are bible references, then we should display them as posts
+				// So we create an array of posts with scripture and add that to the current array of posts
+				$new_posts = bfox_blog_get_ref_posts($bfox_bible_refs, $title);
 
 				// Update the read history to show that we viewed these scriptures
 				global $bfox_history;

@@ -160,6 +160,11 @@ class RefSequence
 		$this->add_verse_seq($book_id, $chapter1, $verse1, $chapter2, $verse2);
 	}
 
+	public function add_bcv($book, $cv)
+	{
+		$this->add_verse_seq($book, $cv->start[0], $cv->start[1], $cv->end[0], $cv->end[1]);
+	}
+
 	/**
 	 * Add a sequence of verses. This prepares the verses before calling add_seq()
 	 *
@@ -983,20 +988,6 @@ class BibleRefs extends RefSequence
 			else $this->push_concatenated($value, $value2);
 		}
 		else if (is_array($value)) $this->push_sets($value);
-	}
-
-	// Returns the internal array of BiblePassage instances converted to an
-	// array of BibleRefs where each element has just one BiblePassage
-	function get_refs_array()
-	{
-		$refs_array = array();
-		foreach ($this->refs as $ref)
-		{
-			$new_ref = new BibleRefs;
-			$new_ref->push_ref_single($ref);
-			$refs_array[] = $new_ref;
-		}
-		return $refs_array;
 	}
 
 	function push_ref_single(BiblePassage $ref)

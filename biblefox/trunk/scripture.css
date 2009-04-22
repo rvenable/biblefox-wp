@@ -90,3 +90,25 @@ a.no_href {
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+
+/*
+Blog Post related:
+*/
+
+.bible_post_nav {
+	position: relative;
+	width: 100%;
+	text-align: center;
+	margin: 0.5em 0;
+}
+
+a.bible_post_prev {
+	position: absolute;
+	left: 0;
+}
+
+a.bible_post_next {
+	position: absolute;
+	right: 0;
+}
