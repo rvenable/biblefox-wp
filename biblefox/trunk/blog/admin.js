@@ -22,7 +22,7 @@ function bible_ref_remove_tag() {
 }
 
 function bible_ref_update_quickclicks() {
-	empty_txt = '<span>No Scripture Tags.<br/>To add a new scripture tag, first view the scripture you want in the Scripture Quick View below.</span>';
+	empty_txt = '<p>No Scripture Tags.<br/>To add a new scripture tag, first view the scripture you want in the Scripture Quick View below.</p>';
 	if (jQuery('#bible-ref-list').length == 0)
 	{
 		jQuery('#bible-ref-checklist').html(empty_txt);
