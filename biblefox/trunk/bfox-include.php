@@ -21,7 +21,6 @@
 		<?php
 	}
 	add_action('wp_head', 'bfox_add_head_files');
-	add_action('admin_head', 'bfox_add_head_files');
 
 	// TODO3: Move this function to somewhere specific to the bible viewer
 	function bfox_add_admin_head_files()
@@ -36,6 +35,5 @@
 		<?php
 	}
 	add_action('wp_head', 'bfox_add_admin_head_files');
-	add_action('admin_head', 'bfox_add_admin_head_files');
 
 ?>

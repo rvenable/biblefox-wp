@@ -51,6 +51,21 @@ class BfoxBlog
 		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'bfox_save_post');
+
+		add_action('admin_head', 'BfoxBlog::admin_head');
+	}
+
+	public static function admin_head()
+	{
+		// use JavaScript SACK library for Ajax
+		wp_print_scripts(array('sack'));
+
+		$url = get_option('siteurl');
+		?>
+		<link rel="stylesheet" href="<?php echo $url ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
+		<link rel="stylesheet" href="<?php echo $url ?>/wp-content/mu-plugins/biblefox/blog/admin.css" type="text/css"/>
+		<script type="text/javascript" src="<?php echo $url ?>/wp-content/mu-plugins/biblefox/blog/admin.js"></script>
+		<?php
 	}
 
 	public static function admin_url($page)
