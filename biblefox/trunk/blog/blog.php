@@ -13,6 +13,7 @@ require_once('history.php');
 require_once('bfox-query.php');
 require_once('special.php');
 require_once('bfox-widgets.php');
+require_once('bibletext.php');
 
 class BfoxBlog
 {

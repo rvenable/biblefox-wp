@@ -1139,7 +1139,4 @@ class BibleRefs extends RefSequence
 
 }
 
-// TODO3: Get rid of bibletext.php
-require_once("bibletext.php");
-
 ?>
