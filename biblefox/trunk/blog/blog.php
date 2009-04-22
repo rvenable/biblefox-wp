@@ -84,6 +84,13 @@ class BfoxBlog
 		return "<a href='" . self::ref_url($ref_str) . "' $attrs>$text</a>";
 	}
 
+	public static function ref_link_ajax($ref_str, $text = '', $attrs = '')
+	{
+		if (empty($text)) $text = $ref_str;
+
+		return "<a href='#bible_ref' onclick='bible_text_request(\"$ref_str\")' $attrs>$text</a>";
+	}
+
 	public static function ref_write_link($ref_str, $text = '')
 	{
 		if (empty($text)) $text = $ref_str;
@@ -106,7 +113,7 @@ add_action('init', array('BfoxBlog', 'init'));
 
 	function bfox_save_post($post_id = 0)
 	{
-		$refStr = $_POST['bible_ref'];
+		$refStr = $_POST[BfoxBlog::var_bible_ref];
 
 		$refs = RefManager::get_from_str($refStr);
 		if ((0 != $post_id) && $refs->is_valid())

@@ -42,14 +42,14 @@
 	}
 
 	/**
-	 * Returns a BibleRefs created from $_GET['bible_ref'] or from the saved bible refs for the current post
+	 * Returns a BibleRefs created from $_GET[BfoxBlog::var_bible_ref] or from the saved bible refs for the current post
 	 *
 	 * @return BibleRefs
 	 */
 	function bfox_get_post_refs_from_input()
 	{
 		// TODO3: This function should probably be somewhere else
-		$refs = RefManager::get_from_str($_GET['bible_ref']);
+		$refs = RefManager::get_from_str($_GET[BfoxBlog::var_bible_ref]);
 
 		if (!$refs->is_valid())
 		{

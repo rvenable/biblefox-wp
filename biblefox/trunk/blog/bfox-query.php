@@ -228,7 +228,7 @@
 				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
 				$nav_bar .= BfoxBlog::ref_link($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
 			}
-			$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
+			$nav_bar .= BfoxBlog::ref_write_link($ref_str, 'Write about this passage');
 			if ($ch2 < BibleMeta::end_verse_max($book))
 			{
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);

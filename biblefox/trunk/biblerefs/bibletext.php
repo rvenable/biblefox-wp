@@ -11,34 +11,60 @@
 	 */
 	function bfox_get_ref_content_quick(BibleRefs $refs, $limit = 5)
 	{
-		$is_full = FALSE;
-
-		// Only get the scripture text output if we haven't exceeded the chapter limit
-		$num_chapters = $refs->get_num_chapters();
-		if ($limit >= $num_chapters)
-		{
-			$content = Translations::get_verse_content($refs);
-			$content .= '<hr/>';
-			$is_full = TRUE;
-		}
-
-		// Add the Table of Contents to the end of the output
-		$links = '';
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+
+		$book_content = array();
 		foreach ($bcvs as $book => $cvs)
 		{
+			$content = '';
 			$book_name = BibleMeta::get_book_name($book);
-			$end_chapter = BibleMeta::end_verse_max($book);
+			$ref_str = BibleRefs::create_book_string($book, $cvs);
 
+			// Create a new bible refs for just this book (so we can later pass it into Translations::get_verse_content())
+			$book_refs = new BibleRefs();
+
+			unset($ch1);
+			foreach ($cvs as $cv)
+			{
+				if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
+				list($ch2, $vs2) = $cv->end;
+
+				// Add the cv onto our book bible refs
+				$book_refs->add_bcv($book, $cv);
+			}
+
+			// Create the navigation bar with the prev/write/next links
+			$nav_bar = "<div class='bible_post_nav'>";
+			if ($ch1 > BibleMeta::start_chapter)
+			{
+				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
+				$nav_bar .= BfoxBlog::ref_link_ajax($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev button'");
+			}
+			$nav_bar .= '<input type="button" class="button" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref_str . '" value="Tag ' . $ref_str . '">';
+			if ($ch2 < BibleMeta::end_verse_max($book))
+			{
+				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
+				$nav_bar .= BfoxBlog::ref_link_ajax($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next button'");
+			}
+			$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
+
+			$content = $nav_bar . Translations::get_verse_content($book_refs) . $nav_bar;
+			$content .= '<hr/>';
+
+			// Add the Table of Contents to the end of the output
+			$links = '';
+			$end_chapter = BibleMeta::end_verse_max($book);
 			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++)
 			{
 				if (!empty($links)) $links .= ' | ';
-				$links .= BfoxBlog::ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch));
+				$links .= BfoxBlog::ref_link_ajax("$book_name $ch", $ch);
 			}
-		}
-		$content .= "<center>$links</center>";
+			$content .= "<center>$links</center>";
 
-		return $content;
+			$book_content[$book] = $content;
+		}
+
+		return implode('<hr/>', $book_content);
 	}
 
 	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = '', $verse_begin = 'verse_begin', $verse_end = 'verse_end')
@@ -117,37 +143,13 @@
 		return $refs;
 	}
 
-	function bfox_ref_quick_view_menu(BibleRefs $ref)
-	{
-		$next_refs = RefManager::get_from_sets($ref->get_sets());
-		$previous_refs = RefManager::get_from_sets($ref->get_sets());
-		$next_refs->increment(1);
-		$previous_refs->increment(-1);
-
-		$scripture_links = array();
-		$next_link = '<input type="button" class="button" onclick="bible_text_request(\'' . $next_refs->get_string() . '\')" value="' . $next_refs->get_string() . ' >">';
-		$previous_link = '<input type="button" class="button" onclick="bible_text_request(\'' . $previous_refs->get_string() . '\')" value="< ' . $previous_refs->get_string() . '">';
-		$tag_link = '<input type="button" class="button" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref->get_string() . '" value="Tag ' . $ref->get_string() . '">';
-
-		$menu = '<table width="100%"><tr>';
-		$menu .= '<td align="left" width="33%">' . $previous_link . '</td>';
-		$menu .= '<td align="center" width="33%">' . $tag_link . '</td>';
-		$menu .= '<td align="right" width="33%">' . $next_link . '</a></td>';
-		$menu .= '</tr>';
-		$menu .= '</table>';
-		return $menu;
-	}
-
 	/*
 	 AJAX function for sending the bible text
 	 */
 	function bfox_ajax_send_bible_text()
 	{
-		global $bfox_quicknote;
-
 		$ref_str = $_POST['ref_str'];
 		$ref = RefManager::get_from_str($ref_str);
-		$bfox_quicknote->set_biblerefs($ref);
 		sleep(1);
 
 		// If it is not valid, give the user an error message
@@ -159,11 +161,10 @@
 		else
 		{
 			$ref_str = $ref->get_string();
-			$menu = addslashes(bfox_ref_quick_view_menu($ref));
 			$content = addslashes(bfox_get_ref_content_quick($ref));
 		}
 
-		$script = "bfox_quick_view_loaded('$ref_str', '$content', '$menu');";
+		$script = "bfox_quick_view_loaded('$ref_str', '$content', '');";
 		die($script);
 	}
 	add_action('wp_ajax_bfox_ajax_send_bible_text', 'bfox_ajax_send_bible_text');

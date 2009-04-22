@@ -53,6 +53,8 @@
 
 		add_action('admin_menu', 'bfox_study_menu');
 
+		BfoxQuery::set_url(get_option('home') . '/?');
+
 		bfox_query_init();
 		bfox_widgets_init();
 	}
