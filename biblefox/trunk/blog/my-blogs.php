@@ -195,7 +195,7 @@ endif; ?>
 			foreach ($blog_plans as $plan)
 			{
 				// HACK - lame way of getting the url
-				$plan_url = $bfox_specials->get_url_reading_plans($plan->id, NULL, NULL, $blog->siteurl . '?' . BFOX_QUERY_VAR_SPECIAL . '=reading_plans');
+				$plan_url = $bfox_specials->get_url_reading_plans($plan->id, NULL, NULL, $blog->siteurl . '?' . BfoxBlog::var_special . '=reading_plans');
 
 				$td = '<td style="border:none; padding: 1px 5px 1px 5px;"';
 				echo '<tr>';
@@ -204,7 +204,7 @@ endif; ?>
 				echo $td . ' width="60%">' . $plan->summary . '</td>';
 //				echo $td . $plan->start_date . ' - ' . $plan->end_date . '</td>';
 				$ref = $plan->refs[$plan->current_reading];
-				if (isset($ref)) $str = BfoxLinks::get_ref_link($ref);
+				if (isset($ref)) $str = BfoxBlog::ref_link($ref->get_string());
 				else $str = '';
 				echo $td . ' width="20%">' . $str . '</td>';
 				unset($ref);

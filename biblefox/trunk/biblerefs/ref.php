@@ -1080,7 +1080,7 @@ class BibleRefs extends RefSequence
 		list($ch2, $vs2) = $cv->end;
 
 		if (0 == $ch1) $ch1 = 1;
-		if (BibleVerse::max_chapter_id == $ch2) $ch2 = bfox_get_num_chapters($book);
+		if (BibleVerse::max_chapter_id == $ch2) $ch2 = BibleMeta::end_verse_max($book);
 
 		$seqs = array();
 		$seqs[$ch1]->start = BibleVerse::calc_unique_id($book, $ch1, $vs1);

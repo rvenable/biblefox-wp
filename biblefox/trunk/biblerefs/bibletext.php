@@ -33,7 +33,7 @@
 			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++)
 			{
 				if (!empty($links)) $links .= ' | ';
-				$links .= BfoxLinks::ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch));
+				$links .= BfoxBlog::ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch));
 			}
 		}
 		$content .= "<center>$links</center>";
@@ -106,28 +106,11 @@
 
 		// Use the current_url param if it is passed
 		if (isset($scripture_links['current_url'])) $page_url = $scripture_links['current_url'];
-		else $page_url = BfoxLinks::get_ref_url($refs);
+		else $page_url = BfoxBlog::ref_url($refStr);
 
 		$menu = '';
 
-		// Add bible tracking data
-		global $user_ID;
-		get_currentuserinfo();
-		if (0 < $user_ID)
-		{
-			global $bfox_history;
-			$menu .= '<small>';
-			if ($header) $menu .= $bfox_history->get_dates_str($refs, false) . '<br/>';
-			$menu .= $bfox_history->get_dates_str($refs, true);
-			$menu .= ' (<a href="' . $page_url . '&bfox_action=mark_read">Mark as read</a>)';
-			$menu .= '</small>';
-
-
-		}
-		else $menu .= '<small><a href="' . $home_dir . '/wp-login.php">Login</a> to track your bible reading</small>';
-
-
-		$menu .= bfox_get_ref_menu_nav($refs, $scripture_links);
+		$menu .= '<br/>' . bfox_get_ref_menu_nav($refs, $scripture_links);
 
 		return $menu;
 	}
@@ -138,7 +121,7 @@
 
 		global $user_ID;
 		get_currentuserinfo();
-		if (0 < $user_ID) $write_link = BfoxLinks::write_link($refs, 'Write about this passage');
+		if (0 < $user_ID) $write_link = BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
 
 		// Scripture navigation links
 		if (is_null($scripture_links))
@@ -149,8 +132,8 @@
 			$previous_refs->increment(-1);
 
 			$scripture_links = array();
-			$scripture_links['next'] = BfoxLinks::get_ref_link($next_refs, $next_refs->get_string() . ' >');
-			$scripture_links['previous'] = BfoxLinks::get_ref_link($previous_refs, '< ' . $previous_refs->get_string());
+			$scripture_links['next'] = BfoxBlog::ref_link($next_refs->get_string(), $next_refs->get_string() . ' >');
+			$scripture_links['previous'] = BfoxBlog::ref_link($previous_refs->get_string(), '< ' . $previous_refs->get_string());
 		}
 
 		$menu .= '<table width="100%"><tr>';
@@ -209,9 +192,6 @@
 	function bfox_ajax_send_bible_text()
 	{
 		global $bfox_quicknote;
-
-		// All the links on the quick view should link to the quick view by default
-		BfoxLinks::set_ref_context('quick');
 
 		$ref_str = $_POST['ref_str'];
 		$ref = RefManager::get_from_str($ref_str);

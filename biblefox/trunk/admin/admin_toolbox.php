@@ -62,12 +62,6 @@ class BfoxMainToolbox extends BfoxToolBox
 	}
 	*/
 
-	function show_toc()
-	{
-		//bfox_show_toc();
-		echo bfox_output_bible_group('bible');
-	}
-
 	/**
 	 * Takes a bible ref string and uses it to create a BibleRefs to test BibleRefs for different inputs
 	 *

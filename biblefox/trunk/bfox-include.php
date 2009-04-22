@@ -12,8 +12,6 @@
 	// TODO3: These files are probably obsolete
 	require_once('site/message.php');
 
-	require_once('links.php');
-
 	require_once BFOX_DIR . '/query.php';
 
 	function bfox_add_head_files()

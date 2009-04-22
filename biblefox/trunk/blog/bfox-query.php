@@ -36,11 +36,11 @@
 	function bfox_queryvars($qvars)
 	{
 		// Add a query variable for bible references
-		$qvars[] = BFOX_QUERY_VAR_BIBLE_REF;
-		$qvars[] = BFOX_QUERY_VAR_SPECIAL;
-		$qvars[] = BFOX_QUERY_VAR_ACTION;
-		$qvars[] = BFOX_QUERY_VAR_PLAN_ID;
-		$qvars[] = BFOX_QUERY_VAR_READING_ID;
+		$qvars[] = BfoxBlog::var_bible_ref;
+		$qvars[] = BfoxBlog::var_special;
+		$qvars[] = BfoxBlog::var_action;
+		$qvars[] = BfoxBlog::var_plan_id;
+		$qvars[] = BfoxBlog::var_reading_id;
 		return $qvars;
 	}
 
@@ -54,7 +54,7 @@
 		$bfox_specials->setup_query($wp_query);
 
 		// Set whether this query is a bible reference
-		if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
+		if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
 			$wp_query->is_bfox_bible_ref = true;
 
 		// Don't use the home page for certain queries
@@ -74,7 +74,7 @@
 		if ($wp_query->is_search)
 			$refStrs = $vars['s'];
 		else if ($wp_query->is_bfox_bible_ref)
-			$refStrs = $vars[BFOX_QUERY_VAR_BIBLE_REF];
+			$refStrs = $vars[BfoxBlog::var_bible_ref];
 
 		// Global array for storing bible references used in a search
 		global $bfox_bible_refs;
@@ -103,7 +103,7 @@
 		if ($bfox_bible_refs->is_valid())
 		{
 			// Save the refs in a global variable
-			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars[BFOX_QUERY_VAR_ACTION]);
+			$bfox_bible_refs = bfox_get_next_refs($bfox_bible_refs, $vars[BfoxBlog::var_action]);
 		}
 	}
 
@@ -113,7 +113,7 @@
 		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
 		$table_name = $wpdb->bfox_bible_ref;
 
-		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
+		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs])
 			$join .= " LEFT JOIN $table_name ON " . $wpdb->posts . ".ID = {$table_name}.post_id ";
 
 		return $join;
@@ -125,7 +125,7 @@
 
 		// When we join on bible refs, we want to merge all the bible refs for a single post into that one post
 		// To do this, we use the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
-		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
+		if ($bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs])
 			$fields .= ', GROUP_CONCAT(' . $wpdb->bfox_bible_ref . '.verse_begin) AS verse_begin, GROUP_CONCAT(' . $wpdb->bfox_bible_ref . '.verse_end) AS verse_end';
 
 		return $fields;
@@ -155,7 +155,7 @@
 	{
 		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
 
-		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS])
+		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs])
 		{
 			// Group on post ID
 			$mygroupby = "{$wpdb->posts}.ID";
@@ -181,7 +181,7 @@
 		// When we joined on bible refs, we had to  merge all the bible refs for a single post into that one post
 		// To do this, we used the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
 		// Now we need to separate the values and create a BibleRef object to store the references
-		if ($bfox_recent_wp_query->query_vars[BFOX_QUERY_VAR_JOIN_BIBLE_REFS] && (0 < count($posts)))
+		if ($bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs] && (0 < count($posts)))
 		{
 			foreach ($posts as &$post)
 			{
@@ -189,6 +189,70 @@
 			}
 		}
 		return $posts;
+	}
+
+	function bfox_blog_get_ref_posts(BibleRefs $bfox_bible_refs)
+	{
+				// If there are bible references, then we should display them as posts
+				// So we create an array of posts with scripture and add that to the current array of posts
+				$new_posts = array();
+				foreach ($bfox_bible_refs->get_refs_array() as $ref)
+				{
+					$new_post = array();
+					$refStr = $ref->get_string();
+					$new_post['ID'] = -1;
+					$new_post['post_title'] = $title . $refStr;
+					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false);
+					$new_post['bible_ref_str'] = $refStr;
+					$new_post['post_type'] = BfoxBlog::var_bible_ref;
+					$new_post['post_date'] = current_time('mysql', false);
+					$new_post['post_date_gmt'] = current_time('mysql', true);
+					$new_post['bfox_permalink'] = BfoxBlog::ref_url($refStr);
+
+					// Turn off comments
+					$new_post['comment_status'] = 'closed';
+					$new_post['ping_status'] = 'closed';
+
+					$new_posts[] = ((object) $new_post);
+				}
+
+				/*
+		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+
+		foreach ($bcvs as $book => $cvs)
+		{
+			$book_str = BibleRefs::create_book_string($book, $cvs);
+
+			unset($ch1);
+			foreach ($cvs as $cv)
+			{
+				if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
+				list($ch2, $vs2) = $cv->end;
+			}
+
+			// Get the previous and next chapters as well
+			if ($ch1 > BibleMeta::start_chapter) $prev_link = BfoxBlog::ref_link()
+			$ch1 = max($ch1 - 1, BibleMeta::start_chapter);
+			$ch2++;
+			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
+
+			$content .= "
+				<div class='ref_partition'>
+					<div class='partition_header box_menu'>" . $book_str . " (Context:
+						<a onclick='bfox_set_context_none(this)'>none</a>
+						<a onclick='bfox_set_context_verses(this)'>verses</a>
+						<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
+					</div>
+					<div class='partition_body'>
+						" . Translations::get_chapters_content($book, $ch1, $ch2, $visible, $translation) . "
+					</div>
+				</div>
+				";
+		}
+
+		return $content;
+*/
+				return $new_posts;
 	}
 
 	// Function for adjusting the posts after they have been queried
@@ -209,7 +273,7 @@
 					{
 						$ref = $plan->refs[$reading_id];
 						$new_post = array();
-						$url_prefix = BFOX_QUERY_VAR_PLAN_ID . '=' . $plan->id . '&' . BFOX_QUERY_VAR_READING_ID . '=';
+						$url_prefix = BfoxBlog::var_plan_id . '=' . $plan->id . '&' . BfoxBlog::var_reading_id . '=';
 						$scripture_links = array();
 						$scripture_links['current_url'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
 						if (isset($plan->refs[$reading_id - 1]))
@@ -222,7 +286,7 @@
 						$new_post['post_title'] = $refStr;
 						$new_post['post_content'] = bfox_get_ref_menu($ref, true, $scripture_links) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false, $scripture_links);
 						$new_post['bible_ref_str'] = $refStr;
-						$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
+						$new_post['post_type'] = BfoxBlog::var_bible_ref;
 						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
 						$new_post['bfox_author'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
 
@@ -252,8 +316,8 @@
 				// Append the new posts onto the beginning of the post list
 				$posts = array_merge($new_posts, $posts);
 
-/*				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
-				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
+/*				$plan_id = $wp_query->query_vars[BfoxBlog::var_plan_id];
+				$reading_id = $wp_query->query_vars[BfoxBlog::var_reading_id];
 
 				if (isset($plan_id) && isset($reading_id))
 				{
@@ -267,8 +331,8 @@
 			}
 			else if ($bfox_bible_refs->is_valid())
 			{
-				$plan_id = $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID];
-				$reading_id = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID];
+				$plan_id = $wp_query->query_vars[BfoxBlog::var_plan_id];
+				$reading_id = $wp_query->query_vars[BfoxBlog::var_reading_id];
 
 				if (isset($plan_id) && isset($reading_id))
 				{
@@ -277,28 +341,7 @@
 					$title = $plan->name . ' - Reading ' . $reading_id . ': ';
 				}
 
-				// If there are bible references, then we should display them as posts
-				// So we create an array of posts with scripture and add that to the current array of posts
-				$new_posts = array();
-				foreach ($bfox_bible_refs->get_refs_array() as $ref)
-				{
-					$new_post = array();
-					$refStr = $ref->get_string();
-					$new_post['ID'] = -1;
-					$new_post['post_title'] = $title . $refStr;
-					$new_post['post_content'] = bfox_get_ref_menu($ref, true) . Translations::get_verse_content($ref) . bfox_get_ref_menu($ref, false);
-					$new_post['bible_ref_str'] = $refStr;
-					$new_post['post_type'] = BFOX_QUERY_VAR_BIBLE_REF;
-					$new_post['post_date'] = current_time('mysql', false);
-					$new_post['post_date_gmt'] = current_time('mysql', true);
-					$new_post['bfox_permalink'] = BfoxLinks::get_ref_link($ref, NULL, 'blog');
-
-					// Turn off comments
-					$new_post['comment_status'] = 'closed';
-					$new_post['ping_status'] = 'closed';
-
-					$new_posts[] = ((object) $new_post);
-				}
+				$new_posts = bfox_blog_get_ref_posts($bfox_bible_refs);
 
 				// Update the read history to show that we viewed these scriptures
 				global $bfox_history;
@@ -324,7 +367,7 @@
 					$new_post = array();
 					$new_post['post_title'] = 'Reading Plan Status';
 					$new_post['post_content'] = $content;
-					$new_post['post_type'] = BFOX_QUERY_VAR_SPECIAL;
+					$new_post['post_type'] = BfoxBlog::var_special;
 					$new_post['post_date'] = current_time('mysql', false);
 					$new_post['post_date_gmt'] = current_time('mysql', true);
 
@@ -352,7 +395,7 @@
 
 		// If this post have bible references, mention them at the beginning of the post
 		$refs = bfox_get_post_bible_refs($post->ID);
-		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . BfoxLinks::get_ref_link($refs) . '</p>' . $content;
+		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($refs->get_string()) . '</p>' . $content;
 
 		return $content;
 	}
@@ -444,7 +487,7 @@
 		global $post, $current_site;
 		if (isset($post->bfox_author))
 			$author = $post->bfox_author;
-		else if ((BFOX_QUERY_VAR_BIBLE_REF == $post->post_type) || (BFOX_QUERY_VAR_SPECIAL == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
+		else if ((BfoxBlog::var_bible_ref == $post->post_type) || (BfoxBlog::var_special == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
 		return $author;
 	}
 

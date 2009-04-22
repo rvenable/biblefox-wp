@@ -19,13 +19,13 @@
 			global $current_blog;
 			foreach ($this->pages as $base => &$page)
 			{
-				$page['url'] = $current_blog->path . '?' . BFOX_QUERY_VAR_SPECIAL . '=' . $base;
+				$page['url'] = $current_blog->path . '?' . BfoxBlog::var_special . '=' . $base;
 				$page['content_cb'] = array($this, 'get_' . $base);
 				$page['setup_query_cb'] = array($this, 'setup_query_' . $base);
 			}
 		}
 
-		// TODO2: This should be replaced with use of BfoxLinks::reading_plan_url()
+		// TODO2: This should be replaced with use of BfoxBlog::reading_plan_url()
 		function get_url_reading_plans($plan_id = NULL, $action = NULL, $reading_id = NULL, $url = NULL)
 		{
 			// HACK $url shouldn't be a parameter, i did this because it was easier since
@@ -40,18 +40,18 @@
 					$url = $this->pages['current_readings']['url'];
 			}
 
-			if (!is_null($plan_id)) $url .= '&' . BFOX_QUERY_VAR_PLAN_ID . '=' . $plan_id;
-			if (!is_null($action)) $url .= '&' . BFOX_QUERY_VAR_ACTION . '=' . $action;
-			if (!is_null($reading_id)) $url .= '&' . BFOX_QUERY_VAR_READING_ID . '=' . ($reading_id + 1);
+			if (!is_null($plan_id)) $url .= '&' . BfoxBlog::var_plan_id . '=' . $plan_id;
+			if (!is_null($action)) $url .= '&' . BfoxBlog::var_action . '=' . $action;
+			if (!is_null($reading_id)) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
 			return $url;
 		}
 
 		function do_home(&$wp_query)
 		{
-			$wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL] = 'current_readings';
+			$wp_query->query_vars[BfoxBlog::var_special] = 'current_readings';
 			$this->setup_query($wp_query);
 			// Set whether this query is a bible reference
-			if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
+			if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
 				$wp_query->is_bfox_bible_ref = true;
 		}
 
@@ -62,22 +62,22 @@
 			// We don't need to show any special content for current readings, just the bible ref content
 			$wp_query->is_bfox_special = false;
 
-			$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID]);
+			$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BfoxBlog::var_plan_id]);
 			if (0 < count($wp_query->bfox_plans))
 			{
 				foreach ($wp_query->bfox_plans as &$plan)
 				{
 					$plan->query_readings = array();
-					if (isset($wp_query->query_vars[BFOX_QUERY_VAR_READING_ID]))
-						$plan->query_readings[] = $wp_query->query_vars[BFOX_QUERY_VAR_READING_ID] - 1;
+					if (isset($wp_query->query_vars[BfoxBlog::var_reading_id]))
+						$plan->query_readings[] = $wp_query->query_vars[BfoxBlog::var_reading_id] - 1;
 					else if (isset($plan->current_reading))
 						$plan->query_readings[] = $plan->current_reading;
 
 					foreach ($plan->query_readings as $reading_id)
 					{
-						if (isset($wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]) && ('' != $wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF]))
-							$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= '; ';
-						$wp_query->query_vars[BFOX_QUERY_VAR_BIBLE_REF] .= $plan->refs[$reading_id]->get_string();
+						if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]) && ('' != $wp_query->query_vars[BfoxBlog::var_bible_ref]))
+							$wp_query->query_vars[BfoxBlog::var_bible_ref] .= '; ';
+						$wp_query->query_vars[BfoxBlog::var_bible_ref] .= $plan->refs[$reading_id]->get_string();
 					}
 				}
 			}
@@ -87,14 +87,14 @@
 		function setup_query_reading_plans($wp_query)
 		{
 			global $blog_id, $bfox_plan_progress;
-			if ('track' == $wp_query->query_vars[BFOX_QUERY_VAR_ACTION])
-				$bfox_plan_progress->track_plan($blog_id, $wp_query->query_vars[BFOX_QUERY_VAR_PLAN_ID]);
+			if ('track' == $wp_query->query_vars[BfoxBlog::var_action])
+				$bfox_plan_progress->track_plan($blog_id, $wp_query->query_vars[BfoxBlog::var_plan_id]);
 		}
 		 */
 
 		function setup_query(&$wp_query)
 		{
-			$page_name = $wp_query->query_vars[BFOX_QUERY_VAR_SPECIAL];
+			$page_name = $wp_query->query_vars[BfoxBlog::var_special];
 			if (isset($this->pages[$page_name]))
 			{
 				$wp_query->is_bfox_special = true;
@@ -114,8 +114,8 @@
 
 			// Get the plans for this bible blog
 			global $bfox_plan;
-			$plans = $bfox_plan->get_plans($args[BFOX_QUERY_VAR_PLAN_ID]);
-			if (isset($args[BFOX_QUERY_VAR_PLAN_ID]))
+			$plans = $bfox_plan->get_plans($args[BfoxBlog::var_plan_id]);
+			if (isset($args[BfoxBlog::var_plan_id]))
 			{
 				$content .= bfox_blog_reading_plans($plans, bfox_can_user_edit_plans(), 2);
 			}
@@ -258,7 +258,7 @@ CONTENT;
 			else $limit = 4;
 
 			$content = '';
-			$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BFOX_QUERY_VAR_JOIN_BIBLE_REFS => TRUE));
+			$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BfoxBlog::var_join_bible_refs => TRUE));
 			if ($r->have_posts())
 			{
 				$content .= '<table width="100%">';
@@ -269,7 +269,7 @@ CONTENT;
 					$r->the_post();
 					$ref = $post->bible_refs;
 					$ref_str = '';
-					if ($ref->is_valid()) $ref_str = BfoxLinks::get_ref_link($ref, $ref->get_string(BibleMeta::name_short));
+					if ($ref->is_valid()) $ref_str = BfoxBlog::ref_link($ref->get_string(BibleMeta::name_short));
 					$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';
 
 					if (0 < $post->comment_count) $comments = ' (' . $post->comment_count . ')';
@@ -288,7 +288,7 @@ CONTENT;
 
 		function add_to_posts(&$posts, $args = array())
 		{
-			$page_name = $args[BFOX_QUERY_VAR_SPECIAL];
+			$page_name = $args[BfoxBlog::var_special];
 			if (isset($this->pages[$page_name]))
 			{
 				$page = array();

@@ -3,14 +3,6 @@
 define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
 define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 
-// Query Variables
-define('BFOX_QUERY_VAR_BIBLE_REF', 'bible_ref');
-define('BFOX_QUERY_VAR_SPECIAL', 'bfox_special');
-define('BFOX_QUERY_VAR_ACTION', 'bfox_action');
-define('BFOX_QUERY_VAR_PLAN_ID', 'bfox_plan_id');
-define('BFOX_QUERY_VAR_READING_ID', 'bfox_reading_id');
-define('BFOX_QUERY_VAR_JOIN_BIBLE_REFS', 'join_bible_refs');
-
 // User Levels
 define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
@@ -24,9 +16,25 @@ require_once('bfox-widgets.php');
 
 class BfoxBlog
 {
+	const var_bible_ref = 'bfox_bible_ref';
+	const var_special = 'bfox_special';
+	const var_action = 'bfox_action';
+	const var_plan_id = 'bfox_plan_id';
+	const var_reading_id = 'bfox_reading_id';
+	const var_join_bible_refs = 'join_bible_refs';
+
+	/**
+	 * Stores the home URL for this blog
+	 *
+	 * @var string
+	 */
+	private static $home_url;
+
 	public static function init()
 	{
 		add_action('admin_menu', array('BfoxBlog', 'add_menu'));
+
+		self::$home_url = get_option('home');
 
 		bfox_query_init();
 		bfox_widgets_init();
@@ -43,6 +51,54 @@ class BfoxBlog
 		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'bfox_save_post');
+	}
+
+	public static function admin_url($page)
+	{
+		return self::$home_url . '/wp-admin/' . $page;
+	}
+
+	/**
+	 * Returns a link to an admin page
+	 *
+	 * @param string $page The admin page (and any parameters)
+	 * @param string $text The text to use in the link
+	 * @return string
+	 */
+	public static function admin_link($page, $text = '')
+	{
+		if (empty($text)) $text = $page;
+
+		return "<a href='" . self::admin_url($page) . "'>$text</a>";
+	}
+
+	public static function ref_url($ref_str)
+	{
+		return self::$home_url . '/?' . self::var_bible_ref . '=' . $ref_str;
+	}
+
+	public static function ref_link($ref_str, $text = '')
+	{
+		if (empty($text)) $text = $ref_str;
+
+		return "<a href='" . self::ref_url($ref_str) . "'>$text</a>";
+	}
+
+	public static function ref_write_link($ref_str, $text = '')
+	{
+		if (empty($text)) $text = $ref_str;
+		$href = self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . $ref_str;
+
+		return "<a href='$href'>$text</a>";
+	}
+
+	public static function reading_plan_url($plan_id = NULL, $action = NULL, $reading_id = NULL)
+	{
+		$url = self::$home_url . '/?' . BfoxBlog::var_special . '=current_readings';
+		if (!empty($plan_id)) $url .= '&' . BfoxBlog::var_plan_id . '=' . $plan_id;
+		if (!empty($action)) $url .= '&' . BfoxBlog::var_action . '=' . $action;
+		if (!empty($reading_id)) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
+		return $url;
 	}
 }
 

@@ -141,7 +141,7 @@ How often will you be reading this plan?<br/>
 				$content .= '<tr border="1">';
 				if ($skip_read && isset($plan_list->read[$period_id]) && !isset($plan_list->unread[$period_id])) continue;
 				$index = $period_id + 1;
-				$content .= '<td style="text-align:center">' . $index . '</td><td>' . $strong1 . BfoxLinks::get_ref_link($original) . $strong2 . '</td>';
+				$content .= '<td style="text-align:center">' . $index . '</td><td>' . $strong1 . BfoxBlog::ref_link($original->get_string()) . $strong2 . '</td>';
 				if (isset($plan->dates))
 				{
 					$content .= '<td>';
@@ -152,7 +152,7 @@ How often will you be reading this plan?<br/>
 						if (isset($plan_list->unread[$period_id]))
 						{
 							if (isset($plan_list->read[$period_id]))
-								$content .= 'You still need to read ' . BfoxLinks::get_ref_link($plan_list->unread[$period_id]);
+								$content .= 'You still need to read ' . BfoxBlog::ref_link($plan_list->unread[$period_id]->get_string());
 							else
 								$content .= 'Unread';
 							$unread_count++;
@@ -237,9 +237,9 @@ How often will you be reading this plan?<br/>
 				{
 					$refs_object = $bfox_plan_progress->get_plan_refs($progress_plan_id);
 					if (isset($refs_object->last_read))
-						$content .= 'The furthest you have read is ' . BfoxLinks::get_ref_link($refs_object->read[$refs_object->last_read]) . '.<br/>';
+						$content .= 'The furthest you have read is ' . BfoxBlog::ref_link($refs_object->read[$refs_object->last_read]->get_string()) . '.<br/>';
 					if (isset($refs_object->first_unread))
-						$content .= 'You should read ' . BfoxLinks::get_ref_link($refs_object->unread[$refs_object->first_unread]) . ' next.<br/>';
+						$content .= 'You should read ' . BfoxBlog::ref_link($refs_object->unread[$refs_object->first_unread]->get_string()) . ' next.<br/>';
 				}
 				else
 				{
@@ -248,7 +248,7 @@ How often will you be reading this plan?<br/>
 				}*/
 				if (isset($plan->current_reading))
 				{
-					$content .= 'The current reading is ' . BfoxLinks::get_ref_link($plan->refs[$plan->current_reading]) . '<br/>';
+					$content .= 'The current reading is ' . BfoxBlog::ref_link($plan->refs[$plan->current_reading]->get_string()) . '<br/>';
 				}
 				else
 				{
@@ -329,7 +329,7 @@ How often will you be reading this plan?<br/>
 			$output .= "<h3>Recently $read_str Scriptures<a name=\"recent_{$lc_read_str}\"></a></h3>";
 			foreach ($refs_array as &$refs)
 			{
-				$output .= BfoxLinks::get_ref_link($refs) . '<br/>';
+				$output .= BfoxBlog::ref_link($refs->get_string()) . '<br/>';
 			}
 		}
 		return $output;
