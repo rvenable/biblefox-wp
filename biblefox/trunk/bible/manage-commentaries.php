@@ -9,7 +9,7 @@ $header = __('Manage Commentaries') . ' (<a href="' . $header_url . '#editcom">'
 
 <div class="wrap">
 <form action="" method="post">
-<input type="hidden" name="page" value="<?php echo Commentaries::page; ?>">
+<input type="hidden" name="page" value="<?php echo BfoxPageCommentaries::page; ?>">
 <h2><?php echo $header ?></h2>
 
 <br class="clear" />
@@ -38,7 +38,7 @@ $header = __('Manage Commentaries') . ' (<a href="' . $header_url . '#editcom">'
 	<tbody id="the-list" class="list:cat">
 <?php
 	// Get all the commentaries for this user
-	$coms = Commentaries::get_for_user();
+	$coms = BfoxPageCommentaries::get_for_user();
 
 	foreach ($coms as $com)
 	{

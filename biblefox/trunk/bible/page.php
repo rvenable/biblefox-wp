@@ -70,7 +70,7 @@ abstract class BfoxPage
 						include('bible-search.php');
 						break;
 					case BfoxQuery::page_commentary:
-						Commentaries::manage_page();
+						BfoxPageCommentaries::manage_page();
 						break;
 					case BfoxQuery::page_history:
 					case BfoxQuery::page_passage:

@@ -206,7 +206,7 @@ class BfoxPagePassage extends BfoxPage
 						<div class="commentary_list_head">
 							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
 						</div>
-						<?php Commentaries::output_posts($this->refs); ?>
+						<?php BfoxPageCommentaries::output_posts($this->refs); ?>
 						<?php //self::output_quick_press(); ?>
 					</div>
 					<div class="reference">

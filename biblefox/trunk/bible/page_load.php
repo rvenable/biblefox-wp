@@ -33,7 +33,7 @@ switch ($page_name)
 		break;
 		/*
 	case BfoxQuery::page_commentary:
-		Commentaries::manage_page_load();
+		BfoxPageCommentaries::manage_page_load();
 		break;
 		*/
 	case BfoxQuery::page_passage:

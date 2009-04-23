@@ -18,7 +18,7 @@ if (!empty($blog_id)) {
 <h2><?php echo $heading ?></h2>
 <div id="ajax-response"></div>
 <form method="post" action="">
-<input type="hidden" name="page" value="<?php echo Commentaries::page; ?>" />
+<input type="hidden" name="page" value="<?php echo BfoxPageCommentaries::page; ?>" />
 <input type="hidden" name="action" value="update" />
 <?php wp_nonce_field('update-commentary'); ?>
 	<table class="form-table">
