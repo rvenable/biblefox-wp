@@ -29,7 +29,7 @@ class BfoxPagePassage extends BfoxPage
 		return $this->refs->get_string(BibleMeta::name_short);
 	}
 
-	private static function ref_content(BibleRefs $refs, Translation $translation)
+	private static function ref_content(BibleRefs $refs, Translation $translation, &$footnotes)
 	{
 		$visible = $refs->sql_where();
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
@@ -58,7 +58,7 @@ class BfoxPagePassage extends BfoxPage
 						<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
 					</div>
 					<div class='partition_body'>
-						" . self::get_chapters_content($book, $ch1, $ch2, $visible, $translation) . "
+						" . self::get_chapters_content($book, $ch1, $ch2, $visible, $footnotes, $translation) . "
 					</div>
 				</div>
 				";
@@ -168,6 +168,8 @@ class BfoxPagePassage extends BfoxPage
 
 		$ref_str = $this->refs->get_string();
 
+		$footnotes = array();
+
 		?>
 
 		<div id="bible_passage">
@@ -186,7 +188,7 @@ class BfoxPagePassage extends BfoxPage
 						<?php //self::output_quick_press(); ?>
 					</div>
 					<div class="reference">
-						<?php echo self::ref_content($this->refs, $this->translation); ?>
+						<?php echo self::ref_content($this->refs, $this->translation, $footnotes); ?>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -196,6 +198,18 @@ class BfoxPagePassage extends BfoxPage
 					</center>
 				</div>
 			</div>
+			<?php if (!empty($footnotes)): ?>
+			<div class="roundbox">
+				<div class="box_head">Footnotes</div>
+				<div class="box_inside">
+					<ul>
+					<?php foreach ($footnotes as $index => $footnote): ?>
+						<li><?php echo $footnote ?></li>
+					<?php endforeach; ?>
+					</ul>
+				</div>
+			</div>
+			<?php endif; ?>
 		</div>
 
 		<?php
@@ -211,14 +225,16 @@ class BfoxPagePassage extends BfoxPage
 	 * @param integer $chapter1
 	 * @param integer $chapter2
 	 * @param string $visible
+	 * @param array $footnotes
 	 * @param Translation $trans
 	 * @return string
 	 */
-	public static function get_chapters_content($book, $chapter1, $chapter2, $visible, Translation $trans = NULL)
+	public static function get_chapters_content($book, $chapter1, $chapter2, $visible, &$footnotes, Translation $trans = NULL)
 	{
 		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
 
 		$content = '';
+		$footnote_index = count($footnotes);
 
 		$book_name = BibleMeta::get_book_name($book);
 
@@ -247,46 +263,40 @@ class BfoxPagePassage extends BfoxPage
 					if ($prev_visible != $verse->visible) $index++;
 					$prev_visible = $verse->visible;
 
-					$sections[$index] .= "
-						<span class='bible_verse' verse='$verse->verse_id'>
-							<b>$verse->verse_id</b>
-							$verse->verse
-						</span>
-						";
+					// TODO3: Remove 'verse' attribute
+					$sections[$index] .= "<span class='bible_verse' verse='$verse->verse_id'><b>$verse->verse_id</b> $verse->verse</span>\n";
 				}
 				$last_index = $index;
 
 				if ($is_hidden_chapter)
 				{
-					$content .= "
-						<span class='chapter hidden_chapter'>
-							<h5>$chapter_id</h5>
-							$sections[1]
-						</span>
-						";
+					$chapter_class = 'hidden_chapter';
+					$chapter_content = $sections[1];
+
+					// TODO3: Instead of removing footnotes, find a way to show them when showing hidden chapters
+					// Remove any footnotes
+					$ch_footnotes = BfoxUtility::find_footnotes($chapter_content);
+					foreach (array_reverse($ch_footnotes) as $footnote) $chapter_content = substr_replace($chapter_content, '', $footnote[0], $footnote[1]);
 
 					// Don't show a hidden rule immediately following a hidden chapter
 					$add_rule = FALSE;
 				}
 				else
 				{
+					$chapter_class = 'visible_chapter';
 					$chapter_content = '';
 					foreach ($sections as $index => $section)
 					{
 						// Every odd numbered section is hidden
 						if ($index % 2)
 						{
-							$chapter_content .= "
-								<span class='hidden_verses'>
-									$section
-								</span>
-								";
+							$chapter_content .= "<span class='hidden_verses'>\n$section\n</span>\n";
 
 							// If we can add a rule, do it now
 							// We don't want to add a rule for the last section, though
 							if ($add_rule)// && ($last_index != $index))
 							{
-								$chapter_content .= "<hr class='hidden_verses_rule' />";
+								$chapter_content .= "<hr class='hidden_verses_rule' />\n";
 
 								// Don't add a rule immediately after this one
 								$add_rule = FALSE;
@@ -301,21 +311,31 @@ class BfoxPagePassage extends BfoxPage
 						}
 					}
 
-					$content .= "
-						<span class='chapter visible_chapter'>
-							<h5>$chapter_id</h5>
-							$chapter_content
-						</span>
-						";
+					$ch_footnotes = BfoxUtility::find_footnotes($chapter_content);
+					$foot_count = count($ch_footnotes);
+					if (0 < $foot_count)
+					{
+						foreach ($ch_footnotes as $index => $footnote)
+						{
+							$index += $footnote_index + 1;
+							$footnotes[$index] = "<a name=\"footnote_$index\" href=\"#footnote_ref_$index\">[$index]</a> " . $footnote[2];
+						}
+
+						foreach (array_reverse($ch_footnotes, TRUE) as $index => $footnote)
+						{
+							$index += $footnote_index + 1;
+							$chapter_content = substr_replace($chapter_content, "<a name='footnote_ref_$index' href='#footnote_$index' title='" . strip_tags($footnote[2]) . "'>[$index]</a>", $footnote[0], $footnote[1]);
+						}
+
+						$footnote_index += $foot_count;
+					}
 				}
 
+				// TODO3: is h5 allowed in a span?
+				$content .= "<span class='chapter $chapter_class'>\n<h5>$chapter_id</h5>\n$chapter_content</span>\n";
 			}
 
 		}
-
-		// Fix the footnotes
-		// TODO3: this function does more than just footnotes
-		$content = bfox_special_syntax($content);
 
 		return $content;
 	}
