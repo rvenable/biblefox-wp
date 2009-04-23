@@ -36,6 +36,7 @@ class BfoxPagePassage extends BfoxPage
 
 		foreach ($bcvs as $book => $cvs)
 		{
+			$book_name = BibleMeta::get_book_name($book);
 			$book_str = BibleRefs::create_book_string($book, $cvs);
 
 			unset($ch1);
@@ -46,17 +47,38 @@ class BfoxPagePassage extends BfoxPage
 			}
 
 			// Get the previous and next chapters as well
+			$ch1 = max($ch1, BibleMeta::start_chapter);
+			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
+
+			// Create the verse context string now before we get the surrounding chapters
+			if ($ch1 == $ch2) $vs_context = "$book_name $ch1";
+			else $vs_context = "$book_name $ch1-$ch2";
+			if ($vs_context == $book_str) $vs_context = '';
+
+			// Get the previous and next chapters as well
 			$ch1 = max($ch1 - 1, BibleMeta::start_chapter);
 			$ch2++;
 			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
 
+			// Create the chapter context string now that we have the surrounding chapters
+			if ($ch1 == $ch2) $ch_context = "$book_name $ch1";
+			else $ch_context = "$book_name $ch1-$ch2";
+			if (($ch_context == $book_str) || ($ch_context == $vs_context)) $ch_context = '';
+
+			// Create the context links string
+			$context = $book_str;
+			if ($book_str != $book_name)
+			{
+				$links = array();
+				if (!empty($vs_context)) $links []= "<a onclick='bfox_set_context_verses(this)'>$vs_context</a>";
+				if (!empty($ch_context)) $links []= "<a onclick='bfox_set_context_chapters(this)'>$ch_context</a>";
+
+				if (!empty($links)) $context = "<a onclick='bfox_set_context_none(this)'>$book_str</a> - Preview Context: " . implode(', ', $links);
+			}
+
 			$content .= "
 				<div class='ref_partition'>
-					<div class='partition_header box_menu'>" . $book_str . " (Context:
-						<a onclick='bfox_set_context_none(this)'>none</a>
-						<a onclick='bfox_set_context_verses(this)'>verses</a>
-						<a onclick='bfox_set_context_chapters(this)'>chapters</a>)
-					</div>
+					<div class='partition_header box_menu'>$context</div>
 					<div class='partition_body'>
 						" . self::get_chapters_content($book, $ch1, $ch2, $visible, $footnotes, $translation) . "
 					</div>

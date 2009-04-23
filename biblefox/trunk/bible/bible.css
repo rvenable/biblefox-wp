@@ -80,7 +80,7 @@ Scripture Text
 
 #bible .hidden_verses, #bible .hidden_verses .bible_jesus,
 #bible .hidden_chapter, #bible .hidden_chapter .bible_jesus {
-	color: #A0A0A0;
+	color: #777;
 }
 
 /*
