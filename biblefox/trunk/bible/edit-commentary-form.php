@@ -17,8 +17,8 @@ if (!empty($blog_id)) {
 <div class="wrap" id="editcom">
 <h2><?php echo $heading ?></h2>
 <div id="ajax-response"></div>
-<form method="post" action="">
-<input type="hidden" name="page" value="<?php echo BfoxPageCommentaries::page; ?>" />
+<form method="post" action="<?php echo BfoxQuery::post_url() ?>">
+<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_commentary ?>" />
 <input type="hidden" name="action" value="update" />
 <?php wp_nonce_field('update-commentary'); ?>
 	<table class="form-table">
@@ -39,7 +39,7 @@ if (!empty($blog_id)) {
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="is_enabled"><?php _e('Enable this commentary?') ?></label></th>
 			<td>
-				<input type="checkbox" name="is_enabled" id="is_enabled" value="1" <?php checked($com->is_enabled, 1); ?> />
+				<input type="checkbox" name="is_enabled" id="is_enabled" value="1" <?php if ($com->is_enabled) echo 'checked="checked"' ?> />
             </td>
 		</tr>
 	</table>

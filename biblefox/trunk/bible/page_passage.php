@@ -29,6 +29,24 @@ class BfoxPagePassage extends BfoxPage
 		return $this->refs->get_string(BibleMeta::name_short);
 	}
 
+	/**
+	 * Outputs all the commentary posts for the given bible reference and user
+	 *
+	 * @param BibleRefs $refs
+	 * @param integer $user_id
+	 */
+	public static function output_posts(BibleRefs $refs, $user_id = NULL)
+	{
+		// If no user, use the current user
+		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
+
+		// Get the commentaries for this user
+		$coms = BfoxCommentaries::get_for_user($user_id);
+
+		// Output the posts for each commentary
+		foreach ($coms as $com) $com->output_posts($refs);
+	}
+
 	private static function ref_content(BibleRefs $refs, Translation $translation, &$footnotes)
 	{
 		$visible = $refs->sql_where();
@@ -206,7 +224,7 @@ class BfoxPagePassage extends BfoxPage
 						<div class="commentary_list_head">
 							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
 						</div>
-						<?php BfoxPageCommentaries::output_posts($this->refs); ?>
+						<?php self::output_posts($this->refs); ?>
 						<?php //self::output_quick_press(); ?>
 					</div>
 					<div class="reference">
