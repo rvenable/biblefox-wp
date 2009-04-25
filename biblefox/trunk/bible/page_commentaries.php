@@ -79,7 +79,7 @@ class BfoxPageCommentaries extends BfoxPage
 		<p>You currently have no commentaries.</p>
 		<?php endif ?>
 
-		<p>Add a new commentary by entering its feed url: <input name="url" id="url" type="text" value="" size="40" maxlength="127" /></p>
+		<p>Add a new commentary by entering its feed url: <input name="add_url" id="add_url" type="text" value="" size="40" maxlength="127" /></p>
 		<input type="submit" value="Update My Commentaries" name="update" class="button-secondary delete" />
 		</form>
 
