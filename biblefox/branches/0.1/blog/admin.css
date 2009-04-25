@@ -1,0 +1,58 @@
+/*
+Scripture Text
+*/
+
+.bible_jesus {
+	color: #960000;
+}
+
+/*
+Scripture Tags (copied from regular tag CSS - #tagchecklist)
+*/
+
+#bible-ref-div #new-bible-ref {
+	margin-right: 5px;
+	width: 16em;
+}
+
+#bible-ref-checklist {
+	margin-left: 10px;
+
+	font-size: 12px;
+	overflow: auto;
+}
+
+#bible-ref-checklist strong {
+	margin-left: -8px;
+	position: absolute;
+}
+
+#bible-ref-checklist span {
+	margin-right: 25px;
+	display: block;
+	float: left;
+	font-size: 11px;
+	line-height: 1.8em;
+	white-space: nowrap;
+	cursor: default;
+}
+
+.bible-tag-remove-button {
+	margin: 5px 0pt 0pt -9px;
+	cursor: pointer;
+	width: 10px;
+	height: 10px;
+	display: block;
+	float: left;
+	text-indent: -9999px;
+	overflow: hidden;
+	position: absolute;
+}
+
+.bible-tag-remove-button {
+	background: url(../../../../wp-admin/images/xit.gif) no-repeat;
+}
+
+.bible-tag-remove-button:hover {
+	background: url(../../../../wp-admin/images/xit.gif) no-repeat -10px 0;
+}
