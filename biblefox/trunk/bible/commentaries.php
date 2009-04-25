@@ -4,12 +4,12 @@
  * An abstract Class for holding basic data for individual commentaries
  *
  */
-abstract class Commentary
+abstract class BfoxComm
 {
 	public $name, $feed_url, $blog_url, $is_enabled, $blog_id;
 
 	/**
-	 * Construct a Commentary
+	 * Construct a BfoxComm
 	 *
 	 * @param string $name
 	 * @param string $feed_url
@@ -60,7 +60,7 @@ abstract class Commentary
  * A Class for all commentary blogs that are stored internally on this site
  *
  */
-class InternalCommentary extends Commentary
+class BfoxCommIn extends BfoxComm
 {
 	/**
 	 * Construct an internal commentary
@@ -103,9 +103,9 @@ class InternalCommentary extends Commentary
  * access a web feed for the post data
  *
  */
-class ExternalCommentary extends Commentary
+class BfoxCommEx extends BfoxComm
 {
-	// TODO2: Implement ExternalCommentary construction
+	// TODO2: Implement BfoxCommEx construction
 	function __construct($name, $url, $is_enabled)
 	{
 	}
@@ -133,10 +133,10 @@ class BfoxCommentaries
 	const serial_prefix = 'bfx';
 
 	/**
-	 * Returns an array of Commentary instances for each of the user's commentaries
+	 * Returns an array of BfoxComm instances for each of the user's commentaries
 	 *
 	 * @param integer $user_id
-	 * @return array Array of Commentary instances
+	 * @return array Array of BfoxComm instances
 	 */
 	public static function get_for_user($user_id = NULL)
 	{
@@ -156,9 +156,9 @@ class BfoxCommentaries
 	}
 
 	/**
-	 * Sets an array of Commentary instances to the user's options
+	 * Sets an array of BfoxComm instances to the user's options
 	 *
-	 * @param array $coms Array of Commentary instances
+	 * @param array $coms Array of BfoxComm instances
 	 * @param integer $user_id
 	 */
 	private static function set_for_user($coms, $user_id)
@@ -200,7 +200,7 @@ class BfoxCommentaries
 			if ($blog_id = get_blog_id_from_url($domain, $path))
 			{
 				$blog = get_blog_details($blog_id);
-				$com = new InternalCommentary($blog_id, $blog);
+				$com = new BfoxCommIn($blog_id, $blog);
 			}
 
 			// If we successfully created a commentary with a valid blog id, then we can save it to the user's commentary list
