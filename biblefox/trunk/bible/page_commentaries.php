@@ -51,7 +51,9 @@ class BfoxPageCommentaries extends BfoxPage
 		// Get this user's blogs and make sure they are all in our commentary list
 		// If we find any that aren't we need to add them to our list
 		global $user_ID;
-		$blogs = (array) get_blogs_of_user($user_ID);
+		$belong_blogs = array();
+		foreach ((array) get_blogs_of_user($user_ID) as $blog) if (!isset($coms[$blog->userblog_id])) $belong_blogs []= $blog;
+		unset($user_blogs);
 
 		?>
 		<form action="<?php echo BfoxQuery::page_post_url(BfoxQuery::page_commentary) ?>" method="post">
@@ -84,14 +86,14 @@ class BfoxPageCommentaries extends BfoxPage
 		</form>
 
 		<h3>Suggested Commentaries</h3>
+		<?php if (!empty($belong_blogs)): ?>
 		<p>You belong to the following blogs that you can add as commentaries:</p>
 		<ul>
-		<?php foreach ($blogs as $blog): ?>
-			<?php if (!isset($coms[$blog->userblog_id])): ?>
+			<?php foreach ($belong_blogs as $blog): ?>
 			<li><a href="<?php echo add_query_arg('add_url', $blog->domain . $blog->path, $bfox_page_url) ?>"><?php echo $blog->blogname ?></a></li>
-			<?php endif ?>
-		<?php endforeach ?>
+			<?php endforeach ?>
 		</ul>
+		<?php endif ?>
 		<p>For a complete bible commentary, we recommend:</p>
 		<ul>
 			<li>Matthew Henry's Commentary (Coming Soon)</li>
