@@ -48,28 +48,13 @@
 	// TODO3: come up with something else
 	function pre($expr) { echo '<pre>'; print_r($expr); echo '</pre>'; }
 
-	function bfox_study_menu()
+	function biblefox_init()
 	{
-		// These menu pages are only for the site admin
-		if (is_site_admin())
-		{
-			// Add the translation page to the WPMU admin menu along with the corresponding load action
-			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', Translations::min_user_level, Translations::page, array('Translations', 'manage_page'));
-			add_action('load-' . get_plugin_page_hookname(Translations::page, 'wpmu-admin.php'), array('Translations', 'manage_page_load'));
-		}
-	}
-
-	function bfox_study_init()
-	{
-
-		add_action('admin_menu', 'bfox_study_menu');
-
 		BfoxQuery::set_url(get_option('home') . '/?');
-
 		bfox_query_init();
 		bfox_widgets_init();
 	}
 
-	add_action('init', 'bfox_study_init');
+	add_action('init', 'biblefox_init');
 
 ?>

@@ -149,6 +149,24 @@ class Translations
 	const index_table = BFOX_TRANSLATION_INDEX_TABLE;
 	const dir = BFOX_TRANSLATIONS_DIR;
 
+	public static function init()
+	{
+		// Set the global translation (using the default translation)
+		self::set_global_translations();
+		add_action('admin_menu', 'Translations::add_admin_menu');
+	}
+
+	public static function add_admin_menu()
+	{
+		// These menu pages are only for the site admin
+		if (is_site_admin())
+		{
+			// Add the translation page to the WPMU admin menu along with the corresponding load action
+			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', Translations::min_user_level, Translations::page, array('Translations', 'manage_page'));
+			add_action('load-' . get_plugin_page_hookname(Translations::page, 'wpmu-admin.php'), array('Translations', 'manage_page_load'));
+		}
+	}
+
 	/**
 	 * Creates the DB table for the translations
 	 *
@@ -656,7 +674,6 @@ class Translations
 	}
 }
 
-// Set the global translation (using the default translation)
-Translations::set_global_translations();
+add_action('init', 'Translations::init');
 
 ?>
