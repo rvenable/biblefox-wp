@@ -80,6 +80,10 @@
 		global $bfox_bible_refs;
 		$bfox_bible_refs = RefManager::get_from_str($ref_strs);
 
+		// TODO3: find a more appropriate place for this
+		// If we are going to be displaying scripture, we make sure we load the necessary css files in wp_head()
+		if ($bfox_bible_refs->is_valid()) add_action('wp_head', 'BfoxBlog::add_scripture');
+
 		/*
 		 Problem:
 		 WP appears to use the WP_Query class as if it were a singleton, even though it is not and is even instantiated more than once.

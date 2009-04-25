@@ -70,6 +70,13 @@ class BfoxBlog
 		<?php
 	}
 
+	public static function add_scripture()
+	{
+		?>
+		<link rel="stylesheet" href="<?php echo get_option('siteurl') ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
+		<?php
+	}
+
 	public static function admin_url($page)
 	{
 		return self::$home_url . '/wp-admin/' . $page;
