@@ -1,6 +1,5 @@
 <?php
 	require_once('utility.php');
-	require_once("bfox-settings.php");
 
 	require_once('biblerefs/ref.php');
 	include_once('translations/bfox-translations.php');
