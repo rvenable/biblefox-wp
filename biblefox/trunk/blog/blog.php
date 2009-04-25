@@ -217,22 +217,4 @@ add_action('init', array('BfoxBlog', 'init'));
 		include('my-blogs.php');
 	}
 
-	// Kill the dashboard by redirecting index.php to admin.php
-	function bfox_redirect_dashboard()
-	{
-		// Check the global $pagenow variable
-		// This var is set in wp-include/vars.php, which is called in wp-settings.php, in between creation of mu-plugins and regular plugins
-
-		// If this is an admin screen and $pagenow says that we are at index.php, change it to use admin.php
-		// And set the page to the My Progress page
-		global $pagenow;
-		if (is_admin() && ('index.php' == $pagenow))
-		{
-			$pagenow = 'admin.php';
-			if (!isset($_GET['page'])) $_GET['page'] = BFOX_PROGRESS_SUBPAGE;
-		}
-	}
-	// Redirect the dashboard after loading all plugins (all plugins are finished loading shortly after the necessary $pagenow var is created)
-	if (!defined('BFOX_TESTBED')) add_action('plugins_loaded', 'bfox_redirect_dashboard');
-
 ?>
