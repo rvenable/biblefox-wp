@@ -8,15 +8,12 @@ global $user_ID;
 bfox_bible_page_load();
 
 get_header();
-get_sidebar();
+if ($user_ID) bfox_bible_page();
+else {
 ?>
-<div id="content">
-	<?php if ($user_ID): ?>
-		<?php bfox_bible_page(); ?>
-	<?php else: ?>
-		<p>The Biblefox Bible viewer is currently being tested and is therefore disabled for those without user accounts.</p>
-	<?php endif; ?>
-</div>
+	<p>The Biblefox Bible viewer is currently being tested and is therefore disabled for those without user accounts.</p>
 <?php
+}
+
 get_footer();
 ?>

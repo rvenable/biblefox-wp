@@ -91,6 +91,7 @@ Bible
 	position: relative;
 	width: 96%;
 	padding: 0% 2%;
+	float: left;
 }
 
 #bible_head {
@@ -107,6 +108,7 @@ Bible
 #bible_head_content h2 {
 	font-size: 14px;
 	margin: 0;
+	padding: 0;
 }
 
 #bible_bar div.inside {

@@ -33,4 +33,6 @@
 </div>
 <hr />
 
+<?php get_sidebar(); ?>
+
 <div id="main">

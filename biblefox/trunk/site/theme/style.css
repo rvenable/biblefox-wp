@@ -38,9 +38,8 @@ body {
 	background: #73a0c5;
 	}
 
-#content {
+#main {
 	font-size: 1.2em;
-	width: 100%;
 	}
 
 .widecolumn .entry p {
@@ -226,8 +225,9 @@ body {
 	}
 
 #page {
-	padding: 0;
 	width: 100%;
+	margin: 0 auto;
+	padding: 0;
 	}
 
 #header {
@@ -245,7 +245,6 @@ body {
 	padding: 5px;
 	float: left;
 	margin: 0;
-	margin-left: -190px;
 	width: 180px;
 	}
 
@@ -260,11 +259,10 @@ body {
 #content {
 	float: left;
 	}
-
+	
 .narrowcolumn {
-	float: left;
 	padding: 0 0 20px 45px;
-	margin: 0px 0 0;
+	margin: 0;
 	width: 450px;
 	}
 
@@ -337,7 +335,8 @@ h1 {
 	}
 
 h2 {
-	margin: 30px 0 0;
+	margin: 0;
+	padding: 30px 0 0;
 	}
 
 h2.pagetitle {
