@@ -370,6 +370,10 @@ Blog Commentaries
 	border-bottom: 1px solid #DFDFDF;
 }
 
+table#commentaries {
+	width: 100%;
+}
+
 /*
 Generic
 */

@@ -30,6 +30,11 @@ class BfoxQuery
 		return self::$post_url;
 	}
 
+	public static function page_post_url($page)
+	{
+		return add_query_arg(self::var_page, $page, self::$post_url);
+	}
+
 	public static function page_url($page)
 	{
 		return add_query_arg(self::var_page, $page, self::$url);

@@ -69,7 +69,7 @@ class InternalCommentary extends Commentary
 	 * @param object $blog Blog data as returned by get_blog_details()
 	 * @param boolean $is_enabled
 	 */
-	function __construct($blog_id, $blog, $is_enabled)
+	function __construct($blog_id, $blog, $is_enabled = TRUE)
 	{
 		$blog_url = $blog->domain . $blog->path;
 		parent::__construct($blog->blogname, $blog_url . BfoxCommentaries::feed_url, $blog_url, $is_enabled, $blog_id);
@@ -152,17 +152,6 @@ class BfoxCommentaries
 		if (is_string($value) && !empty($value)) $coms = unserialize(substr($value, strlen(self::serial_prefix)));
 		else $coms = array();
 
-		// Get this user's blogs and make sure they are all in our commentary list
-		// If we find any that aren't we need to add them to our list
-		$blogs = (array) get_blogs_of_user($user_id);
-		foreach ($blogs as $blog)
-		{
-			if (!isset($coms[$blog->userblog_id]))
-			{
-				$coms[$blog->userblog_id] = new InternalCommentary($blog->userblog_id, $blog, TRUE);
-			}
-		}
-
 		return $coms;
 	}
 
@@ -183,13 +172,11 @@ class BfoxCommentaries
 	/**
 	 * Updates a user's commentaries using input from the My Commentaries form
 	 *
-	 * @param string $name
 	 * @param string $url
-	 * @param boolean $is_enabled
 	 * @param integer $user_id
 	 * @return string Message to output to user
 	 */
-	public static function update_from_form($name, $url, $is_enabled, $user_id = NULL)
+	public static function add_url($url, $user_id = NULL)
 	{
 		if (!empty($url))
 		{
@@ -213,7 +200,7 @@ class BfoxCommentaries
 			if ($blog_id = get_blog_id_from_url($domain, $path))
 			{
 				$blog = get_blog_details($blog_id);
-				$com = new InternalCommentary($blog_id, $blog, $is_enabled);
+				$com = new InternalCommentary($blog_id, $blog);
 			}
 
 			// If we successfully created a commentary with a valid blog id, then we can save it to the user's commentary list
@@ -228,11 +215,11 @@ class BfoxCommentaries
 				// Set the commentaries for this user
 				self::set_for_user($coms, $user_id);
 
-				return 'Commentary updated.';
+				return "Added commentary: '$com->name'";
 			}
 		}
 
-		return 'Commentary update failed.';
+		return "Failed to add commentary using URL: $url";
 	}
 
 	/**
@@ -241,28 +228,39 @@ class BfoxCommentaries
 	 * @param array $blog_ids
 	 * @param integer $user_id
 	 */
-	public static function delete_for_user($blog_ids, $user_id = NULL)
+	public static function update($enabled_ids, $delete_ids, $user_id = NULL)
 	{
-		// TODO2: This function will delete info for any blog, even a blog that a user belongs too.
-		// However, blogs that the user belongs to will always be re-added via the get_for_user() when
-		// displaying the user's commentaries, so it is currently pointless to delete them.
+		$messages = array();
 
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
-		$blog_ids = (array) $blog_ids;
-
 		// Get the commentaries for this user
 		$coms = self::get_for_user($user_id);
 
-		// Update the commentary
-		foreach ($blog_ids as $blog_id) unset($coms[$blog_id]);
+		// Delete any commentaries
+		$delete_ids = (array) $delete_ids;
+		foreach ($delete_ids as $blog_id)
+		{
+			$messages []= "Deleted '{$coms[$blog_id]->name}'";
+			unset($coms[$blog_id]);
+		}
+
+		// Update the enabled flags
+		$enabled_ids = array_fill_keys((array) $enabled_ids, TRUE);
+		foreach ($coms as &$com)
+		{
+			$enabled = isset($enabled_ids[$com->blog_id]);
+			if ($com->is_enabled && !$enabled) $messages []= "Disabled '{$com->name}'";
+			elseif (!$com->is_enabled && $enabled) $messages []= "Enabled '{$com->name}'";
+			$com->is_enabled = $enabled;
+		}
 
 		// Set the commentaries for this user
 		self::set_for_user($coms, $user_id);
+
+		return $messages;
 	}
-
-
 }
 
 ?>
