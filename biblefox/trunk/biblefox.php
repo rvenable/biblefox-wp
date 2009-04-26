@@ -50,7 +50,9 @@
 
 	function biblefox_init()
 	{
-		BfoxQuery::set_url(get_option('home') . '/?');
+		global $current_site;
+		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . '?');
+
 		bfox_query_init();
 		bfox_widgets_init();
 	}

@@ -71,7 +71,11 @@ class BiblefoxSite
 		// We don't need wp_query for the bible viewer, so we can exit at the end of request parsing, before wp_query is called
 		if (isset($wp->query_vars[BfoxQuery::var_page]))
 		{
-			require dirname(__FILE__) . '/bible-index.php';
+			global $current_blog, $current_site;
+
+			// The bible should always be on the main blog, so if it isn't just redirect it
+			if (is_main_blog()) require dirname(__FILE__) . '/bible-index.php';
+			else wp_redirect((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . substr($_SERVER['REQUEST_URI'], strlen($current_blog->path)));
 			exit;
 		}
 	}
