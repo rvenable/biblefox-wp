@@ -102,7 +102,7 @@
 			$posts = (array) $wpdb->get_results("
 				SELECT *
 				FROM $posts_table
-				WHERE post_type = 'post'
+				WHERE post_type = 'post' AND post_status = 'publish'
 				AND (ID = " . implode(' OR ID = ', $post_ids) . ")");
 		}
 

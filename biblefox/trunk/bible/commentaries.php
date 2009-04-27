@@ -194,7 +194,7 @@ class BfoxCommentaries
 
 			// Get the parsed domain and path
 			$domain = $parsed['host'];
-			$path = $parsed['path'];
+			$path = rtrim($parsed['path'], '/') . '/';
 
 			// We need to have the path for the blog, so if there is a /bible/feed attached, remove it
 			if ($pos = strpos($path, self::feed_url)) $path = substr($path, 0, $pos);
