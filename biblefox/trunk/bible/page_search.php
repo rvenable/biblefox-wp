@@ -15,7 +15,7 @@ class BfoxPageSearch extends BfoxPage
 	{
 		parent::__construct($trans_str);
 
-		$this->search = new BibleSearch($search_str, $this->translation);
+		$this->search = new BibleSearch(strip_tags($search_str), $this->translation);
 
 		// See if we need to filter these search results by a bible reference
 		if (!empty($ref_str)) $this->search->set_refs(RefManager::get_from_str($ref_str));

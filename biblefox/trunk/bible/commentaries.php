@@ -40,6 +40,9 @@ abstract class BfoxComm
 	 */
 	public static function output_post($post)
 	{
+		// TODO2: wpautop was just added, but maybe we should be using the_content() instead.
+		// This would require using the wp_query loop, but would make things more consistent.
+
 		$refs = bfox_get_post_bible_refs($post->ID);
 		?>
 		<div class="post">
@@ -48,7 +51,7 @@ abstract class BfoxComm
 				by <?php echo get_author_name($post->post_author) ?> (<? echo $refs->get_string() ?>)
 			</h3>
 			<div class="post_content">
-				<?php echo $post->post_content ?>
+				<?php echo wpautop($post->post_content) ?>
 			</div>
 		</div>
 		<?php

@@ -380,6 +380,14 @@ table#commentaries {
 Generic
 */
 
+#page_message {
+	padding: 5px;
+	margin: 5px 0px;
+	background-color: #FFFBCC;
+	border: 1px solid #E6DB55;
+	-moz-border-radius: 6px;
+}
+
 .roundbox, .biblebox {
 	background-color: #FFFFFF;
 	position: relative;

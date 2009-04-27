@@ -15,6 +15,7 @@ class BfoxQuery
 	const var_translation = 'bible_trans';
 	const var_reference = 'bible_ref';
 	const var_search = 'bible_search';
+	const var_message = 'bible_message';
 
 	private static $url = '';
 	private static $post_url = '';

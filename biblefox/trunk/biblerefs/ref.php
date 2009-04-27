@@ -1022,7 +1022,7 @@ class BibleRefs extends RefSequence
 		return $count;
 	}
 
-	function push_string($str, $max_level = 0)
+	function push_string($str, $max_level = 1)
 	{
 		parent::add_string($str, $max_level);
 		$this->push_sets_to_refs(parent::get_sets());
