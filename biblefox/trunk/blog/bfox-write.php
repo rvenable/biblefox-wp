@@ -76,7 +76,7 @@
 For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag. Once it is tagged, whenever you read Genesis 1 you will see this post!</p>
 
 <p><strong>Current Scripture Tags:</strong></p>
-<input type="text" name="bible_ref" id="bible-ref-list" class="hide-if-js" size="50" value="<?php echo attribute_escape($refStr); ?>" />
+<input type="text" name="<?php echo BfoxBlog::var_bible_ref ?>" id="bible-ref-list" class="hide-if-js" size="50" value="<?php echo attribute_escape($refStr); ?>" />
 <p><div id="bible-ref-checklist"></div></p>
 
 	<?php
