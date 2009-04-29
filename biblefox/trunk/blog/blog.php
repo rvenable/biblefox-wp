@@ -1,5 +1,7 @@
 <?php
 
+define(BFOX_BLOG_DIR, dirname(__FILE__));
+
 define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
 define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 
@@ -7,6 +9,7 @@ define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
 
+require_once BFOX_BLOG_DIR . '/posts.php';
 require_once('bfox-blog-specific.php');
 require_once('plan.php');
 require_once('history.php');
@@ -98,7 +101,7 @@ class BfoxBlog
 
 	public static function ref_url($ref_str)
 	{
-		return self::$home_url . '/?' . self::var_bible_ref . '=' . $ref_str;
+		return self::$home_url . '/?' . self::var_bible_ref . '=' . urlencode($ref_str);
 	}
 
 	public static function ref_link($ref_str, $text = '', $attrs = '')
@@ -118,7 +121,7 @@ class BfoxBlog
 	public static function ref_write_link($ref_str, $text = '')
 	{
 		if (empty($text)) $text = $ref_str;
-		$href = self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . $ref_str;
+		$href = self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
 
 		return "<a href='$href'>$text</a>";
 	}

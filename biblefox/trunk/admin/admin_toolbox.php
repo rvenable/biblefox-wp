@@ -379,29 +379,100 @@ class BfoxMainToolbox extends BfoxToolBox
 		foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 	}
 
+	private function random_populate($str, $junk)
+	{
+		$refs = RefManager::get_from_str($str);
+		BfoxPosts::set_post_refs(rand(200,900), $refs, FALSE);
+	}
+
+	function random_populate_posts_table()
+	{
+		// Test the typical references
+		$this->random_populate('1 sam', '1 Samuel');
+		$this->random_populate('1sam 1', '1 Samuel 1');
+		$this->random_populate('1sam 1-2', '1 Samuel 1-2');
+		$this->random_populate('1sam 1:1', '1 Samuel 1:1');
+		$this->random_populate('1sam 1:1-5', '1 Samuel 1:1-5');
+		$this->random_populate('1sam 1:1-2:5', '1 Samuel 1-2:5');
+		$this->random_populate('1sam 1:2-2:5', '1 Samuel 1:2-2:5');
+		$this->random_populate('1sam 1-2:5', '1 Samuel 1-2:5');
+
+		// Test periods
+		$this->random_populate('1sam. 1', '1 Samuel 1');
+
+		// This test was failing (see bug 21)
+		$this->random_populate('Judges 2:6-3:6', 'Judges 2:6-3:6');
+
+		// Test ignore words
+		$this->random_populate('Book of Judges 2', 'Judges 2');
+		$this->random_populate('First Book of Judges 2', 'error'); // This one should not work!
+		$this->random_populate('First Book of Samuel 2', '1 Samuel 2');
+
+		// Test that we can match synonyms with multiple words
+		$this->random_populate('Song Solomon 2', 'Song of Solomon 2');
+
+		// This should be Gen 1:1, 1:3 - 2:3
+		$this->random_populate('gen 1:1,3-2:3', 'Genesis 1:1,3-2:3');
+
+		$this->random_populate('gen 1-100', 'Genesis');
+		$this->random_populate('gen 2-100', 'Genesis 2-50');
+		$this->random_populate('gen 49:1-100', 'Genesis 49');
+		$this->random_populate('gen 49:2-100', 'Genesis 49:2-33');
+		$this->random_populate('gen 50:1-100', 'Genesis 50');
+		$this->random_populate('gen 50:2-100', 'Genesis 50:2-26');
+		$this->random_populate('gen 50:1,2-100', 'Genesis 50');
+		$this->random_populate('gen 50:1,3-100', 'Genesis 50:1,3-26');
+
+		// Test min/max in Romans 14
+		$this->random_populate('rom 14:2-100', 'Romans 14:2-26');
+		$this->random_populate('rom 14:1-22', 'Romans 14:1-22');
+		$this->random_populate('rom 14:1-23', 'Romans 14');
+		$this->random_populate('rom 14:2-23', 'Romans 14:2-26');
+
+		// Test having consecutive books
+		$this->random_populate('Gen 2-100, Exodus', 'Genesis 2-50; Exodus');
+		$this->random_populate('Gen 2-100, Exodus, Lev', 'Genesis 2-50; Exodus; Leviticus');
+
+		// Test long strings with lots of garbage
+		$this->random_populate('hello dude genesis 1,;,2 gen 5 1 sam 4, song ;of song 3', 'Genesis 1-2; 5; 1 Samuel 4; Song of Solomon'); // TODO3: words like song get detected as the entire book Song of Solomon
+		$this->random_populate("<xml>
+		<p>I like Gen 1.</p>
+		<p>What do you think? john. 21 Do you prefer<d><d> ex 2 or 1sam 3 - 4 or 1 th 4? gen 3:4-8:2 gen 3ddd:2 fff- 1 1 3 </p>
+		<p>exodus lala yoyo 4:5</p>
+		</xml>
+		", 'Genesis 1; 3-8:2; Exodus; 1 Samuel 3-4; John 21; 1 Thessalonians 4'); // TODO3: 'ex' is not detected because it is only 2 letters
+	}
+
+	public function repopulate_posts_table()
+	{
+		global $wpdb;
+		echo 'Dropping table<br/>';
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPosts::table);
+		echo 'Creating table<br/>';
+		BfoxPosts::create_table();
+
+		$blogs = get_blog_list();
+
+		echo 'Populating from blogs:<br/>';
+		foreach ($blogs as $blog)
+		{
+			$blog = (object) $blog;
+			switch_to_blog($blog->blog_id);
+			$wpdb->query($wpdb->prepare("INSERT INTO " . BfoxPosts::table . " (blog_id, post_id, is_auto, verse_begin, verse_end)
+			SELECT %d, post_id, FALSE, verse_begin, verse_end FROM " . $wpdb->bfox_bible_ref, $blog->blog_id));
+			restore_current_blog();
+			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";
+		}
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *
 	 */
 	function temp()
 	{
-		//$refs = RefManager::get_from_str("[1] Horne's Introduction, vol. 5, Part I, chap. 1, sect. 4. London,");
-		//echo $refs->get_string();
-
-		/*
-		$seq = new RefSequence();
-		$left = $seq->add_string('genesis 14,4:5,2-3:3,1:4-10;11,3:10-4:3,1:5-9 yoy 1sam 5');
-		echo $seq->get_string() . " ($left)<br/>";
-		$parts = $seq->partition_by_chapters();
-		foreach ($parts as $part)
-		{
-			echo $part->get_string() . "<br/>";
-		}
-
-		$refs = RefManager::get_from_str('moses');
-		pre($refs);
-		echo $refs->sql_where() . '<br/>';
-		*/
+		echo BfoxPosts::get_post_ids(RefManager::get_from_str('Gen 1'));
+		echo BfoxPosts::get_post_ids_for_blogs(RefManager::get_from_str('Gen 1'), array(1, 2, 3));
 	}
 
 }

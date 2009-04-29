@@ -2,6 +2,18 @@
 
 class BfoxUtility
 {
+	public static function create_table($table, $column_list)
+	{
+		// Note this function creates the table with dbDelta() which apparently has some pickiness
+		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
+
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta("CREATE TABLE $table (
+				$column_list
+			);"
+		);
+	}
+
 	public static function divide_into_cols($array, $max_cols, $height_threshold = 0)
 	{
 		$count = count($array);

@@ -485,11 +485,18 @@ class RefSequence
 		global $wpdb;
 
 		$wheres = array();
-		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+
+		// Old equations using reduced <= and >= operators - these might not be as easy for MySQL to optimize as the BETWEEN operator
+		/*foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
 			"((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
 			((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
 			$seq->end, $seq->start, $seq->end,
-			$seq->start, $seq->start, $seq->end);
+			$seq->start, $seq->start, $seq->end);*/
+
+		// Using the BETWEEN operator
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d)",
+			$seq->start, $seq->end, $seq->start, $seq->end);
 
 		return '(' . implode(' OR ', $wheres) . ')';
 	}

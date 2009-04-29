@@ -1,18 +1,50 @@
 <?php
 
+class BfoxBlogQuery
+{
+	/*
+	 Problem:
+	 WP appears to use the WP_Query class as if it were a singleton, even though it is not and is even instantiated more than once.
+
+	 Because hooks which modify a query don't pass a reference to the query, the hook functions must rely on global functions to
+	 return info about the query (such as is_home() or is_page()). These functions, however, only return information about the global
+	 instance of WP_Query, leading to unintended results when there are multiple instances of WP_Query (such as for the Recent Posts widget).
+
+	 The real solution should be to pass the instance to each hook/filter function. Until that happens this hack must be in place.
+
+	 HACK: Save information we need statically, and clear it when we've finished. This means each instance of WP_Query has to finish using
+	 this information before another instance begins.
+	 */
+
+	/**
+	 * Stores the post_ids statically. These are created by set_post_ids() and cleared by get_post_ids()
+	 *
+	 * @var array
+	 */
+	private static $post_ids = array();
+
+	public static function set_post_ids(BibleRefs $refs)
+	{
+		self::$post_ids = BfoxPosts::get_post_ids($refs);
+	}
+
+	public static function get_post_ids()
+	{
+		$post_ids = self::$post_ids;
+		self::$post_ids = array();
+
+		return $post_ids;
+	}
+}
+
+
+
 	/*
 	 This file is for modifying the way wordpress queries work for our plugin
 	 For information on how the WP query works, see:
 		http://codex.wordpress.org/Custom_Queries
 		http://codex.wordpress.org/Query_Overview
 	 */
-
-	// Returns whether the current query is a bible reference query
-	function is_bfox_bible_ref()
-	{
-		global $wp_query;
-		return $wp_query->is_bfox_bible_ref;
-	}
 
 	// Returns whether the current query is a special page
 	function is_bfox_special()
@@ -67,7 +99,7 @@
 	{
 		// HACK: This special page stuff should really happen in bfox_parse_query, but WP won't call that func if is_home(), so we have to do it here
 		global $bfox_specials;
-		if (($wp_query === $GLOBALS['wp_query']) && ($wp_query->is_home)) $bfox_specials->do_home($wp_query);
+		//if (($wp_query === $GLOBALS['wp_query']) && ($wp_query->is_home)) $bfox_specials->do_home($wp_query);
 
 		$vars = $wp_query->query_vars;
 
@@ -84,107 +116,32 @@
 		// If we are going to be displaying scripture, we make sure we load the necessary css files in wp_head()
 		if ($bfox_bible_refs->is_valid()) add_action('wp_head', 'BfoxBlog::add_scripture');
 
-		/*
-		 Problem:
-		 WP appears to use the WP_Query class as if it were a singleton, even though it is not and is even instantiated more than once.
-
-		 Because hooks which modify a query don't pass a reference to the query, the hook functions must rely on global functions to
-		 return info about the query (such as is_home() or is_page()). These functions, however, only return information about the global
-		 instance of WP_Query, leading to unintended results when there are multiple instances of WP_Query (such as for the Recent Posts widget).
-
-		 The real solution should be to pass the instance to each hook/filter function. Until that happens this hack must be in place.
-
-		 HACK:
-		 Keep a global bfox var to remember the most recent instance of WP_Query.
-		 This can be compared against global $wp_query to see if the current instance is the main query (ie. ($bfox_recent_wp_query === $wp_query))
-
-		 Also note that we are using the $GLOBALS array here to save the reference to the query
-		  (see the warning on http://nz.php.net/manual/en/language.references.whatdo.php )
-		 */
 		$GLOBALS['bfox_recent_wp_query'] =& $wp_query;
-	}
 
-	// Function for modifying the query JOIN statement
-	function bfox_posts_join($join)
-	{
-		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
-		$table_name = $wpdb->bfox_bible_ref;
-
-		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs])
-			$join .= " LEFT JOIN $table_name ON " . $wpdb->posts . ".ID = {$table_name}.post_id ";
-
-		return $join;
-	}
-
-	function bfox_posts_fields($fields)
-	{
-		global $bfox_recent_wp_query, $wpdb;
-
-		// When we join on bible refs, we want to merge all the bible refs for a single post into that one post
-		// To do this, we use the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
-		if ($bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs])
-			$fields .= ', GROUP_CONCAT(' . $wpdb->bfox_bible_ref . '.verse_begin) AS verse_begin, GROUP_CONCAT(' . $wpdb->bfox_bible_ref . '.verse_end) AS verse_end';
-
-		return $fields;
+		BfoxBlogQuery::set_post_ids($bfox_bible_refs);
 	}
 
 	// Function for modifying the query WHERE statement
 	function bfox_posts_where($where)
 	{
-		global $bfox_bible_refs;
-
-		if ($bfox_bible_refs->is_valid())
-		{
-			// NOTE: Searches can currently return unpublished results too!!! (because of this OR)
-			if (is_search())
-				$where .= ' OR ';
-			else
-				$where .= ' AND ';
-
-			$where .= bfox_get_posts_equation_for_refs($bfox_bible_refs);
-		}
-
+		$post_ids = BfoxBlogQuery::get_post_ids();
+		if (!empty($post_ids)) $where .= ' AND ID IN (' . implode(',', $post_ids) . ')';
 		return $where;
-	}
-
-	// Function for modifying the query GROUP BY statement
-	function bfox_posts_groupby($groupby)
-	{
-		global $bfox_bible_refs, $wpdb, $bfox_recent_wp_query;
-
-		if ($bfox_bible_refs->is_valid() || $bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs])
-		{
-			// Group on post ID
-			$mygroupby = "{$wpdb->posts}.ID";
-
-			// If the grouping we need isn't already there
-			if (!preg_match("/$mygroupby/", $groupby))
-			{
-				if (strlen(trim($groupby)))
-					$groupby .= ', ';
-
-				$groupby .= $mygroupby;
-			}
-		}
-
-		return $groupby;
 	}
 
 	// Function for modifying the posts array returned from the actual SQL query
 	function bfox_posts_results($posts)
 	{
-		global $bfox_recent_wp_query;
-
-		// When we joined on bible refs, we had to  merge all the bible refs for a single post into that one post
-		// To do this, we used the GROUP_CONCAT() SQL function, which concatenates all the values (separated by commas by default)
-		// Now we need to separate the values and create a BibleRef object to store the references
-		if ($bfox_recent_wp_query->query_vars[BfoxBlog::var_join_bible_refs] && (0 < count($posts)))
+		if (!empty($posts))
 		{
-			foreach ($posts as &$post)
-			{
-				$post->bible_refs = RefManager::get_from_concat_values($post->verse_begin, $post->verse_end);
-			}
+			$post_ids = array();
+			foreach ($posts as $post) $post_ids []= $post->ID;
+
+			// Get all the bible references for these posts
+			$refs = BfoxPosts::get_refs($post_ids);
+			foreach ($posts as &$post) if (isset($refs[$post->ID]) && $refs[$post->ID]->is_valid()) $post->bible_refs = $refs[$post->ID];
 		}
+
 		return $posts;
 	}
 
@@ -402,8 +359,7 @@
 		global $post;
 
 		// If this post have bible references, mention them at the beginning of the post
-		$refs = bfox_get_post_bible_refs($post->ID);
-		if ($refs->is_valid()) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($refs->get_string()) . '</p>' . $content;
+		if (isset($post->bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bible_refs->get_string()) . '</p>' . $content;
 
 		return $content;
 	}
@@ -520,10 +476,7 @@
 		add_filter('query_vars', 'bfox_queryvars' );
 		add_action('parse_query', 'bfox_parse_query');
 		add_action('pre_get_posts', 'bfox_pre_get_posts');
-		add_filter('posts_join', 'bfox_posts_join');
-		add_filter('posts_fields', 'bfox_posts_fields');
 		add_filter('posts_where', 'bfox_posts_where');
-		add_filter('posts_groupby', 'bfox_posts_groupby');
 		add_filter('posts_results', 'bfox_posts_results');
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('post_link', 'bfox_the_permalink', 10, 2);

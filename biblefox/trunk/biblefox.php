@@ -47,6 +47,11 @@
 
 	// TODO3: come up with something else
 	function pre($expr) { echo '<pre>'; print_r($expr); echo '</pre>'; }
+	function deb($expr) { global $bfox_debug_text; $bfox_debug_text .= print_r($expr, TRUE) . "\n"; }
+	function bfox_pre_deb() { global $bfox_debug_text; if (!empty($bfox_debug_text)) echo "<pre>$bfox_debug_text</pre>"; }
+	add_action('get_footer', 'bfox_pre_deb');
+	function bfox_posts_requests($request) { deb("REQUEST: $request"); return $request; }
+	//add_filter('posts_request', 'bfox_posts_requests'); // Uncomment this to show the WP_Query SQL request query
 
 	function biblefox_init()
 	{
