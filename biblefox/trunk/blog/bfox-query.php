@@ -141,9 +141,6 @@ class BfoxBlogQuery
 		$wp_query->is_bfox_bible_ref = false;
 		$wp_query->is_bfox_special = false;
 
-		global $bfox_specials;
-		$bfox_specials->setup_query($wp_query);
-
 		if (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
 		{
 			BfoxBlogQuery::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
@@ -162,10 +159,6 @@ class BfoxBlogQuery
 	// Function for doing any preparation before doing the post query
 	function bfox_pre_get_posts($wp_query)
 	{
-		// HACK: This special page stuff should really happen in bfox_parse_query, but WP won't call that func if is_home(), so we have to do it here
-		global $bfox_specials;
-		//if (($wp_query === $GLOBALS['wp_query']) && ($wp_query->is_home)) $bfox_specials->do_home($wp_query);
-
 		$vars = $wp_query->query_vars;
 
 		if ($wp_query->is_search)
@@ -338,18 +331,6 @@ class BfoxBlogQuery
 	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
-		global $bfox_bible_refs, $bfox_recent_wp_query, $wp_query, $bfox_specials;
-
-		// If we are using the global instance of WP_Query
-		if ($bfox_recent_wp_query === $wp_query)
-		{
-			// If this is a special page, then we need to add the content ourselves
-			if (is_bfox_special())
-			{
-				$bfox_specials->add_to_posts($posts, $wp_query->query_vars);
-			}
-		}
-
 		$posts = array_merge(BfoxBlogQuery::get_pre_posts(), $posts);
 
 		return $posts;
@@ -376,8 +357,6 @@ class BfoxBlogQuery
 	// Function for adding content based on special syntax
 	function bfox_special_syntax($data)
 	{
-		global $bfox_specials;
-
 //		bfox_create_synonym_data();
 //		$data = bfox_process_html_text($data, 'bfox_ref_replace');
 
@@ -431,12 +410,12 @@ class BfoxBlogQuery
 					if ('content' == $type)
 					{
 						// Replace the note with special content
-						$replacement = $bfox_specials->get_content($page_name, $params);
+						$replacement = '';
 					}
 					else if ('link' == $type)
 					{
 						// Replace the note with a link to a special page
-						$replacement = $bfox_specials->get_link($page_name, $params);
+						$replacement = '';
 					}
 				}
 

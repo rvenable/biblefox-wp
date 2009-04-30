@@ -220,7 +220,7 @@ How often will you be reading this plan?<br/>
 
 	function bfox_plan_summaries($blog_id = 0)
 	{
-		global $bfox_plan_progress, $bfox_specials;
+		global $bfox_plan_progress;
 
 		if (!$blog_id) $blog_id = $GLOBALS['blog_id'];
 
@@ -230,7 +230,7 @@ How often will you be reading this plan?<br/>
 		{
 			foreach ($blog_plans as $plan)
 			{
-				$plan_url = $bfox_specials->get_url_reading_plans($plan->id);
+				$plan_url = BfoxBlog::reading_plan_url($plan->id);
 				$content .= "<strong>$plan->name</strong> (<a href=\"$plan_url\">view plan</a>)<br/><i>$plan->summary</i><br/>";
 /*				$progress_plan_id = $bfox_plan_progress->get_plan_id($blog_id, $plan->id);
 				if (isset($progress_plan_id))
@@ -243,7 +243,7 @@ How often will you be reading this plan?<br/>
 				}
 				else
 				{
-					$track_url = $bfox_specials->get_url_reading_plans($plan->id, 'track');
+					$track_url = BfoxBlog::reading_plan_url($plan->id, 'track');
 					$content .= 'Not tracked. You can choose to <a href="' . $track_url . '">follow this reading plan</a>.<br/>';
 				}*/
 				if (isset($plan->current_reading))

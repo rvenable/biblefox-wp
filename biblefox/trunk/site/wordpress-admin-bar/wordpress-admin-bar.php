@@ -409,7 +409,7 @@ class WPAdminBar {
 			if (isset($plan->current_reading))
 			{
 				$ref_str = $plan->refs[$plan->current_reading]->get_string();
-				$scripture_menu .= '<li><a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $plan->current_reading) . '">Read ' . $ref_str . '</a></li>';
+				$scripture_menu .= '<li><a href="' . BfoxBlog::reading_plan_url($plan->id, NULL, $plan->current_reading) . '">Read ' . $ref_str . '</a></li>';
 				$write_menu .= '<li>' . BfoxBlog::ref_write_link($ref_str, 'Post about ' . $ref_str);
 			}
 		}

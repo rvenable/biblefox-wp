@@ -96,8 +96,6 @@ class BfoxUtility
 	 */
 	public static function find_footnotes($str)
 	{
-		global $bfox_specials;
-
 		$footnotes = array();
 		if (preg_match_all('/<footnote>(.*?)<\/footnote>/', $str, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE))
 		{

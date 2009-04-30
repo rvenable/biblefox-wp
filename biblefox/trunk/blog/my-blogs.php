@@ -176,7 +176,7 @@ endif; ?>
 	<tbody id="the-list" class="list:cat">
 <?php
 
-	global $user_ID, $bfox_specials;
+	global $user_ID;
 	$blogs = BiblefoxSite::get_bible_study_blogs($user_ID);
 
 	foreach ($blogs as $blog_id => $blog)
@@ -195,7 +195,7 @@ endif; ?>
 			foreach ($blog_plans as $plan)
 			{
 				// HACK - lame way of getting the url
-				$plan_url = $bfox_specials->get_url_reading_plans($plan->id, NULL, NULL, $blog->siteurl . '?' . BfoxBlog::var_special . '=reading_plans');
+				$plan_url = BfoxBlog::reading_plan_url($plan->id, NULL, NULL);
 
 				$td = '<td style="border:none; padding: 1px 5px 1px 5px;"';
 				echo '<tr>';

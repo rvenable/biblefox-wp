@@ -1,186 +1,6 @@
 <?php
 
-	require_once('bfox-plan.php');
-
-	class BfoxSpecialPages
-	{
-		function BfoxSpecialPages()
-		{
-			$this->pages =
-			array(
-				  'current_readings' => array('title' => __('Current Readings'), 'type' => 'post', 'desc' => __('View the current readings for this bible study')),
-				  'recent_readings' => array('title' => __('Recent Readings'), 'type' => 'page', 'desc' => __('View the recent readings for this bible study')),
-				  'reading_plans' => array('title' => __('Reading Plans'), 'type' => 'page', 'desc' => __('View the reading plans for this bible study')),
-//				  'my_reading' => array('title' => __('My Reading'), 'type' => 'post', 'desc' => __('View your current reading for this bible study')),
-				  'my_history' => array('title' => __('My Passage History'), 'type' => 'page', 'desc' => __('View the history of scriptures you have viewed and read')),
-				  'join' => array('title' => __('Join this Bible Study'), 'type' => 'page', 'desc' => __('Make a request to join this bible study')),
-				  'updates' => array('title' => __('Latest Updates'), 'type' => 'page', 'desc' => __('View all the latest updates to this bible study'))
-				  );
-			global $current_blog;
-			foreach ($this->pages as $base => &$page)
-			{
-				$page['url'] = $current_blog->path . '?' . BfoxBlog::var_special . '=' . $base;
-				$page['content_cb'] = array($this, 'get_' . $base);
-				$page['setup_query_cb'] = array($this, 'setup_query_' . $base);
-			}
-		}
-
-		// TODO2: This should be replaced with use of BfoxBlog::reading_plan_url()
-		function get_url_reading_plans($plan_id = NULL, $action = NULL, $reading_id = NULL, $url = NULL)
-		{
-			// HACK $url shouldn't be a parameter, i did this because it was easier since
-			// the $this->pages['reading_plans']['url'] has the current blog built in
-			// and thus can't be used for other blogs
-			if (is_null($url))
-			{
-				// HACK for when there is a reading id
-				if (is_null($reading_id))
-					$url = $this->pages['reading_plans']['url'];
-				else
-					$url = $this->pages['current_readings']['url'];
-			}
-
-			if (!is_null($plan_id)) $url .= '&' . BfoxBlog::var_plan_id . '=' . $plan_id;
-			if (!is_null($action)) $url .= '&' . BfoxBlog::var_action . '=' . $action;
-			if (!is_null($reading_id)) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
-			return $url;
-		}
-
-		function do_home(&$wp_query)
-		{
-			$wp_query->query_vars[BfoxBlog::var_special] = 'current_readings';
-			$this->setup_query($wp_query);
-			// Set whether this query is a bible reference
-			if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
-				$wp_query->is_bfox_bible_ref = true;
-		}
-
-		function setup_query_current_readings($wp_query)
-		{
-			global $bfox_plan, $blog_id;
-
-			// We don't need to show any special content for current readings, just the bible ref content
-			$wp_query->is_bfox_special = false;
-
-
-			/*$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BfoxBlog::var_plan_id]);
-			if (0 < count($wp_query->bfox_plans))
-			{
-				foreach ($wp_query->bfox_plans as &$plan)
-				{
-					$plan->query_readings = array();
-					if (isset($wp_query->query_vars[BfoxBlog::var_reading_id]))
-						$plan->query_readings[] = $wp_query->query_vars[BfoxBlog::var_reading_id] - 1;
-					else if (isset($plan->current_reading))
-						$plan->query_readings[] = $plan->current_reading;
-
-					foreach ($plan->query_readings as $reading_id)
-					{
-						if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]) && ('' != $wp_query->query_vars[BfoxBlog::var_bible_ref]))
-							$wp_query->query_vars[BfoxBlog::var_bible_ref] .= '; ';
-						$wp_query->query_vars[BfoxBlog::var_bible_ref] .= $plan->refs[$reading_id]->get_string();
-					}
-				}
-			}*/
-		}
-
-		/*
-		function setup_query_reading_plans($wp_query)
-		{
-			global $blog_id, $bfox_plan_progress;
-			if ('track' == $wp_query->query_vars[BfoxBlog::var_action])
-				$bfox_plan_progress->track_plan($blog_id, $wp_query->query_vars[BfoxBlog::var_plan_id]);
-		}
-		 */
-
-		function setup_query(&$wp_query)
-		{
-			$page_name = $wp_query->query_vars[BfoxBlog::var_special];
-			if (isset($this->pages[$page_name]))
-			{
-				$wp_query->is_bfox_special = true;
-
-				$func = $this->pages[$page_name]['setup_query_cb'];
-				if (is_callable($func)) call_user_func_array($func, array(&$wp_query));
-
-				return true;
-			}
-
-			return false;
-		}
-
-		function get_reading_plans($args = array())
-		{
-			$content = '';
-
-			// Get the plans for this bible blog
-			global $bfox_plan;
-			$plans = $bfox_plan->get_plans($args[BfoxBlog::var_plan_id]);
-			if (isset($args[BfoxBlog::var_plan_id]))
-			{
-				$content .= bfox_blog_reading_plans($plans, bfox_can_user_edit_plans(), 2);
-			}
-			else
-			{
-				$content = bfox_plan_summaries($blog_id);
-			}
-
-			return $content;
-		}
-
-		function get_current_readings($args)
-		{
-			if (!isset($args['limit'])) $args['limit'] = 1;
-			return $this->get_recent_readings($args);
-		}
-
-		function get_recent_readings($args)
-		{
-			global $bfox_plan, $blog_id;
-
-			if (isset($args['limit'])) $limit = $args['limit'];
-			else $limit = 4;
-
-			$content = '';
-			$blog_plans = $bfox_plan->get_plans();
-			if (0 < count($blog_plans))
-			{
-				$content .= '<table width="100%">';
-				$content .= '<tr><th>Plan</th><th>Date</th><th>Scripture</th></tr>';
-				foreach ($blog_plans as $plan)
-				{
-					if (isset($plan->current_reading))
-					{
-						$url = $this->get_url_reading_plans($plan->id);
-						$plan_link = '<a href="' . $url . '">' . $plan->name . '</a>';
-
-						$oldest = $plan->current_reading - $limit + 1;
-						if ($oldest < 0) $oldest = 0;
-						for ($index = $plan->current_reading; $index >= $oldest; $index--)
-						{
-							$scripture_link = '<a href="' . $this->get_url_reading_plans($plan->id, NULL, $index) . '">' . $plan->refs[$index]->get_string() . '</a>';
-							$content .= '<tr><td>' . $plan_link . '</td><td>' . date('M d', $plan->dates[$index]) . '</td><td>' . $scripture_link . '</td></tr>';
-							$plan_link = '';
-						}
-					}
-				}
-				$content .= '</table>';
-			}
-			else
-			{
-				$content .= __('This blog has no Bible reading plans.');
-			}
-
-			return $content;
-		}
-
-		function get_my_reading()
-		{
-			global $blog_id;
-			return bfox_plan_summaries($blog_id);
-		}
-
-		function get_join()
+		function bfox_invite_page()
 		{
 			global $bfox_message, $blog_id, $user_ID;
 
@@ -237,106 +57,42 @@ CONTENT;
 			return $content;
 		}
 
-		function get_my_history()
+function bfox_shortcode_blog_updates($args)
+{
+	// This function uses an instance of WP_Query to get the latest posts
+	//  (similar to the recent posts widget - see wp_widget_recent_entries())
+
+	if (isset($args['limit'])) $limit = $args['limit'];
+	else $limit = 4;
+
+	$content = '';
+	$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BfoxBlog::var_join_bible_refs => TRUE));
+	if ($r->have_posts())
+	{
+		$content .= '<table width="100%">';
+		$content .= '<tr><th>Post</th><th>Author</th><th>Scriptures</th></tr>';
+		global $post;
+		while ($r->have_posts())
 		{
-			$content = '';
+			$r->the_post();
+			$ref_link = '';
+			if (isset($post->bible_refs) && $post->bible_refs->is_valid()) $ref_link = BfoxBlog::ref_link($post->bible_refs->get_string(BibleMeta::name_short));
+			$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';
 
-			// Get the recently read scriptures
-			$content .= bfox_get_recent_scriptures_output(10, true);
+			if (0 < $post->comment_count) $comments = ' (' . $post->comment_count . ')';
+			else $comments = '';
 
-			// Get the recently viewed scriptures
-			$content .= bfox_get_recent_scriptures_output(10, false);
-
-			return $content;
+			$content .= '<tr><td><a href="' . get_permalink($post->ID) . '">' . $post->post_title . $comments . '</a></td>';
+			$content .= '<td>' . $author . '</td>';
+			$content .= '<td>' . $ref_link . '</td></tr>';
 		}
-
-		function get_updates($args)
-		{
-			// This function uses an instance of WP_Query to get the latest posts
-			//  (similar to the recent posts widget - see wp_widget_recent_entries())
-
-			if (isset($args['limit'])) $limit = $args['limit'];
-			else $limit = 4;
-
-			$content = '';
-			$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BfoxBlog::var_join_bible_refs => TRUE));
-			if ($r->have_posts())
-			{
-				$content .= '<table width="100%">';
-				$content .= '<tr><th>Post</th><th>Author</th><th>Scriptures</th></tr>';
-				global $post;
-				while ($r->have_posts())
-				{
-					$r->the_post();
-					$ref = $post->bible_refs;
-					$ref_str = '';
-					if ($ref->is_valid()) $ref_str = BfoxBlog::ref_link($ref->get_string(BibleMeta::name_short));
-					$author = '<a href="' . get_author_posts_url($post->post_author) . '">' . get_author_name($post->post_author) . '</a>';
-
-					if (0 < $post->comment_count) $comments = ' (' . $post->comment_count . ')';
-					else $comments = '';
-
-					$content .= '<tr><td><a href="' . get_permalink($post->ID) . '">' . $post->post_title . $comments . '</a></td>';
-					$content .= '<td>' . $author . '</td>';
-					$content .= '<td>' . $ref_str . '</td></tr>';
-				}
-				$content .= '</table>';
-			}
-			wp_reset_query();  // Restore global post data stomped by the_post().
-
-			return $content;
-		}
-
-		function add_to_posts(&$posts, $args = array())
-		{
-			$page_name = $args[BfoxBlog::var_special];
-			if (isset($this->pages[$page_name]))
-			{
-				$page = array();
-
-				$func = $this->pages[$page_name]['content_cb'];
-				if (is_callable($func)) $page['post_content'] = call_user_func($func, $args);
-				else $page['post_content'] = '';
-
-				$page['post_title'] = $this->pages[$page_name]['title'];
-				$page['post_type'] = $this->pages[$page_name]['type'];
-
-				// If this is a page it should be the only page in the posts array
-				// Otherwise it should just go at the beginning of the posts array
-				if ('page' == $page['post_type']) $posts = array((object)$page);
-				else $posts = array_merge(array((object)$page), $posts);
-			}
-		}
-
-		function get_content($page_name, $args = array())
-		{
-			$content = '';
-			if (isset($this->pages[$page_name]))
-			{
-				$func = $this->pages[$page_name]['content_cb'];
-				if (is_callable($func)) $content = call_user_func($func, $args);
-			}
-			return $content;
-		}
-
-		function get_link($page_name, $args = array())
-		{
-			$link = '';
-			if (isset($this->pages[$page_name]))
-			{
-				$url = $this->pages[$page_name]['url'];
-
-				$display = $page_name;
-				if (isset($args[0])) $display = $args[0];
-
-				$link = '<a href="' . $url . '">' . $display . '</a>';
-			}
-			return $link;
-		}
+		$content .= '</table>';
 	}
+	wp_reset_query();  // Restore global post data stomped by the_post().
 
-	global $bfox_specials;
-	$bfox_specials = new BfoxSpecialPages;
+	return $content;
+}
+//add_shortcode('blog_updates', 'bfox_shortcode_blog_updates');
 
 	/**
 	 * Shortcode function for listing all the recent comments and posts together in chronological order
@@ -457,6 +213,6 @@ CONTENT;
 
 		return $content;
 	}
-	add_shortcode('discussions', 'bfox_get_discussions');
+	//add_shortcode('discussions', 'bfox_get_discussions');
 
 ?>
