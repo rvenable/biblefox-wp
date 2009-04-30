@@ -1,7 +1,10 @@
 <?php
 
-include_once('wordpress-admin-bar/wordpress-admin-bar.php');
-include_once('marketing.php');
+define(BFOX_SITE_DIR, dirname(__FILE__));
+
+include_once BFOX_SITE_DIR . '/wordpress-admin-bar/wordpress-admin-bar.php';
+include_once BFOX_SITE_DIR . '/marketing.php';
+include_once BFOX_SITE_DIR . '/shortfoot.php';
 
 class BiblefoxSite
 {
