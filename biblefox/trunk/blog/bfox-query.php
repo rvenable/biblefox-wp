@@ -22,18 +22,77 @@ class BfoxBlogQuery
 	 * @var array
 	 */
 	private static $post_ids = array();
+	private static $use_post_ids = FALSE;
+
+	/**
+	 * Store posts which we generate separately from WP_Query and add on to the front of the posts array returned from the query.
+	 *
+	 * @var array
+	 */
+	private static $pre_posts = array();
 
 	public static function set_post_ids(BibleRefs $refs)
 	{
 		self::$post_ids = BfoxPosts::get_post_ids($refs);
+		self::$use_post_ids = TRUE;
+	}
+
+	public static function use_post_ids()
+	{
+		return self::$use_post_ids;
 	}
 
 	public static function get_post_ids()
 	{
 		$post_ids = self::$post_ids;
 		self::$post_ids = array();
+		self::$use_post_ids = FALSE;
 
 		return $post_ids;
+	}
+
+	public static function add_pre_posts($new_posts)
+	{
+		self::$pre_posts = array_merge(self::$pre_posts, $new_posts);
+	}
+
+	public static function get_pre_posts()
+	{
+		$new_posts = self::$pre_posts;
+		self::$pre_posts = array();
+		return $new_posts;
+	}
+
+	public static function set_display_refs(BibleRefs $refs)
+	{
+		self::add_pre_posts(bfox_blog_get_ref_posts($refs));
+	}
+
+	public static function set_reading_plan($plan_id = 0, $reading_id = 0)
+	{
+		global $bfox_plan, $blog_id;
+
+		$refs = new BibleRefs();
+		$new_posts = array();
+
+		$plans = (array) $bfox_plan->get_plans($plan_id);
+		if (!empty($plans))
+		{
+			foreach ($plans as $plan)
+			{
+				// If there is no reading set, use the current reading
+				// If there is a reading set, we need to decrement it to make it zero-based
+				if (empty($reading_id)) $reading_id = $plan->current_reading;
+				else $reading_id--;
+
+				$refs->add_seqs($plan->refs[$reading_id]->get_seqs());
+				$new_posts []= bfox_blog_get_reading_post($plan, $reading_id);
+			}
+
+			if ($refs->is_valid()) self::set_post_ids($refs);
+			if (!empty($new_posts)) self::add_pre_posts($new_posts);
+		}
+
 	}
 }
 
@@ -85,6 +144,12 @@ class BfoxBlogQuery
 		global $bfox_specials;
 		$bfox_specials->setup_query($wp_query);
 
+		if (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
+		{
+			BfoxBlogQuery::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
+			$wp_query->is_home = FALSE;
+		}
+
 		// Set whether this query is a bible reference
 		if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
 			$wp_query->is_bfox_bible_ref = true;
@@ -114,18 +179,31 @@ class BfoxBlogQuery
 
 		// TODO3: find a more appropriate place for this
 		// If we are going to be displaying scripture, we make sure we load the necessary css files in wp_head()
-		if ($bfox_bible_refs->is_valid()) add_action('wp_head', 'BfoxBlog::add_scripture');
+		//if ($bfox_bible_refs->is_valid())
+			add_action('wp_head', 'BfoxBlog::add_scripture');
 
 		$GLOBALS['bfox_recent_wp_query'] =& $wp_query;
 
-		BfoxBlogQuery::set_post_ids($bfox_bible_refs);
+		if ($bfox_bible_refs->is_valid())
+		{
+			BfoxBlogQuery::set_post_ids($bfox_bible_refs);
+			BfoxBlogQuery::set_display_refs($bfox_bible_refs);
+		}
 	}
 
 	// Function for modifying the query WHERE statement
 	function bfox_posts_where($where)
 	{
-		$post_ids = BfoxBlogQuery::get_post_ids();
-		if (!empty($post_ids)) $where .= ' AND ID IN (' . implode(',', $post_ids) . ')';
+		// Check if we should use our post ids array
+		if (BfoxBlogQuery::use_post_ids())
+		{
+			$post_ids = BfoxBlogQuery::get_post_ids();
+
+			// If there aren't any post ids, than this query shouldn't return any posts
+			// Otherwise return the posts from the post ids
+			if (empty($post_ids)) $where = 'AND 0';
+			else $where .= ' AND ID IN (' . implode(',', $post_ids) . ') ';
+		}
 		return $where;
 	}
 
@@ -210,6 +288,53 @@ class BfoxBlogQuery
 		return $new_posts;
 	}
 
+	function bfox_blog_get_reading_post($plan, $reading_id)
+	{
+		$refs = $plan->refs[$reading_id];
+		$ref_str = $refs->get_string();
+
+		// Create the navigation bar with the prev/write/next links
+		$nav_bar = "<div class='bible_post_nav'>";
+		if (isset($plan->refs[$reading_id - 1]))
+		{
+			$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
+			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, NULL, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
+		}
+		$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
+		if (isset($plan->refs[$reading_id + 1]))
+		{
+			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
+			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, NULL, $reading_id + 1) . '" class="bible_post_next">' . $plan->refs[$reading_id + 1]->get_string() . ' &gt;</a>';
+		}
+		$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
+
+		$new_post = array();
+		$new_post['ID'] = -1;
+		$new_post['post_title'] = $ref_str;
+		$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($refs) . $nav_bar;
+		$new_post['bible_ref_str'] = $ref_str;
+		$new_post['post_type'] = BfoxBlog::var_bible_ref;
+		$new_post['bfox_permalink'] = BfoxBlog::reading_plan_url($plan->id, NULL, $reading_id);
+		$new_post['bfox_author'] = '<a href="' . BfoxBlog::reading_plan_url($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
+
+		// Set the date according to the reading plan if possible, otherwise set it to the current date
+		if (isset($plan->dates[$reading_id]))
+		{
+			$new_post['post_date'] = $new_post['post_date_gmt'] = date('Y-m-d H:i:s', $plan->dates[$reading_id]);
+		}
+		else
+		{
+			$new_post['post_date'] = current_time('mysql', false);
+			$new_post['post_date_gmt'] = current_time('mysql', true);
+		}
+
+		// Turn off comments
+		$new_post['comment_status'] = 'closed';
+		$new_post['ping_status'] = 'closed';
+
+		return (object) $new_post;
+	}
+
 	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
@@ -218,130 +343,14 @@ class BfoxBlogQuery
 		// If we are using the global instance of WP_Query
 		if ($bfox_recent_wp_query === $wp_query)
 		{
-			if (isset($wp_query->bfox_plans))
-			{
-				$new_posts = array();
-
-				foreach ($wp_query->bfox_plans as $plan)
-				{
-					foreach ($plan->query_readings as $reading_id)
-					{
-						$refs = $plan->refs[$reading_id];
-						$ref_str = $refs->get_string();
-
-						// Create the navigation bar with the prev/write/next links
-						$nav_bar = "<div class='bible_post_nav'>";
-						if (isset($plan->refs[$reading_id - 1]))
-						{
-							$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
-							$nav_bar .= '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
-						}
-						$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
-						if (isset($plan->refs[$reading_id + 1]))
-						{
-							$next_ref_str = $book_name . ' ' . ($ch2 + 1);
-							$nav_bar .= '<a href="' . $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id + 1) . '" class="bible_post_next">' . $plan->refs[$reading_id + 1]->get_string() . ' &gt;</a>';
-						}
-						$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
-
-						$new_post = array();
-						$new_post['ID'] = -1;
-						$new_post['post_title'] = $ref_str;
-						$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($refs) . $nav_bar;
-						$new_post['bible_ref_str'] = $ref_str;
-						$new_post['post_type'] = BfoxBlog::var_bible_ref;
-						$new_post['bfox_permalink'] = $bfox_specials->get_url_reading_plans($plan->id, NULL, $reading_id);
-						$new_post['bfox_author'] = '<a href="' . $bfox_specials->get_url_reading_plans($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
-
-						// Set the date according to the reading plan if possible, otherwise set it to the current date
-						if (isset($plan->dates[$reading_id]))
-						{
-							$new_post['post_date'] = $new_post['post_date_gmt'] = date('Y-m-d H:i:s', $plan->dates[$reading_id]);
-						}
-						else
-						{
-							$new_post['post_date'] = current_time('mysql', false);
-							$new_post['post_date_gmt'] = current_time('mysql', true);
-						}
-
-						// Turn off comments
-						$new_post['comment_status'] = 'closed';
-						$new_post['ping_status'] = 'closed';
-
-						$new_posts[] = ((object) $new_post);
-					}
-				}
-
-				// Update the read history to show that we viewed these scriptures
-				global $bfox_history;
-				$bfox_history->update($bfox_bible_refs);
-
-				// Append the new posts onto the beginning of the post list
-				$posts = array_merge($new_posts, $posts);
-
-/*				$plan_id = $wp_query->query_vars[BfoxBlog::var_plan_id];
-				$reading_id = $wp_query->query_vars[BfoxBlog::var_reading_id];
-
-				if (isset($plan_id) && isset($reading_id))
-				{
-					list($plan) = $bfox_plan->get_plans($plan_id);
-					if (isset($plan[$reading_id])) $reading = $plan[$reading_id];
-				}
-
-				// If there are bible references, then we should display them as posts
-				// So we create an array of posts with scripture and add that to the current array of posts*/
-
-			}
-			else if ($bfox_bible_refs->is_valid())
-			{
-				$plan_id = $wp_query->query_vars[BfoxBlog::var_plan_id];
-				$reading_id = $wp_query->query_vars[BfoxBlog::var_reading_id];
-
-				if (isset($plan_id) && isset($reading_id))
-				{
-					list($plan) = $bfox_plan->get_plans($plan_id);
-					if (isset($plan[$reading_id])) $reading = $plan[$reading_id];
-					$title = $plan->name . ' - Reading ' . $reading_id . ': ';
-				}
-
-				// If there are bible references, then we should display them as posts
-				// So we create an array of posts with scripture and add that to the current array of posts
-				$new_posts = bfox_blog_get_ref_posts($bfox_bible_refs, $title);
-
-				// Update the read history to show that we viewed these scriptures
-				global $bfox_history;
-				$bfox_history->update($bfox_bible_refs);
-
-				// Append the new posts onto the beginning of the post list
-				$posts = array_merge($new_posts, $posts);
-			}
-
 			// If this is a special page, then we need to add the content ourselves
 			if (is_bfox_special())
 			{
 				$bfox_specials->add_to_posts($posts, $wp_query->query_vars);
 			}
-
-			/*
-			if (is_home())
-			{
-				// Add the blog progress page to the front of the posts
-				$content = bfox_get_reading_plan_status();
-				if ('' != $content)
-				{
-					$new_post = array();
-					$new_post['post_title'] = 'Reading Plan Status';
-					$new_post['post_content'] = $content;
-					$new_post['post_type'] = BfoxBlog::var_special;
-					$new_post['post_date'] = current_time('mysql', false);
-					$new_post['post_date_gmt'] = current_time('mysql', true);
-
-					// Append the new posts onto the beginning of the post list
-					$posts = array_merge(array((object) $new_post), $posts);
-				}
-			}
-			 */
 		}
+
+		$posts = array_merge(BfoxBlogQuery::get_pre_posts(), $posts);
 
 		return $posts;
 	}

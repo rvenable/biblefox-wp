@@ -62,7 +62,8 @@
 			// We don't need to show any special content for current readings, just the bible ref content
 			$wp_query->is_bfox_special = false;
 
-			$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BfoxBlog::var_plan_id]);
+
+			/*$wp_query->bfox_plans = $bfox_plan->get_plans($wp_query->query_vars[BfoxBlog::var_plan_id]);
 			if (0 < count($wp_query->bfox_plans))
 			{
 				foreach ($wp_query->bfox_plans as &$plan)
@@ -80,7 +81,7 @@
 						$wp_query->query_vars[BfoxBlog::var_bible_ref] .= $plan->refs[$reading_id]->get_string();
 					}
 				}
-			}
+			}*/
 		}
 
 		/*

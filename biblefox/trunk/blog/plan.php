@@ -103,12 +103,12 @@
 			return array();
 		}
 
-		function get_plans($plan_id = null)
+		function get_plans($plan_id = 0)
 		{
 			if (isset($this->plan_table_name))
 			{
 				global $wpdb;
-				if (null != $plan_id) $where = $wpdb->prepare('WHERE id = %d', $plan_id);
+				if (!empty($plan_id)) $where = $wpdb->prepare('WHERE id = %d', $plan_id);
 				$plans = $wpdb->get_results("SELECT * from $this->plan_table_name $where");
 
 				if (isset($this->blog_id))

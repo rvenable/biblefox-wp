@@ -126,10 +126,9 @@ class BfoxBlog
 		return "<a href='$href'>$text</a>";
 	}
 
-	public static function reading_plan_url($plan_id = NULL, $action = NULL, $reading_id = NULL)
+	public static function reading_plan_url($plan_id, $action = NULL, $reading_id = NULL)
 	{
-		$url = self::$home_url . '/?' . BfoxBlog::var_special . '=current_readings';
-		if (!empty($plan_id)) $url .= '&' . BfoxBlog::var_plan_id . '=' . $plan_id;
+		$url = self::$home_url . '/?' . BfoxBlog::var_plan_id . '=' . $plan_id;
 		if (!empty($action)) $url .= '&' . BfoxBlog::var_action . '=' . $action;
 		if (!empty($reading_id)) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
 		return $url;
@@ -194,8 +193,12 @@ add_action('init', array('BfoxBlog', 'init'));
 		$refs = RefManager::get_from_str($refStr);
 		if ((0 != $post_id) && $refs->is_valid())
 		{
+			// TODO3: stop saving to old posts table
 			require_once("bfox-write.php");
 			bfox_set_post_bible_refs($post_id, $refs);
+
+			// Save the refs to the post refs table
+			BfoxPosts::set_post_refs($post_id, $refs, FALSE);
 		}
 	}
 
