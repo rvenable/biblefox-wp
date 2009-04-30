@@ -1,6 +1,6 @@
 <?php
 
-class BfoxBlogQuery
+class BfoxBlogQueryData
 {
 	/*
 	 Problem:
@@ -138,59 +138,45 @@ class BfoxBlogQuery
 	// Function to be run after parsing the query
 	function bfox_parse_query($wp_query)
 	{
-		$wp_query->is_bfox_bible_ref = false;
-		$wp_query->is_bfox_special = false;
-
-		if (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
-		{
-			BfoxBlogQuery::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
-			$wp_query->is_home = FALSE;
-		}
-
-		// Set whether this query is a bible reference
-		if (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
-			$wp_query->is_bfox_bible_ref = true;
-
-		// Don't use the home page for certain queries
-		if ($wp_query->is_bfox_bible_ref || $wp_query->is_bfox_special)
-			$wp_query->is_home = false;
-	}
-
-	// Function for doing any preparation before doing the post query
-	function bfox_pre_get_posts($wp_query)
-	{
-		$vars = $wp_query->query_vars;
+		$showing_refs = FALSE;
 
 		if ($wp_query->is_search)
-			$ref_strs = $vars['s'];
-		else if ($wp_query->is_bfox_bible_ref)
-			$ref_strs = $vars[BfoxBlog::var_bible_ref];
-
-		// Global array for storing bible references used in a search
-		global $bfox_bible_refs;
-		$bfox_bible_refs = RefManager::get_from_str($ref_strs);
-
-		// TODO3: find a more appropriate place for this
-		// If we are going to be displaying scripture, we make sure we load the necessary css files in wp_head()
-		//if ($bfox_bible_refs->is_valid())
-			add_action('wp_head', 'BfoxBlog::add_scripture');
-
-		$GLOBALS['bfox_recent_wp_query'] =& $wp_query;
-
-		if ($bfox_bible_refs->is_valid())
 		{
-			BfoxBlogQuery::set_post_ids($bfox_bible_refs);
-			BfoxBlogQuery::set_display_refs($bfox_bible_refs);
+			$refs = RefManager::get_from_str($wp_query->query_vars['s']);
+			if ($refs->is_valid())
+			{
+				BfoxBlogQueryData::set_display_refs($refs);
+				$showing_refs = TRUE;
+			}
 		}
+		elseif (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
+		{
+			BfoxBlogQueryData::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
+			$wp_query->is_home = FALSE;
+			$showing_refs = TRUE;
+		}
+		elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
+		{
+			$refs = RefManager::get_from_str($wp_query->query_vars[BfoxBlog::var_bible_ref]);
+			if ($refs->is_valid())
+			{
+				BfoxBlogQueryData::set_post_ids($refs);
+				BfoxBlogQueryData::set_display_refs($refs);
+				$wp_query->is_home = FALSE;
+				$showing_refs = TRUE;
+			}
+		}
+
+		if ($showing_refs) add_action('wp_head', 'BfoxBlog::add_scripture');
 	}
 
 	// Function for modifying the query WHERE statement
 	function bfox_posts_where($where)
 	{
 		// Check if we should use our post ids array
-		if (BfoxBlogQuery::use_post_ids())
+		if (BfoxBlogQueryData::use_post_ids())
 		{
-			$post_ids = BfoxBlogQuery::get_post_ids();
+			$post_ids = BfoxBlogQueryData::get_post_ids();
 
 			// If there aren't any post ids, than this query shouldn't return any posts
 			// Otherwise return the posts from the post ids
@@ -331,7 +317,7 @@ class BfoxBlogQuery
 	// Function for adjusting the posts after they have been queried
 	function bfox_the_posts($posts)
 	{
-		$posts = array_merge(BfoxBlogQuery::get_pre_posts(), $posts);
+		$posts = array_merge(BfoxBlogQueryData::get_pre_posts(), $posts);
 
 		return $posts;
 	}
@@ -383,7 +369,6 @@ class BfoxBlogQuery
 	{
 		add_filter('query_vars', 'bfox_queryvars' );
 		add_action('parse_query', 'bfox_parse_query');
-		add_action('pre_get_posts', 'bfox_pre_get_posts');
 		add_filter('posts_where', 'bfox_posts_where');
 		add_filter('posts_results', 'bfox_posts_results');
 		add_filter('the_posts', 'bfox_the_posts');
