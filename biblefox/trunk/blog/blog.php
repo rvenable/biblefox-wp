@@ -155,11 +155,8 @@ class BfoxBlog
 			$content .= $verse->verse;
 		}
 
-		// Fix the footnotes
-		// TODO3: this function does more than just footnotes
-		$content = bfox_special_syntax($content);
-
-		return $content;
+		// Use ShortFoot shortcodes for the footnotes
+		return str_replace('</footnote>', '[/foot]', str_replace('<footnote>', '[foot]', $content));
 	}
 
 	/**
@@ -167,20 +164,21 @@ class BfoxBlog
 	 *
 	 * @param BibleRefs $refs
 	 * @param Translation $trans
-	 * @return unknown
+	 * @return string
 	 */
 	public static function get_verse_content_email(BibleRefs $refs, Translation $trans = NULL)
 	{
 		// Pre formatting is for when we can't use CSS (ie. in an email)
 		// We just replace the tags which would have been formatted by css with tags that don't need formatting
-		$content =
+		// We also need to run the shortcode function to correctly output footnotes
+		return do_shortcode(
+			str_replace('</footnote>', '[/foot]',
+			str_replace('<footnote>', '[foot]',
 			str_replace('<span class="bible_poetry_indent_2"></span>', '<span style="margin-left: 20px"></span>',
-				str_replace('<span class="bible_poetry_indent_1"></span>', '',
-					str_replace('<span class="bible_end_poetry"></span>', "<br/>\n",
-						str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n",
-							self::get_verse_content($refs, $trans)))));
-
-		return $content;
+			str_replace('<span class="bible_poetry_indent_1"></span>', '',
+			str_replace('<span class="bible_end_poetry"></span>', "<br/>\n",
+			str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n",
+				self::get_verse_content($refs, $trans))))))));
 	}
 }
 

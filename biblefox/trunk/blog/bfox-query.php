@@ -354,86 +354,6 @@ class BfoxBlogQuery
 		return $content;
 	}
 
-	// Function for adding content based on special syntax
-	function bfox_special_syntax($data)
-	{
-//		bfox_create_synonym_data();
-//		$data = bfox_process_html_text($data, 'bfox_ref_replace');
-
-		$special_chars = array('footnote' => array('open' => '((', 'close' => '))'),
-							   'footnote_xml' => array('open' => '<footnote>', 'close' => '</footnote>'),
-							   'content' => array('open' => '{{', 'close' => '}}'),
-							   'link' => array('open' => '[[', 'close' => ']]'));
-
-		foreach ($special_chars as $type => $type_info)
-		{
-			$offset = 0;
-			$index = 0;
-			$open = $type_info['open'];
-			$close = $type_info['close'];
-
-			// XML footnotes function exactly like regular footnotes
-			if ('footnote_xml' == $type) $type = 'footnote';
-
-			// Loop through each special char
-			while (1 == preg_match("/" . preg_quote($open, '/') . "(.*?)" . preg_quote($close, '/') . "/", $data, $matches, PREG_OFFSET_CAPTURE, $offset))
-			{
-				// Store the match data in more readable variables
-				$offset = (int) $matches[0][1];
-				$pattern = (string) $matches[0][0];
-				$note_text = (string) $matches[1][0];
-				$index++;
-
-				if ('footnote' == $type)
-				{
-					// Update the footnotes section string
-					$footnotes .= "<li><a name=\"footnote_$index\" href=\"#footnote_ref_$index\">[$index]</a> $note_text</li>";
-
-					// Replace the footnote with a link
-					$replacement = "<a name=\"footnote_ref_$index\" href=\"#footnote_$index\" title=\"" . bfox_html_strip_tags($note_text) . "\">[$index]</a>";
-				}
-				else
-				{
-					list($page_name, $param_str) = explode('|', $note_text, 2);
-
-					$params = array();
-					$index = 0;
-					$param_str_list = explode('|', $param_str, 2);
-					foreach ($param_str_list as $param_str)
-					{
-						if (FALSE === ($pos = strpos($param_str, '=')))
-							$params[$index++] = $param_str;
-						else
-							$params[substr($param_str, 0, $pos)] = substr($param_str, $pos - strlen($param_str) + 1);
-					}
-
-					if ('content' == $type)
-					{
-						// Replace the note with special content
-						$replacement = '';
-					}
-					else if ('link' == $type)
-					{
-						// Replace the note with a link to a special page
-						$replacement = '';
-					}
-				}
-
-
-				// Modify the data with the replacement text
-				$data = substr_replace($data, $replacement, $offset, strlen($pattern));
-
-				// Skip the rest of the replacement string
-				$offset += strlen($replacement);
-			}
-		}
-
-		// Add the footnotes section to the end of the data
-		if (isset($footnotes)) $data .= "<h3>Footnotes</h3><ul>" . $footnotes . "</ul>";
-
-		return $data;
-	}
-
 	function bfox_the_author($author)
 	{
 		global $post, $current_site;
@@ -469,7 +389,6 @@ class BfoxBlogQuery
 		add_filter('the_posts', 'bfox_the_posts');
 		add_filter('post_link', 'bfox_the_permalink', 10, 2);
 		add_filter('the_content', 'bfox_the_content');
-		add_filter('the_content', 'bfox_special_syntax');
 		add_filter('the_author', 'bfox_the_author');
 		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 		add_action('template_redirect', 'bfox_template_redirect');
