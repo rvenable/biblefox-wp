@@ -112,10 +112,12 @@ function shortfoot_get_list($header = ShortFootData::default_header)
  */
 function shortfoot_shortcode_footnote($atts, $content = '')
 {
-	list($set_index, $index) = ShortFootData::add_note($content);
+	extract(shortcode_atts(array('note' => $content), $atts));
+
+	list($set_index, $index) = ShortFootData::add_note($note);
 
 	// Replace the footnote with a link
-	return "<a name='footnoteref{$set_index}_$index' href='#footnote{$set_index}_$index' title='" . bfox_html_strip_tags($content) . "'>[$index]</a>";
+	return "<a name='footnoteref{$set_index}_$index' href='#footnote{$set_index}_$index' title='" . bfox_html_strip_tags($note) . "'>[$index]</a>";
 }
 add_shortcode('foot', 'shortfoot_shortcode_footnote');
 add_shortcode('footnote', 'shortfoot_shortcode_footnote');
