@@ -102,6 +102,12 @@ class BfoxPosts
 		return $refs;
 	}
 
+	public static function get_post_refs($post_id)
+	{
+		$refs = self::get_refs(array($post_id));
+		return $refs[$post_id];
+	}
+
 	public static function get_refs_for_blogs($posts)
 	{
 		global $wpdb;

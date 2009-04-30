@@ -188,17 +188,11 @@ add_action('init', array('BfoxBlog', 'init'));
 
 	function bfox_save_post($post_id = 0)
 	{
-		$refStr = $_POST[BfoxBlog::var_bible_ref];
-
-		$refs = RefManager::get_from_str($refStr);
-		if ((0 != $post_id) && $refs->is_valid())
+		if (!empty($post_id))
 		{
-			// TODO3: stop saving to old posts table
-			require_once("bfox-write.php");
-			bfox_set_post_bible_refs($post_id, $refs);
-
 			// Save the refs to the post refs table
-			BfoxPosts::set_post_refs($post_id, $refs, FALSE);
+			$refs = RefManager::get_from_str($_POST[BfoxBlog::var_bible_ref]);
+			if ($refs->is_valid()) BfoxPosts::set_post_refs($post_id, $refs, FALSE);
 		}
 	}
 

@@ -67,63 +67,6 @@
 		return implode('<hr/>', $book_content);
 	}
 
-	function bfox_get_posts_equation_for_refs(BibleRefs $refs, $table_name = '', $verse_begin = 'verse_begin', $verse_end = 'verse_end')
-	{
-		if (empty($table_name)) $table_name = $GLOBALS['wpdb']->bfox_bible_ref;
-		$begin = $table_name . '.' . $verse_begin;
-		$end = $table_name . '.' . $verse_end;
-		return $refs->sql_where2($begin, $end);
-	}
-
-	function bfox_get_posts_for_refs(BibleRefs $refs)
-	{
-		global $wpdb, $blog_id;
-		$table_name = $wpdb->bfox_bible_ref;
-		$posts_table = $wpdb->posts;
-
-		// TODO3: This check shouldn't be here permanently
-		if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name)
-			return array();
-
-		$post_ids = array();
-		$equation = bfox_get_posts_equation_for_refs($refs, $table_name);
-		if ('' != $equation)
-		{
-			$post_ids = $wpdb->get_col("
-				SELECT post_id
-				FROM $table_name
-				WHERE $equation
-				GROUP BY post_id");
-		}
-
-		$posts = array();
-		if (!empty($post_ids))
-		{
-			$posts = (array) $wpdb->get_results("
-				SELECT *
-				FROM $posts_table
-				WHERE post_type = 'post' AND post_status = 'publish'
-				AND (ID = " . implode(' OR ID = ', $post_ids) . ")");
-		}
-
-		return $posts;
-	}
-
-	function bfox_get_post_bible_refs($post_id = 0)
-	{
-		global $wpdb;
-		$table_name = $wpdb->bfox_bible_ref;
-
-		// If the table does not exist then there are obviously no bible references
-		if ((0 != $post_id) && ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name))
-		{
-			$select = $wpdb->prepare("SELECT verse_begin, verse_end FROM $table_name WHERE post_id = %d ORDER BY ref_order ASC", $post_id);
-			$sets = $wpdb->get_results($select, ARRAY_N);
-		}
-
-		return (RefManager::get_from_sets($sets));
-	}
-
 	/*
 	 AJAX function for sending the bible text
 	 */

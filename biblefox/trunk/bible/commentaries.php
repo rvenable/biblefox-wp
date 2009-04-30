@@ -43,12 +43,11 @@ abstract class BfoxComm
 		// TODO2: wpautop was just added, but maybe we should be using the_content() instead.
 		// This would require using the wp_query loop, but would make things more consistent.
 
-		$refs = bfox_get_post_bible_refs($post->ID);
 		?>
 		<div class="post">
 			<h3>
 				<a href="<?php echo get_permalink($post->ID) ?>"><?php echo $post->post_title ?></a>
-				by <?php echo get_author_name($post->post_author) ?> (<? echo $refs->get_string() ?>)
+				by <?php echo get_author_name($post->post_author) ?> (<? echo $post->refs->get_string() ?>)
 			</h3>
 			<div class="post_content">
 				<?php echo wpautop($post->post_content) ?>
@@ -85,8 +84,28 @@ class BfoxCommIn extends BfoxComm
 	 */
 	public function output_posts(BibleRefs $refs)
 	{
+		global $wpdb;
+
+		$posts = array();
+
 		switch_to_blog($this->blog_id);
-		$posts = bfox_get_posts_for_refs($refs);
+
+		// TODO2: We should get the post ids for all commentary posts at once (rather than checking once per blog)
+		$post_ids = BfoxPosts::get_post_ids($refs);
+
+		// TODO2: We should use WP_Query to get the posts
+		if (!empty($post_ids))
+		{
+			$posts = (array) $wpdb->get_results("
+				SELECT *
+				FROM $wpdb->posts
+				WHERE post_type = 'post' AND post_status = 'publish'
+				AND (ID = " . implode(' OR ID = ', $post_ids) . ")");
+		}
+
+		// TODO2: We should get the references for all commentary posts at once
+		$refs = BfoxPosts::get_refs($post_ids);
+		foreach ($posts as &$post) $post->refs = $refs[$post->ID];
 
 		?>
 		<div class="biblebox">
