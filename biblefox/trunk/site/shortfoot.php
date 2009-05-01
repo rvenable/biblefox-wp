@@ -117,7 +117,7 @@ function shortfoot_shortcode_footnote($atts, $content = '')
 	list($set_index, $index) = ShortFootData::add_note($note);
 
 	// Replace the footnote with a link
-	return "<a name='footnoteref{$set_index}_$index' href='#footnote{$set_index}_$index' title='" . bfox_html_strip_tags($note) . "'>[$index]</a>";
+	return "<a name='footnoteref{$set_index}_$index' href='#footnote{$set_index}_$index' title='" . strip_tags($note) . "'>[$index]</a>";
 }
 add_shortcode('foot', 'shortfoot_shortcode_footnote');
 add_shortcode('footnote', 'shortfoot_shortcode_footnote');
