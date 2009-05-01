@@ -211,4 +211,46 @@ add_action('init', array('BfoxBlog', 'init'));
 		include('my-blogs.php');
 	}
 
+/**
+ * Filter function for adding biblefox columns to the edit posts list
+ *
+ * @param $columns
+ * @return array
+ */
+function bfox_manage_posts_columns($columns)
+{
+	// Create a new columns array with our new columns, and in the specified order
+	// See wp_manage_posts_columns() for the list of default columns
+	$new_columns = array();
+	foreach ($columns as $key => $column)
+	{
+		$new_columns[$key] = $column;
+
+		// Add the bible verse column right after 'author' column
+		if ('author' == $key) $new_columns[BfoxBlog::var_bible_ref] = __('Bible Verses');
+	}
+	return $new_columns;
+}
+add_filter('manage_posts_columns', 'bfox_manage_posts_columns');
+//add_filter('manage_pages_columns', 'bfox_manage_posts_columns');
+
+/**
+ * Action function for displaying bible reference information in the edit posts list
+ *
+ * @param string $column_name
+ * @param integer $post_id
+ * @return none
+ */
+function bfox_manage_posts_custom_column($column_name, $post_id)
+{
+	if (BfoxBlog::var_bible_ref == $column_name)
+	{
+		global $post;
+		if (isset($post->bfox_bible_refs)) echo BfoxBlog::ref_link($post->bfox_bible_refs->get_string(BibleMeta::name_short));
+	}
+
+}
+add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 2);
+//add_action('manage_pages_custom_column', 'bfox_manage_posts_custom_column', 10, 2);
+
 ?>
