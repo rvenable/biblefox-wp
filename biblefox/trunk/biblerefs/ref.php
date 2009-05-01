@@ -45,7 +45,7 @@ class RefSequence
 	 * @param integer $book_id
 	 * @param string $str
 	 */
-	private function add_book_str($book_id, $str)
+	public function add_book_str($book_id, $str)
 	{
 		// Spaces between numbers count as semicolons
 		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
@@ -103,7 +103,7 @@ class RefSequence
 	 *
 	 * @param integer $book_id
 	 */
-	protected function add_whole_book($book_id)
+	public function add_whole_book($book_id)
 	{
 		$this->add_whole($book_id, 0, BibleVerse::max_chapter_id);
 	}
@@ -591,111 +591,6 @@ class RefManager
 
 		return $verse_end;
 	}
-}
-
-/**
- * Creates the global synonym prefix array which is necessary for bfox_ref_replace()
- *
- */
-function bfox_create_synonym_data()
-{
-	global $wpdb, $bfox_syn_prefix;
-
-	if (empty($bfox_syn_prefix))
-	{
-		foreach (BibleMeta::$synonyms as $level => $level_syns)
-		{
-			foreach ($level_syns as $synonym => $book_id)
-			{
-				$words = preg_split('/\s/', $synonym, -1, PREG_SPLIT_NO_EMPTY);
-				if (0 < count($words))
-				{
-					$prefix = '';
-					foreach ($words as $word)
-					{
-						if (!empty($prefix)) $prefix .= ' ';
-						$prefix .= $word;
-						$bfox_syn_prefix[$prefix] = TRUE;
-					}
-				}
-			}
-		}
-	}
-}
-
-function bfox_ref_replace($text)
-{
-	global $bfox_syn_prefix;
-
-	// Loop throught the text, word by word (where a word is a string of non-whitespace chars)
-	// Check each word to see if it is part of a synonym for a book
-	// If we succesfully match a book then we can look for chapter, verse numbers
-	$offset = 0;
-	$prefixes = array();
-	$bible_refs = array();
-	while (1 == preg_match('/\S+/', $text, $matches, PREG_OFFSET_CAPTURE, $offset))
-	{
-		// Store the match data in more readable variables
-		$pattern_start = (int) $matches[0][1];
-		$pattern = (string) $matches[0][0];
-		$pattern_lc = strtolower($pattern);
-		$index++;
-
-		// The word might be a portion of book name (ie, a prefix to the book name),
-		// So we need to detect that using the bfox_syn_prefix array, and save those potential book 'prefixes'
-		if (BibleMeta::get_book_id($pattern)) $book = $pattern;
-
-		// For each prefix we have saved, append the current word and see if we have a synonym
-		// If we have a synonym then we can use that synonym as the book
-		// If we don't, we should see if the new prefix is still a valid prefix
-		foreach ($prefixes as $start => &$prefix)
-		{
-			$prefix .= ' ' . $pattern_lc;
-			if (BibleMeta::get_book_id($prefix)) $book = $prefix;
-
-			// Unset the the prefix if it is no longer valid
-			if (!isset($bfox_syn_prefix[$prefix])) unset($prefixes[$start]);
-		}
-
-		// If the current word is a prefix on its own, add it to the prefixes array
-		if (isset($bfox_syn_prefix[$pattern_lc])) $prefixes[$pattern_start] = $pattern;
-
-		$offset = $pattern_start + strlen($pattern);
-
-		// If we have successfully found a book synonym, then we can see if there are chapter and verse references
-		if (isset($book))
-		{
-			// If we have found a chapter/verse reference, we can see if it is valid
-			if (1 == preg_match('/^\s*(\d+)(\s*-\s*\d+)?(\s*:\s*\d+)?(\s*-\s*\d+)?(\s*:\s*\d+)?/', substr($text, $offset), $matches, PREG_OFFSET_CAPTURE))
-			{
-				$book_name_start = $pattern_start;
-				$pattern_start = (int) $matches[0][1] + $offset;
-				$pattern = (string) $matches[0][0];
-
-				$ref_str = $book . ' ' . $pattern;
-
-				// If this is a valid bible reference, then save it to be replaced later
-				$bible_ref = RefManager::get_from_str($ref_str);
-				if ($bible_ref->is_valid())
-					$bible_refs[$ref_str] = array('ref' => $bible_ref, 'start' => $book_name_start, 'length' => ($pattern_start - $book_name_start) + strlen($pattern));
-
-				// Clear the prefixes
-				$prefixes = array();
-
-				$offset = $pattern_start + strlen($pattern);
-			}
-		}
-		unset($book);
-	}
-
-	// Perform any text replacements (in reverse order since the string length might be modified)
-	foreach (array_reverse($bible_refs) as $replacement => $ref)
-	{
-		$new_text = '<a href="' . $ref['ref']->get_url() . '">' . $replacement . '</a>';
-		$text = substr_replace($text, $new_text, $ref['start'], $ref['length']);
-	}
-
-	return $text;
 }
 
 /**

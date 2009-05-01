@@ -353,6 +353,31 @@ function bfox_get_edit_post_link($link)
 	return $link;
 }
 
+function bfox_ref_replace($str, $max_level = 0)
+{
+	// Get all the bible reference substrings in this string
+	$substrs = BibleMeta::get_bcv_substrs($str, $max_level);
+
+	// Add each substring to our sequences
+	foreach (array_reverse($substrs) as $substr)
+	{
+		$refs = new BibleRefs();
+
+		// If there is a chapter, verse string use it
+		if ($substr->cv_offset) $refs->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
+		else $refs->add_whole_book($substr->book);
+
+		if ($refs->is_valid()) $str = substr_replace($str, BfoxBlog::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
+	}
+
+	return $str;
+}
+
+function bfox_content_refs($content)
+{
+	return bfox_process_html_text($content, 'bfox_ref_replace');
+}
+
 function bfox_query_init()
 {
 	add_filter('query_vars', 'bfox_queryvars' );
@@ -361,7 +386,8 @@ function bfox_query_init()
 	add_filter('posts_results', 'bfox_posts_results');
 	add_filter('the_posts', 'bfox_the_posts');
 	add_filter('post_link', 'bfox_the_permalink', 10, 2);
-	add_filter('the_content', 'bfox_the_content');
+	add_filter('the_content', 'bfox_content_refs', 1);
+	add_filter('the_content', 'bfox_the_content', 41);
 	add_filter('the_author', 'bfox_the_author');
 	add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 }

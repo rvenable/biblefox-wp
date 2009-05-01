@@ -45,22 +45,19 @@ class BfoxMainToolbox extends BfoxToolBox
 		}
 	}
 
-	/*
 	function test_html_ref_replace()
 	{
 		$str = "<xml>
 		<p>I like Gen 1.</p>
-		<p>What do you think? john 21 Do you prefer<d><d> ex 2 or 1sam 3 - 4 or 1 th 4? gen 3:4-8:2 gen 3ddd:2 fff- 1 1 3 </p>
+		<p>What do you think? <a href=''>john 21</a> Do you prefer<d><d> ex 2 or 1sam 3 - 4 or 1 th 4? gen 3:4-8:2 gen 3ddd:2 fff- 1 1 3 </p>
 		<p>gen lala yoyo 4:5</p>
 		</xml>
 		";
 
 		echo $str;
-		echo bfox_html_strip_tags($str);
-		bfox_create_synonym_data();
+		echo strip_tags($str);
 		echo bfox_process_html_text($str, 'bfox_ref_replace');
 	}
-	*/
 
 	/**
 	 * Takes a bible ref string and uses it to create a BibleRefs to test BibleRefs for different inputs
