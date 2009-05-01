@@ -66,7 +66,7 @@ function bfox_shortcode_blog_updates($args)
 	else $limit = 4;
 
 	$content = '';
-	$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish', BfoxBlog::var_join_bible_refs => TRUE));
+	$r = new WP_Query(array('showposts' => $limit, 'what_to_show' => 'posts', 'nopaging' => 0, 'post_status' => 'publish'));
 	if ($r->have_posts())
 	{
 		$content .= '<table width="100%">';

@@ -1,5 +1,17 @@
 <?php
+/**
+ * This file is for modifying the way wordpress queries work for our plugin
+ * For information on how the WP query works, see:
+ * 		http://codex.wordpress.org/Custom_Queries
+ * 		http://codex.wordpress.org/Query_Overview
+ *
+ * @package BiblefoxBlog
+ */
 
+/**
+ * Class for storing static data related to WP_Query for biblefox blogs
+ *
+ */
 class BfoxBlogQueryData
 {
 	/*
@@ -12,8 +24,11 @@ class BfoxBlogQueryData
 
 	 The real solution should be to pass the instance to each hook/filter function. Until that happens this hack must be in place.
 
-	 HACK: Save information we need statically, and clear it when we've finished. This means each instance of WP_Query has to finish using
+	 Solution: Save information we need statically, and clear it when we've finished. This means each instance of WP_Query has to finish using
 	 this information before another instance begins.
+
+	 This is not an ideal solution, the best solution would be to store this information with the instance of WP_Query, but WP does not provide
+	 the necesary hook parameters.
 	 */
 
 	/**
@@ -149,6 +164,7 @@ class BfoxBlogQueryData
 			$new_post['post_date'] = current_time('mysql', false);
 			$new_post['post_date_gmt'] = current_time('mysql', true);
 			$new_post['bfox_permalink'] = BfoxBlog::ref_url($ref_str);
+			$new_post['bfox_author'] = "<a href='" . BfoxQuery::passage_page_url($ref_str) . "'>Biblefox</a>";
 
 			// Turn off comments
 			$new_post['comment_status'] = 'closed';
@@ -177,13 +193,13 @@ class BfoxBlogQueryData
 		if (isset($plan->refs[$reading_id - 1]))
 		{
 			$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
-			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, NULL, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
+			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
 		}
 		$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
 		if (isset($plan->refs[$reading_id + 1]))
 		{
 			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
-			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, NULL, $reading_id + 1) . '" class="bible_post_next">' . $plan->refs[$reading_id + 1]->get_string() . ' &gt;</a>';
+			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->refs[$reading_id + 1]->get_string() . ' &gt;</a>';
 		}
 		$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
 
@@ -193,7 +209,7 @@ class BfoxBlogQueryData
 		$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($refs) . $nav_bar;
 		$new_post['bible_ref_str'] = $ref_str;
 		$new_post['post_type'] = BfoxBlog::var_bible_ref;
-		$new_post['bfox_permalink'] = BfoxBlog::reading_plan_url($plan->id, NULL, $reading_id);
+		$new_post['bfox_permalink'] = BfoxBlog::reading_plan_url($plan->id, $reading_id);
 		$new_post['bfox_author'] = '<a href="' . BfoxBlog::reading_plan_url($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
 
 		// Set the date according to the reading plan if possible, otherwise set it to the current date
@@ -215,175 +231,143 @@ class BfoxBlogQueryData
 	}
 }
 
+// Function for adding query variables for our plugin
+function bfox_queryvars($qvars)
+{
+	// Add a query variable for bible references
+	$qvars[] = BfoxBlog::var_bible_ref;
+	$qvars[] = BfoxBlog::var_plan_id;
+	$qvars[] = BfoxBlog::var_reading_id;
+	return $qvars;
+}
 
+// Function to be run after parsing the query
+function bfox_parse_query($wp_query)
+{
+	$showing_refs = FALSE;
 
-	/*
-	 This file is for modifying the way wordpress queries work for our plugin
-	 For information on how the WP query works, see:
-		http://codex.wordpress.org/Custom_Queries
-		http://codex.wordpress.org/Query_Overview
-	 */
-
-	// Returns whether the current query is a special page
-	function is_bfox_special()
+	if ($wp_query->is_search)
 	{
-		global $wp_query;
-		return $wp_query->is_bfox_special;
-	}
-
-	// Function for redirecting templates
-	function bfox_template_redirect()
-	{
-		if (is_bfox_special() && $template = get_page_template())
+		$refs = RefManager::get_from_str($wp_query->query_vars['s']);
+		if ($refs->is_valid())
 		{
-			// Use the page template for bfox special pages
-			include($template);
-			exit;
+			BfoxBlogQueryData::set_display_refs($refs);
+			$showing_refs = TRUE;
 		}
 	}
-
-	// Function for adding query variables for our plugin
-	function bfox_queryvars($qvars)
+	elseif (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
 	{
-		// Add a query variable for bible references
-		$qvars[] = BfoxBlog::var_bible_ref;
-		$qvars[] = BfoxBlog::var_special;
-		$qvars[] = BfoxBlog::var_action;
-		$qvars[] = BfoxBlog::var_plan_id;
-		$qvars[] = BfoxBlog::var_reading_id;
-		return $qvars;
+		BfoxBlogQueryData::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
+		$wp_query->is_home = FALSE;
+		$showing_refs = TRUE;
 	}
-
-	// Function to be run after parsing the query
-	function bfox_parse_query($wp_query)
+	elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
 	{
-		$showing_refs = FALSE;
-
-		if ($wp_query->is_search)
+		$refs = RefManager::get_from_str($wp_query->query_vars[BfoxBlog::var_bible_ref]);
+		if ($refs->is_valid())
 		{
-			$refs = RefManager::get_from_str($wp_query->query_vars['s']);
-			if ($refs->is_valid())
-			{
-				BfoxBlogQueryData::set_display_refs($refs);
-				$showing_refs = TRUE;
-			}
-		}
-		elseif (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
-		{
-			BfoxBlogQueryData::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
+			BfoxBlogQueryData::set_post_ids($refs);
+			BfoxBlogQueryData::set_display_refs($refs);
 			$wp_query->is_home = FALSE;
 			$showing_refs = TRUE;
 		}
-		elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
-		{
-			$refs = RefManager::get_from_str($wp_query->query_vars[BfoxBlog::var_bible_ref]);
-			if ($refs->is_valid())
-			{
-				BfoxBlogQueryData::set_post_ids($refs);
-				BfoxBlogQueryData::set_display_refs($refs);
-				$wp_query->is_home = FALSE;
-				$showing_refs = TRUE;
-			}
-		}
-
-		if ($showing_refs) add_action('wp_head', 'BfoxBlog::add_scripture');
 	}
 
-	// Function for modifying the query WHERE statement
-	function bfox_posts_where($where)
+	if ($showing_refs) add_action('wp_head', 'BfoxBlog::add_scripture');
+}
+
+// Function for modifying the query WHERE statement
+function bfox_posts_where($where)
+{
+	// Check if we should use our post ids array
+	if (BfoxBlogQueryData::use_post_ids())
 	{
-		// Check if we should use our post ids array
-		if (BfoxBlogQueryData::use_post_ids())
-		{
-			$post_ids = BfoxBlogQueryData::get_post_ids();
+		$post_ids = BfoxBlogQueryData::get_post_ids();
 
-			// If there aren't any post ids, than this query shouldn't return any posts
-			// Otherwise return the posts from the post ids
-			if (empty($post_ids)) $where = 'AND 0';
-			else $where .= ' AND ID IN (' . implode(',', $post_ids) . ') ';
-		}
-		return $where;
+		// If there aren't any post ids, than this query shouldn't return any posts
+		// Otherwise return the posts from the post ids
+		if (empty($post_ids)) $where = 'AND 0';
+		else $where .= ' AND ID IN (' . implode(',', $post_ids) . ') ';
 	}
+	return $where;
+}
 
-	// Function for modifying the posts array returned from the actual SQL query
-	function bfox_posts_results($posts)
+// Function for modifying the posts array returned from the actual SQL query
+function bfox_posts_results($posts)
+{
+	if (!empty($posts))
 	{
-		if (!empty($posts))
-		{
-			$post_ids = array();
-			foreach ($posts as $post) $post_ids []= $post->ID;
+		$post_ids = array();
+		foreach ($posts as $post) $post_ids []= $post->ID;
 
-			// Get all the bible references for these posts
-			$refs = BfoxPosts::get_refs($post_ids);
-			foreach ($posts as &$post) if (isset($refs[$post->ID]) && $refs[$post->ID]->is_valid()) $post->bible_refs = $refs[$post->ID];
-		}
-
-		return $posts;
+		// Get all the bible references for these posts
+		$refs = BfoxPosts::get_refs($post_ids);
+		foreach ($posts as &$post) if (isset($refs[$post->ID]) && $refs[$post->ID]->is_valid()) $post->bfox_bible_refs = $refs[$post->ID];
 	}
 
-	// Function for adjusting the posts after they have been queried
-	function bfox_the_posts($posts)
+	return $posts;
+}
+
+// Function for adjusting the posts after they have been queried
+function bfox_the_posts($posts)
+{
+	$posts = array_merge(BfoxBlogQueryData::get_pre_posts(), $posts);
+
+	return $posts;
+}
+
+// Function for filtering the output of the_permalink()
+function bfox_the_permalink($permalink, $post)
+{
+	if (isset($post->bfox_permalink))
+		$permalink = $post->bfox_permalink;
+	return $permalink;
+}
+
+function bfox_the_content($content)
+{
+	global $post;
+
+	// If this post have bible references, mention them at the beginning of the post
+	if (isset($post->bfox_bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bfox_bible_refs->get_string()) . '</p>' . $content;
+
+	return $content;
+}
+
+function bfox_the_author($author)
+{
+	global $post;
+	if (isset($post->bfox_author)) $author = $post->bfox_author;
+	return $author;
+}
+
+// Function for updating the edit post link
+function bfox_get_edit_post_link($link)
+{
+	$post = &get_post($id);
+
+	// If this post is actually scripture then we should change the
+	// edit post link to be a link to write a new post about this scripture
+	if (isset($post->bible_ref_str))
 	{
-		$posts = array_merge(BfoxBlogQueryData::get_pre_posts(), $posts);
-
-		return $posts;
+		// Remove anything after the last '/'
+		$link = substr($link, 0, strrpos($link, '/') + 1);
+		$link .= "post-new.php?bible_ref=$post->bible_ref_str";
 	}
+	return $link;
+}
 
-	// Function for filtering the output of the_permalink()
-	function bfox_the_permalink($permalink, $post)
-	{
-		if (isset($post->bfox_permalink))
-			$permalink = $post->bfox_permalink;
-		return $permalink;
-	}
-
-	function bfox_the_content($content)
-	{
-		global $post;
-
-		// If this post have bible references, mention them at the beginning of the post
-		if (isset($post->bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bible_refs->get_string()) . '</p>' . $content;
-
-		return $content;
-	}
-
-	function bfox_the_author($author)
-	{
-		global $post, $current_site;
-		if (isset($post->bfox_author))
-			$author = $post->bfox_author;
-		else if ((BfoxBlog::var_bible_ref == $post->post_type) || (BfoxBlog::var_special == $post->post_type)) $author = "<a href=\"http://{$current_site->domain}{$current_site->path}\">Biblefox.com</a>";
-		return $author;
-	}
-
-	// Function for updating the edit post link
-	function bfox_get_edit_post_link($link)
-	{
-		$post = &get_post($id);
-
-		// If this post is actually scripture then we should change the
-		// edit post link to be a link to write a new post about this scripture
-		if (isset($post->bible_ref_str))
-		{
-			// Remove anything after the last '/'
-			$link = substr($link, 0, strrpos($link, '/') + 1);
-			$link .= "post-new.php?bible_ref=$post->bible_ref_str";
-		}
-		return $link;
-	}
-
-	function bfox_query_init()
-	{
-		add_filter('query_vars', 'bfox_queryvars' );
-		add_action('parse_query', 'bfox_parse_query');
-		add_filter('posts_where', 'bfox_posts_where');
-		add_filter('posts_results', 'bfox_posts_results');
-		add_filter('the_posts', 'bfox_the_posts');
-		add_filter('post_link', 'bfox_the_permalink', 10, 2);
-		add_filter('the_content', 'bfox_the_content');
-		add_filter('the_author', 'bfox_the_author');
-		add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
-		add_action('template_redirect', 'bfox_template_redirect');
-	}
+function bfox_query_init()
+{
+	add_filter('query_vars', 'bfox_queryvars' );
+	add_action('parse_query', 'bfox_parse_query');
+	add_filter('posts_where', 'bfox_posts_where');
+	add_filter('posts_results', 'bfox_posts_results');
+	add_filter('the_posts', 'bfox_the_posts');
+	add_filter('post_link', 'bfox_the_permalink', 10, 2);
+	add_filter('the_content', 'bfox_the_content');
+	add_filter('the_author', 'bfox_the_author');
+	add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
+}
 
 ?>

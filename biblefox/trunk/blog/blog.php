@@ -22,11 +22,8 @@ require_once("bfox-settings.php");
 class BfoxBlog
 {
 	const var_bible_ref = 'bfox_bible_ref';
-	const var_special = 'bfox_special';
-	const var_action = 'bfox_action';
 	const var_plan_id = 'bfox_plan_id';
 	const var_reading_id = 'bfox_reading_id';
-	const var_join_bible_refs = 'join_bible_refs';
 
 	/**
 	 * Stores the home URL for this blog
@@ -126,11 +123,10 @@ class BfoxBlog
 		return "<a href='$href'>$text</a>";
 	}
 
-	public static function reading_plan_url($plan_id, $action = NULL, $reading_id = NULL)
+	public static function reading_plan_url($plan_id, $reading_id = -1)
 	{
 		$url = self::$home_url . '/?' . BfoxBlog::var_plan_id . '=' . $plan_id;
-		if (!empty($action)) $url .= '&' . BfoxBlog::var_action . '=' . $action;
-		if (!empty($reading_id)) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
+		if (0 <= $reading_id) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
 		return $url;
 	}
 

@@ -243,7 +243,7 @@ How often will you be reading this plan?<br/>
 				}
 				else
 				{
-					$track_url = BfoxBlog::reading_plan_url($plan->id, 'track');
+					$track_url = BfoxBlog::reading_plan_url($plan->id);
 					$content .= 'Not tracked. You can choose to <a href="' . $track_url . '">follow this reading plan</a>.<br/>';
 				}*/
 				if (isset($plan->current_reading))

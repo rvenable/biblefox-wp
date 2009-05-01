@@ -195,7 +195,7 @@ endif; ?>
 			foreach ($blog_plans as $plan)
 			{
 				// HACK - lame way of getting the url
-				$plan_url = BfoxBlog::reading_plan_url($plan->id, NULL, NULL);
+				$plan_url = BfoxBlog::reading_plan_url($plan->id);
 
 				$td = '<td style="border:none; padding: 1px 5px 1px 5px;"';
 				echo '<tr>';
