@@ -344,16 +344,12 @@ function bfox_the_author($author)
 // Function for updating the edit post link
 function bfox_get_edit_post_link($link)
 {
-	$post = &get_post($id);
+	global $post;
 
 	// If this post is actually scripture then we should change the
 	// edit post link to be a link to write a new post about this scripture
-	if (isset($post->bible_ref_str))
-	{
-		// Remove anything after the last '/'
-		$link = substr($link, 0, strrpos($link, '/') + 1);
-		$link .= "post-new.php?bible_ref=$post->bible_ref_str";
-	}
+	if (isset($post->bible_ref_str)) $link = BfoxBlog::ref_write_url($post->bible_ref_str);
+
 	return $link;
 }
 

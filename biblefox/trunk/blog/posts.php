@@ -105,7 +105,8 @@ class BfoxPosts
 	public static function get_post_refs($post_id)
 	{
 		$refs = self::get_refs(array($post_id));
-		return $refs[$post_id];
+		if (isset($refs[$post_id])) return $refs[$post_id];
+		else return new BibleRefs();
 	}
 
 	public static function get_refs_for_blogs($posts)

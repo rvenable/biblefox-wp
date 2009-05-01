@@ -115,10 +115,22 @@ class BfoxBlog
 		return "<a href='#bible_ref' onclick='bible_text_request(\"$ref_str\")' $attrs>$text</a>";
 	}
 
+	public static function ref_write_url($ref_str)
+	{
+		return self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
+	}
+
 	public static function ref_write_link($ref_str, $text = '')
 	{
 		if (empty($text)) $text = $ref_str;
-		$href = self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
+
+		return "<a href='" . self::ref_write_url($ref_str) . "'>$text</a>";
+	}
+
+	public static function ref_edit_posts_link($ref_str, $text = '')
+	{
+		if (empty($text)) $text = $ref_str;
+		$href = self::$home_url . '/wp-admin/edit.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
 
 		return "<a href='$href'>$text</a>";
 	}
@@ -152,7 +164,10 @@ class BfoxBlog
 		}
 
 		// Use ShortFoot shortcodes for the footnotes
-		return str_replace('</footnote>', '[/foot]', str_replace('<footnote>', '[foot]', $content));
+		return str_replace(
+			array('<footnote>', '</footnote>'),
+			array('[foot]', '[/foot]'),
+			$content);
 	}
 
 	/**
@@ -167,14 +182,17 @@ class BfoxBlog
 		// Pre formatting is for when we can't use CSS (ie. in an email)
 		// We just replace the tags which would have been formatted by css with tags that don't need formatting
 		// We also need to run the shortcode function to correctly output footnotes
-		return do_shortcode(
-			str_replace('</footnote>', '[/foot]',
-			str_replace('<footnote>', '[foot]',
-			str_replace('<span class="bible_poetry_indent_2"></span>', '<span style="margin-left: 20px"></span>',
-			str_replace('<span class="bible_poetry_indent_1"></span>', '',
-			str_replace('<span class="bible_end_poetry"></span>', "<br/>\n",
-			str_replace('<span class="bible_end_p"></span>', "<br/><br/>\n",
-				self::get_verse_content($refs, $trans))))))));
+
+		$mods = array(
+			'<span class="bible_poetry_indent_2"></span>' => '<span style="margin-left: 20px"></span>',
+			'<span class="bible_poetry_indent_1"></span>' => '',
+			'<span class="bible_end_poetry"></span>' => "<br/>\n",
+			'<span class="bible_end_p"></span>' => "<br/><br/>\n",
+			'</footnote>' => '[/foot]',
+			'<footnote>' => '[foot]'
+		);
+
+		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
 	}
 }
 
@@ -246,7 +264,7 @@ function bfox_manage_posts_custom_column($column_name, $post_id)
 	if (BfoxBlog::var_bible_ref == $column_name)
 	{
 		global $post;
-		if (isset($post->bfox_bible_refs)) echo BfoxBlog::ref_link($post->bfox_bible_refs->get_string(BibleMeta::name_short));
+		if (isset($post->bfox_bible_refs)) echo BfoxBlog::ref_edit_posts_link($post->bfox_bible_refs->get_string(BibleMeta::name_short));
 	}
 
 }
