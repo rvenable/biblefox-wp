@@ -52,7 +52,7 @@ class BfoxBlog
 
 		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
-		add_action('save_post', 'bfox_save_post');
+		add_action('save_post', 'bfox_save_post', 10, 2);
 
 		add_action('admin_head', 'BfoxBlog::admin_head');
 	}
@@ -163,11 +163,7 @@ class BfoxBlog
 			$content .= $verse->verse;
 		}
 
-		// Use ShortFoot shortcodes for the footnotes
-		return str_replace(
-			array('<footnote>', '</footnote>'),
-			array('[foot]', '[/foot]'),
-			$content);
+		return $content;
 	}
 
 	/**
@@ -198,7 +194,7 @@ class BfoxBlog
 
 add_action('init', array('BfoxBlog', 'init'));
 
-	function bfox_save_post($post_id = 0)
+	function bfox_save_post($post_id = 0, $post)
 	{
 		if (!empty($post_id))
 		{

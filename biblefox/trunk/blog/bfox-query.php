@@ -111,6 +111,33 @@ class BfoxBlogQueryData
 	}
 
 	/**
+	 * Add verse content to a post array
+	 *
+	 * @param array $post
+	 * @param BibleRefs $refs
+	 * @param string $nav_bar
+	 * @return array
+	 */
+	private static function add_verse_post_content($post, BibleRefs $refs, $nav_bar = '')
+	{
+		/*
+		 * Add the verse content as 'bfox_pre_content' so that Wordpress doesn't filter it like regular content.
+		 * But the verse content does contain footnotes, which we can use ShortFoot functionality for.
+		 * Then once the footnotes have been found in the verse content, we can add the footnote list.
+		 */
+
+		// Get the verse content, and filter it using the <footnote> tags as if they were [footnote] shortcodes
+		// The regex being used here should mirror the regex returned by get_shortcode_regex() and is being used similarly to do_shortcode(),
+		//  the only difference being that we only need to look for <footnote> shortcodes (and using chevrons instead of brackets)
+		$post['bfox_pre_content'] = $nav_bar . preg_replace_callback('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\1>)?/s', 'do_shortcode_tag', BfoxBlog::get_verse_content($refs)) . $nav_bar;
+
+		// The footnote list can go in 'post_content', because we want it to be filtered by Wordpress
+		$post['post_content'] = shortfoot_get_list();
+
+		return $post;
+	}
+
+	/**
 	 * Returns an array of posts with content for the given bible references
 	 *
 	 * @param BibleRefs $refs
@@ -155,10 +182,9 @@ class BfoxBlogQueryData
 			}
 			$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
 
-			$new_post = array();
+			$new_post = self::add_verse_post_content(array(), $book_refs, $nav_bar);
 			$new_post['ID'] = -1;
 			$new_post['post_title'] = $title . $ref_str;
-			$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($book_refs) . $nav_bar;
 			$new_post['bible_ref_str'] = $ref_str;
 			$new_post['post_type'] = BfoxBlog::var_bible_ref;
 			$new_post['post_date'] = current_time('mysql', false);
@@ -203,10 +229,9 @@ class BfoxBlogQueryData
 		}
 		$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
 
-		$new_post = array();
+		$new_post = self::add_verse_post_content(array(), $refs, $nav_bar);
 		$new_post['ID'] = -1;
 		$new_post['post_title'] = $ref_str;
-		$new_post['post_content'] = $nav_bar . BfoxBlog::get_verse_content($refs) . $nav_bar;
 		$new_post['bible_ref_str'] = $ref_str;
 		$new_post['post_type'] = BfoxBlog::var_bible_ref;
 		$new_post['bfox_permalink'] = BfoxBlog::reading_plan_url($plan->id, $reading_id);
@@ -324,12 +349,23 @@ function bfox_the_permalink($permalink, $post)
 	return $permalink;
 }
 
-function bfox_the_content($content)
+/**
+ * Adds special content onto the content string for Biblefox posts
+ * @param string $content
+ * @return string
+ */
+function bfox_add_special_content($content)
 {
 	global $post;
 
 	// If this post have bible references, mention them at the beginning of the post
 	if (isset($post->bfox_bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bfox_bible_refs->get_string()) . '</p>' . $content;
+
+	// If this post has special biblefox pre content, prepend it
+	// This special content is usually something that we don't want to be modified with the standard content,
+	// but we do want it to be displayed with the standard content, so we add it here just before displaying.
+	// Because of this, this function should be called after most the_content() filters have already run.
+	if (isset($post->bfox_pre_content)) $content = $post->bfox_pre_content . $content;
 
 	return $content;
 }
@@ -353,6 +389,12 @@ function bfox_get_edit_post_link($link)
 	return $link;
 }
 
+/**
+ * Replaces bible references with bible links
+ * @param string $str
+ * @param integer $max_level
+ * @return string
+ */
 function bfox_ref_replace($str, $max_level = 0)
 {
 	// Get all the bible reference substrings in this string
@@ -365,7 +407,8 @@ function bfox_ref_replace($str, $max_level = 0)
 
 		// If there is a chapter, verse string use it
 		if ($substr->cv_offset) $refs->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
-		else $refs->add_whole_book($substr->book);
+		// We are not currently adding whole books
+		//else $refs->add_whole_book($substr->book);
 
 		if ($refs->is_valid()) $str = substr_replace($str, BfoxBlog::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
 	}
@@ -373,7 +416,12 @@ function bfox_ref_replace($str, $max_level = 0)
 	return $str;
 }
 
-function bfox_content_refs($content)
+/**
+ * Replaces bible references with bible links in a given html string
+ * @param string $content
+ * @return string
+ */
+function bfox_ref_replace_html($content)
 {
 	return bfox_process_html_text($content, 'bfox_ref_replace');
 }
@@ -386,8 +434,13 @@ function bfox_query_init()
 	add_filter('posts_results', 'bfox_posts_results');
 	add_filter('the_posts', 'bfox_the_posts');
 	add_filter('post_link', 'bfox_the_permalink', 10, 2);
-	add_filter('the_content', 'bfox_content_refs', 1);
-	add_filter('the_content', 'bfox_the_content', 41);
+
+	// Replace bible references with bible links
+	add_filter('the_content', 'bfox_ref_replace_html');
+
+	// Add special content onto posts (this should happen later than most other the_content filters)
+	add_filter('the_content', 'bfox_add_special_content', 20);
+
 	add_filter('the_author', 'bfox_the_author');
 	add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
 }
