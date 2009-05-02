@@ -455,7 +455,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		{
 			$blog = (object) $blog;
 			switch_to_blog($blog->blog_id);
-			$wpdb->query($wpdb->prepare("INSERT INTO " . BfoxPosts::table . " (blog_id, post_id, is_auto, verse_begin, verse_end)
+			$wpdb->query($wpdb->prepare("INSERT INTO " . BfoxPosts::table . " (blog_id, post_id, ref_type, verse_begin, verse_end)
 			SELECT %d, post_id, FALSE, verse_begin, verse_end FROM " . $wpdb->bfox_bible_ref, $blog->blog_id));
 			restore_current_blog();
 			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";

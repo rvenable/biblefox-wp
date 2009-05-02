@@ -5,6 +5,8 @@ define(BFOX_TABLE_POST_REFS, BFOX_BASE_TABLE_PREFIX . 'post_refs');
 class BfoxPosts
 {
 	const table = BFOX_TABLE_POST_REFS;
+	const ref_type_tag = 0;
+	const ref_type_content = 1;
 
 	public static function create_table()
 	{
@@ -12,7 +14,7 @@ class BfoxPosts
 		BfoxUtility::create_table(self::table, "
 			blog_id BIGINT(20) NOT NULL,
 			post_id BIGINT(20) UNSIGNED NOT NULL,
-			is_auto BOOLEAN NOT NULL,
+			ref_type BOOLEAN NOT NULL,
 			verse_begin MEDIUMINT UNSIGNED NOT NULL,
 			verse_end MEDIUMINT UNSIGNED NOT NULL,
 			INDEX (blog_id, post_id),
@@ -56,20 +58,20 @@ class BfoxPosts
 		return $post_ids;
 	}
 
-	public static function set_post_refs($post_id, BibleRefs $refs, $is_auto)
+	public static function set_post_refs($post_id, BibleRefs $refs, $ref_type)
 	{
 		global $wpdb, $blog_id;
 
-		$wpdb->query($wpdb->prepare('DELETE FROM ' . self::table . ' WHERE (blog_id = %d) AND (post_id = %d)', $blog_id, $post_id));
+		$wpdb->query($wpdb->prepare('DELETE FROM ' . self::table . ' WHERE (blog_id = %d) AND (post_id = %d) AND (ref_type = %d)', $blog_id, $post_id, $ref_type));
 
 		$values = array();
-		foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare('(%d, %d, %d, %d, %d)', $blog_id, $post_id, $is_auto, $seq->start, $seq->end);
+		foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare('(%d, %d, %d, %d, %d)', $blog_id, $post_id, $ref_type, $seq->start, $seq->end);
 
 		if (!empty($values))
 		{
 			$wpdb->query($wpdb->prepare("
 				INSERT INTO " . self::table . "
-				(blog_id, post_id, is_auto, verse_begin, verse_end)
+				(blog_id, post_id, ref_type, verse_begin, verse_end)
 				VALUES " . implode(', ', $values)));
 		}
 	}
@@ -120,11 +122,11 @@ class BfoxPosts
 
 		if (!empty($ids))
 		{
-			$results = $wpdb->get_results('SELECT blog_id, post_id, is_auto, verse_begin, verse_end FROM ' . self::table . ' WHERE ' . implode(' OR ', $ids));
+			$results = $wpdb->get_results('SELECT blog_id, post_id, ref_type, verse_begin, verse_end FROM ' . self::table . ' WHERE ' . implode(' OR ', $ids));
 
 			foreach ($results as $result)
 			{
-				$ref &= $refs[$result->blog_id][$result->post_id][$result->is_auto];
+				$ref &= $refs[$result->blog_id][$result->post_id][$result->ref_type];
 				if (isset($ref)) $ref->add_seq($result->verse_begin, $result->verse_end);
 				else $ref = RefManager::get_from_sets(array(array($result->verse_begin, $result->verse_end)));
 			}

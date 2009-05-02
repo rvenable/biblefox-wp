@@ -194,36 +194,57 @@ class BfoxBlog
 
 add_action('init', array('BfoxBlog', 'init'));
 
-	function bfox_save_post($post_id = 0, $post)
+function bfox_save_post($post_id = 0, $post)
+{
+	if (!empty($post_id))
 	{
-		if (!empty($post_id))
+		// Post Content Refs
+		// Get the bible references from the post content
+		$content_refs = RefManager::get_from_str(strip_tags($post->post_content), 0);
+		// Save these bible references
+		if ($content_refs->is_valid()) BfoxPosts::set_post_refs($post_id, $content_refs, BfoxPosts::ref_type_content);
+
+		// Post Tag Refs
+		// Get the bible references from the post tags
+		$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
+		$tags_refs = new BibleRefs();
+		foreach ($tags as &$tag)
 		{
-			// Save the refs to the post refs table
-			$refs = RefManager::get_from_str($_POST[BfoxBlog::var_bible_ref]);
-			if ($refs->is_valid()) BfoxPosts::set_post_refs($post_id, $refs, FALSE);
+			$refs = RefManager::get_from_str($tag);
+			if ($refs->is_valid())
+			{
+				$tag = $refs->get_string(BibleMeta::name_short);
+				$tags_refs->add_seqs($refs->get_seqs());
+			}
 		}
-	}
 
-	function bfox_post_scripture_tag_meta_box($post)
-	{
-		// TODO3: Get rid of this include
-		require_once("bfox-write.php");
-		bfox_form_edit_scripture_tags();
+		// Save these bible references
+		BfoxPosts::set_post_refs($post_id, $tags_refs, BfoxPosts::ref_type_tag);
+		// If we actually found some references, then re-save the tags again to use our modified tags
+		if ($tags_refs->is_valid()) wp_set_post_tags($post_id, $tags);
 	}
+}
 
-	function bfox_post_scripture_quick_view_meta_box($post)
-	{
-		// TODO3: Get rid of this include
-		require_once("bfox-write.php");
-		bfox_form_scripture_quick_view();
-	}
+function bfox_post_scripture_tag_meta_box($post)
+{
+	// TODO3: Get rid of this include
+	require_once("bfox-write.php");
+	bfox_form_edit_scripture_tags();
+}
 
-	function bfox_progress()
-	{
-//		bfox_progress_page();
-		if (current_user_can(BFOX_USER_LEVEL_MANAGE_USERS)) bfox_join_request_menu();
-		include('my-blogs.php');
-	}
+function bfox_post_scripture_quick_view_meta_box($post)
+{
+	// TODO3: Get rid of this include
+	require_once("bfox-write.php");
+	bfox_form_scripture_quick_view();
+}
+
+function bfox_progress()
+{
+//	bfox_progress_page();
+	if (current_user_can(BFOX_USER_LEVEL_MANAGE_USERS)) bfox_join_request_menu();
+	include('my-blogs.php');
+}
 
 /**
  * Filter function for adding biblefox columns to the edit posts list

@@ -510,12 +510,12 @@ class RefManager
 	 * @param string $str
 	 * @return BibleRefs
 	 */
-	public static function get_from_str($str)
+	public static function get_from_str($str, $max_level = 1)
 	{
 		if (isset(BibleMeta::$book_groups[$str])) $refs = new BibleGroupPassage();
 		else $refs = new BibleRefs();
 
-		$refs->push_string($str);
+		$refs->push_string($str, $max_level);
 		return $refs;
 	}
 
@@ -835,7 +835,7 @@ class BibleGroupPassage extends BibleRefs
 		if (!empty($group)) $this->push_string($group);
 	}
 
-	public function push_string($group)
+	public function push_string($group, $max_level = 1)
 	{
 		$this->group = $group;
 		$start = self::get_first_book($group);
