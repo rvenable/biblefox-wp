@@ -50,9 +50,15 @@ class BfoxBlog
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
 		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'bfox_manage_reading_plans_load');
 
-		add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
-		add_meta_box('bible-quick-view-div', __('Scripture Quick View'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
+		//add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
+		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'bfox_save_post', 10, 2);
+
+		/*
+		 * This would be the perfect way to add scripture tags for new posts, but wordpress doesn't call
+		 * this tag for new posts (see get_tags_to_edit() which bails out on post_id of 0)
+		 */
+		//add_filter('tags_to_edit', 'bfox_tags_to_edit');
 
 		add_action('admin_head', 'BfoxBlog::admin_head');
 	}
@@ -205,9 +211,18 @@ function bfox_save_post($post_id = 0, $post)
 		if ($content_refs->is_valid()) BfoxPosts::set_post_refs($post_id, $content_refs, BfoxPosts::ref_type_content);
 
 		// Post Tag Refs
+		$tags_refs = new BibleRefs();
+
+		// Try to get a hidden tag from form input
+		$new_tag_refs = RefManager::get_from_str($_POST[BfoxBlog::var_bible_ref]);
+		if ($new_tag_refs->is_valid())
+		{
+			$tags_refs->add_seqs($new_tag_refs->get_seqs());
+			$new_tag = $new_tag_refs->get_string(BibleMeta::name_short);
+		}
+
 		// Get the bible references from the post tags
 		$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
-		$tags_refs = new BibleRefs();
 		foreach ($tags as &$tag)
 		{
 			$refs = RefManager::get_from_str($tag);
@@ -216,7 +231,11 @@ function bfox_save_post($post_id = 0, $post)
 				$tag = $refs->get_string(BibleMeta::name_short);
 				$tags_refs->add_seqs($refs->get_seqs());
 			}
+
+			if (trim($tag) == $new_tag) $new_tag = '';
 		}
+
+		if (!empty($new_tag)) $tags []= $new_tag;
 
 		// Save these bible references
 		BfoxPosts::set_post_refs($post_id, $tags_refs, BfoxPosts::ref_type_tag);
@@ -224,6 +243,33 @@ function bfox_save_post($post_id = 0, $post)
 		if ($tags_refs->is_valid()) wp_set_post_tags($post_id, $tags);
 	}
 }
+
+/* This function can be used if wordpress updates get_tags_to_edit()
+function bfox_tags_to_edit($tags_to_edit)
+{
+	// If we have a bible reference passed as input, try to add it as a tag
+	if (!empty($_REQUEST[BfoxBlog::var_bible_ref]))
+	{
+		$refs = RefManager::get_from_str($_REQUEST[BfoxBlog::var_bible_ref]);
+		if ($refs->is_valid())
+		{
+			// Get the new tag string
+			$new_tag = $refs->get_string(BibleMeta::name_short);
+
+			// Only add the new tag if it hasn't already been added
+			$tags = explode(',', $tags_to_edit);
+			foreach ($tags as $tag) if (trim($tag) == $new_tag) $new_tag = '';
+			if (!empty($new_tag))
+			{
+				$tags []= $new_tag;
+				$tags_to_edit = implode(',', $tags);
+			}
+		}
+	}
+
+ 	return $tags_to_edit;
+}
+*/
 
 function bfox_post_scripture_tag_meta_box($post)
 {

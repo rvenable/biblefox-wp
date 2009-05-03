@@ -19,6 +19,7 @@
 			$content = '';
 			$book_name = BibleMeta::get_book_name($book);
 			$ref_str = BibleRefs::create_book_string($book, $cvs);
+			$ref_str_short = BibleRefs::create_book_string($book, $cvs, BibleMeta::name_short);
 
 			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
 			$book_refs = new BibleRefs();
@@ -33,20 +34,23 @@
 				$book_refs->add_bcv($book, $cv);
 			}
 
+			$bible_viewer_link = "Biblefox Bible Viewer: <a href='" . BfoxQuery::passage_page_url($ref_str) . "' target='blank'>$ref_str</a>";
+			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(0, this)'>$ref_str_short</a>";
+
 			// Create the navigation bar with the prev/write/next links
 			$nav_bar = "<div class='bible_post_nav'>";
 			if ($ch1 > BibleMeta::start_chapter)
 			{
 				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
-				$nav_bar .= BfoxBlog::ref_link_ajax($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev button'");
+				$nav_bar .= BfoxBlog::ref_link_ajax($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
 			}
-			$nav_bar .= '<input type="button" class="button" id="add-bible-ref" onclick="bible_ref_flush_to_text()" bible_ref="' . $ref_str . '" value="Tag ' . $ref_str . '">';
+			$nav_bar .= $bible_viewer_link;
 			if ($ch2 < BibleMeta::end_verse_max($book))
 			{
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
-				$nav_bar .= BfoxBlog::ref_link_ajax($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next button'");
+				$nav_bar .= BfoxBlog::ref_link_ajax($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");
 			}
-			$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
+			$nav_bar .= "<br/>$tag_link</div>";
 
 			$content = $nav_bar . BfoxBlog::get_verse_content($book_refs) . $nav_bar;
 			$content .= '<hr/>';
@@ -88,7 +92,7 @@
 			$content = addslashes(bfox_get_ref_content_quick($ref));
 		}
 
-		$script = "bfox_quick_view_loaded('$ref_str', '$content', '');";
+		$script = "bfox_quick_view_loaded('$ref_str', '$content');";
 		die($script);
 	}
 	add_action('wp_ajax_bfox_ajax_send_bible_text', 'bfox_ajax_send_bible_text');

@@ -95,7 +95,7 @@ function bible_text_request(ref_str)
 	return false;
 }
 
-function bfox_quick_view_loaded(ref_str, content, menu)
+function bfox_quick_view_loaded(ref_str, content)
 {
 	// Wait until the progress text is finished
 	jQuery('#bible-text-progress').queue( function () {
@@ -103,11 +103,6 @@ function bfox_quick_view_loaded(ref_str, content, menu)
 		// Fade out the progress text, then update it to say we are done loading
 		jQuery(this).fadeOut("fast", function() {
 			jQuery(this).html('Viewing ' + ref_str);
-		});
-
-		// Fade out the old scripture menu, then replace it with the new menu
-		jQuery('#bible_quick_view_scripture_menu').fadeOut("fast", function () {
-			jQuery(this).html(menu);
 		});
 
 		// Fade out the old bible text, then replace it with the new text
@@ -118,7 +113,6 @@ function bfox_quick_view_loaded(ref_str, content, menu)
 		// Fade everything back in
 		jQuery('#bible-text-progress').fadeIn("fast");
 		jQuery('#bible-text').fadeIn("fast").fadeTo("fast", 1);
-		jQuery('#bible_quick_view_scripture_menu').fadeIn("fast");
 
 		// We must dequeue to continue the queue
 		jQuery(this).dequeue();
@@ -140,4 +134,9 @@ jQuery(document).ready( function() {
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
 	jQuery('#view-bible-ref').click(bible_text_request_new);
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
+
+	// Add any hidden bible references as tags
+	jQuery('#newtag').val(jQuery('#hidden_refs').val());
+	jQuery('#hidden_refs').val('');
+	tag_flush_to_text();
 });

@@ -83,7 +83,7 @@ class BfoxPosts
 		$refs = array();
 
 		$ids = array();
-		foreach ($post_ids as $post_id) $ids []= $wpdb->prepare('%d', $post_id);
+		foreach ($post_ids as $post_id) if (!empty($post_id)) $ids []= $wpdb->prepare('%d', $post_id);
 
 		if (!empty($ids))
 		{
