@@ -25,6 +25,8 @@ class BfoxBlog
 	const var_plan_id = 'bfox_plan_id';
 	const var_reading_id = 'bfox_reading_id';
 
+	const option_reading_plans = 'bfox_reading_plans';
+
 	/**
 	 * Stores the home URL for this blog
 	 *
@@ -195,6 +197,12 @@ class BfoxBlog
 		);
 
 		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
+	}
+
+	public static function get_reading_plans($blog_id = 0)
+	{
+		if (empty($blog_id)) $blog_id = $GLOBALS['blog_id'];
+		return BfoxPlans::get_plans(get_option(self::option_reading_plans, array()));
 	}
 }
 

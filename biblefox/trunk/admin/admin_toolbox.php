@@ -462,6 +462,57 @@ class BfoxMainToolbox extends BfoxToolBox
 		}
 	}
 
+	public function repopulate_plans_table()
+	{
+		global $wpdb;
+		echo 'Dropping tables<br/>';
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_plans);
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_lists);
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_readings);
+		echo 'Creating tables<br/>';
+		BfoxPlans::create_tables();
+
+		$blogs = get_blog_list();
+
+		echo 'Populating from blogs:<br/>';
+		foreach ($blogs as $blog)
+		{
+			$blog = (object) $blog;
+
+			switch_to_blog($blog->blog_id);
+
+			$plan_ids = array();
+
+			$bfox_plan = new PlanBlog();
+			$plans = $bfox_plan->get_plans();
+
+			foreach ($plans as $plan)
+			{
+				$plan->id = 0;
+				$plan->description = $plan->summary;
+				$plan->owner = $blog->blog_id;
+				$plan->owner_type = BfoxPlans::owner_type_blog;
+				$plan->is_recurring = FALSE;
+				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));
+				$plan->end_date = date('Y-m-d', strtotime($plan->end_date));
+
+				$new_list = new BfoxReadingList($plan);
+				foreach ($plan->refs as $refs) $new_list->set_reading($refs);
+				BfoxPlans::save_list($new_list);
+
+				$new_plan = new BfoxReadingPlan($plan, $new_list);
+				BfoxPlans::save_plan($new_plan);
+
+				$plan_ids[$new_plan->id] = TRUE;
+			}
+
+			if (!empty($plan_ids)) update_option(BfoxBlog::option_reading_plans, array_keys($plan_ids));
+
+			restore_current_blog();
+			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";
+		}
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *

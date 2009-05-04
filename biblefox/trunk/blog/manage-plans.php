@@ -55,6 +55,23 @@ $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 </table>
 </form>
 
+<table id="reading_plans" class="widefat">
+	<thead>
+	<tr>
+		<th>Plan</th>
+		<th>Reading List</th>
+		<th>Schedule</th>
+	</tr>
+	</thead>
+<?php foreach (BfoxBlog::get_reading_plans() as $plan): ?>
+	<tr>
+		<td><?php echo $plan->name ?> by <?php echo $plan->owner_link() ?><br/><?php echo $plan->description ?></td>
+		<td><?php echo $plan->list->name ?></td>
+		<td><?php echo $plan->start_str() ?> - <?php echo $plan->end_str() ?><?php if ($plan->is_recurring) echo ' (recurring)'?><br/><?php echo $plan->frequency_desc() ?></td>
+	</tr>
+<?php endforeach ?>
+</table>
+
 <br class="clear" />
 
 <p><strong>Note:</strong><br/>
