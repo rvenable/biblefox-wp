@@ -11,6 +11,7 @@ class BfoxReadingInfo
 	public $description = '';
 	public $owner = 0;
 	public $owner_type = 0;
+	public $is_private = FALSE;
 
 	public function __construct($values = NULL)
 	{
@@ -161,6 +162,7 @@ class BfoxPlans
 			description TEXT NOT NULL,
 			owner BIGINT(20) UNSIGNED NOT NULL,
 			owner_type TINYINT(2) NOT NULL,
+			is_private BOOLEAN NOT NULL,
 			PRIMARY KEY  (id)");
 
 		BfoxUtility::create_table(self::table_readings, "
@@ -175,6 +177,7 @@ class BfoxPlans
 			description TEXT NOT NULL,
 			owner BIGINT(20) UNSIGNED NOT NULL,
 			owner_type TINYINT(2) NOT NULL,
+			is_private BOOLEAN NOT NULL,
 			list_id BIGINT UNSIGNED NOT NULL,
 			start_date DATE NOT NULL,
 			end_date DATE NOT NULL,
@@ -189,8 +192,8 @@ class BfoxPlans
 		global $wpdb;
 
 		$set = $wpdb->prepare(
-			"SET name = %s, description = %s, owner = %d, owner_type = %d",
-			$list->name, $list->description, $list->owner, $list->owner_type);
+			"SET name = %s, description = %s, owner = %d, owner_type = %d, is_private = %d",
+			$list->name, $list->description, $list->owner, $list->owner_type, $list->is_private);
 
 		if (empty($list->id)) $wpdb->query("INSERT INTO " . self::table_lists . " $set");
 		else $wpdb->query($wpdb->prepare("UPDATE " . self::table_lists . " $set WHERE id = %d", $list->id));
@@ -217,8 +220,8 @@ class BfoxPlans
 		global $wpdb;
 
 		$set = $wpdb->prepare(
-			"SET name = %s, description = %s, owner = %d, owner_type = %d, list_id = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
-			$plan->name, $plan->description, $plan->owner, $plan->owner_type, $plan->list->id, $plan->start_date, $plan->end_date, $plan->is_recurring, $plan->frequency, $plan->frequency_options);
+			"SET name = %s, description = %s, owner = %d, owner_type = %d, is_private = %d, list_id = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
+			$plan->name, $plan->description, $plan->owner, $plan->owner_type, $plan->is_private, $plan->list_id, $plan->start_date, $plan->end_date, $plan->is_recurring, $plan->frequency, $plan->frequency_options);
 
 		if (empty($plan->id)) $wpdb->query("INSERT INTO " . self::table_plans . " $set");
 		else $wpdb->query($wpdb->prepare("UPDATE " . self::table_plans . " $set WHERE id = %d", $plan->id));
