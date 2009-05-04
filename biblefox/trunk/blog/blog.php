@@ -199,10 +199,9 @@ class BfoxBlog
 		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
 	}
 
-	public static function get_reading_plans($blog_id = 0)
+	public static function get_reading_plan_ids()
 	{
-		if (empty($blog_id)) $blog_id = $GLOBALS['blog_id'];
-		return BfoxPlans::get_plans(get_option(self::option_reading_plans, array()));
+		return get_option(self::option_reading_plans, array());
 	}
 }
 

@@ -488,19 +488,26 @@ class BfoxMainToolbox extends BfoxToolBox
 
 			foreach ($plans as $plan)
 			{
+				$name = $plan->name;
+
 				$plan->id = 0;
-				$plan->description = $plan->summary;
+				$plan->name .= ' List';
+				$plan->description = '';
 				$plan->owner = $blog->blog_id;
 				$plan->owner_type = BfoxPlans::owner_type_blog;
-				$plan->is_recurring = FALSE;
-				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));
-				$plan->end_date = date('Y-m-d', strtotime($plan->end_date));
 
 				$new_list = new BfoxReadingList($plan);
 				foreach ($plan->refs as $refs) $new_list->set_reading($refs);
 				BfoxPlans::save_list($new_list);
 
-				$new_plan = new BfoxReadingPlan($plan, $new_list);
+				$plan->name = $name;
+				$plan->description = $plan->summary;
+				$plan->is_recurring = FALSE;
+				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));
+				$plan->end_date = date('Y-m-d', strtotime($plan->end_date));
+
+				$new_plan = new BfoxReadingPlan($plan);
+				$new_plan->set_list($new_list);
 				BfoxPlans::save_plan($new_plan);
 
 				$plan_ids[$new_plan->id] = TRUE;
