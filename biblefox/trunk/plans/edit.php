@@ -2,6 +2,7 @@
 
 class BfoxPlanEdit
 {
+	const var_list_submit = 'list_submit';
 	const var_list_id = 'list_id';
 	const var_list_name = 'list_name';
 	const var_list_description = 'list_description';
@@ -14,19 +15,28 @@ class BfoxPlanEdit
 	private $url;
 	private $plan_ids;
 
+	private static $save_list;
+	private static $save_new_list;
+
 	public function __construct($owner, $owner_type, $url, $plan_ids = array()) {
 		$this->owner = $owner;
 		$this->owner_type = $owner_type;
 		$this->url = $url;
 		$this->plan_ids = $plan_ids;
+
+		self::$save_list = __('Save List');
+		self::$save_new_list = __('Save as new List');
 	}
 
-	public function page_load()
-	{
+	public function page_load() {
 		$messages = array();
 
-		if (isset($_POST['submit'])) {
-			if (!empty($_POST[self::var_list_id])) $list = BfoxPlans::get_list($_POST[self::var_list_id]);
+		if (isset($_POST[self::var_list_submit])) {
+
+			// If we are saving an old list, get the list from the DB
+			// Otherwise, create a new list and set the new owner
+			if ((self::$save_list == $_POST[self::var_list_submit]) && !empty($_POST[self::var_list_id]))
+				$list = BfoxPlans::get_list($_POST[self::var_list_id]);
 			else {
 				$list = new BfoxReadingList();
 
@@ -34,7 +44,8 @@ class BfoxPlanEdit
 				$list->owner_type = $this->owner_type;
 			}
 
-			if (($this->owner_type == $list->owner_type) && ($this->owner == $list->owner)) {
+			// We can only save lists that we own
+			if ($this->is_owned($list)) {
 				$list->name = $_POST[self::var_list_name];
 				$list->description = $_POST[self::var_list_description];
 				$list->set_readings_by_strings($_POST[self::var_list_readings]);
@@ -58,6 +69,10 @@ class BfoxPlanEdit
 		if (empty($str)) $str = $list->name;
 
 		return "<a href='" . add_query_arg(self::var_list_id, $list->id, $this->url) . "'>$str</a>";
+	}
+
+	private function is_owned(BfoxReadingInfo $info) {
+		return (($info->owner == $this->owner) && ($info->owner_type == $this->owner_type));
 	}
 
 	public function content() {
@@ -122,7 +137,12 @@ class BfoxPlanEdit
 	}
 
 	private function list_edit(BfoxReadingList $list) {
+		$is_owned = $this->is_owned($list);
 		?>
+
+		<?php if (!empty($list->id) && !$is_owned): ?>
+		<p>You do not own this reading list. If you make changes they will be saved as a new reading list.</p>
+		<?php endif ?>
 		<form action='<?php echo $this->url ?>' method='post'>
 		<input type='hidden' name='<?php echo self::var_list_id ?>' value='<?php echo $list->id ?>'/>
 		<table>
@@ -139,7 +159,10 @@ class BfoxPlanEdit
 			BfoxUtility::option_form_textarea(self::var_list_passages, __('Add Groups of Passages'), "<input name='" . self::var_list_chunk_size . "' id='" . self::var_list_chunk_size . "' type='text' value='1' size='4' maxlength='4'/><br/>$passage_help_text", 3, 50, '');
 		?>
 		</table>
-		<input type='submit' name='submit' value='Add New'/>
+		<?php if ($is_owned): ?>
+		<input type='submit' name='<?php echo self::var_list_submit ?>' value='<?php echo self::$save_list ?>'/>
+		<?php endif ?>
+		<input type='submit' name='<?php echo self::var_list_submit ?>' value='<?php echo self::$save_new_list ?>'/>
 		</form>
 		<?php
 	}
