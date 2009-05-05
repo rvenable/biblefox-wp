@@ -97,6 +97,12 @@ class BfoxReadingList extends BfoxReadingInfo
 		return $ref_str;
 	}
 
+	public function reading_strings($name = BibleMeta::name_normal) {
+		$strings = array();
+		foreach ($this->readings as $reading) $strings []= $reading->get_string($name);
+		return $strings;
+	}
+
 	public function reading_count()
 	{
 		return count($this->readings);
@@ -287,15 +293,18 @@ class BfoxPlans
 
 		$lists = array();
 
-		$ids = array();
-		foreach ($list_ids as $list_id) if (!empty($list_id)) $ids []= $wpdb->prepare('%d', $list_id);
+		$wheres = array();
+		if (!empty($list_ids)) {
+			$ids = array();
+			foreach ($list_ids as $list_id) if (!empty($list_id)) $ids []= $wpdb->prepare('%d', $list_id);
+			if (!empty($ids)) $wheres []= 'id IN (' . implode(',', $ids) . ')';
+		}
+		if (!empty($owner)) $wheres []= $wpdb->prepare("(owner = %d AND owner_type = %d)", $owner, $owner_type);
 
-		if (!empty($ids))
+		if (!empty($wheres))
 		{
-			if (!empty($owner)) $where_owner = $wpdb->prepare(" OR (owner = %d AND owner_type = %d)", $owner, $owner_type);
-
 			// Get the list info from the DB
-			$results = $wpdb->get_results('SELECT * FROM ' . self::table_lists . ' WHERE id IN (' . implode(',', $ids) . ')' . $where_owner);
+			$results = $wpdb->get_results('SELECT * FROM ' . self::table_lists . ' WHERE ' . implode(' OR ', $wheres));
 
 			// Create each BfoxReadingList instance
 			$ids = array();
@@ -329,15 +338,18 @@ class BfoxPlans
 
 		$plans = array();
 
-		$ids = array();
-		foreach ($plan_ids as $plan_id) if (!empty($plan_id)) $ids []= $wpdb->prepare('%d', $plan_id);
+		$wheres = array();
+		if (!empty($list_ids)) {
+			$ids = array();
+			foreach ($plan_ids as $plan_id) if (!empty($plan_id)) $ids []= $wpdb->prepare('%d', $plan_id);
+			if (!empty($ids)) $wheres []= 'id IN (' . implode(',', $ids) . ')';
+		}
+		if (!empty($owner)) $wheres []= $wpdb->prepare("(owner = %d AND owner_type = %d)", $owner, $owner_type);
 
-		if (!empty($ids))
+		if (!empty($wheres))
 		{
-			if (!empty($owner)) $where_owner = $wpdb->prepare(" OR (owner = %d AND owner_type = %d)", $owner, $owner_type);
-
 			// Get the plans from the DB
-			$results = $wpdb->get_results('SELECT * FROM ' . self::table_plans . ' WHERE id IN (' . implode(',', $ids) . ')' . $where_owner);
+			$results = $wpdb->get_results('SELECT * FROM ' . self::table_plans . ' WHERE ' . implode(' OR ', $wheres));
 
 			// Create each BfoxReadingPlan instance
 			foreach ($results as $result) $plans[$result->id] = new BfoxReadingPlan($result);

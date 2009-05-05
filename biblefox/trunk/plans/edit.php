@@ -2,8 +2,6 @@
 
 class BfoxPlanEdit
 {
-	const option_user_plan_ids = 'bfox_user_plans';
-
 	const var_list_id = 'list_id';
 	const var_list_name = 'list_name';
 	const var_list_description = 'list_description';
@@ -28,7 +26,7 @@ class BfoxPlanEdit
 		$messages = array();
 
 		if (isset($_POST['submit'])) {
-			if (isset($_POST[self::var_list_id])) $list = BfoxPlans::get_list($_POST[self::var_list_id]);
+			if (!empty($_POST[self::var_list_id])) $list = BfoxPlans::get_list($_POST[self::var_list_id]);
 			else {
 				$list = new BfoxReadingList();
 
@@ -56,19 +54,10 @@ class BfoxPlanEdit
 		elseif (!empty($_POST['update'])) wp_redirect(BfoxQuery::page_url(BfoxQuery::page_plans));
 	}
 
-	private static function get_user_plan_ids($user_id = 0)
-	{
-		return (array) get_user_option(self::option_user_plan_ids, $user_id, FALSE);
-	}
+	private function edit_list_link(BfoxReadingList $list, $str = '') {
+		if (empty($str)) $str = $list->name;
 
-	private static function set_user_plan_ids($plan_ids, $user_id = 0)
-	{
-		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
-		update_user_option($user_id, self::option_user_plan_ids, $plan_ids, TRUE);
-	}
-
-	public static function edit_list_link($list_id) {
-		return add_query_arg(self::var_list_id, $list_id, $this->url);
+		return "<a href='" . add_query_arg(self::var_list_id, $list->id, $this->url) . "'>$str</a>";
 	}
 
 	public function content() {
@@ -79,7 +68,7 @@ class BfoxPlanEdit
 			$_SERVER['REQUEST_URI'] = remove_query_arg(array(BfoxQuery::var_message), $_SERVER['REQUEST_URI']);
 		}
 
-		if (isset($_REQUEST[self::var_list_id])) self::list_content(BfoxPlans::get_list($_POST[self::var_list_id]));
+		if (isset($_REQUEST[self::var_list_id])) $this->list_content(BfoxPlans::get_list($_REQUEST[self::var_list_id]));
 		else $this->default_content();
 	}
 
@@ -90,7 +79,6 @@ class BfoxPlanEdit
 		$list_ids = array();
 		foreach ($plans as $plan) $list_ids []= $plan->list_id;
 		$lists = BfoxPlans::get_lists($list_ids, $this->owner, $this->owner_type);
-
 		?>
 
 		<p>Reading plans allow you to organize how you read the Bible. You can create your own reading plans, or subscribe to someone else's plans.</p>
@@ -100,19 +88,19 @@ class BfoxPlanEdit
 
 		<h3>Reading Plans</h3>
 		<p>These are reading plans you have created or have subscribed to:</p>
-		<?php self::plans_table($plans, $lists) ?>
+		<?php $this->plans_table($plans, $lists) ?>
 
 		<h3>My Reading Lists</h3>
 		<p>These are reading lists you have created or have subscribed to:</p>
-		<?php self::lists_table($lists) ?>
+		<?php $this->lists_table($lists) ?>
 
 		<h3>Create New Reading List</h3>
-		<?php self::list_edit(new BfoxReadingList()) ?>
+		<?php $this->list_edit(new BfoxReadingList()) ?>
 
 		<?php
 	}
 
-	private static function lists_table($lists) {
+	private function lists_table($lists) {
 		?>
 		<table id='reading_lists' class='widefat'>
 			<thead>
@@ -126,16 +114,17 @@ class BfoxPlanEdit
 			<tr>
 				<td><?php echo $list->name ?> by <?php echo $list->owner_link() ?><br/><?php echo $list->description ?></td>
 				<td><?php echo $list->reading_count() ?> readings: <?php echo BfoxBlog::ref_link($list->ref_string()) ?></td>
-				<td>Edit<br/>Duplicate<br/>Delete</td>
+				<td><?php echo $this->edit_list_link($list, __('Edit')) ?><br/>Duplicate<br/>Delete</td>
 			</tr>
 		<?php endforeach ?>
 		</table>
 		<?php
 	}
 
-	private static function list_edit(BfoxReadingList $list) {
+	private function list_edit(BfoxReadingList $list) {
 		?>
-		<form>
+		<form action='<?php echo $this->url ?>' method='post'>
+		<input type='hidden' name='<?php echo self::var_list_id ?>' value='<?php echo $list->id ?>'/>
 		<table>
 		<?php
 			$passage_help_text = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
@@ -146,7 +135,7 @@ class BfoxPlanEdit
 
 			BfoxUtility::option_form_text(self::var_list_name, __('Reading List Name'), '', $list->name, "size = '40'");
 			BfoxUtility::option_form_textarea(self::var_list_description, __('Description'), __('Add an optional description of this reading list.'), 2, 50, $list->description);
-			BfoxUtility::option_form_textarea(self::var_list_readings, __('Readings'), $reading_help_text, 15, 50, $passages);
+			BfoxUtility::option_form_textarea(self::var_list_readings, __('Readings'), $reading_help_text, 15, 50, implode("\n", $list->reading_strings()));
 			BfoxUtility::option_form_textarea(self::var_list_passages, __('Add Groups of Passages'), "<input name='" . self::var_list_chunk_size . "' id='" . self::var_list_chunk_size . "' type='text' value='1' size='4' maxlength='4'/><br/>$passage_help_text", 3, 50, '');
 		?>
 		</table>
@@ -155,14 +144,14 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private static function list_content(BfoxReadingList $list) {
+	private function list_content(BfoxReadingList $list) {
 		?>
 		<h3>Edit Reading List</h3>
-		<?php self::list_edit($list) ?>
+		<?php $this->list_edit($list) ?>
 		<?php
 	}
 
-	private static function plans_table($plans, $lists) {
+	private function plans_table($plans, $lists) {
 		?>
 		<table id="reading_plans" class="widefat">
 			<thead>
