@@ -99,6 +99,10 @@ class BfoxReadingPlan extends BfoxReadingInfo
 	const date_format_normal = 'M j, Y';
 	const date_format_fixed = 'Y-m-d';
 
+	const frequency_day = 0;
+	const frequency_week = 1;
+	const frequency_month = 2;
+
 	public function __construct($values = NULL)
 	{
 		if (is_object($values)) $this->set_from_db($values);
@@ -121,9 +125,15 @@ class BfoxReadingPlan extends BfoxReadingInfo
 		$this->list_id = $list->id;
 	}
 
+	public function frequency_str()
+	{
+		$strings = array(self::frequency_day => 'day', self::frequency_week => 'week', self::frequency_month => 'month');
+		return $strings[$this->frequency];
+	}
+
 	public function frequency_desc()
 	{
-		return $this->frequency . ' ' . $this->frequency_options;
+		return $this->frequency_str() . ' ' . $this->frequency_options;
 	}
 
 	public function start_str($format = self::date_format_normal)
@@ -135,6 +145,31 @@ class BfoxReadingPlan extends BfoxReadingInfo
 	{
 		return date($format, strtotime($this->end_date));
 	}
+
+	private function get_dates($count)
+	{
+		if (self::frequency_day == $this->frequency)
+		{
+			$select_format = 'w';
+			$select_values = array_fill_keys(str_split($plan->frequency_options), TRUE);
+		}
+
+		$inc_str = '+1 ' . $this->frequency_str();
+
+		$dates = array();
+		$date = strtotime($this->start_date);
+		for ($index = 0; $index < $count; $index++)
+		{
+			// If we have select_values, increment until we find a selected value
+			if (!empty($select_values)) while (!$select_values[date($select_format, $date)]) $date = strtotime($inc_str, $date);
+
+			$dates []= $date;
+			$date = strtotime($inc_str, $date);
+		}
+
+		return $dates;
+	}
+
 }
 
 class BfoxReadingScheduleGlobal
