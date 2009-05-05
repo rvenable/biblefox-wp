@@ -37,6 +37,11 @@ switch ($page_name)
 		$bfox_bible_page = new BfoxPageCommentaries();
 		break;
 
+	case BfoxQuery::page_plans:
+		require BFOX_BIBLE_DIR . '/page_plans.php';
+		$bfox_bible_page = new BfoxPagePlans();
+		break;
+
 	case BfoxQuery::page_passage:
 	default:
 		require BFOX_BIBLE_DIR . '/page_passage.php';

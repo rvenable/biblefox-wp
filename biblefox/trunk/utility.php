@@ -109,6 +109,26 @@ class BfoxUtility
 
 		return $footnotes;
 	}
+
+	public static function option_form_generic($id, $title, $option, $help_text = '')
+	{
+		?>
+		<tr>
+			<th scope='row' valign='top'><label for='<?php echo $id ?>'><?php echo $title ?></label></th>
+			<td><?php echo $option ?><?php if (!empty($help_text)) echo "<br/>$help_text" ?></td>
+		</tr>
+		<?php
+	}
+
+	public static function option_form_text($id, $title, $help_text = '', $value = '', $extra_attrs = '')
+	{
+		self::option_form_generic($id, $title, "<input name='$id' id='$id' type='text' value='$value' $extra_attrs/>", $help_text);
+	}
+
+	public static function option_form_textarea($id, $title, $help_text = '', $rows = 0, $cols = 0, $value = '', $extra_attrs = '')
+	{
+		self::option_form_generic($id, $title, "<textarea name='$id' id='$id' rows='$rows' cols='$cols' $extra_attrs/>$value</textarea>", $help_text);
+	}
 }
 
 // TODO3: The remaining functions may be obsolete

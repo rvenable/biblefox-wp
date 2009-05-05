@@ -55,15 +55,32 @@ class BfoxReadingList extends BfoxReadingInfo
 
 	public function set_reading(BibleRefs $refs, $reading_id = -1)
 	{
-		// If the reading id is not already there, we should just add it to the end
-		if (!isset($this->readings[$reading_id])) $this->readings []= $refs;
-		else $this->readings[$reading_id] = $refs;
+		if ($refs->is_valid()) {
+			// If the reading id is not already there, we should just add it to the end
+			if (!isset($this->readings[$reading_id])) $this->readings []= $refs;
+			else $this->readings[$reading_id] = $refs;
+		}
 	}
 
 	public function add_verses($reading_id, $verse_start, $verse_end)
 	{
 		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BibleRefs();
 		$this->readings[$reading_id]->add_seq($verse_start, $verse_end);
+	}
+
+	public function set_readings_by_strings($strings)
+	{
+		if (is_string($strings)) $strings = explode("\n", $strings);
+
+		$this->readings = array();
+		foreach ($strings as $str) $this->set_reading(RefManager::get_from_str($str));
+	}
+
+	public function add_passages($passages, $chunk_size)
+	{
+		$refs = RefManager::get_from_str($passages);
+		$chunks = $refs->get_sections($chunk_size);
+		foreach ($chunks as $chunk) $this->set_reading($chunk);
 	}
 
 	public function ref_string()
@@ -299,7 +316,14 @@ class BfoxPlans
 		return $lists;
 	}
 
-	public static function get_plans($plan_ids)
+	public static function get_list($list_id)
+	{
+		$lists = self::get_lists(array($list_id));
+		if (isset($lists[$list_id])) return $lists[$list_id];
+		else return new BfoxReadingList();
+	}
+
+	public static function get_plans($plan_ids, $owner = 0, $owner_type = self::owner_type_blog)
 	{
 		global $wpdb;
 
@@ -310,8 +334,10 @@ class BfoxPlans
 
 		if (!empty($ids))
 		{
+			if (!empty($owner)) $where_owner = $wpdb->prepare(" OR (owner = %d AND owner_type = %d)", $owner, $owner_type);
+
 			// Get the plans from the DB
-			$results = $wpdb->get_results('SELECT * FROM ' . self::table_plans . ' WHERE id IN (' . implode(',', $ids) . ')');
+			$results = $wpdb->get_results('SELECT * FROM ' . self::table_plans . ' WHERE id IN (' . implode(',', $ids) . ')' . $where_owner);
 
 			// Create each BfoxReadingPlan instance
 			foreach ($results as $result) $plans[$result->id] = new BfoxReadingPlan($result);
