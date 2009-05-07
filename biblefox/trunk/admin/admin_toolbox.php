@@ -481,39 +481,33 @@ class BfoxMainToolbox extends BfoxToolBox
 
 			switch_to_blog($blog->blog_id);
 
-			$plan_ids = array();
-
 			$bfox_plan = new PlanBlog();
 			$plans = $bfox_plan->get_plans();
 
 			foreach ($plans as $plan)
 			{
-				$name = $plan->name;
-
 				$plan->id = 0;
-				$plan->name .= ' List';
-				$plan->description = '';
 				$plan->owner = $blog->blog_id;
 				$plan->owner_type = BfoxPlans::owner_type_blog;
+
+				$plan->description = $plan->summary;
 
 				$new_list = new BfoxReadingList($plan);
 				foreach ($plan->refs as $refs) $new_list->set_reading($refs);
 				BfoxPlans::save_list($new_list);
 
-				$plan->name = $name;
-				$plan->description = $plan->summary;
 				$plan->is_recurring = FALSE;
 				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));
 				$plan->end_date = date('Y-m-d', strtotime($plan->end_date));
+				$plan->list_id = $new_list->id;
 
+				$new_schedule = new BfoxReadingSchedule($plan);
+				BfoxPlans::save_schedule($new_schedule);
+
+				$plan->schedule_id = $new_schedule->id;
 				$new_plan = new BfoxReadingPlan($plan);
-				$new_plan->set_list($new_list);
 				BfoxPlans::save_plan($new_plan);
-
-				$plan_ids[$new_plan->id] = TRUE;
 			}
-
-			if (!empty($plan_ids)) update_option(BfoxBlog::option_reading_plans, array_keys($plan_ids));
 
 			restore_current_blog();
 			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";

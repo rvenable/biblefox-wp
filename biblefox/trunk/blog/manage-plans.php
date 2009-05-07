@@ -55,61 +55,6 @@ $bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
 </table>
 </form>
 
-<?php
-	$owner = $GLOBALS['blog_id'];
-	$owner_type = BfoxPlans::owner_type_blog;
-
-	$plan_ids = BfoxBlog::get_reading_plan_ids();
-	$plans = BfoxPlans::get_plans($plan_ids);
-
-	// Get the reading lists for all these plans
-	$list_ids = array();
-	foreach ($plans as $plan) $list_ids []= $plan->list_id;
-	$lists = BfoxPlans::get_lists($list_ids, $owner, $owner_type);
-?>
-
-<h3>Reading Plans</h3>
-<table id="reading_plans" class="widefat">
-	<thead>
-	<tr>
-		<th>Description</th>
-		<th>Reading List</th>
-		<th>Status</th>
-		<th>Schedule</th>
-		<th>Options</th>
-	</tr>
-	</thead>
-<?php foreach ($plans as $plan): ?>
-	<?php $list = $lists[$plan->list_id] ?>
-	<tr>
-		<td><?php echo $plan->name ?> by <?php echo $plan->owner_link() ?><br/><?php echo $plan->description ?></td>
-		<td><?php echo $list->name ?><br/>by <?php echo $list->owner_link() ?></td>
-		<td><?php echo 'status' ?></td>
-		<td><?php echo $plan->start_str() ?> - <?php echo $plan->end_str() ?><?php if ($plan->is_recurring) echo ' (recurring)'?><br/><?php echo $plan->frequency_desc() ?></td>
-		<td>Edit Plan<br/>Edit Readings<br/>Delete</td>
-	</tr>
-<?php endforeach ?>
-</table>
-
-<h3>Created Reading Lists</h3>
-<p>These are the reading lists which have been created for this blog, and can be edited by this blog.</p>
-<table id="reading_lists" class="widefat">
-	<thead>
-	<tr>
-		<th>Description</th>
-		<th>Overview</th>
-		<th>Options</th>
-	</tr>
-	</thead>
-<?php foreach ($lists as $list): if (($list->owner == $owner) && ($list->owner_type == $owner_type)): ?>
-	<tr>
-		<td><?php echo $list->name ?> by <?php echo $list->owner_link() ?><br/><?php echo $list->description ?></td>
-		<td><?php echo $list->reading_count() ?> readings: <?php echo BfoxBlog::ref_link($list->ref_string()) ?></td>
-		<td>Edit<br/>Duplicate<br/>Delete</td>
-	</tr>
-<?php endif; endforeach ?>
-</table>
-
 <br class="clear" />
 
 <p><strong>Note:</strong><br/>

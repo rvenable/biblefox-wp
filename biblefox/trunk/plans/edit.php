@@ -13,16 +13,14 @@ class BfoxPlanEdit
 	private $owner;
 	private $owner_type;
 	private $url;
-	private $plan_ids;
 
 	private static $save_list;
 	private static $save_new_list;
 
-	public function __construct($owner, $owner_type, $url, $plan_ids = array()) {
+	public function __construct($owner, $owner_type, $url) {
 		$this->owner = $owner;
 		$this->owner_type = $owner_type;
 		$this->url = $url;
-		$this->plan_ids = $plan_ids;
 
 		self::$save_list = __('Save List');
 		self::$save_new_list = __('Save as new List');
@@ -88,22 +86,27 @@ class BfoxPlanEdit
 	}
 
 	private function default_content() {
-		$plans = BfoxPlans::get_plans($this->plan_ids, $this->owner, $this->owner_type);
+		$plans = BfoxPlans::get_owner_plans($this->owner, $this->owner_type);
 
-		// Get the reading lists for all these plans
 		$list_ids = array();
-		foreach ($plans as $plan) $list_ids []= $plan->list_id;
+		$schedule_ids = array();
+		foreach ($plans as $plan) {
+			$list_ids[$plan->list_id] = TRUE;
+			$schedule_ids[$plan->schedule_id] = TRUE;
+		}
+		$schedule_ids = array_keys($schedule_ids);
+		$list_ids = array_keys($list_ids);
+
 		$lists = BfoxPlans::get_lists($list_ids, $this->owner, $this->owner_type);
+		$schedules = BfoxPlans::get_schedules($schedule_ids, $this->owner, $this->owner_type);
+
 		?>
 
 		<p>Reading plans allow you to organize how you read the Bible. You can create your own reading plans, or subscribe to someone else's plans.</p>
 
-		<h3>My Schedules</h3>
-		<p>These are schedules you are following:</p>
-
 		<h3>Reading Plans</h3>
 		<p>These are reading plans you have created or have subscribed to:</p>
-		<?php $this->plans_table($plans, $lists) ?>
+		<?php $this->plans_table($plans, $lists, $schedules) ?>
 
 		<h3>My Reading Lists</h3>
 		<p>These are reading lists you have created or have subscribed to:</p>
@@ -120,8 +123,8 @@ class BfoxPlanEdit
 		<table id='reading_lists' class='widefat'>
 			<thead>
 			<tr>
-				<th>Description</th>
-				<th>Overview</th>
+				<th>Reading List</th>
+				<th>Schedules</th>
 				<th>Options</th>
 			</tr>
 			</thead>
@@ -174,25 +177,46 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private function plans_table($plans, $lists) {
+	private function plans_table($plans, $lists, $schedules) {
 		?>
 		<table id="reading_plans" class="widefat">
 			<thead>
 			<tr>
-				<th>Description</th>
-				<th>Reading List</th>
-				<th>Status</th>
-				<th>Schedule</th>
+				<th>Reading Lists</th>
+				<th>Schedules</th>
 				<th>Options</th>
 			</tr>
 			</thead>
 		<?php foreach ($plans as $plan): ?>
 			<?php $list = $lists[$plan->list_id] ?>
+			<?php $schedule = $schedules[$plan->schedule_id] ?>
 			<tr>
-				<td><?php echo $plan->name ?> by <?php echo $plan->owner_link() ?><br/><?php echo $plan->description ?></td>
+				<td><?php echo $list->name ?><br/>by <?php echo $list->owner_link() ?><br/><?php echo $list->decription ?></td>
+				<td><?php echo $schedule->start_str() ?> - <?php echo $schedule->end_str() ?><?php if ($schedule->is_recurring) echo ' (recurring)'?> <?php echo $schedule->frequency_desc() ?></td>
+				<td>Edit Plan<br/>Edit Readings<br/>Delete</td>
+			</tr>
+		<?php endforeach ?>
+		</table>
+		<?php
+	}
+
+	private function plans_suggestions($schedules, $lists) {
+		?>
+		<table id="reading_plan_suggestions" class="widefat">
+			<thead>
+			<tr>
+				<th>Reading List</th>
+				<th>Schedules</th>
+				<th>Options</th>
+			</tr>
+			</thead>
+		<?php foreach ($schedules as $schedule): ?>
+			<?php $list = $lists[$schedule->list_id] ?>
+			<tr>
+				<td><?php echo $schedule->name ?> by <?php echo $schedule->owner_link() ?><br/><?php echo $schedule->description ?></td>
 				<td><?php echo $list->name ?><br/>by <?php echo $list->owner_link() ?></td>
 				<td><?php echo 'status' ?></td>
-				<td><?php echo $plan->start_str() ?> - <?php echo $plan->end_str() ?><?php if ($plan->is_recurring) echo ' (recurring)'?><br/><?php echo $plan->frequency_desc() ?></td>
+				<td><?php echo $schedule->start_str() ?> - <?php echo $schedule->end_str() ?><?php if ($schedule->is_recurring) echo ' (recurring)'?><br/><?php echo $schedule->frequency_desc() ?></td>
 				<td>Edit Plan<br/>Edit Readings<br/>Delete</td>
 			</tr>
 		<?php endforeach ?>
