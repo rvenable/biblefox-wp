@@ -131,6 +131,82 @@ class BfoxUtility
 	}
 }
 
+class BfoxHtmlElement {
+	protected $attrs;
+
+	public function __construct($attrs = '') {
+		$this->attrs = $attrs;
+	}
+}
+
+class BfoxHtmlRow extends BfoxHtmlElement {
+	private $cols = array();
+
+	public function add_col($col, $attrs = '') {
+		$this->cols []= "<td $attrs>$col</td>";
+	}
+	public function add_header_col($col, $attrs = '') {
+		$this->cols []= "<th $attrs>$col</th>";
+	}
+
+	public function content() {
+		$content = "	<tr $this->attrs>\n";
+		foreach ($this->cols as $col) $content .= "		$col\n";
+		$content .= "	</tr>\n";
+		return $content;
+	}
+}
+
+class BfoxHtmlTable extends BfoxHtmlElement {
+	private $header_rows = array();
+	private $rows = array();
+	private $footer_rows = array();
+
+	public function add_row(BfoxHtmlRow $row) {
+		$this->rows []= $row;
+	}
+
+	public function add_header_row(BfoxHtmlRow $row) {
+		$this->header_rows []= $row;
+	}
+
+	public function add_footer_row(BfoxHtmlRow $row) {
+		$this->footer_rows []= $row;
+	}
+
+	private static function row_section($section, $rows) {
+		$content = '';
+		if (!empty($rows)) {
+			$content = "<$section>\n";
+			foreach ($rows as $row) $content .= $row->content();
+			$content .= "</$section>\n";
+		}
+		return $content;
+	}
+
+	public function content() {
+		return "<table $this->attrs>\n" .
+			self::row_section('thead', $this->header_rows) .
+			self::row_section('tbody', $this->rows) .
+			self::row_section('tfoot', $this->footer_rows) .
+			"</table>\n";
+	}
+
+	public function content_split($max_cols, $attrs = '', $height_threshold = 0) {
+		$content = "<table $attrs><tr>\n";
+		$columns = BfoxUtility::divide_into_cols($this->rows, $max_cols, $height_threshold);
+		foreach ($columns as $rows) {
+			$content .= "<td><table $this->attrs>\n" .
+				self::row_section('thead', $this->header_rows) .
+				self::row_section('tbody', $rows) .
+				self::row_section('tfoot', $this->footer_rows) .
+				"</table><td>\n";
+		}
+		$content .= "</tr></table>\n";
+		return $content;
+	}
+}
+
 // TODO3: The remaining functions may be obsolete
 
 	function bfox_admin_page_url($page_name)

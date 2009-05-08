@@ -1,0 +1,14 @@
+@CHARSET "UTF-8";
+
+table.reading_plan_columns {
+	width: 100%;
+}
+
+table.reading_plan {
+	width: 100%;
+	text-align: left;
+}
+
+table.reading_plan tr.current td {
+	font-weight: bold;
+}

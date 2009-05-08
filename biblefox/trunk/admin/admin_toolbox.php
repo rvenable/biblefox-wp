@@ -469,6 +469,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_plans);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_lists);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_readings);
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_schedules);
 		echo 'Creating tables<br/>';
 		BfoxPlans::create_tables();
 
