@@ -13,6 +13,9 @@ class BfoxPlanEdit
 	const var_list_chunk_size = 'list_chunk_size';
 
 	const var_schedule_id = 'schedule_id';
+	const var_schedule_start = 'schedule_start';
+	const var_schedule_frequency = 'schedule_frequency';
+	const var_schedule_freq_options = 'schedule_freq_options';
 
 	private $owner;
 	private $owner_type;
@@ -116,6 +119,15 @@ class BfoxPlanEdit
 		return "<a href='" . add_query_arg(self::var_list_id, $list->id, $this->url) . "'>$str</a>";
 	}
 
+	private function edit_schedule_link(BfoxReadingSchedule $schedule, $str = '') {
+		if (empty($str)) $str = $schedule->name;
+
+		$url = add_query_arg(self::var_schedule_id, $schedule->id, $this->url);
+		if (!empty($schedule->list_id)) $url = add_query_arg(self::var_list_id, $schedule->list_id, $url);
+
+		return "<a href='" . $url . "'>$str</a>";
+	}
+
 	private function is_owned(BfoxReadingInfo $info) {
 		return (($info->owner == $this->owner) && ($info->owner_type == $this->owner_type));
 	}
@@ -128,8 +140,8 @@ class BfoxPlanEdit
 			$_SERVER['REQUEST_URI'] = remove_query_arg(array(BfoxQuery::var_message), $_SERVER['REQUEST_URI']);
 		}
 
-		if (isset($_REQUEST[self::var_plan_id])) $this->page_plan(BfoxPlans::get_plan($_REQUEST[self::var_plan_id]));
-		elseif (isset($_REQUEST[self::var_list_id])) $this->list_content(BfoxPlans::get_list($_REQUEST[self::var_list_id]));
+		if (isset($_REQUEST[self::var_schedule_id])) $this->content_schedule(BfoxPlans::get_schedule($_REQUEST[self::var_schedule_id]));
+		elseif (isset($_REQUEST[self::var_list_id])) $this->content_list(BfoxPlans::get_list($_REQUEST[self::var_list_id]));
 		else $this->default_content();
 	}
 
@@ -161,39 +173,36 @@ class BfoxPlanEdit
 		<?php $this->lists_table($lists) ?>
 
 		<h3>Create New Reading List</h3>
-		<?php $this->list_edit(new BfoxReadingList()) ?>
+		<?php $this->edit_list(new BfoxReadingList()) ?>
 
 		<?php
 	}
 
-	private function page_plan(BfoxReadingPlan $plan) {
-		$list = BfoxPlans::get_list($plan->list_id);
-		$schedule = BfoxPlans::get_schedule($plan->schedule_id);
-		echo $this->content_plan($plan, $list, $schedule);
-	}
-
-	private function content_plan(BfoxReadingPlan $plan, BfoxReadingList $list, BfoxReadingSchedule $schedule, $max_cols = 2) {
+	private function content_readings(BfoxReadingList $list, BfoxReadingSchedule $schedule = NULL, $max_cols = 3) {
 
 		$reading_count = count($list->readings);
 
-		// Get the date information
-		$dates = $schedule->get_dates($reading_count + 1);
-		$current_date_index = BfoxReadingSchedule::current_date_index($dates);
-		if ($reading_count == $current_date_index) $current_date_index = -1;
-
-		// Get the history information
+		$dates = array();
 		$unread_readings = array();
 
-		// TODO2: Implement user reading history
-		/*$history_refs = BfoxHistory::get_from($schedule->start_date);
-		if ($history_refs->is_valid()) {
-			foreach ($list->readings as $reading_id => $reading) {
-				$unread = new BibleRefs();
-				$unread->add_seqs($reading->get_seqs());
-				$unread->sub_seqs($history_refs->get_seqs());
-				$unread_readings[$reading_id] = $unread;
-			}
-		}*/
+		if (!is_null($schedule)) {
+			// Get the date information
+			$dates = $schedule->get_dates($reading_count + 1);
+			$current_date_index = BfoxReadingSchedule::current_date_index($dates);
+			if ($reading_count == $current_date_index) $current_date_index = -1;
+
+			// Get the history information
+			// TODO2: Implement user reading history
+			/*$history_refs = BfoxHistory::get_from($schedule->start_date);
+			if ($history_refs->is_valid()) {
+				foreach ($list->readings as $reading_id => $reading) {
+					$unread = new BibleRefs();
+					$unread->add_seqs($reading->get_seqs());
+					$unread->sub_seqs($history_refs->get_seqs());
+					$unread_readings[$reading_id] = $unread;
+				}
+			}*/
+		}
 
 		$table = new BfoxHtmlTable("class='reading_plan'");
 
@@ -233,6 +242,24 @@ class BfoxPlanEdit
 		return $table->content_split($max_cols, "class='reading_plan_columns'");
 	}
 
+	private function content_list(BfoxReadingList $list) {
+		echo $this->content_readings($list);
+		?>
+		<h3>Edit Reading List</h3>
+		<?php $this->edit_list($list) ?>
+		<?php
+	}
+
+	private function content_schedule(BfoxReadingSchedule $schedule) {
+		$list = BfoxPlans::get_list($schedule->id);
+		echo $this->content_readings($list, $schedule, 2);
+		?>
+		<h3><?php echo $this->edit_list_link($list, 'Edit Reading List') ?></h3>
+		<h3>Edit Reading Schedule</h3>
+		<?php $this->edit_schedule($schedule) ?>
+		<?php
+	}
+
 	private function lists_table($lists) {
 		?>
 		<table id='reading_lists' class='widefat'>
@@ -254,42 +281,73 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private function list_edit(BfoxReadingList $list) {
+	private function edit_list(BfoxReadingList $list) {
 		$is_owned = $this->is_owned($list);
-		?>
 
-		<?php if (!empty($list->id) && !$is_owned): ?>
-		<p>You do not own this reading list. If you make changes they will be saved as a new reading list.</p>
-		<?php endif ?>
-		<form action='<?php echo $this->url ?>' method='post'>
-		<input type='hidden' name='<?php echo self::var_list_id ?>' value='<?php echo $list->id ?>'/>
-		<table>
-		<?php
-			$passage_help_text = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
-				<p>You can type passages of the bible in the box, and then set how many chapters you want to read at a time. The passages will be cut into sections and added to your reading plan.</p>
-				<p>Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John".<br/>
-				You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3").<br/>
-				Separate passages can be separated with a comma (\',\'), semicolon (\';\'), or on separate lines.</p>');
+		$submit = '';
+		if ($is_owned) $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_list . "'/>";
+		$submit .= $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_new_list . "'/>";;
 
-			BfoxUtility::option_form_text(self::var_list_name, __('Reading List Name'), '', $list->name, "size = '40'");
-			BfoxUtility::option_form_textarea(self::var_list_description, __('Description'), __('Add an optional description of this reading list.'), 2, 50, $list->description);
-			BfoxUtility::option_form_textarea(self::var_list_readings, __('Readings'), $reading_help_text, 15, 50, implode("\n", $list->reading_strings()));
-			BfoxUtility::option_form_textarea(self::var_list_passages, __('Add Groups of Passages'), "<input name='" . self::var_list_chunk_size . "' id='" . self::var_list_chunk_size . "' type='text' value='1' size='4' maxlength='4'/><br/>$passage_help_text", 3, 50, '');
-		?>
-		</table>
-		<?php if ($is_owned): ?>
-		<input type='submit' name='<?php echo self::var_list_submit ?>' value='<?php echo self::$save_list ?>'/>
-		<?php endif ?>
-		<input type='submit' name='<?php echo self::var_list_submit ?>' value='<?php echo self::$save_new_list ?>'/>
-		</form>
-		<?php
+		$table = new BfoxHtmlOptionTable('', "action='$this->url' method='post'",
+			"<input type='hidden' name='" . self::var_list_id . "' value='$list->id'/>",
+			$submit);
+
+		$passage_help_text = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
+			<p>You can type passages of the bible in the box, and then set how many chapters you want to read at a time. The passages will be cut into sections and added to your reading plan.</p>
+			<p>Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John".<br/>
+			You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3").<br/>
+			Separate passages can be separated with a comma (\',\'), semicolon (\';\'), or on separate lines.</p>');
+
+		// Name
+		$table->add_option(__('Reading List Name'), '', $table->option_text(self::var_list_name, $list->name, "size = '40'"), '');
+
+		// Description
+		$table->add_option(__('Description'), '',
+			$table->option_textarea(self::var_list_description, $list->description, 2, 50, ''),
+			'<br/>' . __('Add an optional description of this reading list.'));
+
+		// Readings
+		$table->add_option(__('Readings'), '',
+			$table->option_textarea(self::var_list_readings, implode("\n", $list->reading_strings()), 15, 50),
+			'<br/>' . $reading_help_text);
+
+		// Groups of Passages
+		$table->add_option(__('Add Groups of Passages'), '',
+			$table->option_textarea(self::var_list_passages, '', 3, 50),
+			"<br/><input name='" . self::var_list_chunk_size . "' id='" . self::var_list_chunk_size . "' type='text' value='1' size='4' maxlength='4'/><br/>$passage_help_text");
+
+		echo $table->content();
 	}
 
-	private function list_content(BfoxReadingList $list) {
-		?>
-		<h3>Edit Reading List</h3>
-		<?php $this->list_edit($list) ?>
-		<?php
+	private function edit_schedule(BfoxReadingSchedule $schedule) {
+		$is_owned = $this->is_owned($schedule);
+
+		$submit = '';
+		if ($is_owned) $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_list . "'/>";
+		$submit .= $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_new_list . "'/>";;
+
+		$table = new BfoxHtmlOptionTable('', "action='$this->url' method='post'",
+			"<input type='hidden' name='" . self::var_schedule_id . "' value='$schedule->id'/>",
+			$submit);
+
+		// Start Date
+		$table->add_option(__('Start Date'), '',
+			$table->option_text(self::var_schedule_start, $schedule->start_date, "size='10' maxlength='20'"),
+			'<br/>' . __('Set the date at which this schedule will begin.'));
+
+		// Frequency
+		$frequency_array = BfoxReadingSchedule::frequency_array();
+		$table->add_option(__('How often will this plan be read?'), '',
+			$table->option_array(self::var_schedule_frequency, array_map('ucfirst', $frequency_array[BfoxReadingSchedule::frequency_array_daily]), $schedule->frequency),
+			'<br/>' . __('Will this plan be read daily, weekly, or monthly?'));
+
+		// Frequency Options
+		$days_week_array = BfoxReadingSchedule::days_week_array();
+		$table->add_option(__('Days of the Week'), '',
+			$table->option_array(self::var_schedule_frequency, array_map('ucfirst', $days_week_array[BfoxReadingSchedule::days_week_array_normal]), $schedule->freq_options_array()),
+			'<br/>' . __('Which days of the week will you be reading?'));
+
+		echo $table->content();
 	}
 
 	private function plans_table($plans, $lists, $schedules) {
@@ -307,8 +365,8 @@ class BfoxPlanEdit
 			<?php $schedule = $schedules[$plan->schedule_id] ?>
 			<tr>
 				<td><?php echo $list->name ?> by <?php echo $list->owner_link() ?><br/><?php echo $list->description ?></td>
-				<td><?php echo $schedule->start_str() ?> - <?php echo $schedule->end_str() ?><?php if ($schedule->is_recurring) echo ' (recurring)'?> <?php echo $schedule->frequency_desc() ?></td>
-				<td><?php echo $this->edit_plan_link($plan, __('Edit Plan')) ?><br/>Remove Plan</td>
+				<td><?php echo $schedule->start_str() ?> - <?php echo $schedule->end_str() ?><?php if ($schedule->is_recurring) echo ' (recurring)'?> (<?php echo $schedule->frequency_desc() ?>)</td>
+				<td><?php echo $this->edit_schedule_link($schedule, __('Edit')) ?><br/>Remove Plan</td>
 			</tr>
 		<?php endforeach ?>
 		</table>

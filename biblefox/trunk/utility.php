@@ -109,30 +109,10 @@ class BfoxUtility
 
 		return $footnotes;
 	}
-
-	public static function option_form_generic($id, $title, $option, $help_text = '')
-	{
-		?>
-		<tr>
-			<th scope='row' valign='top'><label for='<?php echo $id ?>'><?php echo $title ?></label></th>
-			<td><?php echo $option ?><?php if (!empty($help_text)) echo "<br/>$help_text" ?></td>
-		</tr>
-		<?php
-	}
-
-	public static function option_form_text($id, $title, $help_text = '', $value = '', $extra_attrs = '')
-	{
-		self::option_form_generic($id, $title, "<input name='$id' id='$id' type='text' value='$value' $extra_attrs/>", $help_text);
-	}
-
-	public static function option_form_textarea($id, $title, $help_text = '', $rows = 0, $cols = 0, $value = '', $extra_attrs = '')
-	{
-		self::option_form_generic($id, $title, "<textarea name='$id' id='$id' rows='$rows' cols='$cols' $extra_attrs/>$value</textarea>", $help_text);
-	}
 }
 
 class BfoxHtmlElement {
-	protected $attrs;
+	protected $attrs = '';
 
 	public function __construct($attrs = '') {
 		$this->attrs = $attrs;
@@ -193,7 +173,7 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 	}
 
 	public function content_split($max_cols, $attrs = '', $height_threshold = 0) {
-		$content = "<table $attrs><tr>\n";
+		$content = "<table $attrs><tr valign='top'>\n";
 		$columns = BfoxUtility::divide_into_cols($this->rows, $max_cols, $height_threshold);
 		foreach ($columns as $rows) {
 			$content .= "<td><table $this->attrs>\n" .
@@ -204,6 +184,68 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 		}
 		$content .= "</tr></table>\n";
 		return $content;
+	}
+}
+
+class BfoxHtmlOptionRow extends BfoxHtmlRow {
+	private $inputs = array();
+}
+
+class BfoxHtmlOptionTable extends BfoxHtmlTable {
+	private $form_attrs = '';
+	private $pre = '';
+	private $post = '';
+
+	public function __construct($attrs = '', $form_attrs = '', $pre = '', $post = '') {
+		parent::__construct($attrs);
+		$this->form_attrs = $form_attrs;
+		$this->pre = $pre;
+		$this->post = $post;
+	}
+
+	public function add_option($title, $pre, $option, $post) {
+		if (is_array($option)) list($id, $new_option) = $option;
+		else $new_option = $option;
+
+		$row = new BfoxHtmlRow();
+		$row->add_header_col("<label for='$id'>$title</label>", "scope='row' valign='top'");
+		$row->add_col($pre . $new_option . $post);
+		$this->add_row($row);
+	}
+
+	public static function option_text($id, $value = '', $extra_attrs = '') {
+		return array($id, "<input name='$id' id='$id' type='text' value='$value' $extra_attrs/>");
+	}
+
+	public static function option_textarea($id, $value = '', $rows = 0, $cols = 0, $extra_attrs = '') {
+		return array($id, "<textarea name='$id' id='$id' rows='$rows' cols='$cols' $extra_attrs/>$value</textarea>");
+	}
+
+	public static function option_array($id, $labels = array(), $checks = '', $extra_attrs = '') {
+		$inputs = array();
+
+		$name = $id;
+		if (is_array($checks)) {
+			$type = 'checkbox';
+			$name .= '[]';
+		}
+		else {
+			$type = 'radio';
+			$checks = array($checks => TRUE);
+		}
+
+		foreach ($labels as $value => $label) {
+			if ($checks[$value]) $checked = "checked='checked'";
+			else $checked = '';
+
+			$inputs []= "<input type='$type' name='$name' id='$id' value='$value' $checked $extra_attrs />$label";
+		}
+
+		return array($id, implode("<br/>\n", $inputs));
+	}
+
+	public function content() {
+		return "<form $this->form_attrs>\n$this->pre\n" . parent::content() . "$this->post\n</form>\n";
 	}
 }
 

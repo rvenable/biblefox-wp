@@ -144,6 +144,13 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 	const frequency_week = 1;
 	const frequency_month = 2;
 
+	const frequency_array_day = 0;
+	const frequency_array_daily = 1;
+
+	const days_week_array_normal = 0;
+	const days_week_array_full = 1;
+	const days_week_array_short = 2;
+
 	public function __construct($values = NULL)
 	{
 		if (is_object($values)) $this->set_from_db($values);
@@ -166,15 +173,47 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 		$this->list_id = $list->id;
 	}
 
-	public function frequency_str()
+	public static function frequency_array() {
+		return array (
+			self::frequency_array_day => array(self::frequency_day => 'day', self::frequency_week => 'week', self::frequency_month => 'month'),
+			self::frequency_array_daily => array(self::frequency_day => 'daily', self::frequency_week => 'weekly', self::frequency_month => 'monthly')
+		);
+	}
+
+	public function frequency_str($type = self::frequency_array_day)
 	{
-		$strings = array(self::frequency_day => 'day', self::frequency_week => 'week', self::frequency_month => 'month');
-		return $strings[$this->frequency];
+		$strings = self::frequency_array();
+		return $strings[$type][$this->frequency];
+	}
+
+	public static function days_week_array() {
+		return array (
+			self::days_week_array_normal => array('sun', 'mon', 'tues', 'wed', 'thurs', 'fri', 'sat'),
+			self::days_week_array_full => array('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'),
+			self::days_week_array_short => array('S', 'M', 'T', 'W', 'Th', 'F', 'Sa')
+		);
+	}
+
+	public function days_week_str($type = self::days_week_array_short)
+	{
+		if (self::frequency_day == $this->frequency) {
+			if (self::days_week_array_short != $type) $glue = ', ';
+
+			$day_strs = array();
+			$strings = self::days_week_array();
+			$days = $this->freq_options_array();
+			foreach ($days as $day => $is_valid) if ($is_valid) $day_strs []= $strings[$type][$day];
+			return implode($glue, $day_strs);
+		}
+	}
+
+	public function freq_options_array() {
+		return array_fill_keys(str_split($this->frequency_options), TRUE);
 	}
 
 	public function frequency_desc()
 	{
-		return $this->frequency_str() . ' ' . $this->frequency_options;
+		return ucfirst($this->frequency_str(self::frequency_array_daily)) . ', ' . $this->days_week_str();
 	}
 
 	public function start_str($format = self::date_format_normal)
@@ -192,7 +231,7 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 		if (self::frequency_day == $this->frequency)
 		{
 			$select_format = 'w';
-			$select_values = array_fill_keys(str_split($this->frequency_options), TRUE);
+			$select_values = $this->freq_options_array();
 		}
 
 		$inc_str = '+1 ' . $this->frequency_str();
