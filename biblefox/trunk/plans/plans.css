@@ -1,14 +1,39 @@
 @CHARSET "UTF-8";
 
-table.reading_plan_columns {
-	width: 100%;
-}
-
 table.reading_plan {
 	width: 100%;
+	background-color: #FFF;
+	border: 1px solid #DDD;
+	-moz-border-radius-bottomleft: 6px;
+	-moz-border-radius-bottomright: 6px;
+}
+
+table.reading_plan caption {
+	margin: 0;
+	padding: 5px;
+	background-color: #EEE;
+	border: 1px solid #DDD;
+	border-bottom: 0;
+	-moz-border-radius-topleft: 6px;
+	-moz-border-radius-topright: 6px;
 	text-align: left;
 }
 
-table.reading_plan tr.current td {
+table.reading_plan caption p {
+	margin: 0;
+	padding: 0;
+}
+
+table.reading_plan_col {
+	width: 100%;
+	text-align: left;
+	border-spacing: 0;
+}
+
+table.reading_plan_col td {
+	font-size: 10px;
+}
+
+table.reading_plan_col tr.current td {
 	font-weight: bold;
 }

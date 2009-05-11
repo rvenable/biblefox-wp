@@ -221,24 +221,24 @@ class BfoxPlanEdit
 			}*/
 		}
 
-		$table = new BfoxHtmlTable("class='reading_plan'");
+		$table = new BfoxHtmlTable("class='reading_plan_col'");
 
 		// Create the table header
 		$header = new BfoxHtmlRow();
-		$header->add_header_col('', "width='1*'");
-		$header->add_header_col('Passage', "width='10*'");
-		if (!empty($dates)) $header->add_header_col('Date', "width='5*'");
-		if (!empty($unread_readings)) $header->add_header_col('My Progress', "width='5*'");
+		$header->add_header_col('', '');
+		$header->add_header_col('Passage', '');
+		if (!empty($dates)) $header->add_header_col('Date', '');
+		if (!empty($unread_readings)) $header->add_header_col('My Progress', '');
 		$table->add_header_row($header);
 
 		foreach ($list->readings as $reading_id => $reading) {
 			// Create the row for this reading
 			if ($reading_id == $current_date_index) $row = new BfoxHtmlRow("class='current'");
-			else $row = new BfoxHtmlRow('');
+			else $row = new BfoxHtmlRow();
 
 			// Add the reading index column and the bible reference column
 			$row->add_col($reading_id + 1);
-			$row->add_col(BfoxBlog::ref_link($reading->get_string()));
+			$row->add_col(BfoxBlog::ref_link($reading->get_string(BibleMeta::name_short)));
 
 			// Add the Date column
 			if (!empty($dates)) {
@@ -248,7 +248,7 @@ class BfoxPlanEdit
 
 			// Add the History column
 			if (!empty($unread_readings)) {
-				if (isset($unread_readings[$reading_id])) $row->add_col($unread_readings[$reading_id]->get_string());
+				if (isset($unread_readings[$reading_id])) $row->add_col($unread_readings[$reading_id]->get_string(BibleMeta::name_short));
 				else $row->add_col();
 			}
 
@@ -256,7 +256,12 @@ class BfoxPlanEdit
 			$table->add_row($row);
 		}
 
-		return $table->content_split($max_cols, "class='reading_plan_columns'");
+		if (!is_null($schedule)) $schedule_desc = "<br/><br/>Schedule: " . self::schedule_desc($schedule);
+
+		$table2 = new BfoxHtmlTable("class='reading_plan'", "<b>$list->name</b> by " . $list->owner_link() . "<br/>$list->description$schedule_desc");
+		$table2->add_row($table->get_split_row($max_cols, 5));
+
+		return $table2->content();
 	}
 
 	private function content_plan(BfoxReadingPlan $plan) {
@@ -268,6 +273,7 @@ class BfoxPlanEdit
 	}
 
 	private function content_list(BfoxReadingList $list) {
+		echo "<h2>Edit Reading List</h2>";
 		echo $this->content_readings($list);
 		?>
 		<h3>Edit Reading List</h3>
@@ -276,12 +282,13 @@ class BfoxPlanEdit
 	}
 
 	private function content_schedule(BfoxReadingSchedule $schedule) {
+		echo "<h2>Edit Schedule</h2>";
 		$list = BfoxPlans::get_list($schedule->list_id);
 		echo $this->content_readings($list, $schedule, 3);
 		?>
-		<h3><?php echo $this->edit_list_link($list, 'Edit Reading List') ?></h3>
+		<?php echo $this->edit_list_link($list, 'Edit Reading List') ?>
 		<h3>Edit Reading Schedule</h3>
-		<?php $this->edit_schedule($schedule) ?>
+		<?php $this->edit_schedule($schedule, $list) ?>
 		<?php
 	}
 
@@ -310,8 +317,8 @@ class BfoxPlanEdit
 		$is_owned = $this->is_owned($list);
 
 		$submit = '';
-		if ($is_owned) $submit = "<input type='submit' name='" . self::var_submit . "' value='" . self::$save . "'/>";
-		$submit .= "<input type='submit' name='" . self::var_submit . "' value='" . self::$save_new . "'/>";;
+		if ($is_owned) $submit = "<input type='submit' name='" . self::var_submit . "' value='" . self::$save . "' class='button'/>";
+		$submit .= "<input type='submit' name='" . self::var_submit . "' value='" . self::$save_new . "' class='button'/>";;
 
 		$table = new BfoxHtmlOptionTable("class='form-table'", "action='$this->url' method='post'",
 			BfoxUtility::hidden_input(self::var_list_id, $list->id),
@@ -344,20 +351,23 @@ class BfoxPlanEdit
 		echo $table->content();
 	}
 
-	private function edit_schedule(BfoxReadingSchedule $schedule, $plan_id = 0) {
+	private function edit_schedule(BfoxReadingSchedule $schedule, BfoxReadingList $list, $plan_id = 0) {
 		$is_owned = $this->is_owned($schedule);
 
 		$submit = '';
-		if ($is_owned) $submit = "<input type='submit' name='" . self::var_submit . "' value='" . self::$save . "'/>";
-		$submit .= "<input type='submit' name='" . self::var_submit . "' value='" . self::$save_new . "'/>";;
+		if ($is_owned) $submit = "<input type='submit' name='" . self::var_submit . "' value='" . self::$save . "' class='button'/>";
+		$submit .= "<input type='submit' name='" . self::var_submit . "' value='" . self::$save_new . "' class='button'/>";;
 
 		if (!empty($plan_id)) $plan_id_input = BfoxUtility::hidden_input(self::var_plan_id, $plan_id);
 
 		$table = new BfoxHtmlOptionTable("class='form-table'", "action='$this->url' method='post'",
-			BfoxUtility::hidden_input(self::var_schedule_id, $schedule->id) .
-			BfoxUtility::hidden_input(self::var_list_id, $schedule->list_id) .
-			$plan_id_input,
+			BfoxUtility::hidden_input(self::var_schedule_id, $schedule->id) . $plan_id_input,
 			$submit);
+
+		// Reading List
+		$table->add_option(__('Reading List'), '',
+			"<p>" . $this->edit_list_link($list, $list->name) . " by " . $list->owner_link() . "<br/>$list->description" . '</p>' . BfoxUtility::hidden_input(self::var_list_id, $list->id),
+			'<br/>' . __('This is the list of Bible readings which this schedule follows.'));
 
 		// Start Date
 		$table->add_option(__('Start Date'), '',
@@ -389,16 +399,15 @@ class BfoxPlanEdit
 		$your_lists_table = new BfoxHtmlTable("class='widefat'");
 		$popular_lists_table = new BfoxHtmlTable("class='widefat'");
 
-		$header = new BfoxHtmlHeaderRow(array('Reading List', 'Overview', ''));
+		$header = new BfoxHtmlHeaderRow('', 'Reading List', 'Overview', '');
 		$your_lists_table->add_header_row($header);
 		$popular_lists_table->add_header_row($header);
 
 		foreach ($lists as $list) {
-			$row = new BfoxHtmlRow(array(
+			$row = new BfoxHtmlRow('',
 				"$list->name by " . $list->owner_link() . "<br/>$list->description",
 				$list->reading_count() . " readings: " . BfoxBlog::ref_link($list->ref_string()),
-				$this->select_list_link($list)
-				));
+				$this->select_list_link($list));
 			if ($this->is_owned($list)) $your_lists_table->add_row($row);
 			if ($popular[$list->id]) $popular_lists_table->add_row($row);
 		}
@@ -429,29 +438,25 @@ class BfoxPlanEdit
 		$for_list_table = new BfoxHtmlTable("class='widefat'");
 
 		$header = new BfoxHtmlRow();
-		$for_list_table->add_header_row(new BfoxHtmlHeaderRow(array('Schedule', 'Owner', '')));
+		$for_list_table->add_header_row('', 3, 'Schedule', 'Owner');
 
 		foreach ($schedules as $schedule) {
 			if ($for_list[$schedule->id]) {
-				$for_list_table->add_row(new BfoxHtmlRow(array(
+				$for_list_table->add_row('', 3,
 					self::schedule_desc($schedule),
 					$schedule->owner_link(),
-					$this->select_schedule_link($schedule)
-					)));
+					$this->select_schedule_link($schedule));
 			}
 		}
 
 		echo $this->content_readings($list);
-
-		$new_schedule = new BfoxReadingSchedule();
-		$new_schedule->list_id = $list->id;
 
 		?>
 		Select a reading schedule that has already been created, or create a new one:
 		<h3>Reading Schedules for this Reading List</h3>
 		<?php echo $for_list_table->content() ?>
 		<h3>Create a New Schedule</h3>
-		<?php echo $this->edit_schedule($new_schedule, $plan->id) ?>
+		<?php echo $this->edit_schedule(new BfoxReadingSchedule(), $list, $plan->id) ?>
 		<?php
 	}
 

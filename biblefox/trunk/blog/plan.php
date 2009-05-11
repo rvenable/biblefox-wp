@@ -75,6 +75,10 @@ class BfoxReadingList extends BfoxReadingInfo
 		$this->description = $db_data->description;
 	}
 
+	public function sort_readings() {
+		ksort($this->readings);
+	}
+
 	public function set_reading(BibleRefs $refs, $reading_id = -1)
 	{
 		if ($refs->is_valid()) {
@@ -447,6 +451,8 @@ class BfoxPlans {
 
 			// Add all the readings to the reading list
 			foreach ($readings as $reading) $lists[$reading->list_id]->add_verses($reading->reading_id, $reading->verse_begin, $reading->verse_end);
+
+			foreach ($lists as &$list) $list->sort_readings();
 		}
 
 		return $lists;

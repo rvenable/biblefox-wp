@@ -126,9 +126,10 @@ class BfoxHtmlElement {
 class BfoxHtmlRow extends BfoxHtmlElement {
 	private $cols = array();
 
-	public function __construct($params = '', $attrs = '') {
-		if (is_array($params)) $this->add_cols($params);
-		elseif (empty($attrs)) $attrs = $params;
+	public function __construct() {
+		$args = func_get_args();
+		$attrs = array_shift($args);
+		$this->add_cols($args);
 		parent::__construct($attrs);
 	}
 
@@ -160,9 +161,10 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 }
 
 class BfoxHtmlHeaderRow extends BfoxHtmlRow {
-	public function __construct($params = '', $attrs = '') {
-		if (is_array($params)) $this->add_header_cols($params);
-		elseif (empty($attrs)) $attrs = $params;
+	public function __construct() {
+		$args = func_get_args();
+		$attrs = array_shift($args);
+		$this->add_header_cols($args);
 		parent::__construct($attrs);
 	}
 }
@@ -171,17 +173,38 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 	private $header_rows = array();
 	private $rows = array();
 	private $footer_rows = array();
+	private $caption = '';
 
-	public function add_row(BfoxHtmlRow $row) {
-		$this->rows []= $row;
+	public function __construct($attrs, $caption = '') {
+		$this->caption = $caption;
+		parent::__construct($attrs);
 	}
 
-	public function add_header_row(BfoxHtmlRow $row) {
-		$this->header_rows []= $row;
+	private static function prepare_row($class, $args) {
+		$attrs = array_shift($args);
+
+		if (is_a($attrs, BfoxHtmlRow)) $row = $attrs;
+		else $row = new $class($attrs);
+
+		$num_cols = array_shift($args);
+		foreach (array_pad($args, $num_cols, '') as $col) $row->add_col($col);
+
+		return $row;
 	}
 
-	public function add_footer_row(BfoxHtmlRow $row) {
-		$this->footer_rows []= $row;
+	public function add_row($row = '', $num_cols = 0) {
+		$args = func_get_args();
+		$this->rows []= self::prepare_row(BfoxHtmlRow, $args);
+	}
+
+	public function add_header_row($row = '', $num_cols = 0) {
+		$args = func_get_args();
+		$this->header_rows []= self::prepare_row(BfoxHtmlHeaderRow, $args);
+	}
+
+	public function add_footer_row($row = '', $num_cols = 0) {
+		$args = func_get_args();
+		$this->footer_rows []= self::prepare_row(BfoxHtmlRow, $args);
 	}
 
 	private static function row_section($section, $rows) {
@@ -195,25 +218,26 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 	}
 
 	public function content() {
+		if (!empty($this->caption)) $caption = "<caption>$this->caption</caption>";
 		return "<table $this->attrs>\n" .
+			$caption .
 			self::row_section('thead', $this->header_rows) .
 			self::row_section('tbody', $this->rows) .
 			self::row_section('tfoot', $this->footer_rows) .
 			"</table>\n";
 	}
 
-	public function content_split($max_cols, $attrs = '', $height_threshold = 0) {
-		$content = "<table $attrs><tr valign='top'>\n";
+	public function get_split_row($max_cols, $height_threshold = 0) {
+		$row = new BfoxHtmlRow("valign='top'");
 		$columns = BfoxUtility::divide_into_cols($this->rows, $max_cols, $height_threshold);
 		foreach ($columns as $rows) {
-			$content .= "<td><table $this->attrs>\n" .
+			$row->add_col("<table $this->attrs>\n" .
 				self::row_section('thead', $this->header_rows) .
 				self::row_section('tbody', $rows) .
 				self::row_section('tfoot', $this->footer_rows) .
-				"</table><td>\n";
+				"</table>");
 		}
-		$content .= "</tr></table>\n";
-		return $content;
+		return $row;
 	}
 }
 
