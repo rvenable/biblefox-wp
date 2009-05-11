@@ -109,6 +109,10 @@ class BfoxUtility
 
 		return $footnotes;
 	}
+
+	public static function hidden_input($name, $value = '') {
+		return "<input type='hidden' name='$name' value='$value'/>";
+	}
 }
 
 class BfoxHtmlElement {
@@ -122,11 +126,29 @@ class BfoxHtmlElement {
 class BfoxHtmlRow extends BfoxHtmlElement {
 	private $cols = array();
 
-	public function add_col($col, $attrs = '') {
-		$this->cols []= "<td $attrs>$col</td>";
+	public function __construct($params = '', $attrs = '') {
+		if (is_array($params)) $this->add_cols($params);
+		elseif (empty($attrs)) $attrs = $params;
+		parent::__construct($attrs);
 	}
+
+	public function add_col($col, $attrs = '', $type = 'td') {
+		if (is_array($col)) list($new_col, $attrs) = $col;
+		else $new_col = $col;
+
+		$this->cols []= "<$type $attrs>$new_col</$type>";
+	}
+
 	public function add_header_col($col, $attrs = '') {
-		$this->cols []= "<th $attrs>$col</th>";
+		$this->add_col($col, $attrs, 'th');
+	}
+
+	public function add_cols($cols, $attrs = '') {
+		foreach ((array) $cols as $col) $this->add_col($col, $attrs);
+	}
+
+	public function add_header_cols($cols, $attrs = '') {
+		foreach ((array) $cols as $col) $this->add_header_col($col, $attrs);
 	}
 
 	public function content() {
@@ -134,6 +156,14 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 		foreach ($this->cols as $col) $content .= "		$col\n";
 		$content .= "	</tr>\n";
 		return $content;
+	}
+}
+
+class BfoxHtmlHeaderRow extends BfoxHtmlRow {
+	public function __construct($params = '', $attrs = '') {
+		if (is_array($params)) $this->add_header_cols($params);
+		elseif (empty($attrs)) $attrs = $params;
+		parent::__construct($attrs);
 	}
 }
 
@@ -241,7 +271,7 @@ class BfoxHtmlOptionTable extends BfoxHtmlTable {
 			$inputs []= "<input type='$type' name='$name' id='$id' value='$value' $checked $extra_attrs />$label";
 		}
 
-		return array($id, implode("<br/>\n", $inputs));
+		return array('', implode("<br/>\n", $inputs));
 	}
 
 	public function content() {

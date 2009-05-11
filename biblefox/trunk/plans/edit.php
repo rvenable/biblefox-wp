@@ -2,9 +2,10 @@
 
 class BfoxPlanEdit
 {
+	const var_submit = 'submit';
+
 	const var_plan_id = 'plan_id';
 
-	const var_list_submit = 'list_submit';
 	const var_list_id = 'list_id';
 	const var_list_name = 'list_name';
 	const var_list_description = 'list_description';
@@ -21,28 +22,16 @@ class BfoxPlanEdit
 	private $owner_type;
 	private $url;
 
-	private static $save_list;
-	private static $save_new_list;
+	private static $save;
+	private static $save_new;
 
 	public function __construct($owner, $owner_type, $url) {
 		$this->owner = $owner;
 		$this->owner_type = $owner_type;
 		$this->url = $url;
 
-		self::$save_list = __('Save List');
-		self::$save_new_list = __('Save as new List');
-	}
-
-	private function create_list_by_input($input) {
-		if (!empty($input[self::var_list_id])) $list = BfoxPlans::get_list($input[self::var_list_id]);
-		else $list = new BfoxReadingList();
-
-		if (isset($input[self::var_list_name])) $list->name = $input[self::var_list_name];
-		if (isset($input[self::var_list_description])) $list->description = $input[self::var_list_description];
-		if (isset($input[self::var_list_readings])) $list->set_readings_by_strings($input[self::var_list_readings]);
-		if (isset($input[self::var_list_passages])) $list->add_passages($input[self::var_list_passages], $input[self::var_list_chunk_size]);
-
-		return $list;
+		self::$save = __('Save');
+		self::$save_new = __('Save as new');
 	}
 
 	public static function add_head()
@@ -53,83 +42,117 @@ class BfoxPlanEdit
 	}
 
 	public function page_load() {
+
 		$messages = array();
+		$redirect = '';
 
-		/*$plan_id = $_POST[self::var_plan_id];
-		$list_id = $_POST[self::var_list_id];
-		$schedule_id = $_POST[self::var_schedule_id];
+		if (!empty($_POST[self::var_submit])) {
 
-		if (!empty($schedule_id)) {
-			// Edit Schedule
-		}
-		elseif (!empty($list_id) || !empty($plan_id)) {
-			// Edit List
-		}
-		elseif (isset($_POST[self::var_plan_id])) {
-			if ($is_post_schedule) {
-				// Save schedule
+			$plan = BfoxPlans::get_plan($_REQUEST[self::var_plan_id]);
+			if (!$this->is_owned($plan)) $this->set_as_new($plan);
+
+			$is_edit_plan = FALSE;
+
+			if (isset($_POST[self::var_schedule_id])) {
+				$schedule = BfoxPlans::get_schedule($_POST[self::var_schedule_id]);
+				if ((self::$save_new == $_POST[self::var_submit]) || !$this->is_owned($schedule)) $this->set_as_new($schedule);
+
+				$list = BfoxPlans::get_list($_REQUEST[self::var_list_id]);
+
+				if (isset($_POST[self::var_schedule_start])) {
+					$schedule->set_start_date($_POST[self::var_schedule_start]);
+					$schedule->frequency = $_POST[self::var_schedule_frequency];
+					$schedule->set_freq_options((array) $_POST[self::var_schedule_freq_options]);
+					$schedule->set_end_date($list);
+					$schedule->list_id = $list->id;
+				}
+
+				$is_edit_plan = empty($schedule->id);
+
+				BfoxPlans::save_schedule($schedule);
+				$messages []= "Saved Reading Schedule";
+
+				$plan->schedule_id = $schedule->id;
+				$plan->list_id = $schedule->list_id;
+
+				$redirect = $this->edit_schedule_url($schedule->id);
 			}
-			elseif ($is_post_list) {
-
-			}
-
-		}*/
-
-		if (isset($_POST[self::var_list_submit])) {
-
-			// If we are saving an old list, get the list from the DB
-			// Otherwise, create a new list and set the new owner
-			if ((self::$save_list == $_POST[self::var_list_submit]) && !empty($_POST[self::var_list_id]))
+			elseif (isset($_POST[self::var_list_id])) {
 				$list = BfoxPlans::get_list($_POST[self::var_list_id]);
-			else {
-				$list = new BfoxReadingList();
+				if ((self::$save_new == $_POST[self::var_submit]) || !$this->is_owned($list)) $this->set_as_new($list);
 
-				$list->owner = $this->owner;
-				$list->owner_type = $this->owner_type;
-			}
+				if (isset($_POST[self::var_list_name])) {
+					$list->name = $_POST[self::var_list_name];
+					$list->description = $_POST[self::var_list_description];
+					$list->set_readings_by_strings($_POST[self::var_list_readings]);
+					$list->add_passages($_POST[self::var_list_passages], $_POST[self::var_list_chunk_size]);
+				}
 
-			// We can only save lists that we own
-			if ($this->is_owned($list)) {
-				$list->name = $_POST[self::var_list_name];
-				$list->description = $_POST[self::var_list_description];
-				$list->set_readings_by_strings($_POST[self::var_list_readings]);
-				$list->add_passages($_POST[self::var_list_passages], $_POST[self::var_list_chunk_size]);
+				$is_edit_plan = empty($list->id);
 
 				BfoxPlans::save_list($list);
 				$messages []= "Saved Reading List: '$list->name'";
+
+				$plan->list_id = $list->id;
+
+				$redirect = $this->edit_list_url($list->id);
 			}
-			else $messages []= "You cannot modify this list because you are not its owner.";
+
+			if ($is_edit_plan) {
+				BfoxPlans::save_plan($plan);
+				$redirect = $this->edit_plan_url($plan->id);
+			}
 		}
 
 		$message = implode('<br/>', $messages);
 
-		// If there is a message, redirect to show the message
-		// Otherwise if there is no message, but this was still an update, redirect so that refreshing the page won't try to resend the update
-		if (!empty($message)) wp_redirect(add_query_arg(BfoxQuery::var_message, urlencode($message), BfoxQuery::page_url(BfoxQuery::page_plans)));
-		elseif (!empty($_POST['update'])) wp_redirect(BfoxQuery::page_url(BfoxQuery::page_plans));
+		if (!empty($redirect)) wp_redirect(add_query_arg(BfoxQuery::var_message, urlencode($message), $redirect));
+	}
+
+	private function add_plan_link($str = 'Add a Plan') {
+		return "<a href='" . add_query_arg(self::var_plan_id, 0, $this->url) . "'>$str</a>";
+	}
+
+	private function edit_plan_url($plan_id = 0) {
+		return add_query_arg(self::var_plan_id, $plan_id, $this->url);
 	}
 
 	private function edit_plan_link(BfoxReadingPlan $plan, $str = '') {
-		return "<a href='" . add_query_arg(self::var_plan_id, $plan->id, $this->url) . "'>$str</a>";
+		return "<a href='" . $this->edit_plan_url($plan->id) . "'>$str</a>";
 	}
 
-	private function edit_list_link(BfoxReadingList $list, $str = '') {
-		if (empty($str)) $str = $list->name;
-
-		return "<a href='" . add_query_arg(self::var_list_id, $list->id, $this->url) . "'>$str</a>";
+	private function edit_list_url($list_id = 0) {
+		return add_query_arg(self::var_list_id, $list_id, $this->url);
 	}
 
-	private function edit_schedule_link(BfoxReadingSchedule $schedule, $str = '') {
-		if (empty($str)) $str = $schedule->name;
+	private function edit_list_link(BfoxReadingList $list, $str = 'Edit Reading List') {
+		return "<a href='" . $this->edit_list_url($list->id) . "'>$str</a>";
+	}
 
-		$url = add_query_arg(self::var_schedule_id, $schedule->id, $this->url);
-		if (!empty($schedule->list_id)) $url = add_query_arg(self::var_list_id, $schedule->list_id, $url);
+	private function select_list_link(BfoxReadingList $list, $str = 'Select List') {
+		return "<a href='" . add_query_arg(array(self::var_list_id => $list->id, self::var_plan_id => 0), $this->url) . "'>$str</a>";
+	}
 
-		return "<a href='" . $url . "'>$str</a>";
+	private function edit_schedule_url($schedule_id = 0) {
+		return add_query_arg(self::var_schedule_id, $schedule_id, $this->url);
+	}
+
+	private function edit_schedule_link(BfoxReadingSchedule $schedule, $str = 'Edit Schedule') {
+		return "<a href='" . $this->edit_schedule_url($schedule->id) . "'>$str</a>";
+	}
+
+	private function select_schedule_link(BfoxReadingSchedule $schedule, $str = 'Select Schedule') {
+		return "<a href='" . add_query_arg(array(self::var_schedule_id => $schedule->id, self::var_list_id => $schedule->list_id, self::var_plan_id => 0), $this->url) . "'>$str</a>";
 	}
 
 	private function is_owned(BfoxReadingInfo $info) {
 		return (($info->owner == $this->owner) && ($info->owner_type == $this->owner_type));
+	}
+
+	private function set_as_new(BfoxReadingInfo &$info) {
+		$info->id = 0;
+		$info->owner = $this->owner;
+		$info->owner_type = $this->owner_type;
 	}
 
 	public function content() {
@@ -140,7 +163,8 @@ class BfoxPlanEdit
 			$_SERVER['REQUEST_URI'] = remove_query_arg(array(BfoxQuery::var_message), $_SERVER['REQUEST_URI']);
 		}
 
-		if (isset($_REQUEST[self::var_schedule_id])) $this->content_schedule(BfoxPlans::get_schedule($_REQUEST[self::var_schedule_id]));
+		if (isset($_REQUEST[self::var_plan_id])) $this->content_plan(BfoxPlans::get_plan($_REQUEST[self::var_plan_id]));
+		elseif (isset($_REQUEST[self::var_schedule_id])) $this->content_schedule(BfoxPlans::get_schedule($_REQUEST[self::var_schedule_id]));
 		elseif (isset($_REQUEST[self::var_list_id])) $this->content_list(BfoxPlans::get_list($_REQUEST[self::var_list_id]));
 		else $this->default_content();
 	}
@@ -167,14 +191,7 @@ class BfoxPlanEdit
 		<h3>Reading Plans</h3>
 		<p>These are reading plans you have created or have subscribed to:</p>
 		<?php $this->plans_table($plans, $lists, $schedules) ?>
-
-		<h3>My Reading Lists</h3>
-		<p>These are reading lists you have created or have subscribed to:</p>
-		<?php $this->lists_table($lists) ?>
-
-		<h3>Create New Reading List</h3>
-		<?php $this->edit_list(new BfoxReadingList()) ?>
-
+		<?php echo $this->add_plan_link() ?>
 		<?php
 	}
 
@@ -242,6 +259,14 @@ class BfoxPlanEdit
 		return $table->content_split($max_cols, "class='reading_plan_columns'");
 	}
 
+	private function content_plan(BfoxReadingPlan $plan) {
+		if (empty($plan->list_id) && isset($_GET[self::var_list_id])) $plan->list_id = $_GET[self::var_list_id];
+
+		if (empty($plan->list_id)) $this->select_list($plan);
+		elseif (empty($plan->schedule_id)) $this->select_schedule($plan);
+		else $this->content_schedule(BfoxPlans::get_schedule($plan->schedule_id));
+	}
+
 	private function content_list(BfoxReadingList $list) {
 		echo $this->content_readings($list);
 		?>
@@ -251,8 +276,8 @@ class BfoxPlanEdit
 	}
 
 	private function content_schedule(BfoxReadingSchedule $schedule) {
-		$list = BfoxPlans::get_list($schedule->id);
-		echo $this->content_readings($list, $schedule, 2);
+		$list = BfoxPlans::get_list($schedule->list_id);
+		echo $this->content_readings($list, $schedule, 3);
 		?>
 		<h3><?php echo $this->edit_list_link($list, 'Edit Reading List') ?></h3>
 		<h3>Edit Reading Schedule</h3>
@@ -285,11 +310,11 @@ class BfoxPlanEdit
 		$is_owned = $this->is_owned($list);
 
 		$submit = '';
-		if ($is_owned) $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_list . "'/>";
-		$submit .= $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_new_list . "'/>";;
+		if ($is_owned) $submit = "<input type='submit' name='" . self::var_submit . "' value='" . self::$save . "'/>";
+		$submit .= "<input type='submit' name='" . self::var_submit . "' value='" . self::$save_new . "'/>";;
 
-		$table = new BfoxHtmlOptionTable('', "action='$this->url' method='post'",
-			"<input type='hidden' name='" . self::var_list_id . "' value='$list->id'/>",
+		$table = new BfoxHtmlOptionTable("class='form-table'", "action='$this->url' method='post'",
+			BfoxUtility::hidden_input(self::var_list_id, $list->id),
 			$submit);
 
 		$passage_help_text = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
@@ -319,20 +344,24 @@ class BfoxPlanEdit
 		echo $table->content();
 	}
 
-	private function edit_schedule(BfoxReadingSchedule $schedule) {
+	private function edit_schedule(BfoxReadingSchedule $schedule, $plan_id = 0) {
 		$is_owned = $this->is_owned($schedule);
 
 		$submit = '';
-		if ($is_owned) $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_list . "'/>";
-		$submit .= $submit = "<input type='submit' name='" . self::var_list_submit . "' value='" . self::$save_new_list . "'/>";;
+		if ($is_owned) $submit = "<input type='submit' name='" . self::var_submit . "' value='" . self::$save . "'/>";
+		$submit .= "<input type='submit' name='" . self::var_submit . "' value='" . self::$save_new . "'/>";;
 
-		$table = new BfoxHtmlOptionTable('', "action='$this->url' method='post'",
-			"<input type='hidden' name='" . self::var_schedule_id . "' value='$schedule->id'/>",
+		if (!empty($plan_id)) $plan_id_input = BfoxUtility::hidden_input(self::var_plan_id, $plan_id);
+
+		$table = new BfoxHtmlOptionTable("class='form-table'", "action='$this->url' method='post'",
+			BfoxUtility::hidden_input(self::var_schedule_id, $schedule->id) .
+			BfoxUtility::hidden_input(self::var_list_id, $schedule->list_id) .
+			$plan_id_input,
 			$submit);
 
 		// Start Date
 		$table->add_option(__('Start Date'), '',
-			$table->option_text(self::var_schedule_start, $schedule->start_date, "size='10' maxlength='20'"),
+			$table->option_text(self::var_schedule_start, $schedule->start_str(), "size='10' maxlength='20'"),
 			'<br/>' . __('Set the date at which this schedule will begin.'));
 
 		// Frequency
@@ -344,10 +373,86 @@ class BfoxPlanEdit
 		// Frequency Options
 		$days_week_array = BfoxReadingSchedule::days_week_array();
 		$table->add_option(__('Days of the Week'), '',
-			$table->option_array(self::var_schedule_frequency, array_map('ucfirst', $days_week_array[BfoxReadingSchedule::days_week_array_normal]), $schedule->freq_options_array()),
+			$table->option_array(self::var_schedule_freq_options, array_map('ucfirst', $days_week_array[BfoxReadingSchedule::days_week_array_normal]), $schedule->freq_options_array()),
 			'<br/>' . __('Which days of the week will you be reading?'));
 
 		echo $table->content();
+	}
+
+	private function select_list() {
+		$popular_list_ids = BfoxPlans::get_popular_list_ids();
+		$list_ids = $popular_list_ids;
+		$lists = BfoxPlans::get_lists($list_ids, $this->owner, $this->owner_type);
+
+		$popular = array_fill_keys($popular_list_ids, TRUE);
+
+		$your_lists_table = new BfoxHtmlTable("class='widefat'");
+		$popular_lists_table = new BfoxHtmlTable("class='widefat'");
+
+		$header = new BfoxHtmlHeaderRow(array('Reading List', 'Overview', ''));
+		$your_lists_table->add_header_row($header);
+		$popular_lists_table->add_header_row($header);
+
+		foreach ($lists as $list) {
+			$row = new BfoxHtmlRow(array(
+				"$list->name by " . $list->owner_link() . "<br/>$list->description",
+				$list->reading_count() . " readings: " . BfoxBlog::ref_link($list->ref_string()),
+				$this->select_list_link($list)
+				));
+			if ($this->is_owned($list)) $your_lists_table->add_row($row);
+			if ($popular[$list->id]) $popular_lists_table->add_row($row);
+		}
+
+		?>
+		Select a reading list that has already been created, or create a new one:
+		<h3>Your Reading Lists</h3>
+		<?php echo $your_lists_table->content() ?>
+		<h3>Popular Reading Lists</h3>
+		<?php echo $popular_lists_table->content() ?>
+		<h3>Create Reading List</h3>
+		<?php echo $this->edit_list(new BfoxReadingList()) ?>
+		<?php
+	}
+
+	private static function schedule_desc(BfoxReadingSchedule $schedule) {
+		return $schedule->start_str() . ' - ' . $schedule->end_str() . (($schedule->is_recurring) ? ' (recurring)' : '') . ' (' . $schedule->frequency_desc() . ')';
+	}
+
+	private function select_schedule(BfoxReadingPlan $plan) {
+		$list = BfoxPlans::get_list($plan->list_id);
+		$for_list_schedule_ids = BfoxPlans::get_list_schedule_ids($list->id);
+		$schedule_ids = $for_list_schedule_ids;
+		$schedules = BfoxPlans::get_schedules($schedule_ids);//, $this->owner, $this->owner_type);
+
+		$for_list = array_fill_keys($for_list_schedule_ids, TRUE);
+
+		$for_list_table = new BfoxHtmlTable("class='widefat'");
+
+		$header = new BfoxHtmlRow();
+		$for_list_table->add_header_row(new BfoxHtmlHeaderRow(array('Schedule', 'Owner', '')));
+
+		foreach ($schedules as $schedule) {
+			if ($for_list[$schedule->id]) {
+				$for_list_table->add_row(new BfoxHtmlRow(array(
+					self::schedule_desc($schedule),
+					$schedule->owner_link(),
+					$this->select_schedule_link($schedule)
+					)));
+			}
+		}
+
+		echo $this->content_readings($list);
+
+		$new_schedule = new BfoxReadingSchedule();
+		$new_schedule->list_id = $list->id;
+
+		?>
+		Select a reading schedule that has already been created, or create a new one:
+		<h3>Reading Schedules for this Reading List</h3>
+		<?php echo $for_list_table->content() ?>
+		<h3>Create a New Schedule</h3>
+		<?php echo $this->edit_schedule($new_schedule, $plan->id) ?>
+		<?php
 	}
 
 	private function plans_table($plans, $lists, $schedules) {
@@ -361,12 +466,12 @@ class BfoxPlanEdit
 			</tr>
 			</thead>
 		<?php foreach ($plans as $plan): ?>
-			<?php $list = $lists[$plan->list_id] ?>
-			<?php $schedule = $schedules[$plan->schedule_id] ?>
+			<?php $list = (isset($lists[$plan->list_id])) ? $lists[$plan->list_id] : new BfoxReadingList() ?>
+			<?php $schedule = (isset($schedules[$plan->schedule_id])) ? $schedules[$plan->schedule_id] : new BfoxReadingSchedule() ?>
 			<tr>
 				<td><?php echo $list->name ?> by <?php echo $list->owner_link() ?><br/><?php echo $list->description ?></td>
 				<td><?php echo $schedule->start_str() ?> - <?php echo $schedule->end_str() ?><?php if ($schedule->is_recurring) echo ' (recurring)'?> (<?php echo $schedule->frequency_desc() ?>)</td>
-				<td><?php echo $this->edit_schedule_link($schedule, __('Edit')) ?><br/>Remove Plan</td>
+				<td><?php echo $this->edit_plan_link($plan, 'Edit') ?><br/>Remove Plan</td>
 			</tr>
 		<?php endforeach ?>
 		</table>
