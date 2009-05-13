@@ -18,6 +18,9 @@ class BfoxPlanEdit
 	const var_schedule_frequency = 'schedule_frequency';
 	const var_schedule_freq_options = 'schedule_freq_options';
 
+	const var_user = 'user';
+	const var_blog = 'blog';
+
 	private $owner;
 	private $owner_type;
 	private $url;
@@ -201,8 +204,12 @@ class BfoxPlanEdit
 		}
 	}
 
-	private function add_plan_link($str = 'Add a Plan') {
-		return "<a href='" . add_query_arg(self::var_plan_id, 0, $this->url) . "'>$str</a>";
+	private function add_plan_link($str = 'Add a Plan', $list_id = 0, $schedule_id = 0) {
+		$url = add_query_arg(self::var_plan_id, 0, $this->url);
+		if (!empty($list_id)) $url = add_query_arg(self::var_list_id, $list_id, $url);
+		if (!empty($schedule_id)) $url = add_query_arg(self::var_schedule_id, $schedule_id, $url);
+
+		return "<a href='" . $url . "'>$str</a>";
 	}
 
 	private function edit_plan_url($plan_id = 0) {
@@ -258,11 +265,45 @@ class BfoxPlanEdit
 		if (isset($_GET[self::var_plan_id])) $this->content_plan(BfoxPlans::get_plan($_GET[self::var_plan_id]));
 		elseif (isset($_GET[self::var_schedule_id])) $this->content_schedule(BfoxPlans::get_schedule($_GET[self::var_schedule_id]));
 		elseif (isset($_GET[self::var_list_id])) $this->content_list(BfoxPlans::get_list($_GET[self::var_list_id]));
-		else $this->default_content();
+		else {
+			if (!empty($_GET[self::var_user])) {
+				$user_var = $_GET[self::var_user];
+
+				$user = get_userdata($user_var);
+				if (!$user) $user = get_userdatabylogin($user_var);
+				if (!$user) $user = get_user_by_email($user_var);
+				if (!$user) {
+					echo "<h2>User Search Failed</h2><p>No user could be found for '$user_var'.</p>";
+					$this->find_plans();
+				}
+				else {
+					echo "<h2>Reading Plans for User: $user->display_name</h2>";
+					$this->owner_content($user->ID, BfoxPlans::owner_type_user);
+				}
+			}
+			elseif (!empty($_GET[self::var_blog])) {
+				$blog_var = $_GET[self::var_blog];
+
+				$blog_id = get_id_from_blogname($blog_var);
+				if (!$blog_id) $blog_id = (int) $blog_var;
+				if (!$blog_id) {
+					echo "<h2>Blog Search Failed</h2><p>No blog could be found for '$blog_var'.</p>";
+					$this->find_plans();
+				}
+				else {
+					echo "<h2>Reading Plans for blog: <a href='" . get_blogaddress_by_id($blog_id) . "'>" . get_blog_option($blog_id, 'blogname') . "</a></h2>";
+					$this->owner_content($blog_id, BfoxPlans::owner_type_blog);
+				}
+			}
+			else $this->owner_content($this->owner, $this->owner_type);
+		}
 	}
 
-	private function default_content() {
-		$plans = BfoxPlans::get_owner_plans($this->owner, $this->owner_type);
+	private function owner_content($owner, $owner_type) {
+
+		$is_owner = (($owner == $this->owner) && ($owner_type = $this->owner_type));
+
+		$plans = BfoxPlans::get_owner_plans($owner, $owner_type);
 
 		$list_ids = array();
 		$schedule_ids = array();
@@ -273,8 +314,23 @@ class BfoxPlanEdit
 		$schedule_ids = array_keys($schedule_ids);
 		$list_ids = array_keys($list_ids);
 
-		$lists = BfoxPlans::get_lists($list_ids, $this->owner, $this->owner_type);
-		$schedules = BfoxPlans::get_schedules($schedule_ids, $this->owner, $this->owner_type);
+		$lists = BfoxPlans::get_lists($list_ids, $owner, $owner_type);
+		$schedules = BfoxPlans::get_schedules($schedule_ids, $owner, $owner_type);
+
+		$plans_table = new BfoxHtmlTable("id='reading_plans' class='widefat'");
+		$plans_table->add_header_row('', 3, 'Reading List', 'Schedule', 'Options');
+		foreach ($plans as $plan) {
+			$list = (isset($lists[$plan->list_id])) ? $lists[$plan->list_id] : new BfoxReadingList();
+			$schedule = (isset($schedules[$plan->schedule_id])) ? $schedules[$plan->schedule_id] : new BfoxReadingSchedule();
+
+			if ($is_owner) $options = $this->edit_plan_link($plan, __('Edit')) . "<br/>Remove Plan";
+			else $options = $this->add_plan_link(__('Subscribe'), $list->id, $schedule->id);
+
+			$plans_table->add_row('', 3,
+				"$list->name by " . $list->owner_link() . "<br/>$list->description",
+				self::schedule_desc($schedule),
+				$options);
+		}
 
 		?>
 
@@ -282,8 +338,32 @@ class BfoxPlanEdit
 
 		<h3>Reading Plans</h3>
 		<p>These are reading plans you have created or have subscribed to:</p>
-		<?php $this->plans_table($plans, $lists, $schedules) ?>
+		<?php echo $plans_table->content() ?>
 		<?php echo $this->add_plan_link() ?>
+
+		<?php $this->find_plans() ?>
+		<?php
+	}
+
+	private function find_plans() {
+		list($post_url, $hiddens) = BfoxUtility::get_post_url($this->url);
+
+		?>
+		<h3>Find Reading Plans</h3>
+		<form class='form-table' action='<?php echo $post_url ?>' method='get'>
+		<?php echo $hiddens ?>
+		<p>
+		<input type='text' name='<?php echo self::var_user ?>' value=''/>
+		<input type='submit' value='User Search' class='button'/>
+		</p>
+		</form>
+		<form class='form-table' action='<?php echo $post_url ?>' method='get'>
+		<?php echo $hiddens ?>
+		<p>
+		<input type='text' name='<?php echo self::var_blog ?>' value=''/>
+		<input type='submit' value='Blog Search' class='button'/>
+		</p>
+		</form>
 		<?php
 	}
 
@@ -644,29 +724,6 @@ class BfoxPlanEdit
 		<?php echo $your_schedules_table->content() ?>
 		<?php endif ?>
 
-		<?php
-	}
-
-	private function plans_table($plans, $lists, $schedules) {
-		?>
-		<table id="reading_plans" class="widefat">
-			<thead>
-			<tr>
-				<th>Reading List</th>
-				<th>Schedule</th>
-				<th>Options</th>
-			</tr>
-			</thead>
-		<?php foreach ($plans as $plan): ?>
-			<?php $list = (isset($lists[$plan->list_id])) ? $lists[$plan->list_id] : new BfoxReadingList() ?>
-			<?php $schedule = (isset($schedules[$plan->schedule_id])) ? $schedules[$plan->schedule_id] : new BfoxReadingSchedule() ?>
-			<tr>
-				<td><?php echo $list->name ?> by <?php echo $list->owner_link() ?><br/><?php echo $list->description ?></td>
-				<td><?php echo self::schedule_desc($schedule) ?></td>
-				<td><?php echo $this->edit_plan_link($plan, 'Edit') ?><br/>Remove Plan</td>
-			</tr>
-		<?php endforeach ?>
-		</table>
 		<?php
 	}
 

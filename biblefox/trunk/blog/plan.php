@@ -47,7 +47,7 @@ class BfoxReadingInfo
 			$name = $this->owner_name();
 			switch ($this->owner_type)
 			{
-				case BfoxPlans::owner_type_blog: return "<a href='" . get_blog_option($this->owner, 'siteurl') . "'>" . $name . "</a>";
+				case BfoxPlans::owner_type_blog: return "<a href='" . get_blogaddress_by_id($this->owner) . "'>" . $name . "</a>";
 				case BfoxPlans::owner_type_user:
 					$user = get_userdata($user_id);
 					return "<a href='" . $user->url . "'>" . $user->display_name . "</a>";
@@ -467,14 +467,16 @@ class BfoxPlans {
 				$ids []= $wpdb->prepare('%d', $result->id);
 			}
 
-			// Get the reading info from the DB
-			$readings = $wpdb->get_results('SELECT * FROM ' . self::table_readings . ' WHERE list_id IN (' . implode(',', $ids) . ')');
+			if (!empty($ids)) {
+				// Get the reading info from the DB
+				$readings = $wpdb->get_results('SELECT * FROM ' . self::table_readings . ' WHERE list_id IN (' . implode(',', $ids) . ')');
 
 
-			// Add all the readings to the reading list
-			foreach ($readings as $reading) $lists[$reading->list_id]->add_verses($reading->reading_id, $reading->verse_begin, $reading->verse_end);
+				// Add all the readings to the reading list
+				foreach ($readings as $reading) $lists[$reading->list_id]->add_verses($reading->reading_id, $reading->verse_begin, $reading->verse_end);
 
-			foreach ($lists as &$list) $list->sort_readings();
+				foreach ($lists as &$list) $list->sort_readings();
+			}
 		}
 
 		return $lists;
@@ -1383,7 +1385,7 @@ class BfoxPlans {
 	function bfox_manage_reading_plans_load()
 	{
 		global $bfox_plan, $blog_id, $bfox_plan_editor;
-		$bfox_page_url = 'admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE;
+		$bfox_page_url = BfoxBlog::admin_url('admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE);
 
 		require_once BFOX_PLANS_DIR . '/edit.php';
 		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::owner_type_blog, $bfox_page_url);

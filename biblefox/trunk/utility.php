@@ -113,6 +113,22 @@ class BfoxUtility
 	public static function hidden_input($name, $value = '') {
 		return "<input type='hidden' name='$name' value='$value'/>";
 	}
+
+	/**
+	 * Parses a URL to prepare it for use in a POST form
+	 *
+	 * Parses any variables out of the URL and adds them as hidden inputs. Returns an array with the trimmed URL and the hidden inputs.
+	 *
+	 * @param string $url
+	 * @return array (string URL, string hidden inputs)
+	 */
+	public static function get_post_url($url) {
+		list($path, $query) = explode('?', $url);
+		$hiddens = '';
+		parse_str($query, $vars);
+		foreach ($vars as $var => $value) $hiddens .= self::hidden_input($var, $value);
+		return array($path, $hiddens);
+	}
 }
 
 class BfoxHtmlElement {
