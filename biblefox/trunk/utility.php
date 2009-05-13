@@ -175,36 +175,40 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 	private $footer_rows = array();
 	private $caption = '';
 
-	public function __construct($attrs, $caption = '') {
+	public function __construct($attrs = '', $caption = '') {
 		$this->caption = $caption;
 		parent::__construct($attrs);
 	}
 
-	private static function prepare_row($class, $args) {
+	private static function prepare_row($func, $args) {
 		$attrs = array_shift($args);
 
 		if (is_a($attrs, BfoxHtmlRow)) $row = $attrs;
-		else $row = new $class($attrs);
+		else $row = new BfoxHtmlRow($attrs);
 
 		$num_cols = array_shift($args);
-		foreach (array_pad($args, $num_cols, '') as $col) $row->add_col($col);
+		foreach (array_pad($args, $num_cols, '') as $col) $row->$func($col);
 
 		return $row;
 	}
 
 	public function add_row($row = '', $num_cols = 0) {
 		$args = func_get_args();
-		$this->rows []= self::prepare_row(BfoxHtmlRow, $args);
+		$this->rows []= self::prepare_row(add_col, $args);
 	}
 
 	public function add_header_row($row = '', $num_cols = 0) {
 		$args = func_get_args();
-		$this->header_rows []= self::prepare_row(BfoxHtmlHeaderRow, $args);
+		$this->header_rows []= self::prepare_row(add_header_col, $args);
 	}
 
 	public function add_footer_row($row = '', $num_cols = 0) {
 		$args = func_get_args();
-		$this->footer_rows []= self::prepare_row(BfoxHtmlRow, $args);
+		$this->footer_rows []= self::prepare_row(add_col, $args);
+	}
+
+	public function row_count() {
+		return count($this->rows);
 	}
 
 	private static function row_section($section, $rows) {

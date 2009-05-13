@@ -11,10 +11,15 @@ class BfoxReadingInfo
 	public $owner = 0;
 	public $owner_type = 0;
 	public $is_private = FALSE;
+	private $is_valid = FALSE;
 
 	public function __construct($values = NULL)
 	{
 		if (is_object($values)) $this->set_from_db($values);
+	}
+
+	public function is_valid() {
+		return $this->is_valid;
 	}
 
 	public function set_from_db(stdClass $db_data)
@@ -55,6 +60,10 @@ class BfoxReadingPlan extends BfoxReadingInfo {
 	public $list_id = 0;
 	public $schedule_id = 0;
 
+	public function is_valid() {
+		return !empty($this->list_id);
+	}
+
 	public function set_from_db(stdClass $db_data) {
 		parent::set_from_db($db_data);
 		$this->list_id = $db_data->list_id;
@@ -67,6 +76,10 @@ class BfoxReadingList extends BfoxReadingInfo
 	public $name = '';
 	public $description = '';
 	public $readings = array();
+
+	public function is_valid() {
+		return (!empty($this->name) || !empty($this->description) || !empty($readings));
+	}
 
 	public function set_from_db(stdClass $db_data)
 	{
@@ -164,6 +177,10 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 		if (empty($this->start_date)) $this->set_start_date();
 	}
 
+	public function is_valid() {
+		return !empty($this->list_id);
+	}
+
 	public function set_start_date($start_date = '') {
 		if (empty($start_date)) $start_date = 'today';
 		$this->start_date = BfoxUtility::format_local_date($start_date, self::date_format_fixed);
@@ -194,6 +211,11 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 			$dates = $this->get_dates($reading_count + 1);
 			$this->end_date = date(self::date_format_fixed, $dates[$reading_count]);
 		}
+	}
+
+	public function set_list(BfoxReadingList $list) {
+		$this->list_id = $list->id;
+		$this->set_end_date($list);
 	}
 
 	public static function frequency_array() {
