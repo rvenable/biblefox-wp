@@ -50,6 +50,11 @@ switch ($page_name)
 		$bfox_bible_page = new BfoxPagePlans();
 		break;
 
+	case BfoxQuery::page_history:
+		require BFOX_BIBLE_DIR . '/page_history.php';
+		$bfox_bible_page = new BfoxPageHistory();
+		break;
+
 	case BfoxQuery::page_passage:
 	default:
 		require BFOX_BIBLE_DIR . '/page_passage.php';

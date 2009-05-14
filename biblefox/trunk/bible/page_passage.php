@@ -284,7 +284,7 @@ class BfoxPagePassage extends BfoxPage
 			$history_table->add_row('', 2,
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>",
 				"$intro $history->time",
-				"<a href='" . BfoxQuery::toggle_read_url($history->time) . "'>" . $toggle . "</a>");
+				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
 		}
 
 		echo $history_table->content();

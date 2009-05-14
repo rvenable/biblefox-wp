@@ -61,7 +61,7 @@ class BfoxQuery
 	}
 
 	public static function toggle_read_url($time, $url = '') {
-		if (empty($url)) $url = self::page_url(self::page_passage);
+		if (empty($url)) $url = self::page_url(self::page_history);
 
 		return add_query_arg(self::var_toggle_read, urlencode($time), $url);
 	}
@@ -73,6 +73,7 @@ class BfoxQuery
 			<li><a href="<?php echo self::page_url(self::page_passage) ?>">Passage</a></li>
 			<li><a href="<?php echo self::page_url(self::page_commentary) ?>">Commentaries</a></li>
 			<li><a href="<?php echo self::page_url(self::page_plans) ?>">Reading Plans</a></li>
+			<li><a href="<?php echo self::page_url(self::page_history) ?>">Reading History</a></li>
 		</ul>
 		<?php
 	}
