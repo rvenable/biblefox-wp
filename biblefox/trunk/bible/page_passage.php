@@ -9,12 +9,26 @@ class BfoxPagePassage extends BfoxPage
 	 */
 	protected $refs;
 
+	protected $history;
+
 	public function __construct($ref_str, $trans_str = '')
 	{
 		$this->refs = RefManager::get_from_str($ref_str);
 
-		// If we don't have a valid bible ref, we should just create a bible reference
-		if (!$this->refs->is_valid()) $this->refs = RefManager::get_from_str('Genesis 1');
+		// Get the passage history
+		$this->history = BfoxHistory::get_history(5);
+		if (!empty($this->history)) $last_viewed = current($this->history);
+
+		if ($this->refs->is_valid()) {
+			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
+			if (empty($last_viewed) || ($this->refs->get_string() != $last_viewed->refs->get_string())) BfoxHistory::view_passage($this->refs);
+		}
+		else {
+			// If we don't have a valid bible ref, we should use the history
+			if (!empty($last_viewed)) $this->refs = $last_viewed->refs;
+			// If there is no history, show Genesis 1
+			else $this->refs = RefManager::get_from_str('Genesis 1');
+		}
 
 		parent::__construct($trans_str);
 	}
@@ -254,8 +268,15 @@ class BfoxPagePassage extends BfoxPage
 
 		<?php
 
-		// Update the read history to show that we viewed these scriptures
-		BfoxHistory::view_passage($this->refs);
+		$history_table = new BfoxHtmlTable();
+		foreach ($this->history as $history) {
+			$ref_str = $history->refs->get_string();
+			$history_table->add_row('', 2,
+				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>",
+				$history->time);
+		}
+
+		echo $history_table->content();
 	}
 
 	/**

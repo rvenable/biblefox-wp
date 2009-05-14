@@ -129,6 +129,26 @@ class BfoxUtility
 		foreach ($vars as $var => $value) $hiddens .= self::hidden_input($var, $value);
 		return array($path, $hiddens);
 	}
+
+	/**
+	 * Returns a LIMIT string for SQL.
+	 *
+	 * @param mixed $limit Can be an integer, or an array with the offset and count
+	 * @return string
+	 */
+	public static function limit_str($limit) {
+		$limit_str = '';
+		if (!empty($limit)) {
+			global $wpdb;
+
+			if (is_int($limit)) $limit_str = $wpdb->prepare("LIMIT %d", $limit);
+			elseif (is_array($limit)) {
+				list($offset, $count) = $limit;
+				$limit_str = $wpdb->prepare("LIMIT %d, %d", $offset, $count);
+			}
+		}
+		return $limit_str;
+	}
 }
 
 class BfoxHtmlElement {

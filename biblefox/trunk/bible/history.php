@@ -19,14 +19,43 @@ class BfoxHistory {
 	}
 
 	public static function view_passage(BibleRefs $refs, $user_id = 0) {
+		if ($refs->is_valid()) {
+			if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
+
+			global $wpdb;
+
+			$rows = array();
+			foreach ($refs->get_seqs() as $seq) $rows []= $wpdb->prepare("(%d, NOW(), FALSE, %d, %d)", $user_id, $seq->start, $seq->end);
+
+			$wpdb->query("INSERT INTO " . self::table . " (user_id, time, is_read, verse_begin, verse_end) VALUES " . implode(',', $rows));
+		}
+	}
+
+	public static function get_history($limit = 0, $time = 0, $user_id = 0) {
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
 		global $wpdb;
 
-		$rows = array();
-		foreach ($refs->get_seqs() as $seq) $rows []= $wpdb->prepare("(%d, NOW(), FALSE, %d, %d)", $user_id, $seq->start, $seq->end);
+		$wheres = array($wpdb->prepare("user_id = %d", $user_id));
 
-		$wpdb->query("INSERT INTO " . self::table . " (user_id, time, is_read, verse_begin, verse_end) VALUES " . implode(',', $rows));
+		if (!empty($time)) {
+			if (is_array($time)) {
+				list($start, $end) = $time;
+				$wheres []= $wpdb->prepare("(time BETWEEN %d AND %d)", $start, $end);
+			}
+			else $wheres []= $wpdb->prepare("time >= %d", $time);
+		}
+
+		$results = $wpdb->get_results("SELECT * FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " ORDER BY time DESC " . BfoxUtility::limit_str($limit));
+
+		$history = array();
+		foreach ($results as $result) {
+			if (!isset($history[$result->time])) $history[$result->time] = $result;
+			if (!isset($history[$result->time]->refs)) $history[$result->time]->refs = new BibleRefs();
+			$history[$result->time]->refs->add_seq($result->verse_begin, $result->verse_end);
+		}
+
+		return $history;
 	}
 }
 
