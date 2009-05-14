@@ -8,6 +8,13 @@ require_once BFOX_BIBLE_DIR . '/page.php';
 $search_str = $_REQUEST[BfoxQuery::var_search];
 $ref_str = $_REQUEST[BfoxQuery::var_reference];
 $trans_str = $_REQUEST[BfoxQuery::var_translation];
+$toggle_read_time = $_REQUEST[BfoxQuery::var_toggle_read];
+
+// If we are toggling is_read, then we should do it now, and redirect without the parameter
+if (!empty($toggle_read_time)) {
+	BfoxHistory::toggle_is_read($toggle_read_time);
+	wp_redirect(remove_query_arg(array(BfoxQuery::var_toggle_read), $_SERVER['REQUEST_URI']));
+}
 
 // Get the bible page to view
 $page_name = $_REQUEST[BfoxQuery::var_page];

@@ -31,6 +31,15 @@ class BfoxHistory {
 		}
 	}
 
+	public static function toggle_is_read($time, $user_id = 0) {
+		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
+
+		if (!empty($time)) {
+			global $wpdb;
+			$wpdb->query($wpdb->prepare("UPDATE " . self::table . " SET is_read = NOT(is_read) WHERE user_id = %d AND time = %s", $user_id, $time));
+		}
+	}
+
 	public static function get_history($limit = 0, $time = 0, $user_id = 0) {
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 

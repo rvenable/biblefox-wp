@@ -17,6 +17,7 @@ class BfoxQuery
 	const var_reference = 'bible_ref';
 	const var_search = 'bible_search';
 	const var_message = 'bible_message';
+	const var_toggle_read = 'bible_read';
 
 	private static $url = '';
 	private static $post_url = '';
@@ -57,6 +58,12 @@ class BfoxQuery
 		if (!is_null($translation)) $url = add_query_arg(self::var_translation, $translation->id, $url);
 
 		return $url;
+	}
+
+	public static function toggle_read_url($time, $url = '') {
+		if (empty($url)) $url = self::page_url(self::page_passage);
+
+		return add_query_arg(self::var_toggle_read, urlencode($time), $url);
 	}
 
 	public static function sidebar_list()
