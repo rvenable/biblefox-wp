@@ -202,7 +202,7 @@ class BfoxPagePassage extends BfoxPage
 
 	public function content()
 	{
-		global $bfox_history, $bfox_quicknote, $bfox_viewer;
+		global $bfox_quicknote, $bfox_viewer;
 
 		$bfox_quicknote->set_biblerefs($this->refs);
 
@@ -255,7 +255,7 @@ class BfoxPagePassage extends BfoxPage
 		<?php
 
 		// Update the read history to show that we viewed these scriptures
-		$bfox_history->update($this->refs);
+		BfoxHistory::view_passage($this->refs);
 	}
 
 	/**

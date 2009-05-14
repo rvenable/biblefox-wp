@@ -515,6 +515,13 @@ class BfoxMainToolbox extends BfoxToolBox
 		}
 	}
 
+	public function create_history_table() {
+		global $wpdb;
+		require_once BFOX_BIBLE_DIR . '/history.php';
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxHistory::table);
+		BfoxHistory::create_table();
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *
