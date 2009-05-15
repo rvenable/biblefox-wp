@@ -49,16 +49,26 @@ class BfoxPagePassage extends BfoxPage
 	 * @param BibleRefs $refs
 	 * @param integer $user_id
 	 */
-	public static function output_posts(BibleRefs $refs, $user_id = NULL)
-	{
+	public static function output_posts(BibleRefs $refs, $user_id = NULL) {
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
 		// Get the commentaries for this user
 		$coms = BfoxCommentaries::get_for_user($user_id);
 
+		$blog_ids = array();
+		$internal_coms = array();
+		foreach ($coms as $com)
+			if (!empty($com->blog_id)) {
+				$blog_ids []= $com->blog_id;
+				$internal_coms []= $com;
+			}
+
 		// Output the posts for each commentary
-		foreach ($coms as $com) $com->output_posts($refs);
+		if (!empty($blog_ids)) {
+			$blog_post_ids = BfoxPosts::get_post_ids_for_blogs($refs, $blog_ids);
+			foreach ($internal_coms as $com) if (!empty($blog_post_ids[$com->blog_id])) $com->output_posts($refs, $blog_post_ids[$com->blog_id]);
+		}
 	}
 
 	private static function ref_content(BibleRefs $refs, Translation $translation, &$footnotes)

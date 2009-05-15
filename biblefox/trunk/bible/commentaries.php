@@ -31,30 +31,7 @@ abstract class BfoxComm
 	 *
 	 * @param BibleRefs $refs
 	 */
-	abstract public function output_posts(BibleRefs $refs);
-
-	/**
-	 * Output an individual commentary post
-	 *
-	 * @param object $post Object with post data as returned by bfox_get_posts_for_refs()
-	 */
-	public static function output_post($post)
-	{
-		// TODO2: wpautop was just added, but maybe we should be using the_content() instead.
-		// This would require using the wp_query loop, but would make things more consistent.
-
-		?>
-		<div class="post">
-			<h3>
-				<a href="<?php echo get_permalink($post->ID) ?>"><?php echo $post->post_title ?></a>
-				by <?php echo get_author_name($post->post_author) ?> (<? echo $post->refs->get_string() ?>)
-			</h3>
-			<div class="post_content">
-				<?php echo wpautop($post->post_content) ?>
-			</div>
-		</div>
-		<?php
-	}
+	abstract public function output_posts($post_ids);
 
 }
 
@@ -82,41 +59,38 @@ class BfoxCommIn extends BfoxComm
 	 *
 	 * @param BibleRefs $refs
 	 */
-	public function output_posts(BibleRefs $refs)
-	{
-		global $wpdb;
+	public function output_posts($post_ids) {
+		if (!empty($post_ids)) {
+			global $wpdb;
 
-		$posts = array();
+			$posts = array();
 
-		switch_to_blog($this->blog_id);
+			switch_to_blog($this->blog_id);
 
-		// TODO2: We should get the post ids for all commentary posts at once (rather than checking once per blog)
-		$post_ids = BfoxPosts::get_post_ids($refs);
+			BfoxBlogQueryData::set_post_ids($post_ids);
+			$query = new WP_Query(1);
 
-		// TODO2: We should use WP_Query to get the posts
-		if (!empty($post_ids))
-		{
-			$posts = (array) $wpdb->get_results("
-				SELECT *
-				FROM $wpdb->posts
-				WHERE post_type = 'post' AND post_status = 'publish'
-				AND (ID = " . implode(' OR ID = ', $post_ids) . ")");
-		}
-
-		// TODO2: We should get the references for all commentary posts at once
-		$refs = BfoxPosts::get_refs($post_ids);
-		foreach ($posts as &$post) $post->refs = $refs[$post->ID];
-
-		?>
-		<div class="biblebox">
-			<div class="box_head">
-				<span class="box_right"><?php echo count($posts) ?> posts</span>
-				<a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
+			?>
+			<div class="biblebox">
+				<div class="box_head">
+					<span class="box_right"><?php echo count($posts) ?> posts</span>
+					<a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
+				</div>
+			<?php while($query->have_posts()) :?>
+				<?php $query->the_post() ?>
+				<div class="post">
+					<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
+					<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
+					<div class="post_content">
+						<?php the_content('Read the rest of this entry &raquo;') ?>
+						<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
+					</div>
+				</div>
+			<?php endwhile ?>
 			</div>
-			<?php foreach ($posts as $post) self::output_post($post);?>
-		</div>
-		<?php
-		restore_current_blog();
+			<?php
+			restore_current_blog();
+		}
 	}
 }
 
@@ -137,7 +111,7 @@ class BfoxCommEx extends BfoxComm
 	 *
 	 * @param BibleRefs $refs
 	 */
-	public function output_posts(BibleRefs $refs)
+	public function output_posts($post_ids)
 	{
 		?>
 		<li class="blog_com blog_com_loading postbox">

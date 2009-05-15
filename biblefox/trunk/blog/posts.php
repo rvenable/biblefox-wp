@@ -39,20 +39,20 @@ class BfoxPosts
 		return $post_ids;
 	}
 
-	public static function get_post_ids_for_blogs(BibleRefs $refs, $blog_ids)
-	{
+	public static function get_post_ids_for_blogs(BibleRefs $refs, $blog_ids) {
 		$post_ids = array();
 
-		if (!empty($blog_ids))
-		{
+		if (!empty($blog_ids)) {
 			global $wpdb;
 
 			foreach ($blog_ids as &$blog_id) $blog_id = $wpdb->prepare('%d', $blog_id);
 
-			$post_ids = //$wpdb->get_col("
+			$results = $wpdb->get_results(
 				"SELECT DISTINCT blog_id, post_id
 				FROM " . self::table . "
-				WHERE blog_id IN (" . implode(',', $blog_ids) . ") AND " . $refs->sql_where2('verse_begin', 'verse_end');
+				WHERE blog_id IN (" . implode(',', $blog_ids) . ") AND " . $refs->sql_where2('verse_begin', 'verse_end'));
+
+			foreach ((array) $results as $result) $post_ids[$result->blog_id] []= $result->post_id;
 		}
 
 		return $post_ids;

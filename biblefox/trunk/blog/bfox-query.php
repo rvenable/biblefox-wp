@@ -46,10 +46,19 @@ class BfoxBlogQueryData
 	 */
 	private static $pre_posts = array();
 
-	public static function set_post_ids(BibleRefs $refs)
+	/**
+	 * Sets some post IDs which we want to grab in the current WP_Query.
+	 *
+	 * These posts will be added to the query string via the bfox_posts_where() function
+	 *
+	 * @param mixed $value Either an array of post ids or a BibleRefs to get post ids that contain those references
+	 */
+	public static function set_post_ids($value)
 	{
-		self::$post_ids = BfoxPosts::get_post_ids($refs);
-		self::$use_post_ids = TRUE;
+		if (is_array($value)) self::$post_ids = $value;
+		elseif ($value instanceof BibleRefs) self::$post_ids = BfoxPosts::get_post_ids($value);
+
+		if (!empty(self::$post_ids)) self::$use_post_ids = TRUE;
 	}
 
 	public static function use_post_ids()
