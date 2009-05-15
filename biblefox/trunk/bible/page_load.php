@@ -4,6 +4,7 @@ require_once BFOX_BIBLE_DIR . '/quicknote.php';
 require_once BFOX_BIBLE_DIR . '/commentaries.php';
 require_once BFOX_BIBLE_DIR . '/history.php';
 require_once BFOX_BIBLE_DIR . '/page.php';
+require_once BFOX_BIBLE_DIR . '/notes.php';
 
 $search_str = $_REQUEST[BfoxQuery::var_search];
 $ref_str = $_REQUEST[BfoxQuery::var_reference];
@@ -53,6 +54,11 @@ switch ($page_name)
 	case BfoxQuery::page_history:
 		require BFOX_BIBLE_DIR . '/page_history.php';
 		$bfox_bible_page = new BfoxPageHistory();
+		break;
+
+	case BfoxQuery::page_notes:
+		require BFOX_BIBLE_DIR . '/page_notes.php';
+		$bfox_bible_page = new BfoxPageNotes();
 		break;
 
 	case BfoxQuery::page_passage:
