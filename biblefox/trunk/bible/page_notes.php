@@ -8,9 +8,9 @@ class BfoxPageNotes extends BfoxPage {
 
 	public function page_load() {
 
-		if (isset($_REQUEST[self::var_submit])) {
-			$note = BfoxNotes::get_note($_REQUEST[self::var_note_id]);
-			$note->set_content(strip_tags(stripslashes($_REQUEST[self::var_content])));
+		if (isset($_POST[self::var_submit])) {
+			$note = BfoxNotes::get_note($_POST[self::var_note_id]);
+			$note->set_content(strip_tags(stripslashes($_POST[self::var_content])));
 			BfoxNotes::save_note($note);
 			wp_redirect(self::edit_note_url($note->id));
 		}
@@ -53,7 +53,7 @@ class BfoxPageNotes extends BfoxPage {
 
 		$content = $note->get_content();
 
-		if (!empty($content)) $table->add_option(__('Note'), '', wpautop($content), '');
+		if (!empty($content)) $table->add_option(__('Note'), '', $note->get_display_content(), '');
 
 		// Note Content
 		$table->add_option(__('Edit'), '', $table->option_textarea(self::var_content, $content, 15, 50), '');

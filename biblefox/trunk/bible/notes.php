@@ -41,12 +41,16 @@ class BfoxNote {
 
 	public function set_content($content) {
 		$this->content = $content;
-		// TODO2: calculate refs from content
-		$this->refs = new BibleRefs();
+		$this->refs = new BibleRefs($this->content);
+		$this->display_content = wpautop(bfox_ref_replace_html($this->content));
 	}
 
 	public function get_content() {
 		return $this->content;
+	}
+
+	public function get_display_content() {
+		return $this->display_content;
 	}
 
 	public function get_title() {
