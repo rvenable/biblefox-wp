@@ -10,9 +10,14 @@ class BfoxPageNotes extends BfoxPage {
 
 		if (isset($_REQUEST[self::var_submit])) {
 			$note = BfoxNotes::get_note($_REQUEST[self::var_note_id]);
-			$note->set_content(strip_tags($_REQUEST[self::var_content]));
+			$note->set_content(strip_tags(stripslashes($_REQUEST[self::var_content])));
 			BfoxNotes::save_note($note);
+			wp_redirect(self::edit_note_url($note->id));
 		}
+	}
+
+	public static function edit_note_url($note_id) {
+		return add_query_arg(self::var_note_id, $note_id, BfoxQuery::page_url(BfoxQuery::page_notes));
 	}
 
 	public function content() {
@@ -25,14 +30,20 @@ class BfoxPageNotes extends BfoxPage {
 
 			$notes_table->add_row('', 3,
 				$note->get_modified(),
-				$note->get_title(),
+				$note->get_title() . " (<a href='" . self::edit_note_url($note->id) . "'>edit</a>)",
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>");
 		}
 
 		echo "<h2>My Notes</h2>\n";
 		echo $notes_table->content();
-		echo "<h3>Create a Note</h3>";
-		self::edit_note(new BfoxNote());
+
+		$note = BfoxNotes::get_note($_GET[self::var_note_id]);
+
+		if (empty($note->id)) $edit_header = __('Create a Note');
+		else $edit_header = __('Edit Note');
+
+		echo "<h3>$edit_header</h3>\n";
+		self::edit_note($note);
 	}
 
 	public static function edit_note(BfoxNote $note) {
@@ -40,8 +51,12 @@ class BfoxPageNotes extends BfoxPage {
 			BfoxUtility::hidden_input(self::var_note_id, $note->id),
 			"<p><input type='submit' name='" . self::var_submit . "' value='" . __('Save') . "' class='button'/></p>");
 
+		$content = $note->get_content();
+
+		if (!empty($content)) $table->add_option(__('Note'), '', wpautop($content), '');
+
 		// Note Content
-		$table->add_option(__('Note'), '', $table->option_textarea(self::var_content, $note->get_content(), 15, 50), '');
+		$table->add_option(__('Edit'), '', $table->option_textarea(self::var_content, $content, 15, 50), '');
 
 		echo $table->content();
 	}

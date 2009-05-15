@@ -159,10 +159,10 @@ class BfoxPlanEdit
 		$save = FALSE;
 
 		if (isset($_POST[self::var_list_name])) {
-			$list->name = $_POST[self::var_list_name];
-			$list->description = $_POST[self::var_list_description];
-			$list->set_readings_by_strings($_POST[self::var_list_readings]);
-			$list->add_passages($_POST[self::var_list_passages], $_POST[self::var_list_chunk_size]);
+			$list->name = stripslashes($_POST[self::var_list_name]);
+			$list->description = stripslashes($_POST[self::var_list_description]);
+			$list->set_readings_by_strings(stripslashes($_POST[self::var_list_readings]));
+			$list->add_passages(stripslashes($_POST[self::var_list_passages]), $_POST[self::var_list_chunk_size]);
 			$save = TRUE;
 		}
 
