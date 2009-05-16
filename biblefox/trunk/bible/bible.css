@@ -135,6 +135,15 @@ ul#bible_page_list li {
 	width: auto;
 }
 
+.page_links {
+	font-weight: normal;
+	float: right;
+}
+
+.page_current {
+	font-weight: bold;
+}
+
 #bible .page_head {
 	-moz-border-radius-bottomleft: 6px;
 	-moz-border-radius-bottomright: 6px;

@@ -2,13 +2,20 @@
 
 class BibleSearch
 {
-	public $text, $description;
-	public $last_search_time;
-	public $ref_str;
-	private $words, $index_words;
-	private $trans_where;
-	private $ref_where;
-	private $limit, $offset;
+	const results_per_page = 40;
+
+	public $text = '';
+	public $description = '';
+	public $last_search_time = 0;
+	public $found_rows = 0;
+	public $page = 1;
+	public $ref_str = '';
+	private $words = '';
+	private $index_words = '';
+	private $trans_where = '';
+	private $ref_where = '';
+	private $limit_str = '';
+	private $limit = 0;
 
 	/**
 	 * The bible translation to display the verses in
@@ -17,14 +24,13 @@ class BibleSearch
 	 */
 	private $display_translation;
 
-	public function __construct($text, Translation $translation)
-	{
+	public function __construct($text, Translation $translation, $page = 0) {
+		if (empty($page)) $page = 1;
+
 		$this->set_text($text);
 		$this->display_translation = $translation;
-		$this->ref_str = '';
-		$this->refs_where = '';
-		$this->last_search_time = 0;
-		$this->set_limit();
+		$this->page = $page;
+		$this->set_limit(self::results_per_page, self::results_per_page * ($page - 1));
 	}
 
 	public function set_text($text)
@@ -52,10 +58,21 @@ class BibleSearch
 		}
 	}
 
-	public function set_limit($limit = 40, $offset = 0)
+	public function set_limit($limit = self::results_per_page, $offset = 0)
 	{
 		global $wpdb;
-		$this->limit = $wpdb->prepare('LIMIT %d, %d', $offset, $limit);
+		$this->limit = $limit;
+		$this->limit_str = $wpdb->prepare('LIMIT %d, %d', $offset, $limit);
+	}
+
+	public function get_url() {
+		// TODO3 (HACK): The strtolower is because bible groups need to be lowercase for some reason
+		return BfoxQuery::search_page_url($this->text, strtolower($this->ref_str), $this->display_translation);
+	}
+
+	public function get_num_pages() {
+		if (!empty($this->limit)) return ceil($this->found_rows / $this->limit);
+		return 1;
 	}
 
 	/**
@@ -70,15 +87,16 @@ class BibleSearch
 		$start = microtime(TRUE);
 
 		$verse_ids = $wpdb->get_results("
-			SELECT unique_id, $match as match_val
+			SELECT SQL_CALC_FOUND_ROWS unique_id, $match as match_val
 			FROM " . Translations::index_table . "
 			WHERE $match $this->trans_where $this->ref_where
 			GROUP BY unique_id
 			ORDER BY unique_id ASC
-			$this->limit");
+			$this->limit_str");
 
 		$end = microtime(TRUE);
 		$this->last_search_time = $end - $start;
+		$this->found_rows = $wpdb->get_var("SELECT FOUND_ROWS()");
 
 		$verses = array();
 		foreach ($verse_ids as $verse) $verses[$verse->unique_id] = $verse->match_val;

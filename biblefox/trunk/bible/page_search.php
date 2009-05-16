@@ -4,6 +4,8 @@ require_once BFOX_BIBLE_DIR . '/bible-search.php';
 
 class BfoxPageSearch extends BfoxPage
 {
+	const var_page_num = 'results_page';
+
 	/**
 	 * Instance of BibleSearch for all the search functionality
 	 *
@@ -15,10 +17,14 @@ class BfoxPageSearch extends BfoxPage
 	{
 		parent::__construct($trans_str);
 
-		$this->search = new BibleSearch(strip_tags($search_str), $this->translation);
+		$this->search = new BibleSearch(strip_tags($search_str), $this->translation, $_REQUEST[self::var_page_num]);
 
 		// See if we need to filter these search results by a bible reference
 		if (!empty($ref_str)) $this->search->set_refs(RefManager::get_from_str($ref_str));
+	}
+
+	private function page_url($page_num) {
+		return add_query_arg(self::var_page_num, $page_num, $this->search->get_url());
 	}
 
 	public function get_title()
@@ -43,6 +49,19 @@ class BfoxPageSearch extends BfoxPage
 	public function content()
 	{
 		$book_counts = $this->search->boolean_book_counts();
+		$verses = $this->search->search_boolean();
+
+		// Page links
+		if (1 < $this->search->page) {
+			$page_prev = "<a href='" . $this->page_url($this->search->page - 1) . "'>" . ($this->search->page - 1) . "</a>, ";
+			if (1 < ($this->search->page - 1)) $page_prev = "<a href='" . $this->page_url(1) . "'>1</a> ... $page_prev";
+		}
+		$max_page = $this->search->get_num_pages();
+		if ($max_page > $this->search->page) {
+			$page_next = ", <a href='" . $this->page_url($this->search->page + 1) . "'>" . ($this->search->page + 1) . "</a>";
+			if ($max_page > ($this->search->page + 1)) $page_next .= " ... <a href='" . $this->page_url($max_page) . "'>$max_page</a>";
+		}
+		if (!empty($page_prev) || !empty($page_next)) $page_links = "Page $page_prev<span class='page_current'>{$this->search->page}</span>$page_next";
 
 		// Show the exact matches at the bottom
 		?>
@@ -65,13 +84,11 @@ class BfoxPageSearch extends BfoxPage
 			</div>
 			<div id="search_content">
 				<div class="results roundbox">
-					<div class="box_head">Search Results
+					<div class="box_head"><span class='page_links'><?php echo $page_links ?></span>Search Results
 					</div>
-					<?php
-						$verses = $this->search->search_boolean();
-						echo $this->search->output_verses($verses);
-					?>
-					<div class="box_menu">This search took <?php echo $this->search->last_search_time ?> seconds</div>
+					<?php echo $this->search->output_verses($verses) ?>
+					<div class="box_menu"><span class='page_links'><?php echo $page_links ?></span>This search took <?php echo $this->search->last_search_time ?> seconds
+					</div>
 				</div>
 			</div>
 			<div id="search_footer">
