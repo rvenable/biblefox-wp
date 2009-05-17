@@ -41,10 +41,11 @@ class BfoxPlanEdit
 		self::$save_new_schedule = __('Save New Schedule');
 	}
 
-	public static function add_head()
-	{
+	public static function add_head($base_url = '') {
+		if (empty($base_url)) $base_url = get_option('siteurl');
+
 		?>
-		<link rel="stylesheet" href="<?php echo get_option('siteurl') ?>/wp-content/mu-plugins/biblefox/plans/plans.css" type="text/css"/>
+		<link rel="stylesheet" href="<?php echo $base_url ?>/wp-content/mu-plugins/biblefox/plans/plans.css" type="text/css"/>
 		<?php
 	}
 
@@ -350,14 +351,14 @@ class BfoxPlanEdit
 
 		?>
 		<h3>Find Reading Plans</h3>
-		<form class='form-table' action='<?php echo $post_url ?>' method='get'>
+		<form action='<?php echo $post_url ?>' method='get'>
 		<?php echo $hiddens ?>
 		<p>
 		<input type='text' name='<?php echo self::var_user ?>' value=''/>
 		<input type='submit' value='User Search' class='button'/>
 		</p>
 		</form>
-		<form class='form-table' action='<?php echo $post_url ?>' method='get'>
+		<form action='<?php echo $post_url ?>' method='get'>
 		<?php echo $hiddens ?>
 		<p>
 		<input type='text' name='<?php echo self::var_blog ?>' value=''/>
@@ -391,6 +392,8 @@ class BfoxPlanEdit
 					$unread_readings[$reading_id] = $unread;
 				}
 			}*/
+
+			$schedule_desc = "<br/><br/>Schedule: " . self::schedule_desc($schedule);
 		}
 
 		$table = new BfoxHtmlTable("class='reading_plan_col'");
@@ -428,9 +431,7 @@ class BfoxPlanEdit
 			$table->add_row($row);
 		}
 
-		if (!is_null($schedule)) $schedule_desc = "<br/><br/>Schedule: " . self::schedule_desc($schedule);
-
-		$table2 = new BfoxHtmlTable("class='reading_plan'", "<b>$list->name</b> by " . $list->owner_link() . "<br/>$list->description$schedule_desc");
+		$table2 = new BfoxHtmlTable("class='reading_plan'", "<b>$list->name</b> by " . $list->owner_link() . "<br/><small>$list->description$schedule_desc</small>");
 		$table2->add_row($table->get_split_row($max_cols, 5));
 
 		return $table2->content();

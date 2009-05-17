@@ -188,8 +188,12 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 		foreach ((array) $cols as $col) $this->add_header_col($col, $attrs);
 	}
 
-	public function content() {
-		$content = "	<tr $this->attrs>\n";
+	public function content($extra_class = '') {
+		// TODO3: This extra_class param isn't safe if $this->attrs already has a class
+		$attrs = $this->attrs;
+		if (!empty($extra_class)) $attrs .= "class='$extra_class'";
+
+		$content = "	<tr $attrs>\n";
 		foreach ($this->cols as $col) $content .= "		$col\n";
 		$content .= "	</tr>\n";
 		return $content;
@@ -210,9 +214,11 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 	private $rows = array();
 	private $footer_rows = array();
 	private $caption = '';
+	private $alternates = array();
 
-	public function __construct($attrs = '', $caption = '') {
+	public function __construct($attrs = '', $caption = '', $alternates = array('odd_row', 'even_row')) {
 		$this->caption = $caption;
+		$this->alternates = $alternates;
 		parent::__construct($attrs);
 	}
 
@@ -247,11 +253,17 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 		return count($this->rows);
 	}
 
-	private static function row_section($section, $rows) {
+	private static function row_section($section, $rows, $alternates = array()) {
 		$content = '';
+
+		$num_alt = count($alternates);
+
 		if (!empty($rows)) {
 			$content = "<$section>\n";
-			foreach ($rows as $row) $content .= $row->content();
+			foreach ($rows as $index => $row) {
+				if (0 < $num_alt) $class = $alternates[$index % $num_alt];
+				$content .= $row->content($class);
+			}
 			$content .= "</$section>\n";
 		}
 		return $content;
@@ -262,7 +274,7 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 		return "<table $this->attrs>\n" .
 			$caption .
 			self::row_section('thead', $this->header_rows) .
-			self::row_section('tbody', $this->rows) .
+			self::row_section('tbody', $this->rows, $this->alternates) .
 			self::row_section('tfoot', $this->footer_rows) .
 			"</table>\n";
 	}
@@ -279,10 +291,6 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 		}
 		return $row;
 	}
-}
-
-class BfoxHtmlOptionRow extends BfoxHtmlRow {
-	private $inputs = array();
 }
 
 class BfoxHtmlOptionTable extends BfoxHtmlTable {

@@ -278,7 +278,8 @@ class BfoxPagePassage extends BfoxPage
 
 		<?php
 
-		$history_table = new BfoxHtmlTable();
+		$history_table = new BfoxHtmlTable("class='widefat'");
+		$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
 		foreach ($this->history as $history) {
 			$ref_str = $history->refs->get_string();
 
@@ -291,7 +292,7 @@ class BfoxPagePassage extends BfoxPage
 				$toggle = __('Mark as Read');
 			}
 
-			$history_table->add_row('', 2,
+			$history_table->add_row('', 3,
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>",
 				"$intro $history->time",
 				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");

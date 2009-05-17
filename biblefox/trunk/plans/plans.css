@@ -1,22 +1,25 @@
 @CHARSET "UTF-8";
 
 table.reading_plan {
+	margin: 0;
+	padding: 0;
 	width: 100%;
 	background-color: #FFF;
-	border: 1px solid #DDD;
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
+	border-collapse: separate;
+	border: 0.1em solid #CCC;
+	-moz-border-radius-bottomleft: 0.5em;
+	-moz-border-radius-bottomright: 0.5em;
 }
 
 table.reading_plan caption {
 	margin: 0;
-	padding: 5px;
+	padding: 0.3em;
+	width: 100%;
 	background-color: #EEE;
-	border: 1px solid #DDD;
+	border: 0.1em solid #CCC;
 	border-bottom: 0;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
-	text-align: left;
+	-moz-border-radius-topleft: 0.5em;
+	-moz-border-radius-topright: 0.5em;
 }
 
 table.reading_plan caption p {
@@ -25,13 +28,31 @@ table.reading_plan caption p {
 }
 
 table.reading_plan_col {
+	margin: 0;
+	padding: 0;
 	width: 100%;
 	text-align: left;
 	border-spacing: 0;
 }
 
+table.reading_plan tr, table.reading_plan_col tr {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+table.reading_plan td {
+	margin: 0;
+	padding: 0.3em;
+}
+
 table.reading_plan_col td {
-	font-size: 10px;
+	margin: 0;
+	padding: 0;
+}
+
+table.reading_plan_col td {
+	font-size: 0.8em;
 }
 
 table.reading_plan_col tr.current td {

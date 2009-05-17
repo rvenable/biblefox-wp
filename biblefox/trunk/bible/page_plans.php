@@ -1,7 +1,6 @@
 <?php
 
-class BfoxPagePlans extends BfoxPage
-{
+class BfoxPagePlans extends BfoxPage {
 	private $editor;
 
 	public function __construct() {
@@ -13,9 +12,13 @@ class BfoxPagePlans extends BfoxPage
 		$this->editor = new BfoxPlanEdit($user_ID, BfoxPlans::owner_type_user, BfoxQuery::page_url(BfoxQuery::page_plans));
 	}
 
-	public function page_load()
-	{
+	public function page_load() {
 		$this->editor->page_load();
+	}
+
+	public function print_scripts($base_url) {
+		parent::print_scripts($base_url);
+		$this->editor->add_head($base_url);
 	}
 
 	public function content() {

@@ -23,7 +23,8 @@ class BfoxPageNotes extends BfoxPage {
 	public function content() {
 		$notes = BfoxNotes::get_notes();
 
-		$notes_table = new BfoxHtmlTable();
+		$notes_table = new BfoxHtmlTable("class='widefat'");
+		$notes_table->add_header_row('', 3, 'Modified', 'Note', 'Scriptures Referenced');
 		foreach ($notes as $note) {
 			$refs = $note->get_refs();
 			$ref_str = $refs->get_string();

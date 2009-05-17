@@ -99,8 +99,8 @@ Bible
 	padding: 5px;
 	position: relative;
 
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
+	-moz-border-radius-bottomleft: 0.5em;
+	-moz-border-radius-bottomright: 0.5em;
 	border: 1px solid #A0A0A0;
 	border-top: 0;
 }
@@ -145,10 +145,10 @@ ul#bible_page_list li {
 }
 
 #bible .page_head {
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
+	-moz-border-radius-bottomleft: 0.5em;
+	-moz-border-radius-bottomright: 0.5em;
+	-moz-border-radius-topleft: 0.5em;
+	-moz-border-radius-topright: 0.5em;
 	background-color: #EEEEEE;
 	position: relative;
 	padding: 5px;
@@ -258,10 +258,10 @@ ul#bible_tool_options li {
 }
 
 .note_popup {
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
+	-moz-border-radius-bottomleft: 0.5em;
+	-moz-border-radius-bottomright: 0.5em;
+	-moz-border-radius-topleft: 0.5em;
+	-moz-border-radius-topright: 0.5em;
 	background-color: #EEEEEE;
 	padding: 5px;
 	border: 1px solid #DFDFDF;
@@ -320,7 +320,7 @@ Scripture Layout
 	padding: 0 6px;
 	text-align: center;
 	background-color: #EEEEEE;
-	-moz-border-radius: 6px;
+	-moz-border-radius: 0.5em;
 }
 
 #bible .sequence {
@@ -359,7 +359,7 @@ Blog Commentaries
 	border-left-width: 1px;
 	margin: 0px 0px 5px 5px;
 	padding: 0px;
-	-moz-border-radius-bottomleft: 6px;
+	-moz-border-radius-bottomleft: 0.5em;
 }
 
 #bible_passage .commentary_list_head {
@@ -394,7 +394,7 @@ Generic
 	margin: 5px 0px;
 	background-color: #FFFBCC;
 	border: 1px solid #E6DB55;
-	-moz-border-radius: 6px;
+	-moz-border-radius: 0.5em;
 }
 
 .roundbox, .biblebox {
@@ -418,13 +418,13 @@ Generic
 }
 
 .roundbox {
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
+	-moz-border-radius-bottomleft: 0.5em;
+	-moz-border-radius-bottomright: 0.5em;
 }
 
 .roundbox, .roundbox .box_head {
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
+	-moz-border-radius-topleft: 0.5em;
+	-moz-border-radius-topright: 0.5em;
 }
 
 .biblebox .box_head {
@@ -476,4 +476,99 @@ Generic
 ul.flat_toc li {
 	display: inline;
 	padding-right: 3px;
+}
+
+/*
+Table
+*/
+
+.widefat {
+	-moz-border-radius: 0.5em;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-style: solid;
+	border-width: 0.1em;
+	border-color: #CCC;
+	clear: both;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	background-color: #FFF;
+}
+
+.widefat thead tr th, .widefat tfoot tr th {
+	background: #DDD;
+	color: #333;
+}
+
+.widefat td, .widefat th {
+	border-bottom-style: solid;
+	border-bottom-width: 0.1em;
+	border-color: #CCC;
+	font-size: 0.9em;
+	vertical-align: text-top;
+	margin: 0;
+	padding: 0.3em;
+}
+
+.widefat th {
+	text-shadow: 0 0.1em 0 rgba(255, 255, 255, 0.8);
+	line-height: 1.3em;
+	padding: 0.6em 0.3em;
+	text-align: left;
+}
+
+.widefat tr.even_row td {
+	background-color: #F4F4F4;
+}
+
+/*
+Form Table
+*/
+
+.form-table {
+	-moz-border-radius: 0.5em;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-style: solid;
+	border-width: 0.1em;
+	border-color: #CCC;
+	clear: both;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	background-color: #EEE;
+	
+}
+
+.form-table th, .form-wrap label {
+	color: #222222;
+	text-shadow: 0 0.1em 0 #FFFFFF;
+	font-weight: normal;
+}
+
+.form-table th {
+	padding: 1em;
+	margin: 0;
+	text-align: left;
+	vertical-align: top;
+	width: 15em;
+}
+
+.form-table td {
+	padding: 1em;
+	margin: 0;
+}
+
+.form-table textarea {
+	width: 98%;
+}
+
+.form-table textarea, .form-table input[type="text"] {
+	border: 0.1em solid #CCC;
+	padding: 0.3em;
+}
+
+.form-table label {
+	cursor: pointer;
 }
