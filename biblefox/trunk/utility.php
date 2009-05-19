@@ -157,6 +157,10 @@ class BfoxHtmlElement {
 	public function __construct($attrs = '') {
 		$this->attrs = $attrs;
 	}
+
+	public function set_attrs($attrs) {
+		$this->attrs = $attrs;
+	}
 }
 
 class BfoxHtmlRow extends BfoxHtmlElement {
@@ -246,7 +250,7 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 
 	public function add_footer_row($row = '', $num_cols = 0) {
 		$args = func_get_args();
-		$this->footer_rows []= self::prepare_row(add_col, $args);
+		$this->footer_rows []= self::prepare_row(add_header_col, $args);
 	}
 
 	public function row_count() {
