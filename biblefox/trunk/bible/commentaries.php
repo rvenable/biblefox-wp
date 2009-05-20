@@ -25,14 +25,6 @@ abstract class BfoxComm
 		$this->is_enabled = $is_enabled;
 		$this->blog_id = $blog_id;
 	}
-
-	/**
-	 * Output all of this commentary's posts for the given bible references
-	 *
-	 * @param BibleRefs $refs
-	 */
-	abstract public function output_posts($post_ids);
-
 }
 
 /**
@@ -53,45 +45,6 @@ class BfoxCommIn extends BfoxComm
 		$blog_url = $blog->domain . $blog->path;
 		parent::__construct($blog->blogname, $blog_url . BfoxCommentaries::feed_url, $blog_url, $is_enabled, $blog_id);
 	}
-
-	/**
-	 * Output all of this commentary's posts for the given bible references
-	 *
-	 * @param BibleRefs $refs
-	 */
-	public function output_posts($post_ids) {
-		if (!empty($post_ids)) {
-			global $wpdb;
-
-			$posts = array();
-
-			switch_to_blog($this->blog_id);
-
-			BfoxBlogQueryData::set_post_ids($post_ids);
-			$query = new WP_Query(1);
-
-			?>
-			<div class="biblebox">
-				<div class="box_head">
-					<span class="box_right"><?php echo count($posts) ?> posts</span>
-					<a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
-				</div>
-			<?php while($query->have_posts()) :?>
-				<?php $query->the_post() ?>
-				<div class="post">
-					<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
-					<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
-					<div class="post_content">
-						<?php the_content('Read the rest of this entry &raquo;') ?>
-						<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
-					</div>
-				</div>
-			<?php endwhile ?>
-			</div>
-			<?php
-			restore_current_blog();
-		}
-	}
 }
 
 /**
@@ -104,22 +57,6 @@ class BfoxCommEx extends BfoxComm
 	// TODO2: Implement BfoxCommEx construction
 	function __construct($name, $url, $is_enabled)
 	{
-	}
-
-	/**
-	 * Output all of this commentary's posts for the given bible references
-	 *
-	 * @param BibleRefs $refs
-	 */
-	public function output_posts($post_ids)
-	{
-		?>
-		<li class="blog_com blog_com_loading postbox">
-			<h3 class="blog_com_title"><a href="http://<?php echo $this->blog_url ?>"><?php echo $this->name ?></a>
-			<span class="blog_com_status">Loading...</span>
-			</h3>
-		</li>
-		<?php
 	}
 }
 

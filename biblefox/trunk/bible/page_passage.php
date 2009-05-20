@@ -33,6 +33,14 @@ class BfoxPagePassage extends BfoxPage
 		parent::__construct($trans_str);
 	}
 
+	public function print_scripts($base_url)
+	{
+		?>
+		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/jquery.cookie.js"></script>
+		<?php
+		parent::print_scripts($base_url);
+	}
+
 	public function get_title()
 	{
 		return $this->refs->get_string();
@@ -53,6 +61,8 @@ class BfoxPagePassage extends BfoxPage
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
+		global $wpdb;
+
 		// Get the commentaries for this user
 		$coms = BfoxCommentaries::get_for_user($user_id);
 
@@ -67,7 +77,41 @@ class BfoxPagePassage extends BfoxPage
 		// Output the posts for each commentary
 		if (!empty($blog_ids)) {
 			$blog_post_ids = BfoxPosts::get_post_ids_for_blogs($refs, $blog_ids);
-			foreach ($internal_coms as $com) if (!empty($blog_post_ids[$com->blog_id])) $com->output_posts($refs, $blog_post_ids[$com->blog_id]);
+			foreach ($internal_coms as $com) if (!empty($blog_post_ids[$com->blog_id])) {
+				$post_ids = $blog_post_ids[$com->blog_id];
+				$posts = array();
+
+				switch_to_blog($com->blog_id);
+
+				BfoxBlogQueryData::set_post_ids($post_ids);
+				$query = new WP_Query(1);
+
+				?>
+				<div class="cbox_sub">
+					<div class="cbox_head">
+						<span class="box_right"><?php echo $query->post_count ?> posts</span>
+						<a href="http://<?php echo $com->blog_url ?>"><?php echo $com->name ?></a>
+					</div>
+					<div class='cbox_body'>
+					<?php while($query->have_posts()) :?>
+						<?php $query->the_post() ?>
+						<div class="cbox_sub_sub">
+							<div class='cbox_head'><strong><?php the_title(); ?></strong> by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
+							<div class='cbox_body box_inside'>
+								<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
+								<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
+								<div class="post_content">
+									<?php the_content('Read the rest of this entry &raquo;') ?>
+									<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
+								</div>
+							</div>
+						</div>
+					<?php endwhile ?>
+					</div>
+				</div>
+				<?php
+				restore_current_blog();
+			}
 		}
 	}
 
@@ -226,9 +270,25 @@ class BfoxPagePassage extends BfoxPage
 
 	public function content()
 	{
-		global $bfox_quicknote, $bfox_viewer;
+		$history_table = new BfoxHtmlTable("class='widefat'");
+		$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
+		foreach ($this->history as $history) {
+			$ref_str = $history->refs->get_string();
 
-		$bfox_quicknote->set_biblerefs($this->refs);
+			if ($history->is_read) {
+				$intro = __('Read on');
+				$toggle = __('Mark as Unread');
+			}
+			else {
+				$intro = __('Viewed on');
+				$toggle = __('Mark as Read');
+			}
+
+			$history_table->add_row('', 3,
+				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>",
+				"$intro $history->time",
+				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
+		}
 
 		$ref_str = $this->refs->get_string();
 
@@ -243,18 +303,11 @@ class BfoxPagePassage extends BfoxPage
 					<?php echo $ref_str ?>
 					<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
 				</div>
-				<div>
-					<div class="commentary_list">
-						<div class="commentary_list_head">
-							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
-						</div>
-						<?php self::output_posts($this->refs); ?>
-						<?php //self::output_quick_press(); ?>
-					</div>
 					<div class="reference">
 						<?php echo self::ref_content($this->refs, $this->translation, $footnotes); ?>
 					</div>
 					<div class="clear"></div>
+				<div>
 				</div>
 				<div class="box_menu">
 					<center>
@@ -276,29 +329,35 @@ class BfoxPagePassage extends BfoxPage
 			<?php endif; ?>
 		</div>
 
+		<div id='history' class='cbox'>
+			<div class='cbox_head'>Passage History</div>
+			<div class='cbox_body box_inside'>
+			<?php echo $history_table->content() ?>
+			</div>
+		</div>
 		<?php
-
-		$history_table = new BfoxHtmlTable("class='widefat'");
-		$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
-		foreach ($this->history as $history) {
-			$ref_str = $history->refs->get_string();
-
-			if ($history->is_read) {
-				$intro = __('Read on');
-				$toggle = __('Mark as Unread');
-			}
-			else {
-				$intro = __('Viewed on');
-				$toggle = __('Mark as Read');
-			}
-
-			$history_table->add_row('', 3,
-				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>",
-				"$intro $history->time",
-				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
-		}
-
-		echo $history_table->content();
+		require_once BFOX_BIBLE_DIR . '/page_notes.php';
+		$notes = new BfoxPageNotes();
+		?>
+		<div id='notes' class='cbox'>
+			<div class='cbox_head'>My Bible Notes</div>
+			<div class='cbox_body box_inside'>
+			<?php echo $notes->content() ?>
+			</div>
+		</div>
+		<div id='commentaries' class='cbox'>
+			<div class='cbox_head'>Commentaries</div>
+			<div class='cbox_body'>
+				<div class="commentary_list">
+					<div class="commentary_list_head">
+						Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
+					</div>
+					<?php self::output_posts($this->refs); ?>
+					<?php //self::output_quick_press(); ?>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**

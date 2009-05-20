@@ -457,7 +457,7 @@ Generic
 
 .box_inside {
 	position: relative;
-	padding: 5px;
+	padding: 1em;
 }
 
 .quick_write_input {
@@ -476,6 +476,44 @@ Generic
 ul.flat_toc li {
 	display: inline;
 	padding-right: 3px;
+}
+
+/*
+Collapsable Box
+*/
+
+.cbox {
+	font-size: 1em;
+	margin: 1em 0;
+	border: 0.1em solid #CCC;
+	-moz-border-radius: 0.5em;
+}
+
+.cbox_head {
+	font-size: 1.2em;
+	font-weight: bold;
+	padding: 0.5em;
+	margin: 0;
+	color: #333;
+	background-color: #DDD;
+	border-bottom: 0.1em solid #CCC;
+}
+
+.cbox_sub div.cbox_head {
+	font-size: 1.1em;
+	padding: 0.4em 0.5em;
+	background-color: #DDD;
+}
+
+.cbox_sub_sub div.cbox_head {
+	font-size: 1em;
+	padding: 0.3em 1.4em;
+	background-color: #EEE;
+	font-weight: normal;
+}
+
+.cbox_body {
+	border-bottom: 0.1em solid #CCC;
 }
 
 /*
