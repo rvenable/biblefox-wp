@@ -35,7 +35,6 @@ class BfoxCboxNotes extends BfoxCbox {
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>");
 		}
 
-		echo "<h2>My Notes</h2>\n";
 		echo $notes_table->content();
 
 		$note = BfoxNotes::get_note($_GET[self::var_note_id]);
