@@ -1,6 +1,6 @@
 <?php
 
-class BfoxPageNotes extends BfoxPage {
+class BfoxCboxNotes extends BfoxCbox {
 
 	const var_submit = 'submit';
 	const var_note_id = 'note_id';
@@ -12,12 +12,12 @@ class BfoxPageNotes extends BfoxPage {
 			$note = BfoxNotes::get_note($_POST[self::var_note_id]);
 			$note->set_content(strip_tags(stripslashes($_POST[self::var_content])));
 			BfoxNotes::save_note($note);
-			wp_redirect(self::edit_note_url($note->id));
+			wp_redirect($this->edit_note_url($note->id));
 		}
 	}
 
-	public static function edit_note_url($note_id) {
-		return add_query_arg(self::var_note_id, $note_id, BfoxQuery::page_url(BfoxQuery::page_notes));
+	public function edit_note_url($note_id) {
+		return $this->cbox_url(add_query_arg(self::var_note_id, $note_id, $this->url));
 	}
 
 	public function content() {
@@ -31,7 +31,7 @@ class BfoxPageNotes extends BfoxPage {
 
 			$notes_table->add_row('', 3,
 				$note->get_modified(),
-				$note->get_title() . " (<a href='" . self::edit_note_url($note->id) . "'>edit</a>)",
+				$note->get_title() . " (<a href='" . $this->edit_note_url($note->id) . "'>edit</a>)",
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>");
 		}
 
@@ -44,11 +44,11 @@ class BfoxPageNotes extends BfoxPage {
 		else $edit_header = __('Edit Note');
 
 		echo "<h3>$edit_header</h3>\n";
-		self::edit_note($note);
+		$this->edit_note($note);
 	}
 
-	public static function edit_note(BfoxNote $note) {
-		$table = new BfoxHtmlOptionTable("class='form-table'", "action='" . BfoxQuery::page_url(BfoxQuery::page_notes) . "' method='post'",
+	public function edit_note(BfoxNote $note) {
+		$table = new BfoxHtmlOptionTable("class='form-table'", "action='" . $this->url . "' method='post'",
 			BfoxUtility::hidden_input(self::var_note_id, $note->id),
 			"<p><input type='submit' name='" . self::var_submit . "' value='" . __('Save') . "' class='button'/></p>");
 

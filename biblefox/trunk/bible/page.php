@@ -85,4 +85,36 @@ abstract class BfoxPage
 	}
 }
 
+abstract class BfoxCbox {
+
+	protected $url;
+	protected $id;
+	protected $title;
+
+	public function __construct($url, $id = '', $title = '') {
+		$this->url = $url;
+		$this->id = $id;
+		$this->title = $title;
+	}
+
+	public function page_load() {}
+	public abstract function content();
+
+	public function cbox() {
+		?>
+		<div id='<?php echo $this->id ?>' class='cbox'>
+			<div class='cbox_head'><?php echo $this->title ?></div>
+			<div class='cbox_body box_inside'>
+				<?php echo $this->content() ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	protected function cbox_url($url) {
+		if (!empty($this->id)) return "$url#$this->id";
+		return $url;
+	}
+}
+
 ?>

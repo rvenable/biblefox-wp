@@ -1,5 +1,7 @@
 <?php
 
+require_once BFOX_BIBLE_DIR . '/cbox_notes.php';
+
 class BfoxPagePassage extends BfoxPage
 {
 	/**
@@ -10,6 +12,8 @@ class BfoxPagePassage extends BfoxPage
 	protected $refs;
 
 	protected $history;
+
+	protected $cboxes = array();
 
 	public function __construct($ref_str, $trans_str = '')
 	{
@@ -30,7 +34,14 @@ class BfoxPagePassage extends BfoxPage
 			else $this->refs = RefManager::get_from_str('Genesis 1');
 		}
 
+		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
+		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
+
 		parent::__construct($trans_str);
+	}
+
+	public function page_load() {
+		foreach ($this->cboxes as $cbox) $cbox->page_load();
 	}
 
 	public function print_scripts($base_url)
@@ -336,15 +347,8 @@ class BfoxPagePassage extends BfoxPage
 			</div>
 		</div>
 		<?php
-		require_once BFOX_BIBLE_DIR . '/page_notes.php';
-		$notes = new BfoxPageNotes();
+		echo $this->cboxes['notes']->cbox();
 		?>
-		<div id='notes' class='cbox'>
-			<div class='cbox_head'>My Bible Notes</div>
-			<div class='cbox_body box_inside'>
-			<?php echo $notes->content() ?>
-			</div>
-		</div>
 		<div id='commentaries' class='cbox'>
 			<div class='cbox_head'>Commentaries</div>
 			<div class='cbox_body'>

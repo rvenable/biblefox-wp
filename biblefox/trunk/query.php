@@ -11,7 +11,6 @@ class BfoxQuery
 	const page_search = 'search';
 	const page_history = 'history';
 	const page_plans = 'plans';
-	const page_notes = 'notes';
 
 	const var_page = 'bible_page';
 	const var_translation = 'bible_trans';
@@ -75,7 +74,6 @@ class BfoxQuery
 			<li><a href="<?php echo self::page_url(self::page_commentary) ?>">Commentaries</a></li>
 			<li><a href="<?php echo self::page_url(self::page_plans) ?>">Reading Plans</a></li>
 			<li><a href="<?php echo self::page_url(self::page_history) ?>">Reading History</a></li>
-			<li><a href="<?php echo self::page_url(self::page_notes) ?>">My Notes</a></li>
 		</ul>
 		<?php
 	}
