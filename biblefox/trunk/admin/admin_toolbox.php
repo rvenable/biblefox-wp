@@ -467,9 +467,8 @@ class BfoxMainToolbox extends BfoxToolBox
 		global $wpdb;
 		echo 'Dropping tables<br/>';
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_plans);
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_lists);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_readings);
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_schedules);
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_subs);
 		echo 'Creating tables<br/>';
 		BfoxPlans::create_tables();
 
@@ -488,26 +487,31 @@ class BfoxMainToolbox extends BfoxToolBox
 			foreach ($plans as $plan)
 			{
 				$plan->id = 0;
-				$plan->owner = $blog->blog_id;
-				$plan->owner_type = BfoxPlans::owner_type_blog;
-
 				$plan->description = $plan->summary;
-
-				$new_list = new BfoxReadingList($plan);
-				foreach ($plan->refs as $refs) $new_list->set_reading($refs);
-				BfoxPlans::save_list($new_list);
-
 				$plan->is_recurring = FALSE;
 				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));
 				$plan->end_date = date('Y-m-d', strtotime($plan->end_date));
-				$plan->list_id = $new_list->id;
 
-				$new_schedule = new BfoxReadingSchedule($plan);
-				BfoxPlans::save_schedule($new_schedule);
-
-				$plan->schedule_id = $new_schedule->id;
 				$new_plan = new BfoxReadingPlan($plan);
+				foreach ($plan->refs as $refs) $new_plan->set_reading($refs);
 				BfoxPlans::save_plan($new_plan);
+
+				$new_sub = new BfoxReadingSub();
+				$new_sub->plan_id = $new_plan->id;
+				$new_sub->user_id = $blog->blog_id;
+				$new_sub->user_type = BfoxPlans::user_type_blog;
+				$new_sub->is_subscribed = TRUE;
+				$new_sub->is_owned = TRUE;
+				BfoxPlans::save_sub($new_sub);
+
+				$new_sub->user_type = BfoxPlans::user_type_user;
+				$new_sub->is_owned = FALSE;
+
+				$users = get_users_of_blog($blog->blog_id);
+				foreach ($users as $user) {
+					$new_sub->user_id = $user->user_id;
+					BfoxPlans::save_sub($new_sub);
+				}
 			}
 
 			restore_current_blog();

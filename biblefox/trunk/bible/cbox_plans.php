@@ -19,7 +19,7 @@ class BfoxCboxPlans extends BfoxCbox {
 	public function content() {
 		global $user_ID;
 
-		$plans = BfoxPlans::get_owner_plans($user_ID, BfoxPlans::owner_type_user);
+		$plans = BfoxPlans::get_user_plans($user_ID, BfoxPlans::user_type_user);
 
 		foreach ($plans as $plan) {
 			$schedule_ids []= $plan->schedule_id;
@@ -41,7 +41,7 @@ class BfoxCboxPlans extends BfoxCbox {
 			$reading_strings = $list->reading_strings();
 			// Get the date information
 			$dates = $schedule->get_dates($reading_count + 1);
-			$current_date_index = BfoxReadingSchedule::current_date_index($dates);
+			$current_date_index = BfoxReadingPlan::current_date_index($dates);
 			if ($reading_count <= $current_date_index) $current_date_index = -1;
 			else {
 				$current_table->add_row('', 6, date('M d', $dates[$current_date_index]), $current_date_index, $list->name, $reading_strings[$current_date_index], 'unread', 'mark as read');

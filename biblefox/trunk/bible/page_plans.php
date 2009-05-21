@@ -9,7 +9,7 @@ class BfoxPagePlans extends BfoxPage {
 		parent::__construct();
 
 		require_once BFOX_PLANS_DIR . '/edit.php';
-		$this->editor = new BfoxPlanEdit($user_ID, BfoxPlans::owner_type_user, BfoxQuery::page_url(BfoxQuery::page_plans));
+		$this->editor = new BfoxPlanEdit($user_ID, BfoxPlans::user_type_user, BfoxQuery::page_url(BfoxQuery::page_plans));
 	}
 
 	public function page_load() {

@@ -1,92 +1,62 @@
 <?php
 
 define(BFOX_TABLE_READING_PLANS, BFOX_BASE_TABLE_PREFIX . 'reading_plans');
-define(BFOX_TABLE_READING_LISTS, BFOX_BASE_TABLE_PREFIX . 'reading_lists');
+define(BFOX_TABLE_READING_SUBS, BFOX_BASE_TABLE_PREFIX . 'reading_subs');
 define(BFOX_TABLE_READINGS, BFOX_BASE_TABLE_PREFIX . 'readings');
-define(BFOX_TABLE_READING_SCHEDULES, BFOX_BASE_TABLE_PREFIX . 'reading_schedules');
 
-class BfoxReadingInfo
+class BfoxReadingPlan
 {
 	public $id = 0;
-	public $owner = 0;
-	public $owner_type = 0;
 	public $is_private = FALSE;
-	private $is_valid = FALSE;
+
+	public $name = '';
+	public $description = '';
+	public $readings = array();
+
+	private $start_date = '';
+	private $end_date = '';
+	public $is_recurring = FALSE;
+	public $frequency = 0;
+	private $frequency_options = '0123456';
+
+	const date_format_normal = 'M j, Y';
+	const date_format_fixed = 'Y-m-d';
+
+	const frequency_day = 0;
+	const frequency_week = 1;
+	const frequency_month = 2;
+
+	const frequency_array_day = 0;
+	const frequency_array_daily = 1;
+
+	const days_week_array_normal = 0;
+	const days_week_array_full = 1;
+	const days_week_array_short = 2;
 
 	public function __construct($values = NULL)
 	{
 		if (is_object($values)) $this->set_from_db($values);
-	}
-
-	public function is_valid() {
-		return $this->is_valid;
+		if (empty($this->start_date)) $this->set_start_date();
 	}
 
 	public function set_from_db(stdClass $db_data)
 	{
 		$this->id = $db_data->id;
-		$this->owner = $db_data->owner;
-		$this->owner_type = $db_data->owner_type;
 		$this->is_private = $db_data->is_private;
-	}
 
-	public function owner_name()
-	{
-		if (!empty($this->owner)) {
-			switch ($this->owner_type)
-			{
-				case BfoxPlans::owner_type_blog: return get_blog_option($this->owner, 'blogname');
-				case BfoxPlans::owner_type_user: return get_author_name($this->owner);
-			}
-		}
-	}
-
-	public function owner_link()
-	{
-		if (!empty($this->owner)) {
-			$name = $this->owner_name();
-			switch ($this->owner_type)
-			{
-				case BfoxPlans::owner_type_blog: return "<a href='" . get_blogaddress_by_id($this->owner) . "'>" . $name . "</a>";
-				case BfoxPlans::owner_type_user:
-					$user = get_userdata($user_id);
-					return "<a href='" . $user->url . "'>" . $user->display_name . "</a>";
-			}
-		}
-	}
-}
-
-class BfoxReadingPlan extends BfoxReadingInfo {
-	public $list_id = 0;
-	public $schedule_id = 0;
-
-	public function is_valid() {
-		return !empty($this->list_id);
-	}
-
-	public function set_from_db(stdClass $db_data) {
-		parent::set_from_db($db_data);
-		$this->list_id = $db_data->list_id;
-		$this->schedule_id = $db_data->schedule_id;
-	}
-}
-
-class BfoxReadingList extends BfoxReadingInfo
-{
-	public $name = '';
-	public $description = '';
-	public $readings = array();
-
-	public function is_valid() {
-		return (!empty($this->name) || !empty($this->description) || !empty($readings));
-	}
-
-	public function set_from_db(stdClass $db_data)
-	{
-		parent::set_from_db($db_data);
 		$this->name = $db_data->name;
 		$this->description = $db_data->description;
+
+		$this->start_date = $db_data->start_date;
+		$this->end_date = $db_data->end_date;
+		$this->is_recurring = $db_data->is_recurring;
+		$this->frequency = $db_data->frequency;
+		$this->set_freq_options($db_data->frequency_options);
 	}
+
+	/*
+	 * Reading List Functions
+	 */
 
 	public function sort_readings() {
 		ksort($this->readings);
@@ -146,40 +116,10 @@ class BfoxReadingList extends BfoxReadingInfo
 	{
 		return count($this->readings);
 	}
-}
 
-class BfoxReadingSchedule extends BfoxReadingInfo
-{
-	public $list_id = 0;
-	private $start_date = '';
-	private $end_date = '';
-	public $is_recurring = FALSE;
-	public $frequency = 0;
-	private $frequency_options = '0123456';
-
-	const date_format_normal = 'M j, Y';
-	const date_format_fixed = 'Y-m-d';
-
-	const frequency_day = 0;
-	const frequency_week = 1;
-	const frequency_month = 2;
-
-	const frequency_array_day = 0;
-	const frequency_array_daily = 1;
-
-	const days_week_array_normal = 0;
-	const days_week_array_full = 1;
-	const days_week_array_short = 2;
-
-	public function __construct($values = NULL)
-	{
-		if (is_object($values)) $this->set_from_db($values);
-		if (empty($this->start_date)) $this->set_start_date();
-	}
-
-	public function is_valid() {
-		return !empty($this->list_id);
-	}
+	/*
+	 * Schedule Functions
+	 */
 
 	public function set_start_date($start_date = '') {
 		if (empty($start_date)) $start_date = 'today';
@@ -192,30 +132,11 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 		$this->frequency_options = $options;
 	}
 
-	public function set_from_db(stdClass $db_data)
+	public function set_end_date()
 	{
-		parent::set_from_db($db_data);
-		$this->list_id = $db_data->list_id;
-		$this->start_date = $db_data->start_date;
-		$this->end_date = $db_data->end_date;
-		$this->is_recurring = $db_data->is_recurring;
-		$this->frequency = $db_data->frequency;
-		$this->set_freq_options($db_data->frequency_options);
-	}
-
-	public function set_end_date(BfoxReadingList $list = NULL)
-	{
-		if (is_null($list)) $this->end_date = $this->start_date;
-		else {
-			$reading_count = $list->reading_count();
-			$dates = $this->get_dates($reading_count + 1);
-			$this->end_date = date(self::date_format_fixed, $dates[$reading_count]);
-		}
-	}
-
-	public function set_list(BfoxReadingList $list) {
-		$this->list_id = $list->id;
-		$this->set_end_date($list);
+		$reading_count = $this->reading_count();
+		$dates = $this->get_dates($reading_count + 1);
+		$this->end_date = date(self::date_format_fixed, $dates[$reading_count]);
 	}
 
 	public static function frequency_array() {
@@ -314,221 +235,208 @@ class BfoxReadingSchedule extends BfoxReadingInfo
 	}
 }
 
-class BfoxReadingScheduleGlobal
+class BfoxReadingSub {
+
+	public $plan_id = 0;
+	public $user_id = 0;
+	public $user_type = BfoxPlans::user_type_user;
+	public $is_subscribed = FALSE;
+	public $is_owned = FALSE;
+	public $is_current = FALSE;
+
+	public function __construct($values = NULL)
+	{
+		if (is_object($values)) $this->set_from_db($values);
+	}
+
+	public function set_from_db(stdClass $db_data)
+	{
+		$this->plan_id = $db_data->plan_id;
+		$this->user_id = $db_data->user_id;
+		$this->user_type = $db_data->user_type;
+		$this->is_subscribed = $db_data->is_subscribed;
+		$this->is_owned = $db_data->is_owned;
+		$this->is_current = $db_data->is_current;
+	}
+
+	public function user_name()
+	{
+		if (!empty($this->user_id)) {
+			switch ($this->user_type)
+			{
+				case BfoxPlans::user_type_blog: return get_blog_option($this->user_id, 'blogname');
+				case BfoxPlans::user_type_user: return get_author_name($this->user_id);
+			}
+		}
+	}
+
+	public function user_link()
+	{
+		if (!empty($this->user_id)) {
+			$name = $this->user_name();
+			switch ($this->user_type)
+			{
+				case BfoxPlans::user_type_blog: return "<a href='" . get_blogaddress_by_id($this->user_id) . "'>" . $name . "</a>";
+				case BfoxPlans::user_type_user:
+					$user = get_userdata($user_id);
+					return "<a href='" . $user->url . "'>" . $user->display_name . "</a>";
+			}
+		}
+	}
+}
+
+class BfoxReadingPlanGlobal
 {
 
 }
 
 class BfoxPlans {
 	const table_plans = BFOX_TABLE_READING_PLANS;
-	const table_lists = BFOX_TABLE_READING_LISTS;
+	const table_subs = BFOX_TABLE_READING_SUBS;
 	const table_readings = BFOX_TABLE_READINGS;
-	const table_schedules = BFOX_TABLE_READING_SCHEDULES;
 
-	const owner_type_blog = 0;
-	const owner_type_user = 1;
-	const owner_type_external = 2;
+	const user_type_user = 0;
+	const user_type_blog = 1;
 
 	public static function create_tables() {
-		// Note: for blog_id and user_id (aka. owner) see WP's implementation in wp-admin/includes/schema.php
+		// Note: for blog_id and user_id (aka. user) see WP's implementation in wp-admin/includes/schema.php
 
 		BfoxUtility::create_table(self::table_plans, "
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			owner BIGINT(20) UNSIGNED NOT NULL,
-			owner_type TINYINT(2) NOT NULL,
-			list_id BIGINT UNSIGNED NOT NULL,
-			schedule_id BIGINT UNSIGNED NOT NULL,
-			PRIMARY KEY  (id)");
-
-		BfoxUtility::create_table(self::table_lists, "
-			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			name VARCHAR(255) NOT NULL,
 			description TEXT NOT NULL,
-			owner BIGINT(20) UNSIGNED NOT NULL,
-			owner_type TINYINT(2) NOT NULL,
 			is_private BOOLEAN NOT NULL,
-			PRIMARY KEY  (id)");
-
-		BfoxUtility::create_table(self::table_readings, "
-			list_id BIGINT UNSIGNED NOT NULL,
-			reading_id MEDIUMINT UNSIGNED NOT NULL,
-			verse_begin MEDIUMINT UNSIGNED NOT NULL,
-			verse_end MEDIUMINT UNSIGNED NOT NULL");
-
-		BfoxUtility::create_table(self::table_schedules, "
-			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			owner BIGINT(20) UNSIGNED NOT NULL,
-			owner_type TINYINT(2) NOT NULL,
-			is_private BOOLEAN NOT NULL,
-			list_id BIGINT UNSIGNED NOT NULL,
 			start_date DATE NOT NULL,
 			end_date DATE NOT NULL,
 			is_recurring BOOLEAN NOT NULL,
 			frequency TINYINT UNSIGNED NOT NULL,
 			frequency_options VARCHAR(255) NOT NULL,
 			PRIMARY KEY  (id)");
+
+		BfoxUtility::create_table(self::table_readings, "
+			plan_id BIGINT UNSIGNED NOT NULL,
+			reading_id MEDIUMINT UNSIGNED NOT NULL,
+			verse_begin MEDIUMINT UNSIGNED NOT NULL,
+			verse_end MEDIUMINT UNSIGNED NOT NULL");
+
+		BfoxUtility::create_table(self::table_subs, "
+			user_id BIGINT(20) UNSIGNED NOT NULL,
+			user_type TINYINT(1) NOT NULL,
+			plan_id BIGINT UNSIGNED NOT NULL,
+			is_subscribed BOOLEAN NOT NULL,
+			is_owned BOOLEAN NOT NULL,
+			is_current BOOLEAN NOT NULL,
+			PRIMARY KEY  (user_id, user_type, plan_id)");
 	}
 
 	public static function save_plan(BfoxReadingPlan &$plan) {
 		global $wpdb;
 
 		$set = $wpdb->prepare(
-			"SET owner = %d, owner_type = %d, list_id = %d, schedule_id = %d",
-			$plan->owner, $plan->owner_type, $plan->list_id, $plan->schedule_id);
+			"SET name = %s, description = %s, is_private = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
+			$plan->name, $plan->description, $plan->is_private, $plan->start_str(BfoxReadingPlan::date_format_fixed), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
 
 		if (empty($plan->id)) $wpdb->query("INSERT INTO " . self::table_plans . " $set");
-		else $wpdb->query($wpdb->prepare("UPDATE " . self::table_plans . " $set WHERE id = %d", $plan->id));
+		else {
+			$wpdb->query($wpdb->prepare("UPDATE " . self::table_plans . " $set WHERE id = %d", $plan->id));
+			$wpdb->query($wpdb->prepare("DELETE FROM " . self::table_readings . " WHERE plan_id = %d", $plan->id));
+		}
 
 		if (empty($plan->id)) $plan->id = $wpdb->insert_id;
-	}
 
-	public static function save_list(BfoxReadingList &$list) {
-		global $wpdb;
-
-		$set = $wpdb->prepare(
-			"SET name = %s, description = %s, owner = %d, owner_type = %d, is_private = %d",
-			$list->name, $list->description, $list->owner, $list->owner_type, $list->is_private);
-
-		if (empty($list->id)) $wpdb->query("INSERT INTO " . self::table_lists . " $set");
-		else $wpdb->query($wpdb->prepare("UPDATE " . self::table_lists . " $set WHERE id = %d", $list->id));
-
-		if (empty($list->id)) $list->id = $wpdb->insert_id;
-		else $wpdb->query($wpdb->prepare('DELETE FROM ' . self::table_readings . ' WHERE list_id = %d', $list->id));
-
-		if (!empty($list->readings)) {
+		if (!empty($plan->readings)) {
 			$values = array();
-			foreach ($list->readings as $reading_id => $reading)
+			foreach ($plan->readings as $reading_id => $reading)
 				foreach ($reading->get_seqs() as $seq)
-					$values []= $wpdb->prepare('(%d, %d, %d, %d)', $list->id, $reading_id, $seq->start, $seq->end);
+					$values []= $wpdb->prepare('(%d, %d, %d, %d)', $plan->id, $reading_id, $seq->start, $seq->end);
 
 			$wpdb->query($wpdb->prepare("
 				INSERT INTO " . self::table_readings . "
-				(list_id, reading_id, verse_begin, verse_end)
+				(plan_id, reading_id, verse_begin, verse_end)
 				VALUES " . implode(',', $values)));
 		}
 	}
 
-	public static function save_schedule(BfoxReadingSchedule &$schedule) {
-		global $wpdb;
-
-		$set = $wpdb->prepare(
-			"SET owner = %d, owner_type = %d, is_private = %d, list_id = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
-			$schedule->owner, $schedule->owner_type, $schedule->is_private, $schedule->list_id, $schedule->start_str(BfoxReadingSchedule::date_format_fixed), $schedule->end_str(BfoxReadingSchedule::date_format_fixed), $schedule->is_recurring, $schedule->frequency, $schedule->get_freq_options());
-
-		if (empty($schedule->id)) $wpdb->query("INSERT INTO " . self::table_schedules . " $set");
-		else $wpdb->query($wpdb->prepare("UPDATE " . self::table_schedules . " $set WHERE id = %d", $schedule->id));
-
-		if (empty($schedule->id)) $schedule->id = $wpdb->insert_id;
-	}
-
-	public static function get_owner_plans($owner, $owner_type) {
+	public static function get_plans($plan_ids) {
 		global $wpdb;
 
 		$plans = array();
 
-		if (!empty($owner)) {
-			// Get the plans from the DB
-			$results = $wpdb->get_results($wpdb->prepare('SELECT * FROM ' . self::table_plans . ' WHERE (owner = %d AND owner_type = %d)', $owner, $owner_type));
+		$ids = array();
+		if (!empty($plan_ids)) foreach ($plan_ids as $plan_id) if (!empty($plan_id)) $ids []= $wpdb->prepare('%d', $plan_id);
 
-			// Create each BfoxReadingSchedule instance
-			foreach ($results as $result) $plans []= new BfoxReadingPlan($result);
+		if (!empty($ids)) {
+			// Get the plan info from the DB
+			$results = $wpdb->get_results('SELECT * FROM ' . self::table_plans . ' WHERE id IN (' . implode(',', $ids) . ')');
+
+			// Create each BfoxReadingPlan instance
+			$ids = array();
+			foreach ($results as $result) {
+				$plans[$result->id] = new BfoxReadingPlan($result);
+				$ids []= $wpdb->prepare('%d', $result->id);
+			}
+
+			if (!empty($ids)) {
+				// Get the reading info from the DB
+				$readings = $wpdb->get_results('SELECT * FROM ' . self::table_readings . ' WHERE plan_id IN (' . implode(',', $ids) . ')');
+
+				// Add all the readings to the reading plan
+				foreach ($readings as $reading) $plans[$reading->plan_id]->add_verses($reading->reading_id, $reading->verse_begin, $reading->verse_end);
+
+				foreach ($plans as &$plan) $plan->sort_readings();
+			}
 		}
 
 		return $plans;
 	}
 
 	public static function get_plan($plan_id) {
-		global $wpdb;
-		if (!empty($plan_id)) $db_data = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . self::table_plans . ' WHERE id = %d', $plan_id));
-		return new BfoxReadingPlan($db_data);
-	}
-
-	public static function get_lists($list_ids, $owner = 0, $owner_type = self::owner_type_blog) {
-		global $wpdb;
-
-		$lists = array();
-
-		$wheres = array();
-		if (!empty($list_ids)) {
-			$ids = array();
-			foreach ($list_ids as $list_id) if (!empty($list_id)) $ids []= $wpdb->prepare('%d', $list_id);
-			if (!empty($ids)) $wheres []= 'id IN (' . implode(',', $ids) . ')';
+		if (!empty($plan_id)) {
+			$plans = self::get_plans(array($plan_id));
+			if (isset($plans[$plan_id])) return $plans[$plan_id];
 		}
-		if (!empty($owner)) $wheres []= $wpdb->prepare("(owner = %d AND owner_type = %d)", $owner, $owner_type);
-
-		if (!empty($wheres)) {
-			// Get the list info from the DB
-			$results = $wpdb->get_results('SELECT * FROM ' . self::table_lists . ' WHERE ' . implode(' OR ', $wheres));
-
-			// Create each BfoxReadingList instance
-			$ids = array();
-			foreach ($results as $result) {
-				$lists[$result->id] = new BfoxReadingList($result);
-				$ids []= $wpdb->prepare('%d', $result->id);
-			}
-
-			if (!empty($ids)) {
-				// Get the reading info from the DB
-				$readings = $wpdb->get_results('SELECT * FROM ' . self::table_readings . ' WHERE list_id IN (' . implode(',', $ids) . ')');
-
-
-				// Add all the readings to the reading list
-				foreach ($readings as $reading) $lists[$reading->list_id]->add_verses($reading->reading_id, $reading->verse_begin, $reading->verse_end);
-
-				foreach ($lists as &$list) $list->sort_readings();
-			}
-		}
-
-		return $lists;
+		return new BfoxReadingPlan();
 	}
 
-	public static function get_list($list_id) {
-		if (!empty($list_id)) {
-			$lists = self::get_lists(array($list_id));
-			if (isset($lists[$list_id])) return $lists[$list_id];
-		}
-		return new BfoxReadingList();
-	}
-
-	public static function get_popular_list_ids($count = 0) {
-		// TODO2: this function currently just returns all the lists
-		global $wpdb;
-		return $wpdb->get_col("SELECT id FROM " . self::table_lists);
-	}
-
-	public static function get_list_schedule_ids($list_id) {
-		global $wpdb;
-		return $wpdb->get_col($wpdb->prepare("SELECT id FROM " . self::table_schedules . " WHERE list_id = %d", $list_id));
-	}
-
-	public static function get_schedules($schedule_ids, $owner = 0, $owner_type = self::owner_type_blog) {
+	public static function save_sub(BfoxReadingSub &$sub) {
 		global $wpdb;
 
-		$schedules = array();
-
-		$wheres = array();
-		if (!empty($schedule_ids)) {
-			$ids = array();
-			foreach ($schedule_ids as $schedule_id) if (!empty($schedule_id)) $ids []= $wpdb->prepare('%d', $schedule_id);
-			if (!empty($ids)) $wheres []= 'id IN (' . implode(',', $ids) . ')';
-		}
-		if (!empty($owner)) $wheres []= $wpdb->prepare("(owner = %d AND owner_type = %d)", $owner, $owner_type);
-
-		if (!empty($wheres)) {
-			// Get the plans from the DB
-			$results = $wpdb->get_results('SELECT * FROM ' . self::table_schedules . ' WHERE ' . implode(' OR ', $wheres));
-
-			// Create each BfoxReadingSchedule instance
-			foreach ($results as $result) $schedules[$result->id] = new BfoxReadingSchedule($result);
-		}
-
-		return $schedules;
+		$wpdb->query($wpdb->prepare("REPLACE INTO " . self::table_subs . "
+			SET plan_id = %d, user_id = %d, user_type = %d, is_subscribed = %d, is_owned = %d, is_current = %d",
+			$sub->plan_id, $sub->user_id, $sub->user_type, $sub->is_subscribed, $sub->is_owned, $sub->is_current));
 	}
 
-	public static function get_schedule($schedule_id) {
+	private static function get_subs($where) {
 		global $wpdb;
-		if (!empty($schedule_id)) $db_data = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . self::table_schedules . ' WHERE id = %d', $schedule_id));
-		return new BfoxReadingSchedule($db_data);
+
+		// Get the subscription info from the DB
+		$results = $wpdb->get_results("SELECT * FROM " . self::table_subs . " WHERE $where");
+
+		// Create each BfoxReadingSub instance
+		$subs = array();
+		foreach ($results as $result) $subs []= new BfoxReadingSub($result);
+
+		return $subs;
+	}
+
+	public static function get_user_subs($user_id, $user_type) {
+		global $wpdb;
+		return self::get_subs($wpdb->prepare('user_id = %d AND user_type = %d', $user_id, $user_type));
+	}
+
+	public static function get_plan_subs(BfoxReadingPlan $plan) {
+		global $wpdb;
+		return self::get_subs($wpdb->prepare('plan_id = %d', $plan->id));
+	}
+
+	public static function get_sub(BfoxReadingPlan $plan, $user_id, $user_type) {
+		global $wpdb;
+		$subs = self::get_subs($wpdb->prepare('plan_id = %d AND user_id = %d AND user_type = %d', $plan->id, $user_id, $user_type));
+		if (!empty($subs)) {
+			list($sub) = $subs;
+			return $sub;
+		}
+		return new BfoxReadingSub;
 	}
 }
 
@@ -1388,7 +1296,7 @@ class BfoxPlans {
 		$bfox_page_url = BfoxBlog::admin_url('admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE);
 
 		require_once BFOX_PLANS_DIR . '/edit.php';
-		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::owner_type_blog, $bfox_page_url);
+		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, $bfox_page_url);
 		$bfox_plan_editor->page_load();
 		add_action('admin_head', 'BfoxPlanEdit::add_head');
 
