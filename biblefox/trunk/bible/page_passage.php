@@ -1,6 +1,7 @@
 <?php
 
 require_once BFOX_BIBLE_DIR . '/cbox_notes.php';
+require_once BFOX_BIBLE_DIR . '/cbox_plans.php';
 
 class BfoxPagePassage extends BfoxPage
 {
@@ -36,6 +37,7 @@ class BfoxPagePassage extends BfoxPage
 
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
+		$this->cboxes['plans'] = new BfoxCboxPlans($url, 'plans', 'My Reading Plans');
 
 		parent::__construct($trans_str);
 	}
@@ -347,7 +349,7 @@ class BfoxPagePassage extends BfoxPage
 			</div>
 		</div>
 		<?php
-		echo $this->cboxes['notes']->cbox();
+			foreach ($this->cboxes as $cbox) echo $cbox->cbox();
 		?>
 		<div id='commentaries' class='cbox'>
 			<div class='cbox_head'>Commentaries</div>
