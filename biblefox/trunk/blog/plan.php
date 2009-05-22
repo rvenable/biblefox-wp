@@ -4,8 +4,7 @@ define(BFOX_TABLE_READING_PLANS, BFOX_BASE_TABLE_PREFIX . 'reading_plans');
 define(BFOX_TABLE_READING_SUBS, BFOX_BASE_TABLE_PREFIX . 'reading_subs');
 define(BFOX_TABLE_READINGS, BFOX_BASE_TABLE_PREFIX . 'readings');
 
-class BfoxReadingPlan
-{
+class BfoxReadingPlan {
 	public $id = 0;
 	public $is_private = FALSE;
 
@@ -33,14 +32,12 @@ class BfoxReadingPlan
 	const days_week_array_full = 1;
 	const days_week_array_short = 2;
 
-	public function __construct($values = NULL)
-	{
+	public function __construct($values = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
 		if (empty($this->start_date)) $this->set_start_date();
 	}
 
-	public function set_from_db(stdClass $db_data)
-	{
+	public function set_from_db(stdClass $db_data) {
 		$this->id = $db_data->id;
 		$this->is_private = $db_data->is_private;
 
@@ -52,6 +49,11 @@ class BfoxReadingPlan
 		$this->is_recurring = $db_data->is_recurring;
 		$this->frequency = $db_data->frequency;
 		$this->set_freq_options($db_data->frequency_options);
+	}
+
+	public function set_as_copy() {
+		$this->id = 0;
+		$this->name = "Copy of $this->name";
 	}
 
 	/*
@@ -244,13 +246,16 @@ class BfoxReadingSub {
 	public $is_owned = FALSE;
 	public $is_current = FALSE;
 
-	public function __construct($values = NULL)
-	{
+	public function __construct($values = NULL, $plan_id = NULL, $user_id = NULL, $user_type = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
+
+		// If a plan or user are passed in, then we must use them
+		if (!is_null($plan_id)) $this->plan_id = $plan_id;
+		if (!is_null($user_id)) $this->user_id = $user_id;
+		if (!is_null($user_type)) $this->user_type = $user_type;
 	}
 
-	public function set_from_db(stdClass $db_data)
-	{
+	public function set_from_db(stdClass $db_data) {
 		$this->plan_id = $db_data->plan_id;
 		$this->user_id = $db_data->user_id;
 		$this->user_type = $db_data->user_type;
@@ -259,8 +264,7 @@ class BfoxReadingSub {
 		$this->is_current = $db_data->is_current;
 	}
 
-	public function user_name()
-	{
+	public function user_name() {
 		if (!empty($this->user_id)) {
 			switch ($this->user_type)
 			{
@@ -270,8 +274,7 @@ class BfoxReadingSub {
 		}
 	}
 
-	public function user_link()
-	{
+	public function user_link() {
 		if (!empty($this->user_id)) {
 			$name = $this->user_name();
 			switch ($this->user_type)
@@ -285,9 +288,7 @@ class BfoxReadingSub {
 	}
 }
 
-class BfoxReadingPlanGlobal
-{
-
+class BfoxReadingPlanGlobal {
 }
 
 class BfoxPlans {
@@ -401,12 +402,18 @@ class BfoxPlans {
 	public static function save_sub(BfoxReadingSub &$sub) {
 		global $wpdb;
 
-		$wpdb->query($wpdb->prepare("REPLACE INTO " . self::table_subs . "
+		// Only save if it is either subscribed or owned,
+		// Otherwise the subscription is invalid and should be deleted
+		if ($sub->is_subscribed || $sub->is_owned) $wpdb->query($wpdb->prepare("REPLACE INTO " . self::table_subs . "
 			SET plan_id = %d, user_id = %d, user_type = %d, is_subscribed = %d, is_owned = %d, is_current = %d",
 			$sub->plan_id, $sub->user_id, $sub->user_type, $sub->is_subscribed, $sub->is_owned, $sub->is_current));
+
+		else $wpdb->query($wpdb->prepare("DELETE FROM " . self::table_subs . "
+			WHERE plan_id = %d AND user_id = %d AND user_type = %d",
+			$sub->plan_id, $sub->user_id, $sub->user_type));
 	}
 
-	private static function get_subs($where) {
+	private static function get_subs($where, $unique_plan_ids = FALSE) {
 		global $wpdb;
 
 		// Get the subscription info from the DB
@@ -414,14 +421,17 @@ class BfoxPlans {
 
 		// Create each BfoxReadingSub instance
 		$subs = array();
-		foreach ($results as $result) $subs []= new BfoxReadingSub($result);
+
+		// If the plan ids are unique, we can use them as keys, otherwise just use a non-associative array
+		if ($unique_plan_ids) foreach ($results as $result) $subs[$result->plan_id] = new BfoxReadingSub($result);
+		else foreach ($results as $result) $subs []= new BfoxReadingSub($result);
 
 		return $subs;
 	}
 
 	public static function get_user_subs($user_id, $user_type) {
 		global $wpdb;
-		return self::get_subs($wpdb->prepare('user_id = %d AND user_type = %d', $user_id, $user_type));
+		return self::get_subs($wpdb->prepare('user_id = %d AND user_type = %d', $user_id, $user_type), TRUE);
 	}
 
 	public static function get_plan_subs(BfoxReadingPlan $plan) {
@@ -431,12 +441,8 @@ class BfoxPlans {
 
 	public static function get_sub(BfoxReadingPlan $plan, $user_id, $user_type) {
 		global $wpdb;
-		$subs = self::get_subs($wpdb->prepare('plan_id = %d AND user_id = %d AND user_type = %d', $plan->id, $user_id, $user_type));
-		if (!empty($subs)) {
-			list($sub) = $subs;
-			return $sub;
-		}
-		return new BfoxReadingSub;
+		// Return the plan from the DB, if there is no data in the DB, the new sub will still be set for this plan and user
+		return new BfoxReadingSub($wpdb->get_row($wpdb->prepare("SELECT * FROM " . self::table_subs . " WHERE plan_id = %d AND user_id = %d AND user_type = %d", $plan->id, $user_id, $user_type)), $plan->id, $user_id, $user_type);
 	}
 }
 
