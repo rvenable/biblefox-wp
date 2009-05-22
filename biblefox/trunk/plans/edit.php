@@ -126,37 +126,6 @@ class BfoxPlanEdit
 		if (!empty($redirect)) wp_redirect(add_query_arg(BfoxQuery::var_message, urlencode($message), $redirect));
 	}
 
-
-	private function is_owned(BfoxReadingSub $sub) {
-		return (($sub->user_id == $this->user_id) && ($sub->user_type == $this->user_type));
-	}
-
-	private function user_name(BfoxReadingSub $sub, $me = '') {
-		if (!empty($me) && $this->is_owned($sub)) return $me;
-		return $sub->user_name();
-	}
-
-	private function user_link(BfoxReadingSub $sub, $str = '', $me = 'me') {
-		if (empty($str)) $str = $this->user_name($sub, $me);
-
-		if ($this->is_owned($sub)) $url = $this->url;
-		else {
-			if (BfoxPlans::user_type_blog == $sub->user_type) $var = self::var_blog;
-			elseif (BfoxPlans::user_type_user == $sub->user_type) $var = self::var_user;
-			$url = add_query_arg($var, $sub->user_id, $this->url);
-		}
-
-		return "<a href='$url'>$str</a>";
-
-	}
-
-	private function schedule_desc(BfoxReadingPlan $plan) {
-		$desc = $plan->start_str() . ' - ' . $plan->end_str();
-		if ($plan->is_recurring) $desc .= ' (recurring)';
-		$desc .= " (" . $plan->frequency_desc() . ")";
-		return $desc;
-	}
-
 	public function content() {
 		if (!empty($_GET[BfoxQuery::var_message])) {
 			?>
@@ -227,278 +196,6 @@ class BfoxPlanEdit
 		}
 	}
 
-	private function confirm_page($confirm) {
-		$hiddens = '';
-		if (!empty($_GET[self::var_plan_id])) $hiddens .= BfoxUtility::hidden_input(self::var_plan_id, $_GET[self::var_plan_id]);
-		if (!empty($_GET[self::var_action])) $hiddens .= BfoxUtility::hidden_input(self::var_action, $_GET[self::var_action]);
-
-		?>
-		<h2>Confirm Action</h2>
-		<form action='<?php echo $this->url ?>' method='post'>
-		<p><?php echo $confirm . $hiddens ?></p>
-		<p><input type='submit' name='<?php echo self::var_submit ?>' value='<?php echo __('Confirm') ?>' class='button'/></p>
-		</form>
-
-		<?php
-	}
-
-	/*
-	private function content_plan(BfoxReadingPlan $plan) {
-		$list_id = $_REQUEST[self::var_list_id];
-		$schedule_id = $_REQUEST[self::var_schedule_id];
-
-		// If this is already a valid plan, we can only change the schedule
-		if ($plan->is_valid()) {
-
-			$list = BfoxPlans::get_list($plan->list_id);
-
-			// If a valid new schedule was specified through input, edit the plan
-			// Otherwise, use the plan's schedule
-			$schedule = BfoxPlans::get_schedule($schedule_id);
-			if ($schedule->is_valid()) $this->edit_plan($plan, $list, $schedule);
-			else {
-				// Get the plan's schedule
-				$schedule = BfoxPlans::get_schedule($plan->schedule_id);
-
-				echo "<h2>Edit Reading Plan</h2>";
-				echo "<h3>Plan Overview</h3>";
-				echo $this->content_readings($list, $schedule);
-
-				// If the plan's schedule is already set, just display the schedule
-				// Otherwise, show the select schedule page
-				if ($schedule->is_valid()) $this->content_schedule($schedule, $list);
-				else $this->select_schedule($plan);
-			}
-		}
-		else {
-
-			// This isn't a valid plan, so check if we are creating one
-			// Get the input list
-			$list = BfoxPlans::get_list($list_id);
-
-			// If the input list is valid, we are editing the plan
-			// Otherwise the user needs to select a list
-			if ($list->is_valid()) $this->edit_plan($plan, $list, BfoxPlans::get_schedule($schedule_id));
-			else {
-				echo "<h2>Create a Reading List</h2>";
-				echo "<p>A reading list is just a list of bible passages for you to read. Enter a name and description for your list, then enter the bible passages you want it to contain. There are two ways to enter bible passages. You can enter them manually by typing bible passages, or you can add them automatically.</p>";
-				//$this->select_list($plan);
-				echo $this->edit_list(new BfoxReadingPlan());
-			}
-		}
-	}
-
-	private function content_list(BfoxReadingPlan $list) {
-		echo "<h2>View Reading List</h2>";
-		echo $this->content_readings($list);
-		?>
-		<?php if (!$this->is_owned($list)): ?>
-		<h3>Subscribe</h3>
-		<p>You are not currently subscribed to this reading list. You can subsribe to this list if you want to read these same readings.</p>
-
-		<p><?php echo $this->select_list_link($list, __('Subscribe'))?></p>
-
-		<h3>Schedules</h3>
-		<p>You might also want to subscribe to some schedules for this reading list. USER is using the following schedules with this reading list. Select any of these schedules which you would also like to subscribe to.</p>
-
-		<?php else: ?>
-		<h3>Edit Reading List</h3>
-		<?php $this->edit_list($list) ?>
-		<?php endif ?>
-		<?php
-	}
-
-	private function content_schedule(BfoxReadingPlan $schedule, BfoxReadingPlan $list = NULL) {
-		echo "<h2>Edit Schedule</h2>";
-		if (is_null($list) || !$list->is_valid()) {
-			$list = BfoxPlans::get_list($schedule->list_id);
-		}
-		echo $this->content_readings($list, $schedule, 3);
-		?>
-		<?php echo $this->edit_list_link($list, __('Edit Reading List')) ?>
-		<h3>Edit Reading Schedule</h3>
-		<?php $this->edit_schedule($schedule, $list) ?>
-		<?php
-	}
-
-	private function lists_table($lists) {
-		?>
-		<table id='reading_lists' class='widefat'>
-			<thead>
-			<tr>
-				<th>Reading List</th>
-				<th>Schedules</th>
-				<th>Options</th>
-			</tr>
-			</thead>
-		<?php foreach ($lists as $list): ?>
-			<tr>
-				<td><?php echo $list->name ?> by <?php echo $this->user_link($list) ?><br/><?php echo $list->description ?></td>
-				<td><?php echo $list->reading_count() ?> readings: <?php echo BfoxBlog::ref_link($list->ref_string()) ?></td>
-				<td><?php echo $this->edit_list_link($list, __('Edit')) ?><br/>Duplicate<br/>Delete</td>
-			</tr>
-		<?php endforeach ?>
-		</table>
-		<?php
-	}
-
-	private function edit_plan(BfoxReadingPlan $plan, BfoxReadingPlan $list, BfoxReadingPlan $schedule) {
-		?>
-
-		<h2><?php echo $list->name ?></h2>
-		<form action='<?php echo $this->url ?>' method='post'>
-		<input type='hidden' name='<?php echo self::var_plan_id ?>' value='<?php echo $plan->id ?>'/>
-
-		<p><strong>Description:</strong> <?php echo $list->description ?></p>
-		<p>This reading list is managed by <?php echo $this->user_link($list) ?></p>
-		<input type='hidden' name='<?php echo self::var_list_id ?>' value='<?php echo $list->id ?>'/>
-
-		<?php if ($schedule->is_valid()): ?>
-		<h3>Reading Schedule</h3>
-		<p>You have selected the following reading schedule:<br/>
-		<?php echo $this->schedule_desc($schedule) ?></p>
-		<input type='hidden' name='<?php echo self::var_schedule_id ?>' value='<?php echo $schedule->id ?>'/>
-		<?php endif ?>
-
-		<h3>Subscribe</h3>
-		<p>Would you like to subscribe to this reading list?</p>
-		<input type='submit' name='<?php echo self::var_submit ?>' value='<?php echo self::$save ?>' class='button'/>
-		<?php if (!empty($plan->id)): ?>
-		<input type='submit' name='<?php echo self::var_submit ?>' value='<?php echo self::$save_new_plan ?>' class='button'/>
-		<?php endif ?>
-		</form>
-		<?php
-	}
-
-	private function select_list() {
-		$popular_list_ids = BfoxPlans::get_popular_list_ids();
-		$list_ids = $popular_list_ids;
-		$lists = BfoxPlans::get_lists($list_ids, $this->user_id, $this->user_type);
-
-		$popular = array_fill_keys($popular_list_ids, TRUE);
-
-		$your_lists_table = new BfoxHtmlTable("class='widefat'");
-		$popular_lists_table = new BfoxHtmlTable("class='widefat'");
-
-		$header = new BfoxHtmlHeaderRow('', 'Reading List', 'Overview', '');
-		$your_lists_table->add_header_row($header);
-		$popular_lists_table->add_header_row($header);
-
-		foreach ($lists as $list) {
-			$row = new BfoxHtmlRow('',
-				"$list->name<br/>by " . $this->user_link($list),
-				"$list->description<br/>" . $list->reading_count() . " readings: " . BfoxBlog::ref_link($list->ref_string()),
-				$this->select_list_link($list));
-			if ($this->is_owned($list)) $your_lists_table->add_row($row);
-			if ($popular[$list->id]) $popular_lists_table->add_row($row);
-		}
-
-		?>
-		<h3>Select a Reading List</h3>
-		<p>The first step of creating a reading plan is to select a list of Bible passages you want to read. You can use a reading plan that has already been created or <a href='#create'>create a new one</a>.</p>
-
-		<?php if ($your_lists_table->row_count()): ?>
-		<h4>Your Reading Lists</h4>
-		<?php echo $your_lists_table->content() ?>
-		<?php endif ?>
-
-		<h4>Popular Reading Lists</h4>
-		<?php echo $popular_lists_table->content() ?>
-
-		<h4 id='create'>Create Reading List</h4>
-		<?php echo $this->edit_list(new BfoxReadingPlan()) ?>
-		<?php
-	}
-
-	private function select_schedule(BfoxReadingPlan $plan) {
-		$for_list_schedule_ids = BfoxPlans::get_list_schedule_ids($plan->list_id);
-		$schedule_ids = $for_list_schedule_ids;
-		$schedules = BfoxPlans::get_schedules($schedule_ids, $this->user_id, $this->user_type);
-
-		$list_ids = array($plan->list_id);
-		foreach ($schedules as $schedule) $list_ids []= $schedule->list_id;
-		$lists = BfoxPlans::get_lists($list_ids);
-
-		$for_list = array_fill_keys($for_list_schedule_ids, TRUE);
-
-		$for_list_table = new BfoxHtmlTable("class='widefat'");
-		$for_list_table->add_header_row('', 3, 'Schedule', 'Owner');
-		$your_schedules_table = new BfoxHtmlTable("class='widefat'");
-		$your_schedules_table->add_header_row('', 3, 'Schedule', 'Reading List');
-
-		foreach ($schedules as $schedule) {
-			if ($for_list[$schedule->id]) $for_list_table->add_row('', 3,
-				$this->schedule_desc($schedule),
-				$this->user_link($schedule),
-				$this->select_schedule_link($plan, $schedule));
-			elseif ($this->is_owned($schedule) && isset($lists[$schedule->list_id])) {
-				$list = $lists[$schedule->list_id];
-				$your_schedules_table->add_row('', 3,
-					$this->schedule_desc($schedule),
-					"$list->name by " . $this->user_link($list),
-					$this->select_schedule_link($plan, $schedule, __('Copy Schedule')));
-			}
-		}
-
-		$list = $lists[$plan->list_id];
-
-
-		?>
-		<h3>Add a Reading Schedule</h3>
-		<p>The next step of creating a reading plan is to schedule how often these bible passages will be read. You can <a href='#create'>create a new one</a> or <a href='#select'>select a reading schedule</a> that has already been created.</p>
-
-		<h4 id='create'>Create a New Schedule</h4>
-		<?php echo $this->edit_schedule(new BfoxReadingPlan(), $list, $plan->id) ?>
-
-		<h4 id='select'>Select a Schedule</h4>
-
-		<?php if ($for_list_table->row_count()): ?>
-		<h5>Reading Schedules for this Reading List</h5>
-		<?php echo $for_list_table->content() ?>
-		<?php endif ?>
-
-		<?php if ($your_schedules_table->row_count()): ?>
-		<h5>Your Reading Schedules</h5>
-		<p>These are reading schedules you are using for other reading lists. You can copy these schedules to use with this plan.</p>
-		<?php echo $your_schedules_table->content() ?>
-		<?php endif ?>
-
-		<?php
-	}
-
-	private function plans_suggestions($schedules, $lists) {
-		?>
-		<table id="reading_plan_suggestions" class="widefat">
-			<thead>
-			<tr>
-				<th>Reading List</th>
-				<th>Schedules</th>
-				<th>Options</th>
-			</tr>
-			</thead>
-		<?php foreach ($schedules as $schedule): ?>
-			<?php $list = $lists[$schedule->list_id] ?>
-			<tr>
-				<td><?php echo $schedule->name ?> by <?php echo $this->user_link($schedule) ?><br/><?php echo $schedule->description ?></td>
-				<td><?php echo $list->name ?><br/>by <?php echo $this->user_link($list) ?></td>
-				<td><?php echo 'status' ?></td>
-				<td><?php echo $this->schedule_desc($schedule) ?></td>
-				<td>Edit Plan<br/>Edit Readings<br/>Delete</td>
-			</tr>
-		<?php endforeach ?>
-		</table>
-		<?php
-	}
-	*/
-
-
-
-
-
-
-
-
-
 	private function plan_url($plan_id) {
 		return add_query_arg(self::var_plan_id, $plan_id, $this->url);
 	}
@@ -519,6 +216,36 @@ class BfoxPlanEdit
 		return "<a href='" . $this->plan_action_url($plan_id, $action) . "'>$str</a>";
 	}
 
+	private function is_owned(BfoxReadingSub $sub) {
+		return (($sub->user_id == $this->user_id) && ($sub->user_type == $this->user_type));
+	}
+
+	private function user_name(BfoxReadingSub $sub, $me = '') {
+		if (!empty($me) && $this->is_owned($sub)) return $me;
+		return $sub->user_name();
+	}
+
+	private function user_link(BfoxReadingSub $sub, $str = '', $me = 'me') {
+		if (empty($str)) $str = $this->user_name($sub, $me);
+
+		if ($this->is_owned($sub)) $url = $this->url;
+		else {
+			if (BfoxPlans::user_type_blog == $sub->user_type) $var = self::var_blog;
+			elseif (BfoxPlans::user_type_user == $sub->user_type) $var = self::var_user;
+			$url = add_query_arg($var, $sub->user_id, $this->url);
+		}
+
+		return "<a href='$url'>$str</a>";
+
+	}
+
+	private function schedule_desc(BfoxReadingPlan $plan) {
+		$desc = $plan->start_str() . ' - ' . $plan->end_str();
+		if ($plan->is_recurring) $desc .= ' (recurring)';
+		$desc .= " (" . $plan->frequency_desc() . ")";
+		return $desc;
+	}
+
 	private function get_plan_options(BfoxReadingPlan $plan, $is_subscribed, $is_owned) {
 		$options = array();
 
@@ -536,6 +263,21 @@ class BfoxPlanEdit
 		$options []= $this->plan_action_link($plan->id, self::action_copy, __('Copy'));
 
 		return $options;
+	}
+
+	private function confirm_page($confirm) {
+		$hiddens = '';
+		if (!empty($_GET[self::var_plan_id])) $hiddens .= BfoxUtility::hidden_input(self::var_plan_id, $_GET[self::var_plan_id]);
+		if (!empty($_GET[self::var_action])) $hiddens .= BfoxUtility::hidden_input(self::var_action, $_GET[self::var_action]);
+
+		?>
+		<h2>Confirm Action</h2>
+		<form action='<?php echo $this->url ?>' method='post'>
+		<p><?php echo $confirm . $hiddens ?></p>
+		<p><input type='submit' name='<?php echo self::var_submit ?>' value='<?php echo __('Confirm') ?>' class='button'/></p>
+		</form>
+
+		<?php
 	}
 
 	private function view_user_plans($user_id, $user_type) {
