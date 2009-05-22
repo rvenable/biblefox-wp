@@ -5,19 +5,6 @@ define(BFOX_TABLE_READING_SUBS, BFOX_BASE_TABLE_PREFIX . 'reading_subs');
 define(BFOX_TABLE_READINGS, BFOX_BASE_TABLE_PREFIX . 'readings');
 
 class BfoxReadingPlan {
-	public $id = 0;
-	public $is_private = FALSE;
-
-	public $name = '';
-	public $description = '';
-	public $readings = array();
-
-	private $start_date = '';
-	private $end_date = '';
-	public $is_recurring = FALSE;
-	public $frequency = 0;
-	private $frequency_options = '0123456';
-
 	const date_format_normal = 'M j, Y';
 	const date_format_fixed = 'Y-m-d';
 
@@ -31,6 +18,21 @@ class BfoxReadingPlan {
 	const days_week_array_normal = 0;
 	const days_week_array_full = 1;
 	const days_week_array_short = 2;
+
+	const freq_options_default = '0123456';
+
+	public $id = 0;
+	public $is_private = FALSE;
+
+	public $name = '';
+	public $description = '';
+	public $readings = array();
+
+	private $start_date = '';
+	private $end_date = '';
+	public $is_recurring = FALSE;
+	public $frequency = 0;
+	private $frequency_options = self::freq_options_default;
 
 	public function __construct($values = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
@@ -130,7 +132,7 @@ class BfoxReadingPlan {
 
 	public function set_freq_options($options) {
 		if (is_array($options)) $options = implode('', $options);
-		if (empty($options)) $options = '0123456';
+		if (empty($options)) $options = self::freq_options_default;
 		$this->frequency_options = $options;
 	}
 
@@ -162,16 +164,19 @@ class BfoxReadingPlan {
 		);
 	}
 
-	public function days_week_str($type = self::days_week_array_short)
+	public function days_week_str($type = self::days_week_array_short, $default_return = '')
 	{
 		if (self::frequency_day == $this->frequency) {
-			if (self::days_week_array_short != $type) $glue = ', ';
+			if (empty($this->frequency_options) || (self::freq_options_default == $this->frequency_options)) return $default_return;
+			else {
+				if (self::days_week_array_short != $type) $glue = ', ';
 
-			$day_strs = array();
-			$strings = self::days_week_array();
-			$days = $this->freq_options_array();
-			foreach ($days as $day => $is_valid) if ($is_valid) $day_strs []= $strings[$type][$day];
-			return implode($glue, $day_strs);
+				$day_strs = array();
+				$strings = self::days_week_array();
+				$days = $this->freq_options_array();
+				foreach ($days as $day => $is_valid) if ($is_valid) $day_strs []= $strings[$type][$day];
+				return implode($glue, $day_strs);
+			}
 		}
 	}
 
@@ -185,7 +190,10 @@ class BfoxReadingPlan {
 
 	public function frequency_desc()
 	{
-		return ucfirst($this->frequency_str(self::frequency_array_daily)) . ', ' . $this->days_week_str();
+		$desc = ucfirst($this->frequency_str(self::frequency_array_daily));
+		$days = $this->days_week_str();
+		if (!empty($days)) $desc .= ", $days";
+		return $desc;
 	}
 
 	public function start_str($format = self::date_format_normal)
@@ -397,6 +405,13 @@ class BfoxPlans {
 			if (isset($plans[$plan_id])) return $plans[$plan_id];
 		}
 		return new BfoxReadingPlan();
+	}
+
+	public static function delete_plan(BfoxReadingPlan $plan) {
+		global $wpdb;
+		$wpdb->query($wpdb->prepare("DELETE FROM " . self::table_plans . " WHERE id = %d", $plan->id));
+		$wpdb->query($wpdb->prepare("DELETE FROM " . self::table_readings . " WHERE plan_id = %d", $plan->id));
+		$wpdb->query($wpdb->prepare("DELETE FROM " . self::table_subs . " WHERE plan_id = %d", $plan->id));
 	}
 
 	public static function save_sub(BfoxReadingSub &$sub) {
@@ -848,7 +863,7 @@ class BfoxPlans {
 		function get_dates(&$plan, $count = 0)
 		{
 			// Turn the frequency options into an array
-			if ('' == $plan->frequency_options) $plan->frequency_options = '0123456';
+			if ('' == $plan->frequency_options) $plan->frequency_options = self::freq_options_default;
 			$plan->days_of_week = array_fill_keys(str_split($plan->frequency_options), TRUE);
 
 			// Get today according to the local blog settings, formatted as an integer number of seconds
