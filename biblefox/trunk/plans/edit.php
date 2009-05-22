@@ -190,7 +190,7 @@ class BfoxPlanEdit
 				}
 			}
 			else {
-				echo "<h2>Manage Reading Plans</h2>";
+				echo "<h2>My Reading Plans</h2>";
 				$this->view_user_plans($this->user_id, $this->user_type);
 			}
 		}
@@ -214,6 +214,11 @@ class BfoxPlanEdit
 
 	private function plan_action_link($plan_id, $action, $str) {
 		return "<a href='" . $this->plan_action_url($plan_id, $action) . "'>$str</a>";
+	}
+
+	private function return_link($str = '') {
+		if (empty($str)) $str = __('Return to My Reading Plans');
+		return "<a href='$this->url'>$str</a>";
 	}
 
 	private function is_owned(BfoxReadingSub $sub) {
@@ -272,6 +277,7 @@ class BfoxPlanEdit
 
 		?>
 		<h2>Confirm Action</h2>
+		<p><?php echo $this->return_link() ?></p>
 		<form action='<?php echo $this->url ?>' method='post'>
 		<p><?php echo $confirm . $hiddens ?></p>
 		<p><input type='submit' name='<?php echo self::var_submit ?>' value='<?php echo __('Confirm') ?>' class='button'/></p>
@@ -318,6 +324,8 @@ class BfoxPlanEdit
 				$this->schedule_desc($plan),
 				implode('<br/>', $this->get_plan_options($plan, $sub_is_subscribed, $sub_is_owned)));
 		}
+
+		if (!$is_user) echo '<p>' . $this->return_link() . '</p>';
 
 		?>
 
@@ -429,6 +437,7 @@ class BfoxPlanEdit
 			$is_owned = TRUE;
 
 			echo "<h2>Create Reading Plan</h2>";
+			echo '<p>' . $this->return_link() . '</p>';
 		}
 		else {
 			$is_owned = FALSE;
@@ -451,6 +460,7 @@ class BfoxPlanEdit
 			}
 
 			echo "<h2>View Reading Plan</h2>";
+			echo '<p>' . $this->return_link() . '</p>';
 			echo $this->plan_chart($plan, $is_subscribed, $is_owned);
 			echo "<h3>Subscribers</h3>\n";
 			echo "<p>These are the subscribers using this reading plan:</p>";
