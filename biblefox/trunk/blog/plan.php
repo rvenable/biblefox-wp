@@ -35,6 +35,9 @@ class BfoxReadingPlan {
 	public $frequency = 0;
 	private $frequency_options = self::freq_options_default;
 
+	public $dates = array();
+	public $current_reading_id = -1;
+
 	public function __construct($values = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
 		if (empty($this->start_date)) $this->set_start_date();
@@ -60,13 +63,36 @@ class BfoxReadingPlan {
 		$this->name = "Copy of $this->name";
 	}
 
+	/**
+	 * Called when all the initializing data has been set for a plan.
+	 *
+	 * Finishes off the unset data for the plan, such as sorting the readings and setting dates
+	 */
+	public function finish_setting_plan() {
+		// Sort the readings
+		ksort($this->readings);
+
+		// If there is a schedule, perform all the date calculations
+		if ($this->is_scheduled) {
+			$reading_count = count($this->readings);
+
+			// Get the dates for all the readings + 1 (the +1 is for the end date)
+			$this->dates = $this->get_dates($reading_count + 1);
+
+			// Set the end_date using the last date (-1 day)
+			$this->end_date = date(self::date_format_fixed, strtotime('-1 day', $this->dates[$reading_count]));
+
+			// Set the index of the current reading
+			$this->current_reading_id = self::current_date_index($this->dates);
+
+			// If the end date is the current reading, this has ended
+			if ($reading_count == $this->current_reading_id) $this->current_reading_id = -1;
+		}
+	}
+
 	/*
 	 * Reading List Functions
 	 */
-
-	public function sort_readings() {
-		ksort($this->readings);
-	}
 
 	public function set_reading(BibleRefs $refs, $reading_id = -1)
 	{
@@ -118,11 +144,6 @@ class BfoxReadingPlan {
 		return $strings;
 	}
 
-	public function reading_count()
-	{
-		return count($this->readings);
-	}
-
 	/*
 	 * Schedule Functions
 	 */
@@ -136,13 +157,6 @@ class BfoxReadingPlan {
 		if (is_array($options)) $options = implode('', $options);
 		if (empty($options)) $options = self::freq_options_default;
 		$this->frequency_options = $options;
-	}
-
-	public function set_end_date()
-	{
-		$reading_count = $this->reading_count();
-		$dates = $this->get_dates($reading_count + 1);
-		$this->end_date = date(self::date_format_fixed, $dates[$reading_count]);
 	}
 
 	public static function frequency_array() {
@@ -208,7 +222,7 @@ class BfoxReadingPlan {
 		return date($format, strtotime($this->end_date));
 	}
 
-	public function get_dates($count)
+	private function get_dates($count)
 	{
 		if (self::frequency_day == $this->frequency)
 		{
@@ -232,7 +246,7 @@ class BfoxReadingPlan {
 		return $dates;
 	}
 
-	public function current_date_index($dates, $now = 0) {
+	private static function current_date_index($dates, $now = 0) {
 
 		// If now is empty, get now according to the local blog settings, formatted as an integer number of seconds
 		if (empty($now)) $now = strtotime(BfoxUtility::format_local_date('today'));
@@ -401,7 +415,7 @@ class BfoxPlans {
 				// Add all the readings to the reading plan
 				foreach ($readings as $reading) $plans[$reading->plan_id]->add_verses($reading->reading_id, $reading->verse_begin, $reading->verse_end);
 
-				foreach ($plans as &$plan) $plan->sort_readings();
+				foreach ($plans as &$plan) $plan->finish_setting_plan();
 			}
 		}
 

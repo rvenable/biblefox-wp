@@ -78,6 +78,7 @@ class BfoxPlanEdit
 							$plan->set_start_date($_POST[self::var_plan_start]);
 							$plan->frequency = $_POST[self::var_plan_frequency];
 							$plan->set_freq_options((array) $_POST[self::var_plan_freq_options]);
+							$plan->finish_setting_plan();
 
 							BfoxPlans::save_plan($plan);
 							$messages []= "Reading Plan ($plan->name) Saved!";
@@ -369,17 +370,7 @@ class BfoxPlanEdit
 
 	private function plan_chart(BfoxReadingPlan $plan, $is_subscribed, $is_owned, $max_cols = 3) {
 
-		$reading_count = $plan->reading_count();
-
-		$dates = array();
 		$unread_readings = array();
-
-		// Get the date information
-		if ($plan->is_scheduled) {
-			$dates = $plan->get_dates($reading_count + 1);
-			$current_date_index = BfoxReadingPlan::current_date_index($dates);
-			if ($reading_count == $current_date_index) $current_date_index = -1;
-		}
 
 		// Get the history information
 		// TODO2: Implement user reading history
@@ -399,13 +390,13 @@ class BfoxPlanEdit
 		$header = new BfoxHtmlRow();
 		$header->add_header_col('', '');
 		$header->add_header_col('Passage', '');
-		if (!empty($dates)) $header->add_header_col('Date', '');
+		if ($plan->is_scheduled) $header->add_header_col('Date', '');
 		if (!empty($unread_readings)) $header->add_header_col('My Progress', '');
 		$sub_table->add_header_row($header);
 
 		foreach ($plan->readings as $reading_id => $reading) {
 			// Create the row for this reading
-			if ($reading_id == $current_date_index) $row = new BfoxHtmlRow("class='current'");
+			if ($reading_id == $plan->current_reading_id) $row = new BfoxHtmlRow("class='current'");
 			else $row = new BfoxHtmlRow();
 
 			// Add the reading index column and the bible reference column
@@ -413,8 +404,8 @@ class BfoxPlanEdit
 			$row->add_col(BfoxBlog::ref_link($reading->get_string(BibleMeta::name_short)));
 
 			// Add the Date column
-			if (!empty($dates)) {
-				if (isset($dates[$reading_id])) $row->add_col(date('M d', $dates[$reading_id]));
+			if ($plan->is_scheduled) {
+				if (isset($plan->dates[$reading_id])) $row->add_col(date('M d', $plan->dates[$reading_id]));
 				else $row->add_col();
 			}
 
