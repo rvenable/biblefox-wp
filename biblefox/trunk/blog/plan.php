@@ -268,7 +268,7 @@ class BfoxReadingSub {
 	public $user_type = BfoxPlans::user_type_user;
 	public $is_subscribed = FALSE;
 	public $is_owned = FALSE;
-	public $is_current = FALSE;
+	public $is_finished = FALSE;
 
 	public function __construct($values = NULL, $plan_id = NULL, $user_id = NULL, $user_type = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
@@ -285,7 +285,7 @@ class BfoxReadingSub {
 		$this->user_type = $db_data->user_type;
 		$this->is_subscribed = $db_data->is_subscribed;
 		$this->is_owned = $db_data->is_owned;
-		$this->is_current = $db_data->is_current;
+		$this->is_finished = $db_data->is_finished;
 	}
 
 	public function user_name() {
@@ -357,7 +357,7 @@ class BfoxPlans {
 			plan_id BIGINT UNSIGNED NOT NULL,
 			is_subscribed BOOLEAN NOT NULL,
 			is_owned BOOLEAN NOT NULL,
-			is_current BOOLEAN NOT NULL,
+			is_finished BOOLEAN NOT NULL,
 			PRIMARY KEY  (user_id, user_type, plan_id)");
 	}
 
@@ -443,8 +443,8 @@ class BfoxPlans {
 		// Only save if it is either subscribed or owned,
 		// Otherwise the subscription is invalid and should be deleted
 		if ($sub->is_subscribed || $sub->is_owned) $wpdb->query($wpdb->prepare("REPLACE INTO " . self::table_subs . "
-			SET plan_id = %d, user_id = %d, user_type = %d, is_subscribed = %d, is_owned = %d, is_current = %d",
-			$sub->plan_id, $sub->user_id, $sub->user_type, $sub->is_subscribed, $sub->is_owned, $sub->is_current));
+			SET plan_id = %d, user_id = %d, user_type = %d, is_subscribed = %d, is_owned = %d, is_finished = %d",
+			$sub->plan_id, $sub->user_id, $sub->user_type, $sub->is_subscribed, $sub->is_owned, $sub->is_finished));
 
 		else $wpdb->query($wpdb->prepare("DELETE FROM " . self::table_subs . "
 			WHERE plan_id = %d AND user_id = %d AND user_type = %d",

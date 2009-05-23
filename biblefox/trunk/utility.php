@@ -204,15 +204,6 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 	}
 }
 
-class BfoxHtmlHeaderRow extends BfoxHtmlRow {
-	public function __construct() {
-		$args = func_get_args();
-		$attrs = array_shift($args);
-		$this->add_header_cols($args);
-		parent::__construct($attrs);
-	}
-}
-
 class BfoxHtmlTable extends BfoxHtmlElement {
 	private $header_rows = array();
 	private $rows = array();

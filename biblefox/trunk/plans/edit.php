@@ -24,6 +24,8 @@ class BfoxPlanEdit
 	const action_delete = 'delete';
 	const action_subscribe = 'subscribe';
 	const action_unsubscribe = 'unsubscribe';
+	const action_mark_finished = 'mark_finished';
+	const action_mark_unfinished = 'mark_unfinished';
 	const action_copy = 'copy';
 
 	private $user_id;
@@ -55,7 +57,7 @@ class BfoxPlanEdit
 			$plan = BfoxPlans::get_plan($_POST[self::var_plan_id]);
 			$my_sub = BfoxPlans::get_sub($plan, $this->user_id, $this->user_type);
 
-			switch ($_POST[self::var_action]) {
+			if ($my_sub->is_visible($plan)) switch ($_POST[self::var_action]) {
 				case self::action_edit:
 					if (isset($_POST[self::var_plan_name])) {
 
@@ -101,32 +103,38 @@ class BfoxPlanEdit
 					}
 					break;
 				case self::action_copy:
-					if ($my_sub->is_visible($plan)) {
-						$plan->set_as_copy();
-						BfoxPlans::save_plan($plan);
-						$my_sub->plan_id = $plan->id;
-						$my_sub->is_subscribed = TRUE;
-						$my_sub->is_owned = TRUE;
-						BfoxPlans::save_sub($my_sub);
-						$messages []= "Reading Plan ($plan->name) Saved!";
-						$redirect = $this->url;
-					}
+					$plan->set_as_copy();
+					BfoxPlans::save_plan($plan);
+					$my_sub->plan_id = $plan->id;
+					$my_sub->is_subscribed = TRUE;
+					$my_sub->is_owned = TRUE;
+					BfoxPlans::save_sub($my_sub);
+					$messages []= "Reading Plan ($plan->name) Saved!";
+					$redirect = $this->url;
 					break;
 				case self::action_subscribe:
-					if ($my_sub->is_visible($plan)) {
-						$my_sub->is_subscribed = TRUE;
-						BfoxPlans::save_sub($my_sub);
-						$messages []= "Subscribed to Reading Plan ($plan->name)!";
-						$redirect = $this->url;
-					}
+					$my_sub->is_subscribed = TRUE;
+					BfoxPlans::save_sub($my_sub);
+					$messages []= "Subscribed to Reading Plan ($plan->name)!";
+					$redirect = $this->url;
 					break;
 				case self::action_unsubscribe:
-					if ($my_sub->is_visible($plan)) {
-						$my_sub->is_subscribed = FALSE;
-						BfoxPlans::save_sub($my_sub);
-						$messages []= "Unsubscribed to Reading Plan ($plan->name)!";
-						$redirect = $this->url;
-					}
+					$my_sub->is_subscribed = FALSE;
+					BfoxPlans::save_sub($my_sub);
+					$messages []= "Unsubscribed to Reading Plan ($plan->name)!";
+					$redirect = $this->url;
+					break;
+				case self::action_mark_finished:
+					$my_sub->is_finished = TRUE;
+					BfoxPlans::save_sub($my_sub);
+					$messages []= "Marked Reading Plan ($plan->name) as Finished!";
+					$redirect = $this->url;
+					break;
+				case self::action_mark_unfinished:
+					$my_sub->is_finished = FALSE;
+					BfoxPlans::save_sub($my_sub);
+					$messages []= "Marked Reading Plan ($plan->name) as Unfinished!";
+					$redirect = $this->url;
 					break;
 			}
 		}
@@ -162,6 +170,12 @@ class BfoxPlanEdit
 						break;
 					case self::action_unsubscribe:
 						$confirm = __('Are you sure you want to unsubscribe from ') . $this->plan_link($plan->id, $plan->name) . __('?');
+						break;
+					case self::action_mark_finished:
+						$confirm = __('Are you sure you want to mark ') . $this->plan_link($plan->id, $plan->name) . __(' as finished? This is for when you have finished reading everything in this plan.');
+						break;
+					case self::action_mark_unfinished:
+						$confirm = __('Are you sure you want to mark ') . $this->plan_link($plan->id, $plan->name) . __(' as unfinished?');
 						break;
 				}
 			}
@@ -263,15 +277,21 @@ class BfoxPlanEdit
 		return $desc;
 	}
 
-	private function get_plan_options(BfoxReadingPlan $plan, $is_subscribed, $is_owned) {
+	private function get_plan_options(BfoxReadingPlan $plan, BfoxReadingSub $my_sub) {
 		$options = array();
 
 		// Subscribe/Unsubscribe
-		if ($is_subscribed) $options []= $this->plan_action_link($plan->id, self::action_unsubscribe, __('Unsubscribe'));
+		if ($my_sub->is_subscribed) {
+			if ($my_sub->is_finished) $options []= $this->plan_action_link($plan->id, self::action_mark_unfinished, __('Mark as Unfinished'));
+			else {
+				$options []= $this->plan_action_link($plan->id, self::action_mark_finished, __('Mark as Finished'));
+				$options []= $this->plan_action_link($plan->id, self::action_unsubscribe, __('Unsubscribe'));
+			}
+		}
 		else $options []= $this->plan_action_link($plan->id, self::action_subscribe, __('Subscribe'));
 
 		// Edit
-		if ($is_owned) {
+		if ($my_sub->is_owned) {
 			$options []= $this->edit_plan_link($plan->id, __('Edit'));
 			$options []= $this->plan_action_link($plan->id, self::action_delete, __('Delete'));
 		}
@@ -311,9 +331,14 @@ class BfoxPlanEdit
 
 		$plans = BfoxPlans::get_plans($plan_ids);
 
+		$create_link = $this->plan_link(0, __('Create a new reading plan'));
+
 		$plans_table = new BfoxHtmlTable("id='reading_plans' class='widefat'");
 		$plans_table->add_header_row('', 3, 'Reading Plan', 'Schedule', 'Options');
-		if ($is_user) $plans_table->add_footer_row('', 3, $this->plan_link(0, __('Create a new reading plan')));
+		if ($is_user) $plans_table->add_footer_row('', 3, $create_link);
+
+		$finished_table = new BfoxHtmlTable("id='reading_plans' class='widefat'");
+		$finished_table->add_header_row('', 3, 'Reading Plan', 'Schedule', 'Options');
 
 		// Fill the plans table with all the plans this user is subscribed to
 		foreach ($subs as $sub) if (isset($plans[$sub->plan_id])) {
@@ -325,10 +350,15 @@ class BfoxPlanEdit
 			else $my_sub = new BfoxReadingSub();
 
 			// If the subscription is visible to this user, add it to the table
-			if ($my_sub->is_visible($plan)) $plans_table->add_row('', 3,
+			if ($my_sub->is_visible($plan)) {
+				$row = new BfoxHtmlRow('',
 				$this->plan_link($plan->id, $plan->name) . ($plan->is_private ? ' (private)' : '') . "<br/>$plan->description",
 				$this->schedule_desc($plan),
-				implode('<br/>', $this->get_plan_options($plan, $my_sub->is_subscribed, $my_sub->is_owned)));
+				implode('<br/>', $this->get_plan_options($plan, $my_sub)));
+
+				if ($my_sub->is_finished) $finished_table->add_row($row);
+				else $plans_table->add_row($row);
+			}
 		}
 
 		if (!$is_user) echo '<p>' . $this->return_link() . '</p>';
@@ -337,7 +367,18 @@ class BfoxPlanEdit
 
 		<p>Reading plans allow you to organize how you read the Bible. You can create your own reading plans, or subscribe to someone else's plans.</p>
 
+		<h3>Current Plans</h3>
+		<?php if ($plans_table->row_count()): ?>
 		<?php echo $plans_table->content() ?>
+		<?php else: ?>
+		<p>No current reading plans: <?php echo $create_link ?></p>
+		<?php endif ?>
+
+		<?php if ($finished_table->row_count()): ?>
+		<h3>Finished Plans</h3>
+		<p>These are the plans you have already finished reading.</p>
+		<?php echo $finished_table->content() ?>
+		<?php endif ?>
 		<?php $this->find_plans() ?>
 		<?php
 	}
@@ -368,7 +409,7 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private function plan_chart(BfoxReadingPlan $plan, $is_subscribed, $is_owned, $max_cols = 3) {
+	private function plan_chart(BfoxReadingPlan $plan, BfoxReadingSub $my_sub, $max_cols = 3) {
 
 		$unread_readings = array();
 
@@ -425,7 +466,7 @@ class BfoxPlanEdit
 			"<b>$plan->name$is_private</b><br/>
 			<small>Description: $plan->description<br/>
 			Schedule: " . $this->schedule_desc($plan) . "<br/>
-			Options: " . implode(', ', $this->get_plan_options($plan, $is_subscribed, $is_owned)) . "</small>");
+			Options: " . implode(', ', $this->get_plan_options($plan, $my_sub)) . "</small>");
 		$table->add_row($sub_table->get_split_row($max_cols, 5));
 
 		return $table->content();
@@ -460,7 +501,7 @@ class BfoxPlanEdit
 
 				echo "<h2>View Reading Plan</h2>";
 				echo '<p>' . $this->return_link() . '</p>';
-				echo $this->plan_chart($plan, $my_sub->is_subscribed, $my_sub->is_owned);
+				echo $this->plan_chart($plan, $my_sub);
 				echo "<h3>Subscribers</h3>\n";
 				echo "<p>These are the subscribers using this reading plan:</p>";
 				echo $user_table->content();
