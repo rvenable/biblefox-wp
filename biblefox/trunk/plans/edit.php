@@ -10,6 +10,8 @@ class BfoxPlanEdit
 	const var_plan_readings = 'plan_readings';
 	const var_plan_passages = 'plan_passages';
 	const var_plan_chunk_size = 'plan_chunk_size';
+	const var_plan_is_private = 'plan_is_private';
+	const var_plan_is_scheduled = 'plan_is_scheduled';
 	const var_plan_start = 'plan_start';
 	const var_plan_frequency = 'plan_frequency';
 	const var_plan_freq_options = 'plan_freq_options';
@@ -48,7 +50,10 @@ class BfoxPlanEdit
 		$redirect = '';
 
 		if (!empty($_POST[self::var_submit]) && isset($_POST[self::var_plan_id]) && isset($_POST[self::var_action])) {
+
+			// Get the passed in plan and this user's subscription to it
 			$plan = BfoxPlans::get_plan($_POST[self::var_plan_id]);
+			$my_sub = BfoxPlans::get_sub($plan, $this->user_id, $this->user_type);
 
 			switch ($_POST[self::var_action]) {
 				case self::action_edit:
@@ -57,18 +62,19 @@ class BfoxPlanEdit
 						// If this is a new plan, create a new subscription where we are the owner
 						// Otherwise, get the current subscription
 						if (empty($plan->id)) {
-							$sub = new BfoxReadingSub(NULL, 0, $this->user_id, $this->user_type);
-							$sub->is_subscribed = TRUE;
-							$sub->is_owned = TRUE;
+							$my_sub = new BfoxReadingSub(NULL, 0, $this->user_id, $this->user_type);
+							$my_sub->is_subscribed = TRUE;
+							$my_sub->is_owned = TRUE;
 						}
-						else $sub = BfoxPlans::get_sub($plan, $this->user_id, $this->user_type);
 
 						// We can only edit the plan if we are an owner
-						if ($sub->is_owned) {
+						if ($my_sub->is_owned) {
 							$plan->name = stripslashes($_POST[self::var_plan_name]);
 							$plan->description = stripslashes($_POST[self::var_plan_description]);
 							$plan->set_readings_by_strings(stripslashes($_POST[self::var_plan_readings]));
 							$plan->add_passages(stripslashes($_POST[self::var_plan_passages]), $_POST[self::var_plan_chunk_size]);
+							$plan->is_private = $_POST[self::var_plan_is_private];
+							$plan->is_scheduled = $_POST[self::var_plan_is_scheduled];
 							$plan->set_start_date($_POST[self::var_plan_start]);
 							$plan->frequency = $_POST[self::var_plan_frequency];
 							$plan->set_freq_options((array) $_POST[self::var_plan_freq_options]);
@@ -78,46 +84,48 @@ class BfoxPlanEdit
 							$redirect = $this->plan_url($plan->id);
 
 							// If the subscription plan is not set, this must be a new subscription that we need to save
-							if (empty($sub->plan_id)) {
-								$sub->plan_id = $plan->id;
-								BfoxPlans::save_sub($sub);
+							if (empty($my_sub->plan_id)) {
+								$my_sub->plan_id = $plan->id;
+								BfoxPlans::save_sub($my_sub);
 							}
 						}
 					}
 					break;
 				case self::action_delete:
-					$sub = BfoxPlans::get_sub($plan, $this->user_id, $this->user_type);
-
 					// We can only delete plans that we own
-					if ($sub->is_owned) {
+					if ($my_sub->is_owned) {
 						BfoxPlans::delete_plan($plan);
 						$messages []= "Reading Plan ($plan->name) Deleted!";
 						$redirect = $this->url;
 					}
 					break;
 				case self::action_copy:
-					$plan->set_as_copy();
-					BfoxPlans::save_plan($plan);
-					$sub = new BfoxReadingSub(NULL, $plan->id, $this->user_id, $this->user_type);
-					$sub->is_subscribed = TRUE;
-					$sub->is_owned = TRUE;
-					BfoxPlans::save_sub($sub);
-					$messages []= "Reading Plan ($plan->name) Saved!";
-					$redirect = $this->url;
+					if ($my_sub->is_visible($plan)) {
+						$plan->set_as_copy();
+						BfoxPlans::save_plan($plan);
+						$my_sub->plan_id = $plan->id;
+						$my_sub->is_subscribed = TRUE;
+						$my_sub->is_owned = TRUE;
+						BfoxPlans::save_sub($my_sub);
+						$messages []= "Reading Plan ($plan->name) Saved!";
+						$redirect = $this->url;
+					}
 					break;
 				case self::action_subscribe:
-					$sub = BfoxPlans::get_sub($plan, $this->user_id, $this->user_type);
-					$sub->is_subscribed = TRUE;
-					BfoxPlans::save_sub($sub);
-					$messages []= "Subscribed to Reading Plan ($plan->name)!";
-					$redirect = $this->url;
+					if ($my_sub->is_visible($plan)) {
+						$my_sub->is_subscribed = TRUE;
+						BfoxPlans::save_sub($my_sub);
+						$messages []= "Subscribed to Reading Plan ($plan->name)!";
+						$redirect = $this->url;
+					}
 					break;
 				case self::action_unsubscribe:
-					$sub = BfoxPlans::get_sub($plan, $this->user_id, $this->user_type);
-					$sub->is_subscribed = FALSE;
-					BfoxPlans::save_sub($sub);
-					$messages []= "Unsubscribed to Reading Plan ($plan->name)!";
-					$redirect = $this->url;
+					if ($my_sub->is_visible($plan)) {
+						$my_sub->is_subscribed = FALSE;
+						BfoxPlans::save_sub($my_sub);
+						$messages []= "Unsubscribed to Reading Plan ($plan->name)!";
+						$redirect = $this->url;
+					}
 					break;
 			}
 		}
@@ -221,19 +229,19 @@ class BfoxPlanEdit
 		return "<a href='$this->url'>$str</a>";
 	}
 
-	private function is_owned(BfoxReadingSub $sub) {
+	private function is_user_sub(BfoxReadingSub $sub) {
 		return (($sub->user_id == $this->user_id) && ($sub->user_type == $this->user_type));
 	}
 
 	private function user_name(BfoxReadingSub $sub, $me = '') {
-		if (!empty($me) && $this->is_owned($sub)) return $me;
+		if (!empty($me) && $this->is_user_sub($sub)) return $me;
 		return $sub->user_name();
 	}
 
 	private function user_link(BfoxReadingSub $sub, $str = '', $me = 'me') {
 		if (empty($str)) $str = $this->user_name($sub, $me);
 
-		if ($this->is_owned($sub)) $url = $this->url;
+		if ($this->is_user_sub($sub)) $url = $this->url;
 		else {
 			if (BfoxPlans::user_type_blog == $sub->user_type) $var = self::var_blog;
 			elseif (BfoxPlans::user_type_user == $sub->user_type) $var = self::var_user;
@@ -245,9 +253,12 @@ class BfoxPlanEdit
 	}
 
 	private function schedule_desc(BfoxReadingPlan $plan) {
-		$desc = $plan->start_str() . ' - ' . $plan->end_str();
-		if ($plan->is_recurring) $desc .= ' (recurring)';
-		$desc .= " (" . $plan->frequency_desc() . ")";
+		if ($plan->is_scheduled) {
+			$desc = $plan->start_str() . ' - ' . $plan->end_str();
+			if ($plan->is_recurring) $desc .= ' (recurring)';
+			$desc .= " (" . $plan->frequency_desc() . ")";
+		}
+		else $desc = 'Unscheduled';
 		return $desc;
 	}
 
@@ -307,22 +318,16 @@ class BfoxPlanEdit
 		foreach ($subs as $sub) if (isset($plans[$sub->plan_id])) {
 			$plan = $plans[$sub->plan_id];
 
-			$sub_is_subscribed = FALSE;
-			$sub_is_owned = FALSE;
+			// Determine the subscription for the current user
+			if ($is_user) $my_sub = $sub;
+			elseif (isset($my_subs[$sub->plan_id])) $my_sub = $my_subs[$sub->plan_id];
+			else $my_sub = new BfoxReadingSub();
 
-			if ($is_user) {
-				$sub_is_subscribed = $sub->is_subscribed;
-				$sub_is_owned = $sub->is_owned;
-			}
-			elseif (isset($my_subs[$sub->plan_id])) {
-				$sub_is_subscribed = $my_subs[$sub->plan_id]->is_subscribed;
-				$sub_is_owned = $my_subs[$sub->plan_id]->is_owned;
-			}
-
-			$plans_table->add_row('', 3,
-				$this->plan_link($plan->id, $plan->name) . "<br/>$plan->description",
+			// If the subscription is visible to this user, add it to the table
+			if ($my_sub->is_visible($plan)) $plans_table->add_row('', 3,
+				$this->plan_link($plan->id, $plan->name) . ($plan->is_private ? ' (private)' : '') . "<br/>$plan->description",
 				$this->schedule_desc($plan),
-				implode('<br/>', $this->get_plan_options($plan, $sub_is_subscribed, $sub_is_owned)));
+				implode('<br/>', $this->get_plan_options($plan, $my_sub->is_subscribed, $my_sub->is_owned)));
 		}
 
 		if (!$is_user) echo '<p>' . $this->return_link() . '</p>';
@@ -370,9 +375,11 @@ class BfoxPlanEdit
 		$unread_readings = array();
 
 		// Get the date information
-		$dates = $plan->get_dates($reading_count + 1);
-		$current_date_index = BfoxReadingPlan::current_date_index($dates);
-		if ($reading_count == $current_date_index) $current_date_index = -1;
+		if ($plan->is_scheduled) {
+			$dates = $plan->get_dates($reading_count + 1);
+			$current_date_index = BfoxReadingPlan::current_date_index($dates);
+			if ($reading_count == $current_date_index) $current_date_index = -1;
+		}
 
 		// Get the history information
 		// TODO2: Implement user reading history
@@ -421,8 +428,10 @@ class BfoxPlanEdit
 			$sub_table->add_row($row);
 		}
 
+		if ($plan->is_private) $is_private = ' (private)';
+
 		$table = new BfoxHtmlTable("class='reading_plan'",
-			"<b>$plan->name</b><br/>
+			"<b>$plan->name$is_private</b><br/>
 			<small>Description: $plan->description<br/>
 			Schedule: " . $this->schedule_desc($plan) . "<br/>
 			Options: " . implode(', ', $this->get_plan_options($plan, $is_subscribed, $is_owned)) . "</small>");
@@ -441,7 +450,6 @@ class BfoxPlanEdit
 		}
 		else {
 			$is_owned = FALSE;
-			$is_subscribed = FALSE;
 
 			// Users for this plan table
 			$subs = BfoxPlans::get_plan_subs($plan);
@@ -453,18 +461,20 @@ class BfoxPlanEdit
 				if (BfoxPlans::user_type_user == $sub->user_type) $type = 'User';
 				elseif (BfoxPlans::user_type_blog == $sub->user_type) $type = 'Blog';
 				$user_table->add_row('', 2, $type, $this->user_link($sub) . (($sub->is_owned) ? ' (manager)' : ''));
-				if ($this->is_owned($sub)) {
-					$is_owned = $sub->is_owned;
-					$is_subscribed = $sub->is_subscribed;
-				}
+				if ($this->is_user_sub($sub)) $my_sub = $sub;
 			}
 
-			echo "<h2>View Reading Plan</h2>";
-			echo '<p>' . $this->return_link() . '</p>';
-			echo $this->plan_chart($plan, $is_subscribed, $is_owned);
-			echo "<h3>Subscribers</h3>\n";
-			echo "<p>These are the subscribers using this reading plan:</p>";
-			echo $user_table->content();
+			if (isset($my_sub) && $my_sub->is_visible($plan)) {
+				$is_owned = $my_sub->is_owned;
+
+				echo "<h2>View Reading Plan</h2>";
+				echo '<p>' . $this->return_link() . '</p>';
+				echo $this->plan_chart($plan, $my_sub->is_subscribed, $my_sub->is_owned);
+				echo "<h3>Subscribers</h3>\n";
+				echo "<p>These are the subscribers using this reading plan:</p>";
+				echo $user_table->content();
+			}
+			else echo "<h2>Cannot find reading plan</h2><p>The reading plan you are looking for either does not exist or is set as private.</p>";
 		}
 
 		if ($is_owned) {
@@ -491,34 +501,44 @@ class BfoxPlanEdit
 		// Description
 		$table->add_option(__('Description'), '',
 			$table->option_textarea(self::var_plan_description, $plan->description, 2, 50, ''),
-			'<br/>' . __('Add an optional description of this reading plan.'));
+			'<p>' . __('Add an optional description of this reading plan.') . '</p>');
 
 		// Readings
 		$table->add_option(__('Readings'), '',
 			$table->option_textarea(self::var_plan_readings, implode("\n", $plan->reading_strings()), 15, 50),
-			'<br/>' . $reading_help_text);
+			'<p>' . $reading_help_text . '</p>');
 
 		// Groups of Passages
 		$table->add_option(__('Add Groups of Passages'), '',
 			$table->option_textarea(self::var_plan_passages, '', 3, 50),
-			"<br/><input name='" . self::var_plan_chunk_size . "' id='" . self::var_plan_chunk_size . "' type='text' value='1' size='4' maxlength='4'/><br/>$passage_help_text");
+			"<br/><input name='" . self::var_plan_chunk_size . "' id='" . self::var_plan_chunk_size . "' type='text' value='1' size='4' maxlength='4'/>$passage_help_text");
+
+		// Private
+		$table->add_option(__('Privacy'), '',
+			$table->option_check(self::var_plan_is_private, __('Set as private'), $plan->is_private),
+			'<p>' . __('Check this to set this reading plan as private. Private reading plans will not be shown to other readers looking at your reading plans. Other users will not be able to subscribe to this plan.') . '</p>');
+
+		// Is Scheduled?
+		$table->add_option(__('Use a reading schedule?'), '',
+			$table->option_check(self::var_plan_is_scheduled, __('Yes, use a reading schedule'), $plan->is_scheduled),
+			'<p>' . __('Check this to use a reading schedule for this plan. If unchecked, you can skip past the rest of the options and save your plan.') . '</p>');
 
 		// Start Date
 		$table->add_option(__('Start Date'), '',
 			$table->option_text(self::var_plan_start, $plan->start_str(), "size='10' maxlength='20'"),
-			'<br/>' . __('Set the date at which this plan schedule will begin.'));
+			'<p>' . __('Set the date at which this plan schedule will begin.') . '</p>');
 
 		// Frequency
 		$frequency_array = BfoxReadingPlan::frequency_array();
 		$table->add_option(__('How often will this plan be read?'), '',
 			$table->option_array(self::var_plan_frequency, array_map('ucfirst', $frequency_array[BfoxReadingPlan::frequency_array_daily]), $plan->frequency),
-			'<br/>' . __('Will this plan be read daily, weekly, or monthly?'));
+			'<p>' . __('Will this plan be read daily, weekly, or monthly?') . '</p>');
 
 		// Frequency Options
 		$days_week_array = BfoxReadingPlan::days_week_array();
 		$table->add_option(__('Days of the Week'), '',
 			$table->option_array(self::var_plan_freq_options, array_map('ucfirst', $days_week_array[BfoxReadingPlan::days_week_array_normal]), $plan->freq_options_array()),
-			'<br/>' . __('Which days of the week will you be reading?'));
+			'<p>' . __('Which days of the week will you be reading?') . '</p>');
 
 		echo $table->content();
 	}

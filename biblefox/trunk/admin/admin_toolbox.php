@@ -487,6 +487,8 @@ class BfoxMainToolbox extends BfoxToolBox
 			foreach ($plans as $plan)
 			{
 				$plan->id = 0;
+				$plan->is_private = FALSE;
+				$plan->is_scheduled = TRUE;
 				$plan->description = $plan->summary;
 				$plan->is_recurring = FALSE;
 				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));

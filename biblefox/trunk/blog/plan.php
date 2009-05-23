@@ -28,6 +28,7 @@ class BfoxReadingPlan {
 	public $description = '';
 	public $readings = array();
 
+	public $is_scheduled = TRUE;
 	private $start_date = '';
 	private $end_date = '';
 	public $is_recurring = FALSE;
@@ -46,6 +47,7 @@ class BfoxReadingPlan {
 		$this->name = $db_data->name;
 		$this->description = $db_data->description;
 
+		$this->is_scheduled = $db_data->is_scheduled;
 		$this->start_date = $db_data->start_date;
 		$this->end_date = $db_data->end_date;
 		$this->is_recurring = $db_data->is_recurring;
@@ -294,6 +296,12 @@ class BfoxReadingSub {
 			}
 		}
 	}
+
+	public function is_visible(BfoxReadingPlan $plan) {
+		// We can only view plans that we have subscribed to or aren't private
+		// We also make sure that the plan we were passed is actually the right plan for this subscription
+		return ($plan->id == $this->plan_id) && ($this->is_subscribed || $this->is_owned || !$plan->is_private);
+	}
 }
 
 class BfoxReadingPlanGlobal {
@@ -315,6 +323,7 @@ class BfoxPlans {
 			name VARCHAR(255) NOT NULL,
 			description TEXT NOT NULL,
 			is_private BOOLEAN NOT NULL,
+			is_scheduled BOOLEAN NOT NULL,
 			start_date DATE NOT NULL,
 			end_date DATE NOT NULL,
 			is_recurring BOOLEAN NOT NULL,
@@ -342,8 +351,8 @@ class BfoxPlans {
 		global $wpdb;
 
 		$set = $wpdb->prepare(
-			"SET name = %s, description = %s, is_private = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
-			$plan->name, $plan->description, $plan->is_private, $plan->start_str(BfoxReadingPlan::date_format_fixed), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
+			"SET name = %s, description = %s, is_private = %d, is_scheduled = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
+			$plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->start_str(BfoxReadingPlan::date_format_fixed), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
 
 		if (empty($plan->id)) $wpdb->query("INSERT INTO " . self::table_plans . " $set");
 		else {
@@ -863,7 +872,7 @@ class BfoxPlans {
 		function get_dates(&$plan, $count = 0)
 		{
 			// Turn the frequency options into an array
-			if ('' == $plan->frequency_options) $plan->frequency_options = self::freq_options_default;
+			if ('' == $plan->frequency_options) $plan->frequency_options = '0123456';
 			$plan->days_of_week = array_fill_keys(str_split($plan->frequency_options), TRUE);
 
 			// Get today according to the local blog settings, formatted as an integer number of seconds

@@ -333,7 +333,7 @@ class BfoxHtmlOptionTable extends BfoxHtmlTable {
 		$name = $id;
 		if (is_array($checks)) {
 			$type = 'checkbox';
-			$name .= '[]';
+			if (1 < count($checks)) $name .= '[]';
 		}
 		else {
 			$type = 'radio';
@@ -348,6 +348,10 @@ class BfoxHtmlOptionTable extends BfoxHtmlTable {
 		}
 
 		return array('', implode("<br/>\n", $inputs));
+	}
+
+	public static function option_check($id, $label, $check = '', $extra_attrs = '') {
+		return self::option_array($id, array(1 => $label), array(1 => $check), $extra_attrs);
 	}
 
 	public function content() {
