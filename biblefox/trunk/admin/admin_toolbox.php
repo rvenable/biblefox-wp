@@ -148,6 +148,22 @@ class BfoxMainToolbox extends BfoxToolBox
 		", 'Genesis 1; 3-8:2; Exodus; 1 Samuel 3-4; John 21; 1 Thessalonians 4'); // TODO3: 'ex' is not detected because it is only 2 letters
 	}
 
+	public function test_sub_refs() {
+
+		$start = 'eze 14,15';
+		$subs = array('eze 14:3', 'eze 14:5-15:2', 'eze 14:1-2', 'eze 14:4', 'eze 15:7-9', 'eze 13-16');
+
+		$refs = RefManager::get_from_str($start);
+		pre("start:" . $refs->get_string());
+
+		foreach ($subs as $sub) {
+			$sub_refs = RefManager::get_from_str($sub);
+			$refs->sub($sub_refs);
+			pre(" - " . $sub_refs->get_string() . " = " . $refs->get_string());
+			//pre($refs);
+		}
+	}
+
 	/**
 	 * Tests the bfox_get_discussions() function
 	 *

@@ -212,13 +212,15 @@ class BfoxReadingPlan {
 		return $desc;
 	}
 
-	public function start_str($format = self::date_format_normal)
-	{
+	public function start_time() {
+		return strtotime($this->start_date);
+	}
+
+	public function start_str($format = self::date_format_normal) {
 		return date($format, strtotime($this->start_date));
 	}
 
-	public function end_str($format = self::date_format_normal)
-	{
+	public function end_str($format = self::date_format_normal) {
 		return date($format, strtotime($this->end_date));
 	}
 

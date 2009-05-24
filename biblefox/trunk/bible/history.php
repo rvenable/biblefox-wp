@@ -40,7 +40,7 @@ class BfoxHistory {
 		}
 	}
 
-	public static function get_history($limit = 0, $time = 0, $user_id = 0) {
+	public static function get_history($limit = 0, $time = 0, $user_id = 0, $is_read = NULL) {
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
 		global $wpdb;
@@ -54,6 +54,7 @@ class BfoxHistory {
 			}
 			else $wheres []= $wpdb->prepare("time >= %d", $time);
 		}
+		if (!is_null($is_read)) $wheres []= $wpdb->prepare("is_read = %d", $is_read);
 
 		$results = $wpdb->get_results("SELECT * FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " ORDER BY time DESC " . BfoxUtility::limit_str($limit));
 

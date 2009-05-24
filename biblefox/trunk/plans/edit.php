@@ -244,6 +244,10 @@ class BfoxPlanEdit
 		return "<a href='$this->url'>$str</a>";
 	}
 
+	private function ref_link($ref_str) {
+		return "<a href='" . BfoxQuery::passage_page_url($ref_str) . "'>$ref_str</a>";
+	}
+
 	private function is_user_sub(BfoxReadingSub $sub) {
 		return (($sub->user_id == $this->user_id) && ($sub->user_type == $this->user_type));
 	}
@@ -411,19 +415,26 @@ class BfoxPlanEdit
 
 	private function plan_chart(BfoxReadingPlan $plan, BfoxReadingSub $my_sub, $max_cols = 3) {
 
-		$unread_readings = array();
+		// If this plan is scheduled, not finished, and this is a user, not a blog, then use the history information
+		$use_history = ($plan->is_scheduled && !$my_sub->is_finished && ($my_sub->user_type == BfoxPlans::user_type_user));
 
-		// Get the history information
-		// TODO2: Implement user reading history
-		/*$history_refs = BfoxHistory::get_from($plan->start_date);
-		if ($history_refs->is_valid()) {
-			foreach ($plan->readings as $reading_id => $reading) {
-				$unread = new BibleRefs();
-				$unread->add_seqs($reading->get_seqs());
-				$unread->sub_seqs($history_refs->get_seqs());
-				$unread_readings[$reading_id] = $unread;
+		$unread_readings = array();
+		if ($use_history) {
+			$history_array = BfoxHistory::get_history(0, $plan->start_time(), $my_sub->user_id, TRUE);
+
+			$history_refs = new BibleRefs();
+			foreach ($history_array as $history) $history_refs->add_seqs($history->refs->get_seqs());
+
+			if ($history_refs->is_valid()) {
+				foreach ($plan->readings as $reading_id => $reading) {
+					$unread = new BibleRefs();
+					$unread->add_seqs($reading->get_seqs());
+					$unread->sub_seqs($history_refs->get_seqs());
+					$unread_readings[$reading_id] = $unread->is_valid();
+				}
 			}
-		}*/
+			$crossed_out = '<br/>' . __('*Note: Crossed out passages indicate that you have finished reading that passage');
+		}
 
 		$sub_table = new BfoxHtmlTable("class='reading_plan_col'");
 
@@ -432,7 +443,7 @@ class BfoxPlanEdit
 		$header->add_header_col('', '');
 		$header->add_header_col('Passage', '');
 		if ($plan->is_scheduled) $header->add_header_col('Date', '');
-		if (!empty($unread_readings)) $header->add_header_col('My Progress', '');
+		//if (!empty($unread_readings)) $header->add_header_col('Unread', '');
 		$sub_table->add_header_row($header);
 
 		foreach ($plan->readings as $reading_id => $reading) {
@@ -440,9 +451,13 @@ class BfoxPlanEdit
 			if ($reading_id == $plan->current_reading_id) $row = new BfoxHtmlRow("class='current'");
 			else $row = new BfoxHtmlRow();
 
-			// Add the reading index column and the bible reference column
+			// Add the reading index column
 			$row->add_col($reading_id + 1);
-			$row->add_col(BfoxBlog::ref_link($reading->get_string(BibleMeta::name_short)));
+
+			// Add the bible reference column
+			if ($use_history && !$unread_readings[$reading_id]) $attrs = "class='finished'";
+			else $attrs = '';
+			$row->add_col($this->ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
 
 			// Add the Date column
 			if ($plan->is_scheduled) {
@@ -451,10 +466,10 @@ class BfoxPlanEdit
 			}
 
 			// Add the History column
-			if (!empty($unread_readings)) {
-				if (isset($unread_readings[$reading_id])) $row->add_col($unread_readings[$reading_id]->get_string(BibleMeta::name_short));
+			/*if (!empty($unread_readings)) {
+				if (isset($unread_readings[$reading_id])) $row->add_col($this->ref_link($unread_readings[$reading_id]->get_string(BibleMeta::name_short)));
 				else $row->add_col();
-			}
+			}*/
 
 			// Add the row to the table
 			$sub_table->add_row($row);
@@ -466,7 +481,8 @@ class BfoxPlanEdit
 			"<b>$plan->name$is_private</b><br/>
 			<small>Description: $plan->description<br/>
 			Schedule: " . $this->schedule_desc($plan) . "<br/>
-			Options: " . implode(', ', $this->get_plan_options($plan, $my_sub)) . "</small>");
+			Options: " . implode(', ', $this->get_plan_options($plan, $my_sub)) .
+			"$crossed_out</small>");
 		$table->add_row($sub_table->get_split_row($max_cols, 5));
 
 		return $table->content();
