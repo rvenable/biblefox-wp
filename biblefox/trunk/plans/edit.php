@@ -354,7 +354,7 @@ class BfoxPlanEdit
 			// Determine the subscription for the current user
 			if ($is_user) $my_sub = $sub;
 			elseif (isset($my_subs[$sub->plan_id])) $my_sub = $my_subs[$sub->plan_id];
-			else $my_sub = new BfoxReadingSub();
+			else $my_sub = new BfoxReadingSub(NULL, $plan->id);
 
 			// If the subscription is visible to this user, add it to the table
 			if ($my_sub->is_visible($plan)) {
@@ -378,7 +378,7 @@ class BfoxPlanEdit
 		<?php if ($plans_table->row_count()): ?>
 		<?php echo $plans_table->content() ?>
 		<?php else: ?>
-		<p>No current reading plans: <?php echo $create_link ?></p>
+		<p>No current reading plans<?php if ($is_user) echo ": $create_link" ?></p>
 		<?php endif ?>
 
 		<?php if ($finished_table->row_count()): ?>
