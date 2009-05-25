@@ -20,6 +20,7 @@ class BfoxReadingPlan {
 	const days_week_array_short = 2;
 
 	const freq_options_default = '0123456';
+	const reading_id_invalid = -1;
 
 	public $id = 0;
 	public $is_private = FALSE;
@@ -36,7 +37,9 @@ class BfoxReadingPlan {
 	private $frequency_options = self::freq_options_default;
 
 	public $dates = array();
-	public $current_reading_id = -1;
+	public $current_reading_id = self::reading_id_invalid;
+
+	private $history_refs = NULL;
 
 	public function __construct($values = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
@@ -86,8 +89,13 @@ class BfoxReadingPlan {
 			$this->current_reading_id = self::current_date_index($this->dates);
 
 			// If the end date is the current reading, this has ended
-			if ($reading_count == $this->current_reading_id) $this->current_reading_id = -1;
+			if ($reading_count == $this->current_reading_id) $this->current_reading_id = self::reading_id_invalid;
 		}
+		else $this->current_reading_id = self::reading_id_invalid;
+	}
+
+	public function is_current() {
+		return (self::reading_id_invalid != $this->current_reading_id);
 	}
 
 	/*
@@ -216,6 +224,10 @@ class BfoxReadingPlan {
 		return strtotime($this->start_date);
 	}
 
+	public function raw_start_date() {
+		return $this->start_date;
+	}
+
 	public function start_str($format = self::date_format_normal) {
 		return date($format, strtotime($this->start_date));
 	}
@@ -260,6 +272,37 @@ class BfoxReadingPlan {
 
 		if (isset($current)) return $current;
 		else return -1;
+	}
+
+	/*
+	 * History related
+	 */
+
+	public function set_history($history_array) {
+
+		// Create the history refs
+		$history_refs = new BibleRefs();
+
+		// Accumulate all the history references since the starting date of this plan
+		$start_time = strtotime($this->start_date);
+		foreach ($history_array as $history) if (strtotime($history->time) >= $start_time) $history_refs->add($history->refs);
+
+		if ($history_refs->is_valid()) {
+			$this->history_refs = $history_refs;
+			return TRUE;
+		}
+		return FALSE;
+	}
+
+	public function get_history_refs() {
+		if ($this->history_refs instanceof BibleRefs) return $this->history_refs;
+		return new BibleRefs();
+	}
+
+	public function get_unread(BibleRefs $reading) {
+		$unread = new BibleRefs($reading);
+		if ($this->history_refs instanceof BibleRefs) $unread->sub($this->history_refs);
+		return $unread;
 	}
 }
 
@@ -368,7 +411,7 @@ class BfoxPlans {
 
 		$set = $wpdb->prepare(
 			"SET name = %s, description = %s, is_private = %d, is_scheduled = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
-			$plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->start_str(BfoxReadingPlan::date_format_fixed), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
+			$plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->raw_start_date(), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
 
 		if (empty($plan->id)) $wpdb->query("INSERT INTO " . self::table_plans . " $set");
 		else {

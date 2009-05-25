@@ -6,6 +6,36 @@ class BfoxCboxPlans extends BfoxCbox {
 	const var_plan_id = 'plan_id';
 	const var_content = 'content';
 
+	private $plans = array();
+	private $history = array();
+
+	public function __construct($url, $id = '', $title = '') {
+		parent::__construct($url, $id, $title);
+
+		global $user_ID;
+
+		$subs = BfoxPlans::get_user_subs($user_ID, BfoxPlans::user_type_user);
+
+		$plan_ids = array();
+		foreach ($subs as $sub) if ($sub->is_subscribed && !$sub->is_finished) $plan_ids []= $sub->plan_id;
+
+		if (!empty($plan_ids)) $this->plans = BfoxPlans::get_plans($plan_ids);
+	}
+
+	public function get_earliest_time() {
+		$earliest = '';
+		foreach($this->plans as $plan) {
+			$start_time = $plan->raw_start_date();
+			if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
+		}
+
+		return $earliest;
+	}
+
+	public function set_history($history_array) {
+		foreach ($this->plans as &$plan) $plan->set_history($history_array);
+	}
+
 	public function page_load() {
 
 		/*if (isset($_POST[self::var_submit])) {
@@ -16,53 +46,43 @@ class BfoxCboxPlans extends BfoxCbox {
 		}*/
 	}
 
+	private static function create_reading_row(BfoxReadingPlan $plan, $reading_id) {
+
+		$unread = $plan->get_unread($plan->readings[$reading_id]);
+		if (!$unread->is_valid()) $ref_attrs = "class='finished'";
+		else $ref_attrs = '';
+
+		$ref_str = $plan->readings[$reading_id]->get_string();
+		return new BfoxHtmlRow($attrs,
+			date('M d', $plan->dates[$reading_id]),
+			$reading_id + 1,
+			"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name</a>",
+			array("<a href='" . BfoxQuery::passage_page_url($ref_str) . "'>$ref_str</a>", $ref_attrs));
+
+	}
+
 	public function content() {
-		global $user_ID;
+		if (!empty($this->plans)) {
 
-		$plans = BfoxPlans::get_user_plans($user_ID, BfoxPlans::user_type_user);
+			$current_table = new BfoxHtmlTable("class='widefat'", '', '');
+			$current_table->add_header_row('', 4, 'Date', '#', 'Reading List', 'Scriptures');
 
-		foreach ($plans as $plan) {
-			$schedule_ids []= $plan->schedule_id;
-			$list_ids []= $plan->list_id;
-		}
+			$upcoming_table = new BfoxHtmlTable("class='widefat'");
+			$upcoming_table->add_header_row('', 4, 'Date', '#', 'Reading List', 'Scriptures');
 
-		$schedules = BfoxPlans::get_schedules($schedule_ids);
-		$lists = BfoxPlans::get_lists($list_ids);
+			foreach ($this->plans as $plan) if ($plan->is_current()) {
+				//pre($plan);
+				$current_table->add_row($this->create_reading_row($plan, $plan->current_reading_id));
 
-		$current_table = new BfoxHtmlTable("class='widefat'");
-		$current_table->add_header_row('', 6, 'Date', '#', 'Reading List', 'Scriptures', 'Unread', 'Options');
-
-		$upcoming_table = new BfoxHtmlTable("class='widefat'");
-		$upcoming_table->add_header_row('', 6, 'Date', '#', 'Reading List', 'Scriptures', 'Unread', 'Options');
-
-		foreach ($schedules as $schedule) {
-			$list = $lists[$schedule->list_id];
-			$reading_count = $list->reading_count();
-			$reading_strings = $list->reading_strings();
-			// Get the date information
-			$dates = $schedule->get_dates($reading_count + 1);
-			$current_date_index = BfoxReadingPlan::current_date_index($dates);
-			if ($reading_count <= $current_date_index) $current_date_index = -1;
-			else {
-				$current_table->add_row('', 6, date('M d', $dates[$current_date_index]), $current_date_index, $list->name, $reading_strings[$current_date_index], 'unread', 'mark as read');
-				if ($current_date_index < ($reading_count - 1)) $upcoming_table->add_row('', 6, date('M d', $dates[$current_date_index + 1]), $current_date_index + 1, $list->name, $reading_strings[$current_date_index + 1], 'unread', 'mark as read');
+				// Add upcoming rows
+				for ($i = 1; $i <= 3; $i++) if (($plan->current_reading_id + $i) < count($plan->readings)) $upcoming_table->add_row($this->create_reading_row($plan, $plan->current_reading_id + $i));
 			}
 
-			// Get the history information
-			// TODO2: Implement user reading history
-			/*$history_refs = BfoxHistory::get_from($schedule->start_date);
-			if ($history_refs->is_valid()) {
-				foreach ($list->readings as $reading_id => $reading) {
-					$unread = new BibleRefs();
-					$unread->add_seqs($reading->get_seqs());
-					$unread->sub_seqs($history_refs->get_seqs());
-					$unread_readings[$reading_id] = $unread;
-				}
-			}*/
+			echo "<h3>Current Readings</h3>";
+			echo $current_table->content();
+			echo "<h3>Upcoming Readings</h3>";
+			echo $upcoming_table->content();
 		}
-
-		echo $current_table->content();
-		echo $upcoming_table->content();
 	}
 }
 

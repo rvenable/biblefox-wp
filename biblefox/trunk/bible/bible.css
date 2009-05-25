@@ -564,6 +564,10 @@ td.noborder {
 	border: 0;
 }
 
+td.finished {
+	text-decoration: line-through;
+}
+
 /*
 Form Table
 */

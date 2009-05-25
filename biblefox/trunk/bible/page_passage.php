@@ -3,8 +3,7 @@
 require_once BFOX_BIBLE_DIR . '/cbox_notes.php';
 require_once BFOX_BIBLE_DIR . '/cbox_plans.php';
 
-class BfoxPagePassage extends BfoxPage
-{
+class BfoxPagePassage extends BfoxPage {
 	/**
 	 * The bible references being used
 	 *
@@ -16,12 +15,19 @@ class BfoxPagePassage extends BfoxPage
 
 	protected $cboxes = array();
 
-	public function __construct($ref_str, $trans_str = '')
-	{
+	public function __construct($ref_str, $trans_str = '') {
 		$this->refs = RefManager::get_from_str($ref_str);
 
+		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
+		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
+		$this->cboxes['plans'] = new BfoxCboxPlans($url, 'plans', 'My Reading Plans');
+
 		// Get the passage history
-		$this->history = BfoxHistory::get_history(5);
+		$earliest = $this->cboxes['plans']->get_earliest_time();
+		if (empty($earliest)) $limit = 5;
+		else $limit = 0;
+		$this->history = BfoxHistory::get_history($limit, $earliest);
+		$this->cboxes['plans']->set_history($this->history);
 		if (!empty($this->history)) $last_viewed = current($this->history);
 
 		if ($this->refs->is_valid()) {
@@ -34,10 +40,6 @@ class BfoxPagePassage extends BfoxPage
 			// If there is no history, show Genesis 1
 			else $this->refs = RefManager::get_from_str('Genesis 1');
 		}
-
-		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
-		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
-		$this->cboxes['plans'] = new BfoxCboxPlans($url, 'plans', 'My Reading Plans');
 
 		parent::__construct($trans_str);
 	}

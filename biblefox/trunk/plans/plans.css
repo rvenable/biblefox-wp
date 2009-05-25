@@ -58,7 +58,3 @@ table.reading_plan_col td {
 table.reading_plan_col tr.current td {
 	font-weight: bold;
 }
-
-table.reading_plan_col td.finished {
-	text-decoration: line-through;
-}

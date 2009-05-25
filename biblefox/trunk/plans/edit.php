@@ -4,7 +4,7 @@ class BfoxPlanEdit
 {
 	const var_submit = 'submit';
 
-	const var_plan_id = 'plan_id';
+	const var_plan_id = BfoxQuery::var_plan_id;
 	const var_plan_name = 'plan_name';
 	const var_plan_description = 'plan_description';
 	const var_plan_readings = 'plan_readings';
@@ -220,7 +220,7 @@ class BfoxPlanEdit
 	}
 
 	private function plan_url($plan_id) {
-		return add_query_arg(self::var_plan_id, $plan_id, $this->url);
+		return BfoxQuery::reading_plan_url($plan_id, $this->url);
 	}
 
 	private function plan_link($plan_id, $str) {
@@ -240,7 +240,7 @@ class BfoxPlanEdit
 	}
 
 	private function return_link($str = '') {
-		if (empty($str)) $str = __('Return to My Reading Plans');
+		if (empty($str)) $str = __('My Reading Plan List');
 		return "<a href='$this->url'>$str</a>";
 	}
 
@@ -420,19 +420,7 @@ class BfoxPlanEdit
 
 		$unread_readings = array();
 		if ($use_history) {
-			$history_array = BfoxHistory::get_history(0, $plan->start_time(), $my_sub->user_id, TRUE);
-
-			$history_refs = new BibleRefs();
-			foreach ($history_array as $history) $history_refs->add_seqs($history->refs->get_seqs());
-
-			if ($history_refs->is_valid()) {
-				foreach ($plan->readings as $reading_id => $reading) {
-					$unread = new BibleRefs();
-					$unread->add_seqs($reading->get_seqs());
-					$unread->sub_seqs($history_refs->get_seqs());
-					$unread_readings[$reading_id] = $unread->is_valid();
-				}
-			}
+			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->start_time(), $my_sub->user_id, TRUE));
 			$crossed_out = '<br/>' . __('*Note: Crossed out passages indicate that you have finished reading that passage');
 		}
 
@@ -455,8 +443,14 @@ class BfoxPlanEdit
 			$row->add_col($reading_id + 1);
 
 			// Add the bible reference column
-			if ($use_history && !$unread_readings[$reading_id]) $attrs = "class='finished'";
-			else $attrs = '';
+			$attrs = '';
+			if ($use_history) {
+				// Calculate how much of this reading is unread
+				$unread = $plan->get_unread($reading);
+
+				// If this reading is 'read', then mark it as such
+				if (!$unread->is_valid()) $attrs = "class='finished'";
+			}
 			$row->add_col($this->ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
 
 			// Add the Date column
