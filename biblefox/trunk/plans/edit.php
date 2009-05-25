@@ -191,7 +191,7 @@ class BfoxPlanEdit
 				if (!$user) $user = get_user_by_email($user_var);
 				if (!$user) {
 					echo "<h2>User Search Failed</h2><p>No user could be found for '$user_var'.</p>";
-					$this->find_plans();
+					$this->find_plans($user_var);
 				}
 				else {
 					echo "<h2>Reading Plans for User: $user->display_name</h2>";
@@ -248,6 +248,13 @@ class BfoxPlanEdit
 		return "<a href='" . BfoxQuery::passage_page_url($ref_str) . "'>$ref_str</a>";
 	}
 
+	private function user_url($user_id, $user_type) {
+		if (BfoxPlans::user_type_blog == $user_type) $var = self::var_blog;
+		elseif (BfoxPlans::user_type_user == $user_type) $var = self::var_user;
+
+		return add_query_arg($var, $user_id, $this->url);
+	}
+
 	private function is_user_sub(BfoxReadingSub $sub) {
 		return (($sub->user_id == $this->user_id) && ($sub->user_type == $this->user_type));
 	}
@@ -261,11 +268,7 @@ class BfoxPlanEdit
 		if (empty($str)) $str = $this->user_name($sub, $me);
 
 		if ($this->is_user_sub($sub)) $url = $this->url;
-		else {
-			if (BfoxPlans::user_type_blog == $sub->user_type) $var = self::var_blog;
-			elseif (BfoxPlans::user_type_user == $sub->user_type) $var = self::var_user;
-			$url = add_query_arg($var, $sub->user_id, $this->url);
-		}
+		else $url = $this->user_url($sub->user_id, $sub->user_type);
 
 		return "<a href='$url'>$str</a>";
 
@@ -387,28 +390,36 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private function find_plans() {
+	private function find_plans($user_search = '') {
+
 		list($post_url, $hiddens) = BfoxUtility::get_post_url($this->url);
+
+		global $user_ID;
+		$your_blogs = (array) get_blogs_of_user($user_ID);
 
 		?>
 		<h3>Find Reading Plans</h3>
-		<p>You can look up reading plans that others have created so that you can subscribe them.</p>
+		<p>You can look up reading plans that others have created so that you can subscribe to them or copy them to use as a start for your own custom reading plan.</p>
 
+		<h4>User Search</h4>
 		<form action='<?php echo $post_url ?>' method='get'>
 		<?php echo $hiddens ?>
 		<p>
-		<input type='text' name='<?php echo self::var_user ?>' value='<?php echo $_GET[self::var_user] ?>'/>
+		<input type='text' name='<?php echo self::var_user ?>' value='<?php echo $user_search ?>'/>
 		<input type='submit' value='User Search' class='button'/>
 		</p>
 		</form>
 
-		<form action='<?php echo $post_url ?>' method='get'>
-		<?php echo $hiddens ?>
-		<p>
-		<input type='text' name='<?php echo self::var_blog ?>' value='<?php echo $_GET[self::var_blog] ?>'/>
-		<input type='submit' value='Blog Search' class='button'/>
-		</p>
-		</form>
+		<?php if (!empty($your_blogs)): ?>
+		<h4>Your Blogs</h4>
+		<p>You can also use reading plans from blogs. Begin with your blogs:</p>
+		<ul>
+			<?php foreach ($your_blogs as $blog): ?>
+			<li><a href="<?php echo $this->user_url($blog->userblog_id, BfoxPlans::user_type_blog) ?>"><?php echo $blog->blogname ?></a></li>
+			<?php endforeach ?>
+		</ul>
+		<p>Also check out the reading plans on the main <a href='<?php echo $this->user_url(1, BfoxPlans::user_type_blog) ?>'>Biblefox.com blog</a>.</p>
+		<?php endif ?>
 
 		<?php
 	}
@@ -489,6 +500,7 @@ class BfoxPlanEdit
 
 			echo "<h2>Create Reading Plan</h2>";
 			echo '<p>' . $this->return_link() . '</p>';
+			echo "<p>Here you can create your own custom reading plan. If you don't really want to create a plan from scratch, try copying some of our plans from the main <a href='" . $this->user_url(1, BfoxPlans::user_type_blog) . "'>Biblefox.com blog</a>.</p>";
 		}
 		else {
 			$is_owned = FALSE;

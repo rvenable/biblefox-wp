@@ -108,6 +108,7 @@ class BfoxPageCommentaries extends BfoxPage
 		<p>Add any biblefox.com blog by entering its url:
 		<input name="add_url" id="add_url" type="text" value="" size="40" maxlength="127" />
 		<input type="submit" value="Add URL" name="update" class="button-secondary delete" /></p>
+		</form>
 		<?php
 	}
 }
