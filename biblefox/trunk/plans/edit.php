@@ -501,6 +501,7 @@ class BfoxPlanEdit
 			echo "<h2>Create Reading Plan</h2>";
 			echo '<p>' . $this->return_link() . '</p>';
 			echo "<p>Here you can create your own custom reading plan. If you don't really want to create a plan from scratch, try copying some of our plans from the main <a href='" . $this->user_url(1, BfoxPlans::user_type_blog) . "'>Biblefox.com blog</a>.</p>";
+			echo "<p>Creating a reading plan is easy. You just give it a name and description, then add a bunch of bible passages, and finally add an optional schedule.</p>";
 		}
 		else {
 			$is_owned = FALSE;
@@ -543,14 +544,27 @@ class BfoxPlanEdit
 			BfoxUtility::hidden_input(self::var_plan_id, $plan->id) . BfoxUtility::hidden_input(self::var_action, self::action_edit),
 			"<p><input type='submit' name='" . self::var_submit . "' value='" . __('Save') . "' class='button'/></p>");
 
-		$passage_help_text = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
+		$passage_help = __('<p>This allows you to add passages of the Bible to your reading plan in big chunks.</p>
 			<p>You can type passages of the bible in the box, and then set how many chapters you want to read at a time. The passages will be cut into sections and added to your reading plan.</p>
-			<p>Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John".<br/>
-			You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3").<br/>
-			Separate passages can be separated with a comma (\',\'), semicolon (\';\'), or on separate lines.</p>');
+			<p>Type any passages in the box above. For instance, to make a reading plan of all the gospels you could type "Matthew, Mark, Luke, John". You can use bible abbreviations (ie. "gen" instead of "Genesis"), and even specify chapters and verses (ie. "gen 1-3"). Separate passages can be separated with a comma (\',\'), semicolon (\';\'), or on separate lines.</p>');
+
+		if (empty($plan->id)) {
+			$readings_label = __('Add Readings (Option 1)');
+			$groups_label = __('Add Readings (Option 2)');
+			$readings_help = '<p>' . __('Add scriptures to your reading plan. Each line you enter will be a different reading in the plan. If you want to automatically add bible passages, skip to the next section: ') . $groups_label . '</p>' .
+				'<p>' . __('<b>Tip</b>: We will parse out any text that is not a bible reference. This means, if you found a cool reading plan online somewhere, you can just paste it straight in here. As long as each bible reading is on a separate line, we should be able to correctly parse all the bible references.') . '</p>';
+			$passage_help .= __('<p>By the way, you can use both option 1 and 2 for adding passages. The passages from option 2 will be appended to the end of the passages added from option 1.</p>');
+		}
+		else {
+			$readings_label = __('Edit Readings');
+			$groups_label = __('Append More Readings');
+			$reading_help = '<p>' . __('This is a list of all the current readings: edit these passages to modify your reading plan. Each line is a different reading in the plan.') . '</p>';
+			$passage_help .= __('<p><b>Note</b>: Any passages you add here will be appended to the end of the current readings (in the "') . $readings_label . __('" box).</p>');
+		}
 
 		// Name
-		$table->add_option(__('Reading Plan Name'), '', $table->option_text(self::var_plan_name, $plan->name, "size = '40'"), '');
+		$table->add_option(__('Reading Plan Name'), '', $table->option_text(self::var_plan_name, $plan->name, "size = '40'"),
+			'<p>' . __('Give the reading plan a cool name.') . '</p>');
 
 		// Description
 		$table->add_option(__('Description'), '',
@@ -558,14 +572,15 @@ class BfoxPlanEdit
 			'<p>' . __('Add an optional description of this reading plan.') . '</p>');
 
 		// Readings
-		$table->add_option(__('Readings'), '',
+		$table->add_option($readings_label, '',
 			$table->option_textarea(self::var_plan_readings, implode("\n", $plan->reading_strings()), 15, 50),
-			'<p>' . $reading_help_text . '</p>');
+			$readings_help);
 
 		// Groups of Passages
-		$table->add_option(__('Add Groups of Passages'), '',
+		$table->add_option($groups_label, '',
 			$table->option_textarea(self::var_plan_passages, '', 3, 50),
-			"<br/><input name='" . self::var_plan_chunk_size . "' id='" . self::var_plan_chunk_size . "' type='text' value='1' size='4' maxlength='4'/>$passage_help_text");
+			"<br/><input name='" . self::var_plan_chunk_size . "' id='" . self::var_plan_chunk_size . "' type='text' value='1' size='4' maxlength='4'/> " . __('Chapters Per Reading') .
+			$passage_help);
 
 		// Private
 		$table->add_option(__('Privacy'), '',
@@ -592,7 +607,7 @@ class BfoxPlanEdit
 		$days_week_array = BfoxReadingPlan::days_week_array();
 		$table->add_option(__('Days of the Week'), '',
 			$table->option_array(self::var_plan_freq_options, array_map('ucfirst', $days_week_array[BfoxReadingPlan::days_week_array_normal]), $plan->freq_options_array()),
-			'<p>' . __('Which days of the week will you be reading?') . '</p>');
+			'<p>' . __('Which days of the week will you be reading? This only applies to plans that are read daily.') . '</p>');
 
 		echo $table->content();
 	}
