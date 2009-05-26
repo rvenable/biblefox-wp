@@ -12,7 +12,7 @@ define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
 require_once BFOX_BLOG_DIR . '/posts.php';
 require_once BFOX_BLOG_DIR . '/bfox-plan.php';
 require_once('bfox-blog-specific.php');
-require_once('plan.php');
+require_once('plans.php');
 require_once('history.php');
 require_once('bfox-query.php');
 require_once('bfox-widgets.php');
