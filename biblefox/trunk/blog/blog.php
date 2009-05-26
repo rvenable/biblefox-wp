@@ -19,6 +19,8 @@ require_once('bfox-widgets.php');
 require_once('bibletext.php');
 require_once("bfox-settings.php");
 
+require_once BFOX_PLANS_DIR . '/plans.php';
+
 class BfoxBlog
 {
 	const var_bible_ref = 'bfox_bible_ref';

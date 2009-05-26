@@ -6,6 +6,8 @@ require_once BFOX_BIBLE_DIR . '/history.php';
 require_once BFOX_BIBLE_DIR . '/page.php';
 require_once BFOX_BIBLE_DIR . '/notes.php';
 
+require_once BFOX_PLANS_DIR . '/plans.php';
+
 $search_str = $_REQUEST[BfoxQuery::var_search];
 $ref_str = $_REQUEST[BfoxQuery::var_reference];
 $trans_str = $_REQUEST[BfoxQuery::var_translation];
