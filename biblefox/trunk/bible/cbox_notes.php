@@ -17,7 +17,9 @@ class BfoxCboxNotes extends BfoxCbox {
 	}
 
 	public function edit_note_url($note_id) {
-		return $this->cbox_url(add_query_arg(self::var_note_id, $note_id, $this->url));
+		// TODO3: This is a temporary link without the # until AJAX updates are finished
+		//return $this->cbox_url(add_query_arg(self::var_note_id, $note_id, $this->url));
+		return add_query_arg(self::var_note_id, $note_id, $this->url);
 	}
 
 	public function content() {
