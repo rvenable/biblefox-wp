@@ -48,14 +48,6 @@ class BfoxPagePassage extends BfoxPage {
 		foreach ($this->cboxes as $cbox) $cbox->page_load();
 	}
 
-	public function print_scripts($base_url)
-	{
-		?>
-		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/jquery.cookie.js"></script>
-		<?php
-		parent::print_scripts($base_url);
-	}
-
 	public function get_title()
 	{
 		return $this->refs->get_string();

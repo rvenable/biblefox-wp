@@ -39,6 +39,7 @@ abstract class BfoxPage
 		?>
 		<link rel="stylesheet" href="<?php echo $base_url ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
 		<link rel="stylesheet" href="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/bible.css" type="text/css"/>
+		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/jquery.cookie.js"></script>
 		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/bible.js"></script>
 		<?php
 	}
