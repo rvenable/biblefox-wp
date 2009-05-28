@@ -349,7 +349,7 @@ Scripture Layout
 Blog Commentaries
 */
 
-#bible_passage .commentary_list {
+#bible_passage .sideview {
 	background-color: #EEEEEE;
 	float: right;
 	width: 50%;
@@ -360,6 +360,7 @@ Blog Commentaries
 	margin: 0px 0px 5px 5px;
 	padding: 0px;
 	-moz-border-radius-bottomleft: 0.5em;
+	display: none;
 }
 
 #bible_passage .commentary_list_head {
@@ -383,6 +384,18 @@ Blog Commentaries
 
 table#commentaries {
 	width: 100%;
+}
+
+ul#sideview_list {
+	margin: 0 0 0 1em;
+	padding: 0;
+}
+
+ul#sideview_list li {
+	display: inline;
+	list-style-type: none;
+	background-color: #DDD;
+	padding: 0 0.3em;
 }
 
 /*
@@ -456,6 +469,7 @@ Generic
 }
 
 .box_inside {
+	background-color: #FFF;
 	position: relative;
 	padding: 1em;
 }
@@ -598,7 +612,7 @@ Form Table
 	margin: 0;
 	text-align: left;
 	vertical-align: top;
-	width: 15em;
+	width: 20%;
 }
 
 .form-table td {

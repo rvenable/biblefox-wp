@@ -92,23 +92,27 @@ class BfoxPagePassage extends BfoxPage {
 		// Output the posts for each commentary
 		if (!empty($blog_ids)) {
 			$blog_post_ids = BfoxPosts::get_post_ids_for_blogs($refs, $blog_ids);
-			foreach ($internal_coms as $com) if (!empty($blog_post_ids[$com->blog_id])) {
+			foreach ($internal_coms as $com) {
 				$post_ids = $blog_post_ids[$com->blog_id];
 				$posts = array();
 
 				switch_to_blog($com->blog_id);
 
-				BfoxBlogQueryData::set_post_ids($post_ids);
-				$query = new WP_Query(1);
+				if (!empty($post_ids)) {
+					BfoxBlogQueryData::set_post_ids($post_ids);
+					$query = new WP_Query(1);
+					$post_count = $query->post_count;
+				}
+				else $post_count = 0;
 
 				?>
 				<div class="cbox_sub">
 					<div class="cbox_head">
-						<span class="box_right"><?php echo $query->post_count ?> posts</span>
+						<span class="box_right"><?php echo $post_count ?> posts</span>
 						<a href="http://<?php echo $com->blog_url ?>"><?php echo $com->name ?></a>
 					</div>
 					<div class='cbox_body'>
-					<?php while($query->have_posts()) :?>
+					<?php while(!empty($post_ids) && $query->have_posts()) :?>
 						<?php $query->the_post() ?>
 						<div class="cbox_sub_sub">
 							<div class='cbox_head'><strong><?php the_title(); ?></strong> by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
@@ -309,6 +313,8 @@ class BfoxPagePassage extends BfoxPage {
 
 		$footnotes = array();
 
+		$top_boxes = array('commentaries' => __('Blogs'), 'notes' => __('Notes'), 'none' => __('Hide'));
+
 		?>
 
 		<div id="bible_passage">
@@ -318,10 +324,25 @@ class BfoxPagePassage extends BfoxPage {
 					<?php echo $ref_str ?>
 					<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
 				</div>
+				<div>
+					<div class="sideview">
+						<div class="commentary_list_head">
+							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
+						</div>
+						<ul id='sideview_list'>
+						<?php foreach ($top_boxes as $id => $title): ?>
+							<li><a onclick='bfox_sideshow("<?php echo $id ?>")'><?php echo $title ?></a></li>
+						<?php endforeach ?>
+						</ul>
+						<?php foreach ($top_boxes as $id => $title): ?>
+							<div id='sideview_<?php echo $id ?>' class='sideview_content'></div>
+						<?php endforeach ?>
+					</div>
 					<div class="reference">
 						<?php echo self::ref_content($this->refs, $this->translation, $footnotes); ?>
 					</div>
 					<div class="clear"></div>
+				</div>
 				<div>
 				</div>
 				<div class="box_menu">
@@ -354,15 +375,9 @@ class BfoxPagePassage extends BfoxPage {
 			foreach ($this->cboxes as $cbox) echo $cbox->cbox();
 		?>
 		<div id='commentaries' class='cbox'>
-			<div class='cbox_head'>Commentaries</div>
+			<div class='cbox_head'>Blog Posts</div>
 			<div class='cbox_body'>
-				<div class="commentary_list">
-					<div class="commentary_list_head">
-						Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
-					</div>
-					<?php self::output_posts($this->refs); ?>
-					<?php //self::output_quick_press(); ?>
-				</div>
+				<?php self::output_posts($this->refs); ?>
 			</div>
 		</div>
 		<?php

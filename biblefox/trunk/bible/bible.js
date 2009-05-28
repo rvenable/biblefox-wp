@@ -53,6 +53,13 @@ function bfox_toggle_verse_paragraph()
 	}
 }
 
+// Select a specific tab to show in the sideviewer
+function bfox_sideshow(id) {
+	jQuery('.sideview_content').hide();
+	jQuery('#sideview_' + id).show();
+	jQuery.cookie('sideshow_id', id);
+}
+
 jQuery(document).ready( function() {
 	jQuery('#verse_layout_toggle').click(bfox_toggle_verse_paragraph);
 	
@@ -83,4 +90,18 @@ jQuery(document).ready( function() {
 	jQuery('.cbox_sub .cbox_head, .cbox_sub_sub .cbox_head').click(function() {
 		jQuery(this).siblings('.cbox_body').toggle('fast');
 	});
+
+	// Move content from the bottom of the page to the side viewer
+	jQuery('.sideview_content').hide().each(function() {
+		var content = jQuery(this);
+		var from = jQuery('#' + content.attr('id').substring(9));
+		content.html(from.children('.cbox_body').clone(true));
+		jQuery(from).remove();
+	});
+	
+	// Show the cookied sideview item
+	var sideshow_id = jQuery.cookie('sideshow_id');
+	if (null != sideshow_id) bfox_sideshow(sideshow_id);
+	
+	jQuery('.sideview').show();
 });
