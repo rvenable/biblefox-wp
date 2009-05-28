@@ -527,6 +527,16 @@ class BfoxPlans {
 		// Return the plan from the DB, if there is no data in the DB, the new sub will still be set for this plan and user
 		return new BfoxReadingSub($wpdb->get_row($wpdb->prepare("SELECT * FROM " . self::table_subs . " WHERE plan_id = %d AND user_id = %d AND user_type = %d", $plan->id, $user_id, $user_type)), $plan->id, $user_id, $user_type);
 	}
+
+	public static function get_user_plans($user_id, $user_type) {
+		$subs = BfoxPlans::get_user_subs($user_id, $user_type);
+
+		foreach ($subs as $sub) $plan_ids []= $sub->plan_id;
+
+		$plans = BfoxPlans::get_plans($plan_ids);
+
+		return array($plans, $subs);
+	}
 }
 
 ?>

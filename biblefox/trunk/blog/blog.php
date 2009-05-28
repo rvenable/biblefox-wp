@@ -200,11 +200,6 @@ class BfoxBlog
 
 		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
 	}
-
-	public static function get_reading_plan_ids()
-	{
-		return get_option(self::option_reading_plans, array());
-	}
 }
 
 add_action('init', array('BfoxBlog', 'init'));

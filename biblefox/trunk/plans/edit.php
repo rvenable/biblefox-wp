@@ -329,14 +329,10 @@ class BfoxPlanEdit
 
 		$is_user = (($user_id == $this->user_id) && ($user_type == $this->user_type));
 
-		$subs = BfoxPlans::get_user_subs($user_id, $user_type);
+		list($plans, $subs) = BfoxPlans::get_user_plans($user_id, $user_type);
 
 		$my_subs = array();
 		if (!$is_user) $my_subs = BfoxPlans::get_user_subs($this->user_id, $this->user_type);
-
-		foreach ($subs as $sub) $plan_ids []= $sub->plan_id;
-
-		$plans = BfoxPlans::get_plans($plan_ids);
 
 		$create_link = $this->plan_link(0, __('Create a new reading plan'));
 

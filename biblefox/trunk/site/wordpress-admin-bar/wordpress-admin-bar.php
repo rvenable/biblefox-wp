@@ -379,7 +379,7 @@ class WPAdminBar {
 <?php
 	if ($is_logged_in)
 	{
-		global $bfox_specials, $bfox_plan;
+		global $bfox_specials/*, $bfox_plan*/;
 		$this_study_menu = '';
 		if (is_user_member_of_blog($user_ID))
 		{
@@ -402,6 +402,8 @@ class WPAdminBar {
 		echo '<a href="http://' . $current_blog->domain . $current_blog->path . '"><span class="wpabar-dropdown">' . get_bloginfo('name') . '</span></a><ul>';
 		echo $this_study_menu;
 		echo '</ul></li>';
+
+		/* TODO2: Figure out what to do with this admin bar
 
 		$plans = $bfox_plan->get_plans();
 		foreach ($plans as $plan)
@@ -429,7 +431,7 @@ class WPAdminBar {
 			echo $write_menu;
 			echo '<li><a href="' . $current_blog->path . 'wp-admin/post-new.php">New Post</a></li>';
 			echo '</ul></li>';
-		}
+		}*/
 	}
 	?>
 </ul></div>
@@ -493,7 +495,7 @@ foreach( $this->menu as $topstub => $menu ) {
 		if (0 < count($blogs))
 		{
 			echo '<li class="wpabar-menupop" onmouseover="showNav(this)" onmouseout="hideNav(this)">';
-			echo '<a href="http://' . $current_site->domain . $current_site->path . '"><span class="wpabar-dropdown">' . __('My Bible Studies') . '</span></a><ul>';
+			echo '<a href="http://' . $current_site->domain . $current_site->path . '"><span class="wpabar-dropdown">' . __('My Blogs') . '</span></a><ul>';
 
 			foreach ($blogs as $blog) echo '<li><a href="' . $blog->siteurl . '">' . $blog->blogname . '</a></li>';
 			echo '</ul></li>';

@@ -58,7 +58,8 @@ class BfoxBlogQueryData
 		if (is_array($value)) self::$post_ids = $value;
 		elseif ($value instanceof BibleRefs) self::$post_ids = BfoxPosts::get_post_ids($value);
 
-		if (!empty(self::$post_ids)) self::$use_post_ids = TRUE;
+		// Use the post ids, even if there aren't any (if there aren't any, the query must return no posts - see bfox_posts_where())
+		self::$use_post_ids = TRUE;
 	}
 
 	public static function use_post_ids()
@@ -92,31 +93,26 @@ class BfoxBlogQueryData
 		self::add_pre_posts(self::create_ref_posts($refs));
 	}
 
-	public static function set_reading_plan($plan_id = 0, $reading_id = 0)
-	{
-		global $bfox_plan, $blog_id;
+	public static function set_reading_plan($plan_id = 0, $reading_id = 0) {
+		global $blog_id;
 
 		$refs = new BibleRefs();
 		$new_posts = array();
 
-		$plans = (array) $bfox_plan->get_plans($plan_id);
-		if (!empty($plans))
-		{
-			foreach ($plans as $plan)
-			{
-				// If there is no reading set, use the current reading
-				// If there is a reading set, we need to decrement it to make it zero-based
-				if (empty($reading_id)) $reading_id = $plan->current_reading;
-				else $reading_id--;
+		$plan = BfoxPlans::get_plan($plan_id);
+		if ($plan->is_current()) {
 
-				$refs->add_seqs($plan->refs[$reading_id]->get_seqs());
-				$new_posts []= self::create_reading_post($plan, $reading_id);
-			}
+			// If there is no reading set, use the current reading
+			// If there is a reading set, we need to decrement it to make it zero-based
+			if (empty($reading_id)) $reading_id = $plan->current_reading_id;
+			else $reading_id--;
 
-			if ($refs->is_valid()) self::set_post_ids($refs);
-			if (!empty($new_posts)) self::add_pre_posts($new_posts);
+			$refs->add($plan->readings[$reading_id]);
+			$new_posts []= self::create_reading_post($plan, $reading_id);
 		}
 
+		if ($refs->is_valid()) self::set_post_ids($refs);
+		if (!empty($new_posts)) self::add_pre_posts($new_posts);
 	}
 
 	/**
@@ -218,23 +214,23 @@ class BfoxBlogQueryData
 	 * @param $reading_id
 	 * @return object new_post
 	 */
-	private function create_reading_post($plan, $reading_id)
+	private function create_reading_post(BfoxReadingPlan $plan, $reading_id)
 	{
-		$refs = $plan->refs[$reading_id];
+		$refs = $plan->readings[$reading_id];
 		$ref_str = $refs->get_string();
 
 		// Create the navigation bar with the prev/write/next links
 		$nav_bar = "<div class='bible_post_nav'>";
-		if (isset($plan->refs[$reading_id - 1]))
+		if (isset($plan->readings[$reading_id - 1]))
 		{
 			$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
-			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->refs[$reading_id - 1]->get_string() . '</a>';
+			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->readings[$reading_id - 1]->get_string() . '</a>';
 		}
 		$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
-		if (isset($plan->refs[$reading_id + 1]))
+		if (isset($plan->readings[$reading_id + 1]))
 		{
 			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
-			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->refs[$reading_id + 1]->get_string() . ' &gt;</a>';
+			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->readings[$reading_id + 1]->get_string() . ' &gt;</a>';
 		}
 		$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
 
