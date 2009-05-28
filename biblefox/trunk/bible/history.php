@@ -11,7 +11,7 @@ class BfoxHistory {
 
 		BfoxUtility::create_table(self::table, "
 			user_id BIGINT(20) UNSIGNED NOT NULL,
-			time DATETIME NOT NULL,
+			time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			is_read BOOLEAN NOT NULL,
 			verse_begin MEDIUMINT UNSIGNED NOT NULL,
 			verse_end MEDIUMINT UNSIGNED NOT NULL,
@@ -25,9 +25,9 @@ class BfoxHistory {
 			global $wpdb;
 
 			$rows = array();
-			foreach ($refs->get_seqs() as $seq) $rows []= $wpdb->prepare("(%d, NOW(), FALSE, %d, %d)", $user_id, $seq->start, $seq->end);
+			foreach ($refs->get_seqs() as $seq) $rows []= $wpdb->prepare("(%d, FALSE, %d, %d)", $user_id, $seq->start, $seq->end);
 
-			$wpdb->query("INSERT INTO " . self::table . " (user_id, time, is_read, verse_begin, verse_end) VALUES " . implode(',', $rows));
+			$wpdb->query("INSERT INTO " . self::table . " (user_id, is_read, verse_begin, verse_end) VALUES " . implode(',', $rows));
 		}
 	}
 
