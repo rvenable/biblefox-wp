@@ -107,7 +107,7 @@ class BfoxNotes {
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
 		// We can only save this note if it is a new note, or we are using the appropriate user
-		if (empty($note->id) || ($note->get_user_id() == $user_id)) {
+		if (!empty($user_id) && (empty($note->id) || ($note->get_user_id() == $user_id))) {
 			global $wpdb;
 
 			if (empty($note->id)) {
@@ -137,19 +137,22 @@ class BfoxNotes {
 	public static function get_notes($note_ids = array(), $user_id = 0) {
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
-		global $wpdb;
-
 		$notes = array();
-		if (!empty($note_ids)) {
-			$ids = array();
-			foreach ($note_ids as $note_id) if (!empty($note_id)) $ids []= $wpdb->prepare('%d', $note_id);
-			if (!empty($ids)) $id_where = 'AND id IN (' . implode(',', $ids) . ')';
+
+		if (!empty($user_id)) {
+			global $wpdb;
+
+			if (!empty($note_ids)) {
+				$ids = array();
+				foreach ($note_ids as $note_id) if (!empty($note_id)) $ids []= $wpdb->prepare('%d', $note_id);
+				if (!empty($ids)) $id_where = 'AND id IN (' . implode(',', $ids) . ')';
+			}
+
+			$results = $wpdb->get_results($wpdb->prepare('SELECT * FROM ' . self::table_notes . " WHERE user_id = %d $id_where", $user_id));
+			foreach ($results as $result) $notes[$result->id] = new BfoxNote($result);
+
+			// Note: we don't need to retrieve the bible references because we can generate them from the note content
 		}
-
-		$results = $wpdb->get_results($wpdb->prepare('SELECT * FROM ' . self::table_notes . " WHERE user_id = %d $id_where", $user_id));
-		foreach ($results as $result) $notes[$result->id] = new BfoxNote($result);
-
-		// Note: we don't need to retrieve the bible references because we can generate them from the note content
 
 		return $notes;
 	}

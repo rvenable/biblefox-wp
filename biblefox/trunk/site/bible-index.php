@@ -5,7 +5,7 @@
 
 global $user_ID;
 
-bfox_bible_page_load();
+if ($user_ID) bfox_bible_page_load();
 
 get_header();
 if ($user_ID) bfox_bible_page();
