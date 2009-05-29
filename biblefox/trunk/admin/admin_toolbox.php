@@ -500,7 +500,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		echo 'Creating table<br/>';
 		BfoxPosts::create_table();
 
-		$blogs = get_blog_list();
+		$blogs = get_blog_list(0, 'all');
 
 		echo 'Populating from blogs:<br/>';
 		foreach ($blogs as $blog)
@@ -525,7 +525,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		echo 'Creating tables<br/>';
 		BfoxPlans::create_tables();
 
-		$blogs = get_blog_list();
+		$blogs = get_blog_list(0, 'all');
 
 		echo 'Populating from blogs:<br/>';
 		foreach ($blogs as $blog)
