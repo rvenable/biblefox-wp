@@ -3,17 +3,13 @@
 define(BFOX_BLOG_DIR, dirname(__FILE__));
 
 define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
-define(BFOX_PROGRESS_SUBPAGE, 'bfox-progress');
 
 // User Levels
 define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
 
 require_once BFOX_BLOG_DIR . '/posts.php';
-require_once BFOX_BLOG_DIR . '/bfox-plan.php';
 require_once('bfox-blog-specific.php');
-require_once('plans.php');
-require_once('history.php');
 require_once('bfox-query.php');
 require_once('bfox-widgets.php');
 require_once('bibletext.php');
@@ -47,11 +43,9 @@ class BfoxBlog
 	}
 
 	public static function add_menu() {
-		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
-
 		// Add the reading plan page to the Post menu along with the corresponding load action
-		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'bfox_manage_reading_plans');
-		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'bfox_manage_reading_plans_load');
+		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'BfoxBlog::plan_editor');
+		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'BfoxBlog::plan_editor_load');
 
 		//add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
@@ -67,6 +61,19 @@ class BfoxBlog
 	public static function admin_init() {
 		BfoxUtility::enqueue_style('bfox_admin', 'blog/admin.css', array('bfox_scripture'));
 		BfoxUtility::enqueue_script('bfox_admin', 'blog/admin.js', array('sack'));
+	}
+
+	public static function plan_editor_load() {
+		global $blog_id, $bfox_plan_editor;
+
+		require_once BFOX_PLANS_DIR . '/edit.php';
+		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, BfoxBlog::admin_url('admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE));
+		$bfox_plan_editor->page_load();
+	}
+
+	public static function plan_editor() {
+		global $bfox_plan_editor;
+		$bfox_plan_editor->content();
 	}
 
 	public static function admin_url($page) {
@@ -268,13 +275,6 @@ function bfox_post_scripture_quick_view_meta_box($post)
 	// TODO3: Get rid of this include
 	require_once("bfox-write.php");
 	bfox_form_scripture_quick_view();
-}
-
-function bfox_progress()
-{
-//	bfox_progress_page();
-	if (current_user_can(BFOX_USER_LEVEL_MANAGE_USERS)) bfox_join_request_menu();
-	include('my-blogs.php');
 }
 
 /**

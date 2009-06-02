@@ -3,48 +3,6 @@
 class BfoxMainToolbox extends BfoxToolBox
 {
 
-	/*
-	 Upgrade function for DB tables
-	 */
-	function upgrade_all_tables()
-	{
-		// Get the blogs using a WPMU function (from wpmu-functions.php)
-		$blogs = get_blog_list();
-		foreach ($blogs as $blog)
-		{
-			echo "<strong>Upgrading Blog {$blog['blog_id']}...</strong><br/>";
-
-			$plan = new PlanBlog($blog['blog_id']);
-			if (!$plan->are_tables_installed())
-			{
-				echo "Upgrading Plan<br/>";
-				$plan->create_tables();
-				//$plan->reset_end_dates();
-			}
-		}
-
-		global $wpdb;
-		$users = $wpdb->get_col("SELECT ID FROM $wpdb->users");
-		foreach ($users as $user_id)
-		{
-			echo "<strong>Upgrading User $user_id...</strong><br/>";
-
-			$history = new History($user_id);
-			if ($history->are_tables_installed())
-			{
-				echo "Upgrading History<br/>";
-				$history->create_tables();
-			}
-
-			$plan = new PlanProgress($user_id);
-			if ($plan->are_tables_installed())
-			{
-				echo "Upgrading Plan Progress<br/>";
-				$plan->create_tables();
-			}
-		}
-	}
-
 	function test_html_ref_replace()
 	{
 		$str = "<xml>
@@ -191,8 +149,7 @@ class BfoxMainToolbox extends BfoxToolBox
 	 * Sends all of today's reading plan emails for the current blog
 	 *
 	 */
-	function send_reading_plan_emails()
-	{
+	function send_reading_plan_emails() {
 		bfox_plan_emails_send();
 	}
 
@@ -202,9 +159,8 @@ class BfoxMainToolbox extends BfoxToolBox
 	 * To add the event again after clearing it, edit any unfinished reading plan.
 	 *
 	 */
-	function clear_plan_email_event()
-	{
-		wp_clear_scheduled_hook('bfox_plan_emails_send_action');
+	function clear_plan_email_event() {
+		BfoxBibleEmailer::unschedule();
 	}
 
 	/**
@@ -522,52 +478,6 @@ class BfoxMainToolbox extends BfoxToolBox
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_subs);*/
 		echo 'Creating tables<br/>';
 		BfoxPlans::create_tables();
-
-		/*$blogs = get_blog_list(0, 'all');
-
-		echo 'Populating from blogs:<br/>';
-		foreach ($blogs as $blog) {
-			$blog = (object) $blog;
-
-			switch_to_blog($blog->blog_id);
-
-			$bfox_plan = new PlanBlog();
-			$plans = $bfox_plan->get_plans();
-
-			foreach ($plans as $plan) {
-				$plan->id = 0;
-				$plan->is_private = FALSE;
-				$plan->is_scheduled = TRUE;
-				$plan->description = $plan->summary;
-				$plan->is_recurring = FALSE;
-				$plan->start_date = date('Y-m-d', strtotime($plan->start_date));
-				$plan->end_date = date('Y-m-d', strtotime($plan->end_date));
-
-				$new_plan = new BfoxReadingPlan($plan);
-				foreach ($plan->refs as $refs) $new_plan->set_reading($refs);
-				BfoxPlans::save_plan($new_plan);
-
-				$new_sub = new BfoxReadingSub();
-				$new_sub->plan_id = $new_plan->id;
-				$new_sub->user_id = $blog->blog_id;
-				$new_sub->user_type = BfoxPlans::user_type_blog;
-				$new_sub->is_subscribed = TRUE;
-				$new_sub->is_owned = TRUE;
-				BfoxPlans::save_sub($new_sub);
-
-				$new_sub->user_type = BfoxPlans::user_type_user;
-				$new_sub->is_owned = FALSE;
-
-				$users = get_users_of_blog($blog->blog_id);
-				foreach ($users as $user) {
-					$new_sub->user_id = $user->user_id;
-					BfoxPlans::save_sub($new_sub);
-				}
-			}
-
-			restore_current_blog();
-			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";
-		}*/
 	}
 
 	/*public function create_history_table() {
