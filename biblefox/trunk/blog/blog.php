@@ -17,7 +17,7 @@ require_once('history.php');
 require_once('bfox-query.php');
 require_once('bfox-widgets.php');
 require_once('bibletext.php');
-require_once("bfox-settings.php");
+//require_once("bfox-settings.php");
 
 require_once BFOX_PLANS_DIR . '/plans.php';
 
