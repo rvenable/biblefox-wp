@@ -492,19 +492,18 @@ class BfoxMainToolbox extends BfoxToolBox
 		}
 	}
 
-	public function repopulate_posts_table()
-	{
+	public function repopulate_posts_table() {
 		global $wpdb;
-		echo 'Dropping table<br/>';
+
+		/*echo 'Dropping table<br/>';
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPosts::table);
 		echo 'Creating table<br/>';
-		BfoxPosts::create_table();
+		BfoxPosts::create_table();*/
 
 		$blogs = get_blog_list(0, 'all');
 
 		echo 'Populating from blogs:<br/>';
-		foreach ($blogs as $blog)
-		{
+		foreach ($blogs as $blog) {
 			$blog = (object) $blog;
 			switch_to_blog($blog->blog_id);
 			/*$wpdb->query($wpdb->prepare("INSERT INTO " . BfoxPosts::table . " (blog_id, post_id, ref_type, verse_begin, verse_end)
@@ -515,21 +514,19 @@ class BfoxMainToolbox extends BfoxToolBox
 		}
 	}
 
-	public function repopulate_plans_table()
-	{
-		global $wpdb;
+	public function recreate_plans_table() {
+		/*global $wpdb;
 		echo 'Dropping tables<br/>';
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_plans);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_readings);
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_subs);
+		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_subs);*/
 		echo 'Creating tables<br/>';
 		BfoxPlans::create_tables();
 
-		$blogs = get_blog_list(0, 'all');
+		/*$blogs = get_blog_list(0, 'all');
 
 		echo 'Populating from blogs:<br/>';
-		foreach ($blogs as $blog)
-		{
+		foreach ($blogs as $blog) {
 			$blog = (object) $blog;
 
 			switch_to_blog($blog->blog_id);
@@ -537,8 +534,7 @@ class BfoxMainToolbox extends BfoxToolBox
 			$bfox_plan = new PlanBlog();
 			$plans = $bfox_plan->get_plans();
 
-			foreach ($plans as $plan)
-			{
+			foreach ($plans as $plan) {
 				$plan->id = 0;
 				$plan->is_private = FALSE;
 				$plan->is_scheduled = TRUE;
@@ -571,10 +567,10 @@ class BfoxMainToolbox extends BfoxToolBox
 
 			restore_current_blog();
 			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";
-		}
+		}*/
 	}
 
-	public function create_history_table() {
+	/*public function create_history_table() {
 		global $wpdb;
 		require_once BFOX_BIBLE_DIR . '/history.php';
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxHistory::table);
@@ -587,14 +583,13 @@ class BfoxMainToolbox extends BfoxToolBox
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxNotes::table_notes);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxNotes::table_refs);
 		BfoxNotes::create_tables();
-	}
+	}*/
 
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *
 	 */
-	function temp()
-	{
+	function temp() {
 		echo BfoxPosts::get_post_ids(RefManager::get_from_str('Gen 1'));
 		echo BfoxPosts::get_post_ids_for_blogs(RefManager::get_from_str('Gen 1'), array(1, 2, 3));
 	}

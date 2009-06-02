@@ -24,6 +24,7 @@ class BfoxReadingPlan {
 
 	public $id = 0;
 	public $is_private = FALSE;
+	public $copied_from_id = 0;
 
 	public $name = '';
 	public $description = '';
@@ -48,6 +49,7 @@ class BfoxReadingPlan {
 
 	public function set_from_db(stdClass $db_data) {
 		$this->id = $db_data->id;
+		$this->copied_from_id = $db_data->copied_from_id;
 		$this->is_private = $db_data->is_private;
 
 		$this->name = $db_data->name;
@@ -62,6 +64,7 @@ class BfoxReadingPlan {
 	}
 
 	public function set_as_copy() {
+		$this->copied_from_id = $this->id;
 		$this->id = 0;
 		$this->name = "Copy of $this->name";
 	}
@@ -379,11 +382,11 @@ class BfoxPlans {
 	const user_type_blog = 1;
 
 	public static function create_tables() {
-		// Note: for blog_id and user_id (aka. user) see WP's implementation in wp-admin/includes/schema.php
 
 		BfoxUtility::create_table(self::table_plans, "
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			name VARCHAR(255) NOT NULL,
+			copied_from_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			name TINYTEXT NOT NULL,
 			description TEXT NOT NULL,
 			is_private BOOLEAN NOT NULL,
 			is_scheduled BOOLEAN NOT NULL,
@@ -391,7 +394,7 @@ class BfoxPlans {
 			end_date DATE NOT NULL,
 			is_recurring BOOLEAN NOT NULL,
 			frequency TINYINT UNSIGNED NOT NULL,
-			frequency_options VARCHAR(255) NOT NULL,
+			frequency_options TINYTEXT NOT NULL,
 			PRIMARY KEY  (id)");
 
 		BfoxUtility::create_table(self::table_readings, "
@@ -400,6 +403,7 @@ class BfoxPlans {
 			verse_begin MEDIUMINT UNSIGNED NOT NULL,
 			verse_end MEDIUMINT UNSIGNED NOT NULL");
 
+		// Note: for blog_id and user_id (aka. user) see WP's implementation in wp-admin/includes/schema.php
 		BfoxUtility::create_table(self::table_subs, "
 			user_id BIGINT(20) UNSIGNED NOT NULL,
 			user_type TINYINT(1) NOT NULL,
@@ -414,8 +418,8 @@ class BfoxPlans {
 		global $wpdb;
 
 		$set = $wpdb->prepare(
-			"SET name = %s, description = %s, is_private = %d, is_scheduled = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
-			$plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->raw_start_date(), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
+			"SET copied_from_id = %d, name = %s, description = %s, is_private = %d, is_scheduled = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
+			$plan->copied_from_id, $plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->raw_start_date(), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
 
 		if (empty($plan->id)) $wpdb->query("INSERT INTO " . self::table_plans . " $set");
 		else {
