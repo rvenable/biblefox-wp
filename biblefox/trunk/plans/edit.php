@@ -397,15 +397,6 @@ class BfoxPlanEdit
 		<h3>Find Reading Plans</h3>
 		<p>You can look up reading plans that others have created so that you can subscribe to them or copy them to use as a start for your own custom reading plan.</p>
 
-		<h4>User Search</h4>
-		<form action='<?php echo $post_url ?>' method='get'>
-		<?php echo $hiddens ?>
-		<p>
-		<input type='text' name='<?php echo self::var_user ?>' value='<?php echo $user_search ?>'/>
-		<input type='submit' value='User Search' class='button'/>
-		</p>
-		</form>
-
 		<?php if (!empty($your_blogs)): ?>
 		<h4>Your Blogs</h4>
 		<p>You can also use reading plans from blogs. Begin with your blogs:</p>
@@ -416,6 +407,16 @@ class BfoxPlanEdit
 		</ul>
 		<p>Also check out the reading plans on the main <a href='<?php echo $this->user_url(1, BfoxPlans::user_type_blog) ?>'>Biblefox.com blog</a>.</p>
 		<?php endif ?>
+
+		<h4>User Search</h4>
+		<p>Type in anyone's username to view their reading plans.</p>
+		<form action='<?php echo $post_url ?>' method='get'>
+		<?php echo $hiddens ?>
+		<p>
+		<input type='text' name='<?php echo self::var_user ?>' value='<?php echo $user_search ?>'/>
+		<input type='submit' value='User Search' class='button'/>
+		</p>
+		</form>
 
 		<?php
 	}
@@ -441,7 +442,11 @@ class BfoxPlanEdit
 		//if (!empty($unread_readings)) $header->add_header_col('Unread', '');
 		$sub_table->add_header_row($header);
 
+		$total_refs = new BibleRefs();
+
 		foreach ($plan->readings as $reading_id => $reading) {
+			$total_refs->add($reading);
+
 			// Create the row for this reading
 			if ($reading_id == $plan->current_reading_id) $row = new BfoxHtmlRow("class='current'");
 			else $row = new BfoxHtmlRow();
@@ -485,6 +490,7 @@ class BfoxPlanEdit
 			Options: " . implode(', ', $this->get_plan_options($plan, $my_sub)) .
 			"$crossed_out</small>");
 		$table->add_row($sub_table->get_split_row($max_cols, 5));
+		$table->add_row('', 1, array("<small>Combined passages covered by this plan: " . $total_refs->get_string(BibleMeta::name_short) . "</small>", "colspan='$max_cols'"));
 
 		return $table->content();
 	}

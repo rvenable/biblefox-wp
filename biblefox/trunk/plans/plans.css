@@ -58,3 +58,11 @@ table.reading_plan_col td {
 table.reading_plan_col tr.current td {
 	font-weight: bold;
 }
+
+table.reading_plan tr.even_row td {
+	border-top-style: solid;
+	border-top-width: 0.1em;
+	border-color: #CCC;
+	background-color: #EEE;
+}
+
