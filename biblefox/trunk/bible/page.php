@@ -13,11 +13,13 @@ abstract class BfoxPage
 	 */
 	protected $translation;
 
-	public function __construct($trans_str = '')
-	{
+	public function __construct($trans_str = '') {
 		// TODO3: if (empty($trans)) $translation = get_from_history
 		if (empty($trans_str)) $this->translation = $GLOBALS['bfox_trans'];
 		else $this->translation = Translations::get_translation($trans_str);
+
+		BfoxUtility::enqueue_script('bfox_bible');
+		BfoxUtility::enqueue_style('bfox_bible');
 	}
 
 	public function page_load() {}
@@ -32,16 +34,6 @@ abstract class BfoxPage
 	public function get_search_str()
 	{
 		return '';
-	}
-
-	public function print_scripts($base_url)
-	{
-		?>
-		<link rel="stylesheet" href="<?php echo $base_url ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
-		<link rel="stylesheet" href="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/bible.css" type="text/css"/>
-		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/jquery.cookie.js"></script>
-		<script type="text/javascript" src="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/bible.js"></script>
-		<?php
 	}
 
 	public function page()

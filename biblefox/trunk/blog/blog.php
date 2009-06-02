@@ -36,9 +36,9 @@ class BfoxBlog
 	 */
 	private static $home_url;
 
-	public static function init()
-	{
-		add_action('admin_menu', array('BfoxBlog', 'add_menu'));
+	public static function init() {
+		add_action('admin_menu', 'BfoxBlog::add_menu');
+		add_action('admin_init', 'BfoxBlog::admin_init');
 
 		self::$home_url = get_option('home');
 
@@ -46,8 +46,7 @@ class BfoxBlog
 		bfox_widgets_init();
 	}
 
-	public static function add_menu()
-	{
+	public static function add_menu() {
 		add_submenu_page('profile.php', 'My Status', 'My Status', 0, BFOX_PROGRESS_SUBPAGE, 'bfox_progress');
 
 		// Add the reading plan page to the Post menu along with the corresponding load action
@@ -63,32 +62,14 @@ class BfoxBlog
 		 * this tag for new posts (see get_tags_to_edit() which bails out on post_id of 0)
 		 */
 		//add_filter('tags_to_edit', 'bfox_tags_to_edit');
-
-		add_action('admin_head', 'BfoxBlog::admin_head');
 	}
 
-	public static function admin_head()
-	{
-		// use JavaScript SACK library for Ajax
-		wp_print_scripts(array('sack'));
-
-		$url = get_option('siteurl');
-		?>
-		<link rel="stylesheet" href="<?php echo $url ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
-		<link rel="stylesheet" href="<?php echo $url ?>/wp-content/mu-plugins/biblefox/blog/admin.css" type="text/css"/>
-		<script type="text/javascript" src="<?php echo $url ?>/wp-content/mu-plugins/biblefox/blog/admin.js"></script>
-		<?php
+	public static function admin_init() {
+		BfoxUtility::enqueue_style('bfox_admin', 'blog/admin.css', array('bfox_scripture'));
+		BfoxUtility::enqueue_script('bfox_admin', 'blog/admin.js', array('sack'));
 	}
 
-	public static function add_scripture()
-	{
-		?>
-		<link rel="stylesheet" href="<?php echo get_option('siteurl') ?>/wp-content/mu-plugins/biblefox/scripture.css" type="text/css"/>
-		<?php
-	}
-
-	public static function admin_url($page)
-	{
+	public static function admin_url($page) {
 		return self::$home_url . '/wp-admin/' . $page;
 	}
 

@@ -36,14 +36,8 @@ class BfoxPlanEdit
 		$this->user_id = $user_id;
 		$this->user_type = $user_type;
 		$this->url = $url;
-	}
 
-	public static function add_head($base_url = '') {
-		if (empty($base_url)) $base_url = get_option('siteurl');
-
-		?>
-		<link rel="stylesheet" href="<?php echo $base_url ?>/wp-content/mu-plugins/biblefox/plans/plans.css" type="text/css"/>
-		<?php
+		BfoxUtility::enqueue_style('bfox_plans', 'plans/plans.css');
 	}
 
 	public function page_load() {

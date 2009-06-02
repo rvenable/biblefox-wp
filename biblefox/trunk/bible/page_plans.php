@@ -16,11 +16,6 @@ class BfoxPagePlans extends BfoxPage {
 		$this->editor->page_load();
 	}
 
-	public function print_scripts($base_url) {
-		parent::print_scripts($base_url);
-		$this->editor->add_head($base_url);
-	}
-
 	public function content() {
 		$this->editor->content();
 	}

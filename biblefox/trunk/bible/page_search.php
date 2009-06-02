@@ -21,6 +21,8 @@ class BfoxPageSearch extends BfoxPage
 
 		// See if we need to filter these search results by a bible reference
 		if (!empty($ref_str)) $this->search->set_refs(RefManager::get_from_str($ref_str));
+
+		BfoxUtility::enqueue_style('bfox_search');
 	}
 
 	private function page_url($page_num) {
@@ -36,14 +38,6 @@ class BfoxPageSearch extends BfoxPage
 	public function get_search_str()
 	{
 		return $this->search->text;
-	}
-
-	public function print_scripts($base_url)
-	{
-		parent::print_scripts($base_url);
-		?>
-		<link rel="stylesheet" href="<?php echo $base_url; ?>/wp-content/mu-plugins/biblefox/bible/search.css" type="text/css"/>
-		<?php
 	}
 
 	public function content()

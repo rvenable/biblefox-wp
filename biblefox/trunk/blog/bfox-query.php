@@ -303,7 +303,7 @@ function bfox_parse_query($wp_query)
 		}
 	}
 
-	if ($showing_refs) add_action('wp_head', 'BfoxBlog::add_scripture');
+	if ($showing_refs) BfoxUtility::enqueue_style('bfox_scripture');
 }
 
 // Function for modifying the query WHERE statement

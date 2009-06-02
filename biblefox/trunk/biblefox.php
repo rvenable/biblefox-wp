@@ -32,10 +32,13 @@
 
 *************************************************************************/
 
+define(BFOX_VERSION, '0.2.1');
+
 define(BFOX_FILE, __FILE__);
 define(BFOX_DIR, dirname(__FILE__));
-define(BFOX_DATA_DIR, BFOX_DIR . '/data');
+define(BFOX_URL, WPMU_PLUGIN_URL . '/biblefox');
 
+define(BFOX_DATA_DIR, BFOX_DIR . '/data');
 define(BFOX_PLANS_DIR, BFOX_DIR . '/plans');
 
 define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox/biblefox.php');
@@ -62,8 +65,7 @@ require_once BFOX_DIR . '/site/message.php';
  * @param unknown_type $query
  * @return unknown
  */
-function bfox_show_errors($query)
-{
+function bfox_show_errors($query) {
 	global $wpdb;
 	define('DIEONDBERROR', 'die!');
 	$wpdb->show_errors(true);
@@ -79,10 +81,12 @@ add_action('get_footer', 'bfox_pre_deb');
 function bfox_posts_requests($request) { deb("REQUEST: $request"); return $request; }
 //add_filter('posts_request', 'bfox_posts_requests'); // Uncomment this to show the WP_Query SQL request query
 
-function biblefox_init()
-{
+function biblefox_init() {
 	global $current_site;
 	BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . '?');
+
+	// Register all the global scripts and styles
+	BfoxUtility::register_style('bfox_scripture', 'scripture.css');
 
 	bfox_query_init();
 	bfox_widgets_init();

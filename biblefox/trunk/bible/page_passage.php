@@ -314,7 +314,7 @@ class BfoxPagePassage extends BfoxPage {
 			<div class="roundbox">
 				<div class="box_head">
 					<?php echo $ref_str ?>
-					<a id="verse_layout_toggle" class="button" onclick="bfox_toggle_paragraphs()">Switch to Verse View</a>
+					<a id="verse_layout_toggle" class="button">Switch to Verse View</a>
 				</div>
 				<div>
 					<div class="sideview">
