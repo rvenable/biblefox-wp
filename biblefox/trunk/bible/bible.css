@@ -574,6 +574,10 @@ Table
 	background-color: #F4F4F4;
 }
 
+.widefat p {
+	margin: 0 0 0.5em 0;
+}
+
 td.noborder {
 	border: 0;
 }

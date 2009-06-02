@@ -71,8 +71,8 @@ class BfoxPlanEdit
 
 						// We can only edit the plan if we are an owner
 						if ($my_sub->is_owned) {
-							$plan->name = stripslashes($_POST[self::var_plan_name]);
-							$plan->description = stripslashes($_POST[self::var_plan_description]);
+							$plan->name = strip_tags(stripslashes($_POST[self::var_plan_name]));
+							$plan->description = strip_tags(stripslashes($_POST[self::var_plan_description]));
 							$plan->set_readings_by_strings(stripslashes($_POST[self::var_plan_readings]));
 							$plan->add_passages(stripslashes($_POST[self::var_plan_passages]), $_POST[self::var_plan_chunk_size]);
 							$plan->is_private = $_POST[self::var_plan_is_private];
@@ -355,7 +355,7 @@ class BfoxPlanEdit
 			// If the subscription is visible to this user, add it to the table
 			if ($my_sub->is_visible($plan)) {
 				$row = new BfoxHtmlRow('',
-				$this->plan_link($plan->id, $plan->name) . ($plan->is_private ? ' (private)' : '') . "<br/>$plan->description",
+				$this->plan_link($plan->id, $plan->name) . ($plan->is_private ? ' (private)' : '') . '<small>' . $plan->desc_html() . '</small>',
 				$this->schedule_desc($plan),
 				implode('<br/>', $this->get_plan_options($plan, $my_sub)));
 
@@ -485,7 +485,7 @@ class BfoxPlanEdit
 
 		$table = new BfoxHtmlTable("class='reading_plan'",
 			"<b>$plan->name$is_private</b><br/>
-			<small>Description: $plan->description<br/>
+			<small>" . $plan->desc_html() . "<br/>
 			Schedule: " . $this->schedule_desc($plan) . "<br/>
 			Options: " . implode(', ', $this->get_plan_options($plan, $my_sub)) .
 			"$crossed_out</small>");

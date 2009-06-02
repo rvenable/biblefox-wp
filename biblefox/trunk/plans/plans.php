@@ -102,6 +102,10 @@ class BfoxReadingPlan {
 	 * Reading List Functions
 	 */
 
+	public function desc_html() {
+		return wpautop($this->description);
+	}
+
 	public function set_reading(BibleRefs $refs, $reading_id = -1)
 	{
 		if ($refs->is_valid()) {
