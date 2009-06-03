@@ -324,7 +324,7 @@ class RefSequence extends BfoxSequences {
 class BibleRefs extends RefSequence {
 
 	public function __construct($value = NULL) {
-		if (is_string($value)) $this->push_string($value);
+		if (is_string($value)) $this->add(BfoxRefParser::simple($value, 1));
 		elseif ($value instanceof BibleRefs) $this->add_seqs($value->get_seqs());
 	}
 
@@ -357,10 +357,6 @@ class BibleRefs extends RefSequence {
 	public function sub($refs) {
 		$sub_refs = self::refs_input($refs);
 		$this->sub_seqs($sub_refs->get_seqs());
-	}
-
-	function push_string($str, $max_level = 1) {
-		$this->add(BfoxRefParser::simple($str, $max_level));
 	}
 
 	/**
