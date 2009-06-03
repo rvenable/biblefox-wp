@@ -498,9 +498,6 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 */
 	function temp() {
-		$refs = new BibleRefs;
-		$refs->push_string('Gen 1');
-		echo $refs->get_string();
 	}
 
 }

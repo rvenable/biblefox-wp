@@ -411,7 +411,7 @@ function bfox_ref_replace($str, $max_level = 0)
 		$refs = new BibleRefs;
 
 		// If there is a chapter, verse string use it
-		if ($substr->cv_offset) $refs->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
+		if ($substr->cv_offset) BfoxRefParser::add_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
 		// We are not currently adding whole books
 		//else $refs->add_whole_book($substr->book);
 
