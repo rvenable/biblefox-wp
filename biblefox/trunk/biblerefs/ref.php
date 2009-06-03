@@ -440,28 +440,22 @@ class BibleRefs extends RefSequence {
 	}
 }
 
-class BibleGroupPassage extends BibleRefs
-{
+class BibleGroupPassage extends BibleRefs {
 	private $group;
 
-	public function __construct($group = '')
-	{
-		if (!empty($group)) $this->push_string($group);
+	public function __construct($group = '') {
+		if (!empty($group)) {
+			$this->group = $group;
+			$start = self::get_first_book($group);
+			$end = self::get_last_book($group);
+			for ($i = $start; $i <= $end; $i++) $this->add_whole_book($i);
+		}
 	}
 
-	public function push_string($group, $max_level = 1)
-	{
-		$this->group = $group;
-		$start = self::get_first_book($group);
-		$end = self::get_last_book($group);
-		for ($i = $start; $i <= $end; $i++) $this->add_whole_book($i);
-	}
-
-	public static function get_first_book($group)
-	{
+	public static function get_first_book($group) {
 		$book = 0;
-		if (isset(BibleMeta::$book_groups[$group][0]))
-		{
+
+		if (isset(BibleMeta::$book_groups[$group][0])) {
 			$book = BibleMeta::$book_groups[$group][0];
 			if (isset(BibleMeta::$book_groups[$book])) $book = self::get_first_book($book);
 		}
@@ -469,12 +463,10 @@ class BibleGroupPassage extends BibleRefs
 		return $book;
 	}
 
-	public static function get_last_book($group)
-	{
+	public static function get_last_book($group) {
 		$last_index = count(BibleMeta::$book_groups[$group]) - 1;
 		$book = 0;
-		if ((0 < $last_index) && isset(BibleMeta::$book_groups[$group][$last_index]))
-		{
+		if ((0 < $last_index) && isset(BibleMeta::$book_groups[$group][$last_index])) {
 			$book = BibleMeta::$book_groups[$group][$last_index];
 			if (isset(BibleMeta::$book_groups[$book])) $book = self::get_last_book($book);
 		}
@@ -482,8 +474,7 @@ class BibleGroupPassage extends BibleRefs
 		return $book;
 	}
 
-	public function get_string($name = '')
-	{
+	public function get_string($name = '') {
 		return BibleMeta::get_book_name($this->group, $name);
 	}
 }

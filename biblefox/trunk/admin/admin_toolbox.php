@@ -481,7 +481,9 @@ class BfoxMainToolbox extends BfoxToolBox
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *
 	 */
-	function temp() {
+	public function temp() {
+		$refs = new BibleGroupPassage('new');
+		echo $refs->get_string();
 	}
 
 }

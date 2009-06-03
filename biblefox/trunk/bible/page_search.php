@@ -20,7 +20,7 @@ class BfoxPageSearch extends BfoxPage
 		$this->search = new BibleSearch(strip_tags($search_str), $this->translation, $_REQUEST[self::var_page_num]);
 
 		// See if we need to filter these search results by a bible reference
-		if (!empty($ref_str)) $this->search->set_refs(new BibleRefs($ref_str));
+		if (!empty($ref_str)) $this->search->set_refs(BfoxRefParser::bible_search($ref_str));
 
 		BfoxUtility::enqueue_style('bfox_search');
 	}

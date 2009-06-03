@@ -8,8 +8,13 @@ class BfoxRefParser {
 		return $refs;
 	}
 
+	public static function with_groups($str) {
+		if (isset(BibleMeta::$book_groups[$str])) return new BibleGroupPassage($str);
+		else return self::simple($str);
+	}
+
 	public static function bible_search($str) {
-		return self::simple($str);
+		return self::with_groups($str);
 	}
 
 	public static function text_flat($text) {
