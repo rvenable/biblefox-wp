@@ -41,7 +41,7 @@ class BfoxNote {
 
 	public function set_content($content) {
 		$this->content = $content;
-		$this->refs = new BibleRefs($this->content); // ParseTextFlat
+		$this->refs = BfoxRefParser::text_flat($this->content);
 		$this->display_content = wpautop(bfox_ref_replace_html($this->content));
 	}
 
