@@ -30,8 +30,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		$result = $ref->get_string();
 
 		// Test setting a BibleRefs by a set of unique ids
-		$sets = $ref->get_sets();
-		$ref2 = RefManager::get_from_sets($sets);
+		$ref2 = new BibleRefs($ref);
 		$result2 = $ref2->get_string();
 
 		echo "$ref_str -> <strong>$result</strong>";
@@ -342,8 +341,7 @@ class BfoxMainToolbox extends BfoxToolBox
 
 	public function test_reading_plan_dividing()
 	{
-		$seq = new BibleRefs();
-		$seq->push_string('john, acts, romans, 1 john, 2 john, 3 john');
+		$seq = new BibleRefs('john, acts, romans, 1 john, 2 john, 3 john');
 		echo $seq->get_string() . '<br/>';
 		foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 	}

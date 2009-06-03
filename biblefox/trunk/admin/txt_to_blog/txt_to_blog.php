@@ -428,8 +428,7 @@ class MhccTxtToBlog extends TxtToBlog
 		$pcount = count($paragraphs);
 
 		// Create a ref string for this chapter, to compare with upcoming paragraphs
-		$chapter_ref = new BibleRefs();
-		$chapter_ref->push_string($chapter);
+		$chapter_ref = new BibleRefs($chapter);
 		$ch_ref_str = $chapter_ref->get_string();
 
 		// Try to parse the first paragraph as an outline
@@ -453,8 +452,7 @@ class MhccTxtToBlog extends TxtToBlog
 				{
 					list($ch, $new_key) = explode(':', substr($paragraph, 0, $substr->length), 2);
 
-					$ref = new BibleRefs();
-					$ref->push_string($ch, 1);
+					$ref = new BibleRefs($ch);
 					$ref_str = $ref->get_string();
 
 					// If this reference matches the chapter's reference, this reference should be marking a section

@@ -76,8 +76,7 @@ class BfoxPosts
 		}
 	}
 
-	public static function get_refs($post_ids = array())
-	{
+	public static function get_refs($post_ids = array()) {
 		global $wpdb, $blog_id;
 
 		$refs = array();
@@ -85,8 +84,7 @@ class BfoxPosts
 		$ids = array();
 		foreach ($post_ids as $post_id) if (!empty($post_id)) $ids []= $wpdb->prepare('%d', $post_id);
 
-		if (!empty($ids))
-		{
+		if (!empty($ids)) {
 			$results = $wpdb->get_results($wpdb->prepare('
 				SELECT post_id, verse_begin, verse_end
 				FROM ' . self::table . '
@@ -94,10 +92,9 @@ class BfoxPosts
 				$blog_id
 				));
 
-			foreach ($results as $result)
-			{
-				if (isset($refs[$result->post_id])) $refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
-				else $refs[$result->post_id] = RefManager::get_from_sets(array(array($result->verse_begin, $result->verse_end)));
+			foreach ($results as $result) {
+				if (!isset($refs[$result->post_id])) $refs[$result->post_id] = new BibleRefs();
+				$refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}
 
@@ -111,7 +108,7 @@ class BfoxPosts
 		else return new BibleRefs();
 	}
 
-	public static function get_refs_for_blogs($posts)
+	/*public static function get_refs_for_blogs($posts)
 	{
 		global $wpdb;
 
@@ -126,14 +123,13 @@ class BfoxPosts
 
 			foreach ($results as $result)
 			{
-				$ref &= $refs[$result->blog_id][$result->post_id][$result->ref_type];
-				if (isset($ref)) $ref->add_seq($result->verse_begin, $result->verse_end);
-				else $ref = RefManager::get_from_sets(array(array($result->verse_begin, $result->verse_end)));
+				if (!isset($refs[$result->blog_id][$result->post_id][$result->ref_type])) $refs[$result->blog_id][$result->post_id][$result->ref_type] = new BibleRefs();
+				$refs[$result->blog_id][$result->post_id][$result->ref_type]->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}
 
 		return $refs;
-	}
+	}*/
 }
 
 ?>

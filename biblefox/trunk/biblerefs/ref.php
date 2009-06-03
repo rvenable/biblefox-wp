@@ -585,20 +585,6 @@ class RefManager
 		return $refs;
 	}
 
-	public static function get_from_sets($sets)
-	{
-		$refs = new BibleRefs();
-		$refs->push_sets($sets);
-		return $refs;
-	}
-
-	public static function get_from_concat_values($begin_str, $end_str)
-	{
-		$refs = new BibleRefs();
-		$refs->push_concatenated($begin_str, $end_str);
-		return $refs;
-	}
-
 	public static function get_from_set($unique_ids)
 	{
 		return self::get_from_unique_ids($unique_ids[0], $unique_ids[1]);
@@ -851,45 +837,6 @@ class BiblePassage
 							  $this->verse_end->unique_id, $this->verse_start->unique_id, $this->verse_end->unique_id,
 							  $this->verse_start->unique_id, $this->verse_start->unique_id, $this->verse_end->unique_id);
 	}
-
-	// Increments the bible reference by a given factor
-	function increment($factor = 1)
-	{
-		// Only increment if we are not looking at an entire book
-		if (0 != $this->verse_start->chapter)
-		{
-			// Get the difference between chapters
-			$diff = $this->verse_end->chapter - $this->verse_start->chapter;
-
-			// If the chapter difference is 0, and there is no specified verse
-			// Then we must be viewing one single chapter, so our chapter difference should be 1
-			if ((0 == $diff) && (0 == $this->verse_start->verse))
-				$diff = 1;
-
-			$chapter_inc = 0;
-			$verse_inc = 0;
-
-			// If we have a chapter difference then set the chapter increment,
-			// otherwise try to set a verse increment
-			if (0 < $diff) $chapter_inc = $diff * $factor;
-			else
-			{
-				$diff = $this->verse_end->verse - $this->verse_start->verse;
-				$verse_inc = (1 + $diff) * $factor;
-			}
-
-			// If we have a chapter or verse increment,
-			// Then update our BibleRef with incremented bible verses
-			if ((0 != $chapter_inc) || (0 != $verse_inc))
-			{
-				// TODO3: Fix this increment (and don't use calc_unique_id())
-				$inc = BibleVerse::calc_unique_id(0, $chapter_inc, $verse_inc);
-				$verse1 = new BibleVerse($inc + $this->verse_start->unique_id);
-				$verse2 = new BibleVerse($inc + $this->verse_end->unique_id);
-				$this->__construct($verse1, $verse2);
-			}
-		}
-	}
 }
 
 class BibleGroupPassage extends BibleRefs
@@ -945,16 +892,9 @@ class BibleGroupPassage extends BibleRefs
  */
 class BibleRefs extends RefSequence
 {
-	private $refs;
-
-	function BibleRefs($value = NULL, $value2 = NULL)
+	public function __construct($value = NULL)
 	{
-		$this->refs = array();
-		if (is_string($value)) {
-			if (is_null($value2)) $this->push_string($value);
-			else $this->push_concatenated($value, $value2);
-		}
-		elseif (is_array($value)) $this->push_sets($value);
+		if (is_string($value)) $this->push_string($value);
 		elseif ($value instanceof BibleRefs) $this->add_seqs($value->get_seqs());
 	}
 
@@ -989,72 +929,8 @@ class BibleRefs extends RefSequence
 		$this->sub_seqs($sub_refs->get_seqs());
 	}
 
-	function push_ref_single(BiblePassage $ref)
-	{
-		$ids = $ref->get_unique_ids();
-		parent::add_seq($ids);
-		$this->push_sets_to_refs(array($ids));
-	}
-
-	function push_sets($unique_id_sets)
-	{
-		parent::add_seqs((array) $unique_id_sets);
-		$this->push_sets_to_refs($unique_id_sets);
-	}
-
-	// TODO3: Get rid of this function, it is just here as a temporary way to keep old $refs
-	private function push_sets_to_refs($unique_id_sets)
-	{
-		$count = 0;
-		if (is_array($unique_id_sets))
-		{
-			foreach ($unique_id_sets as $unique_ids)
-			{
-				$ref = RefManager::get_from_set($unique_ids);
-				if ($ref->is_valid())
-				{
-					$this->refs[] = $ref;
-					$count++;
-				}
-			}
-		}
-		return $count;
-	}
-
-	function push_string($str, $max_level = 1)
-	{
+	function push_string($str, $max_level = 1) {
 		parent::add_string($str, $max_level);
-		$this->push_sets_to_refs(parent::get_sets());
-	}
-
-	/**
-	 * Push bible references represented by two strings, each containing concatenated unique ids.
-	 *
-	 * The first string represents all the starting unique ids, and the second string represents all the ending unique ids.
-	 * This function is primarily useful for extracting bible references from SQL table entries, when the start and end
-	 * unique ids are concatenated using the GROUP_CONCAT() SQL function.
-	 *
-	 * @param unknown_type $begin_str
-	 * @param unknown_type $end_str
-	 * @param unknown_type $delim
-	 */
-	function push_concatenated($begin_str, $end_str, $delim = ',')
-	{
-		$begins = explode($delim, $begin_str);
-		$ends = explode($delim, $end_str);
-		$sets = array();
-		$index = 0;
-		foreach ($begins as $begin)
-		{
-			$end = $ends[$index++];
-			$sets[] = array((int) $begin, (int) $end);
-		}
-		return $this->push_sets($sets);
-	}
-
-	function increment($factor = 1)
-	{
-		// TODO3: fix this function for the new RefSequence
 	}
 
 	/**
@@ -1134,8 +1010,6 @@ class BibleRefs extends RefSequence
 
 		return $sections;
 	}
-
-
 }
 
 ?>
