@@ -66,7 +66,7 @@ class BfoxHistory {
 
 			foreach ($results as $result) {
 				if (!isset($history[$result->time])) $history[$result->time] = $result;
-				if (!isset($history[$result->time]->refs)) $history[$result->time]->refs = new BibleRefs();
+				if (!isset($history[$result->time]->refs)) $history[$result->time]->refs = new BibleRefs;
 				$history[$result->time]->refs->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}

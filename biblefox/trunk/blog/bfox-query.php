@@ -96,7 +96,7 @@ class BfoxBlogQueryData
 	public static function set_reading_plan($plan_id = 0, $reading_id = 0) {
 		global $blog_id;
 
-		$refs = new BibleRefs();
+		$refs = new BibleRefs;
 		$new_posts = array();
 
 		$plan = BfoxPlans::get_plan($plan_id);
@@ -159,7 +159,7 @@ class BfoxBlogQueryData
 			$ref_str = BibleRefs::create_book_string($book, $cvs);
 
 			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
-			$book_refs = new BibleRefs();
+			$book_refs = new BibleRefs;
 
 			// Get the first and last chapters
 			unset($ch1);
@@ -408,7 +408,7 @@ function bfox_ref_replace($str, $max_level = 0)
 	// Add each substring to our sequences
 	foreach (array_reverse($substrs) as $substr)
 	{
-		$refs = new BibleRefs();
+		$refs = new BibleRefs;
 
 		// If there is a chapter, verse string use it
 		if ($substr->cv_offset) $refs->add_book_str($substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));

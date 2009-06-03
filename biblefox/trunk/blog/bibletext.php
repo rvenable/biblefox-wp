@@ -22,7 +22,7 @@
 			$ref_str_short = BibleRefs::create_book_string($book, $cvs, BibleMeta::name_short);
 
 			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
-			$book_refs = new BibleRefs();
+			$book_refs = new BibleRefs;
 
 			unset($ch1);
 			foreach ($cvs as $cv)

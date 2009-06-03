@@ -93,7 +93,7 @@ class BfoxPosts
 				));
 
 			foreach ($results as $result) {
-				if (!isset($refs[$result->post_id])) $refs[$result->post_id] = new BibleRefs();
+				if (!isset($refs[$result->post_id])) $refs[$result->post_id] = new BibleRefs;
 				$refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}
@@ -105,7 +105,7 @@ class BfoxPosts
 	{
 		$refs = self::get_refs(array($post_id));
 		if (isset($refs[$post_id])) return $refs[$post_id];
-		else return new BibleRefs();
+		else return new BibleRefs;
 	}
 
 	/*public static function get_refs_for_blogs($posts)
@@ -123,7 +123,7 @@ class BfoxPosts
 
 			foreach ($results as $result)
 			{
-				if (!isset($refs[$result->blog_id][$result->post_id][$result->ref_type])) $refs[$result->blog_id][$result->post_id][$result->ref_type] = new BibleRefs();
+				if (!isset($refs[$result->blog_id][$result->post_id][$result->ref_type])) $refs[$result->blog_id][$result->post_id][$result->ref_type] = new BibleRefs;
 				$refs[$result->blog_id][$result->post_id][$result->ref_type]->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}

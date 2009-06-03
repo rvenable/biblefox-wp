@@ -67,9 +67,9 @@ abstract class TxtToBlog
 
 	public function __construct()
 	{
-		$this->book_refs = new BibleRefs();
-		$this->chapter_refs = new BibleRefs();
-		$this->verse_refs = new BibleRefs();
+		$this->book_refs = new BibleRefs;
+		$this->chapter_refs = new BibleRefs;
+		$this->verse_refs = new BibleRefs;
 	}
 
 	public function get_post_indexing_title(BlogPost $post)

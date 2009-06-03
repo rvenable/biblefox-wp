@@ -579,7 +579,7 @@ class RefManager
 	public static function get_from_str($str, $max_level = 1)
 	{
 		if (isset(BibleMeta::$book_groups[$str])) $refs = new BibleGroupPassage();
-		else $refs = new BibleRefs();
+		else $refs = new BibleRefs;
 
 		$refs->push_string($str, $max_level);
 		return $refs;
@@ -815,7 +815,7 @@ class BibleRefs extends RefSequence {
 	 * @return array of BibleRefs
 	 */
 	public function get_sections($chapter_size) {
-		$sections = array(new BibleRefs());
+		$sections = array(new BibleRefs);
 		$index = 0;
 		$ch_count = 0;
 
@@ -834,7 +834,7 @@ class BibleRefs extends RefSequence {
 					{
 						$index++;
 						$ch_count = 1;
-						$sections[$index] = new BibleRefs();
+						$sections[$index] = new BibleRefs;
 					}
 
 					$sections[$index]->add_seq($seq);

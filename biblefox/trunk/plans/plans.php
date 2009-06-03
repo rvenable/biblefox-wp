@@ -120,7 +120,7 @@ class BfoxReadingPlan {
 
 	public function add_verses($reading_id, $verse_start, $verse_end)
 	{
-		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BibleRefs();
+		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BibleRefs;
 		$this->readings[$reading_id]->add_seq($verse_start, $verse_end);
 	}
 
@@ -145,7 +145,7 @@ class BfoxReadingPlan {
 
 		if (!empty($this->readings))
 		{
-			$refs = new BibleRefs();
+			$refs = new BibleRefs;
 			foreach ($this->readings as $reading) $refs->add_seqs($reading->get_seqs());
 			if ($refs->is_valid()) $ref_str = $refs->get_string();
 		}
@@ -288,7 +288,7 @@ class BfoxReadingPlan {
 	public function set_history($history_array) {
 
 		// Create the history refs
-		$history_refs = new BibleRefs();
+		$history_refs = new BibleRefs;
 
 		// Accumulate all the history references since the starting date of this plan
 		$start_time = strtotime($this->start_date);
@@ -303,7 +303,7 @@ class BfoxReadingPlan {
 
 	public function get_history_refs() {
 		if ($this->history_refs instanceof BibleRefs) return $this->history_refs;
-		return new BibleRefs();
+		return new BibleRefs;
 	}
 
 	public function get_unread(BibleRefs $reading) {

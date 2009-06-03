@@ -419,7 +419,7 @@ class BfoxMainToolbox extends BfoxToolBox
 
 
 		foreach ($results as $result) {
-			if (!isset($post_refs[$result->post_id])) $post_refs[$result->post_id] = new BibleRefs();
+			if (!isset($post_refs[$result->post_id])) $post_refs[$result->post_id] = new BibleRefs;
 			$post_refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
 		}
 

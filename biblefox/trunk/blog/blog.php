@@ -203,7 +203,7 @@ function bfox_save_post($post_id = 0, $post)
 		if ($content_refs->is_valid()) BfoxPosts::set_post_refs($post_id, $content_refs, BfoxPosts::ref_type_content);
 
 		// Post Tag Refs
-		$tags_refs = new BibleRefs();
+		$tags_refs = new BibleRefs;
 
 		// Try to get a hidden tag from form input
 		$new_tag_refs = RefManager::get_from_str($_POST[BfoxBlog::var_bible_ref]);
