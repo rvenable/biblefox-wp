@@ -39,6 +39,7 @@ define(BFOX_DIR, dirname(__FILE__));
 define(BFOX_URL, WPMU_PLUGIN_URL . '/biblefox');
 
 define(BFOX_DATA_DIR, BFOX_DIR . '/data');
+define(BFOX_REFS_DIR, BFOX_DIR . '/biblerefs');
 define(BFOX_PLANS_DIR, BFOX_DIR . '/plans');
 
 define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox/biblefox.php');
@@ -46,7 +47,7 @@ define(BFOX_DOMAIN, 'biblefox');
 
 define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
-require_once BFOX_DIR . '/biblerefs/ref.php';
+require_once BFOX_REFS_DIR . '/ref.php';
 require_once BFOX_DIR . '/utility.php';
 require_once BFOX_DIR . '/query.php';
 
