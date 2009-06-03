@@ -129,12 +129,12 @@ class BfoxReadingPlan {
 		if (is_string($strings)) $strings = explode("\n", $strings);
 
 		$this->readings = array();
-		foreach ((array) $strings as $str) $this->set_reading(RefManager::get_from_str($str));
+		foreach ((array) $strings as $str) $this->set_reading(new BibleRefs($str));
 	}
 
 	public function add_passages($passages, $chunk_size)
 	{
-		$refs = RefManager::get_from_str($passages);
+		$refs = new BibleRefs($passages);
 		$chunks = $refs->get_sections($chunk_size);
 		foreach ($chunks as $chunk) $this->set_reading($chunk);
 	}

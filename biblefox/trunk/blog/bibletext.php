@@ -77,7 +77,7 @@
 	function bfox_ajax_send_bible_text()
 	{
 		$ref_str = $_POST['ref_str'];
-		$ref = RefManager::get_from_str($ref_str);
+		$ref = new BibleRefs($ref_str);
 		sleep(1);
 
 		// If it is not valid, give the user an error message

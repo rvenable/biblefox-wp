@@ -8,7 +8,7 @@
 	function bfox_get_post_refs_from_input()
 	{
 		// TODO3: This function should probably be somewhere else
-		$refs = RefManager::get_from_str($_GET[BfoxBlog::var_bible_ref]);
+		$refs = new BibleRefs($_GET[BfoxBlog::var_bible_ref]);
 
 		if (!$refs->is_valid())
 		{
@@ -53,7 +53,7 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 
 		if (!empty($_REQUEST[BfoxBlog::var_bible_ref]))
 		{
-			$hidden_refs = RefManager::get_from_str($_REQUEST[BfoxBlog::var_bible_ref]);
+			$hidden_refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 			if ($hidden_refs->is_valid())
 			{
 				echo "<input id='hidden_refs' type='hidden' name='" . BfoxBlog::var_bible_ref . "' value='" . $hidden_refs->get_string(BibleMeta::name_short) . "'/>";

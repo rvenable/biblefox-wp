@@ -187,7 +187,7 @@ function bfox_ajax_save_quick_note()
 	// Otherwise we should delete the note
 	if ('' != $note || '' != $ref_str)
 	{
-		$refs = RefManager::get_from_str($ref_str);
+		$refs = new BibleRefs($ref_str);
 		list($unique_ids) = $refs->get_sets();
 		$section_id = "#quick_notes_$unique_ids[0]";
 

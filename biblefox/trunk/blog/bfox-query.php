@@ -278,7 +278,7 @@ function bfox_parse_query($wp_query)
 
 	if ($wp_query->is_search)
 	{
-		$refs = RefManager::get_from_str($wp_query->query_vars['s']);
+		$refs = new BibleRefs($wp_query->query_vars['s']);
 		if ($refs->is_valid())
 		{
 			BfoxBlogQueryData::set_display_refs($refs);
@@ -293,7 +293,7 @@ function bfox_parse_query($wp_query)
 	}
 	elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
 	{
-		$refs = RefManager::get_from_str($wp_query->query_vars[BfoxBlog::var_bible_ref]);
+		$refs = new BibleRefs($wp_query->query_vars[BfoxBlog::var_bible_ref]);
 		if ($refs->is_valid())
 		{
 			BfoxBlogQueryData::set_post_ids($refs);

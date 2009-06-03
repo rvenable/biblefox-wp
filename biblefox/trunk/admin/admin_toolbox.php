@@ -22,11 +22,9 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 * @param string $ref_str Bible Reference string to test
 	 */
-	private function test_ref($ref_str, $expected = '')
-	{
-
+	private function test_ref($ref_str, $expected = '') {
 		// Test setting a BibleRefs by a string
-		$ref = RefManager::get_from_str($ref_str);
+		$ref = new BibleRefs($ref_str);
 		$result = $ref->get_string();
 
 		// Test setting a BibleRefs by a set of unique ids
@@ -110,11 +108,11 @@ class BfoxMainToolbox extends BfoxToolBox
 		$start = 'eze 14,15';
 		$subs = array('eze 14:3', 'eze 14:5-15:2', 'eze 14:1-2', 'eze 14:4', 'eze 15:7-9', 'eze 13-16');
 
-		$refs = RefManager::get_from_str($start);
+		$refs = new BibleRefs($start);
 		pre("start:" . $refs->get_string());
 
 		foreach ($subs as $sub) {
-			$sub_refs = RefManager::get_from_str($sub);
+			$sub_refs = new BibleRefs($sub);
 			$refs->sub($sub_refs);
 			pre(" - " . $sub_refs->get_string() . " = " . $refs->get_string());
 			//pre($refs);
@@ -128,20 +126,6 @@ class BfoxMainToolbox extends BfoxToolBox
 	function test_discussions()
 	{
 		echo bfox_get_discussions(array());//'limit' => 4));
-	}
-
-	/**
-	 * Tests the quicknotes system
-	 *
-	 */
-	function test_quicknotes()
-	{
-		global $bfox_quicknote;
-		$bfox_quicknote->create_tables();
-		// $bfox_quicknote->save_quicknote(RefManager::get_from_str('Genesis 2, Gen 7-9'), 'Fun stuff!');
-		//$res = $bfox_quicknote->get_quicknotes(RefManager::get_from_str('Gen'));
-		//$this->echo_table_results($res);
-		//$bfox_quicknote->list_quicknotes(RefManager::get_from_str('Gen'));
 	}
 
 	/**
@@ -348,7 +332,7 @@ class BfoxMainToolbox extends BfoxToolBox
 
 	private function random_populate($str, $junk)
 	{
-		$refs = RefManager::get_from_str($str);
+		$refs = new BibleRefs($str);
 		BfoxPosts::set_post_refs(rand(200,900), $refs, FALSE);
 	}
 

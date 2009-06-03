@@ -321,24 +321,6 @@ class RefSequence extends BfoxSequences {
 	}
 }
 
-class RefManager
-{
-	/**
-	 * Returns a BibleRefs
-	 *
-	 * @param string $str
-	 * @return BibleRefs
-	 */
-	public static function get_from_str($str, $max_level = 1)
-	{
-		if (isset(BibleMeta::$book_groups[$str])) $refs = new BibleGroupPassage();
-		else $refs = new BibleRefs;
-
-		$refs->push_string($str, $max_level);
-		return $refs;
-	}
-}
-
 class BibleRefs extends RefSequence {
 
 	public function __construct($value = NULL) {

@@ -8,6 +8,14 @@ class BfoxRefParser {
 		return $refs;
 	}
 
+	public static function bible_search($str) {
+		return self::simple($str);
+	}
+
+	public static function text_flat($text) {
+		return self::simple($text);
+	}
+
 	/**
 	 * Add using a bible reference string
 	 *

@@ -16,7 +16,7 @@ class BfoxPagePassage extends BfoxPage {
 	protected $cboxes = array();
 
 	public function __construct($ref_str, $trans_str = '') {
-		$this->refs = RefManager::get_from_str($ref_str);
+		$this->refs = new BibleRefs($ref_str);
 
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
@@ -38,7 +38,7 @@ class BfoxPagePassage extends BfoxPage {
 			// If we don't have a valid bible ref, we should use the history
 			if (!empty($last_viewed)) $this->refs = $last_viewed->refs;
 			// If there is no history, show Genesis 1
-			else $this->refs = RefManager::get_from_str('Genesis 1');
+			else $this->refs = new BibleRefs('Genesis 1');
 		}
 
 		parent::__construct($trans_str);

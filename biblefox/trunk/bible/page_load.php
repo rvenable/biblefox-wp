@@ -23,12 +23,10 @@ if (!empty($toggle_read_time)) {
 $page_name = $_REQUEST[BfoxQuery::var_page];
 
 if (empty($page_name)) $page_name = BfoxQuery::page_passage;
-elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str))
-{
+elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str)) {
 	// See if the search is really a passage
-	$refs = RefManager::get_from_str($search_str);
-	if ($refs->is_valid())
-	{
+	$refs = BfoxRefParser::bible_search($search_str);
+	if ($refs->is_valid()) {
 		$page_name = BfoxQuery::page_passage;
 		$ref_str = $refs->get_string();
 	}
@@ -36,8 +34,8 @@ elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str))
 
 global $bfox_bible_page;
 
-switch ($page_name)
-{
+switch ($page_name) {
+
 	case BfoxQuery::page_search:
 		require BFOX_BIBLE_DIR . '/page_search.php';
 		$bfox_bible_page = new BfoxPageSearch($search_str, $ref_str, $trans_str);

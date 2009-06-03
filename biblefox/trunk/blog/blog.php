@@ -206,7 +206,7 @@ function bfox_save_post($post_id = 0, $post)
 		$tags_refs = new BibleRefs;
 
 		// Try to get a hidden tag from form input
-		$new_tag_refs = RefManager::get_from_str($_POST[BfoxBlog::var_bible_ref]);
+		$new_tag_refs = new BibleRefs($_POST[BfoxBlog::var_bible_ref]);
 		if ($new_tag_refs->is_valid())
 		{
 			$tags_refs->add_seqs($new_tag_refs->get_seqs());
@@ -217,7 +217,7 @@ function bfox_save_post($post_id = 0, $post)
 		$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
 		foreach ($tags as &$tag)
 		{
-			$refs = RefManager::get_from_str($tag);
+			$refs = new BibleRefs($tag);
 			if ($refs->is_valid())
 			{
 				$tag = $refs->get_string(BibleMeta::name_short);
@@ -242,7 +242,7 @@ function bfox_tags_to_edit($tags_to_edit)
 	// If we have a bible reference passed as input, try to add it as a tag
 	if (!empty($_REQUEST[BfoxBlog::var_bible_ref]))
 	{
-		$refs = RefManager::get_from_str($_REQUEST[BfoxBlog::var_bible_ref]);
+		$refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 		if ($refs->is_valid())
 		{
 			// Get the new tag string

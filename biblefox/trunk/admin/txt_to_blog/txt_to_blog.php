@@ -670,7 +670,7 @@ class CalcomTxtToBlog extends TxtToBlog
 	protected function parse_section($section)
 	{
 		list ($title, $body) = self::parse_title_body($section);
-		$refs = RefManager::get_from_str($title);
+		$refs = new BibleRefs($title);
 
 		$posts = array();
 		if ($refs->is_valid()) $posts = $this->parse_bible_refs($refs, $title, $body);
