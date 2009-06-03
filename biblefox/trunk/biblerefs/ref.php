@@ -584,65 +584,6 @@ class RefManager
 		$refs->push_string($str, $max_level);
 		return $refs;
 	}
-
-	public static function get_from_set($unique_ids)
-	{
-		return self::get_from_unique_ids($unique_ids[0], $unique_ids[1]);
-	}
-
-	public static function get_from_unique_ids($start_id, $end_id)
-	{
-		$verse_start = new BibleVerse($start_id);
-		$verse_end = new BibleVerse($end_id);
-		return new BiblePassage($verse_start, $verse_end);
-	}
-
-	public static function get_from_bcvs($book, $chapter1, $verse1, $chapter2, $verse2)
-	{
-		$verse_start = new BibleVerse($book, $chapter1, $verse1);
-		$verse_end = self::fix_end_verse($verse_start, new BibleVerse($book, $chapter2, $verse2));
-		return new BiblePassage($verse_start, $verse_end);
-	}
-
-	public static function fix_end_verse(BibleVerse $verse_start, BibleVerse $verse_end)
-	{
-		/*
-		 Conversion methods:
-		 john			0:0-max:max		max:max
-		 john 1			1:0-1:max		ch1:max
-		 john 1-2		1:0-2:max		ch2:max
-		 john 1:1		1:1-1:1			ch1:vs1
-		 john 1:1-5		1:1-5:max		ch2:max
-		 john 1:1-0:2	1:1-1:2			ch1:vs2
-		 john 1:1-5:2	1:1-5:2			ch2:vs2
-		 john 1-5:2		1:0-5:2			ch2:vs2
-
-		 When chapter2 is not set (== 0): chapter2 equals chapter1 unless chapter1 is not set
-		 When verse2 is not set (== 0): verse2 equals max unless chapter2 is not set and verse1 is set
-		 */
-
-		$verse2 = $verse_end->verse;
-		$chapter2 = $verse_end->chapter;
-
-		// When verse 2 is empty:
-		//  If chapter 2 is also empty and verse 1 is not empty
-		//	 Then use verse 1
-		//   Otherwise use the max verse
-		if (empty($verse_end->verse))
-			$verse2 = ((empty($verse_end->chapter)) && (!empty($verse_start->verse))) ? $verse_start->verse : BibleVerse::max_verse_id;
-
-		// When chapter 2 is empty:
-		//  If chapter 1 is also empty
-		//   Then use the max chapter
-		//   Otherwise use chapter 1
-		if (empty($verse_end->chapter))
-			$chapter2 = (empty($verse_start->chapter)) ? BibleVerse::max_chapter_id : $verse_start->chapter;
-
-		// Update the end verse with the new values
-		$verse_end->set_ref($verse_end->book, $chapter2, $verse2);
-
-		return $verse_end;
-	}
 }
 
 /**
@@ -743,102 +684,6 @@ class BibleVerse
 	}
 }
 
-/*
- This class is used to represent a bible reference as two unique IDs
- */
-class BiblePassage
-{
-	public $verse_start;
-	public $verse_end;
-	public $num_str;
-
-	public function __construct(BibleVerse $verse_start, BibleVerse $verse_end)
-	{
-		$this->verse_start = $verse_start;
-		$this->verse_end = $verse_end;
-		$this->update_num_str();
-	}
-
-	public function is_valid()
-	{
-		if ((0 < $this->verse_start->unique_id) && ($this->verse_start->unique_id <= $this->verse_end->unique_id))
-			return true;
-		return false;
-	}
-
-	public function get_unique_ids()
-	{
-		return array($this->verse_start->unique_id, $this->verse_end->unique_id);
-	}
-
-	private function update_num_str()
-	{
-		$num_str = '';
-		if (!empty($this->verse_start->num_str))
-		{
-			// First get the end verse num string
-			$num_str = $this->verse_end->num_str;
-
-			// If the two chapters are equal, we need to fix the end verse num string
-			if ($this->verse_start->chapter == $this->verse_end->chapter)
-			{
-				$num_str = '';
-				if (($this->verse_end->verse != $this->verse_start->verse) && (BibleVerse::max_verse_id != $this->verse_end->verse))
-					$num_str = $this->verse_end->verse;
-			}
-			if (!empty($num_str)) $num_str = $this->verse_start->num_str . '-' . $num_str;
-			else $num_str = $this->verse_start->num_str;
-		}
-
-		$this->num_str = $num_str;
-	}
-
-	public function get_string($name = '')
-	{
-		$str = BibleMeta::get_book_name($this->verse_start->book, $name);
-
-		if (!empty($this->num_str)) $str .= ' ' . $this->num_str;
-
-		return $str;
-	}
-
-	function get_book_id()
-	{
-		return $this->verse_start->book;
-	}
-
-	// Returns an SQL expression for comparing this bible reference against one unique id column
-	function sql_where($col1 = 'unique_id')
-	{
-		global $wpdb;
-		return $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $this->verse_start->unique_id, $this->verse_end->unique_id);
-	}
-
-	// Returns an SQL expression for comparing this bible reference against two unique id columns
-	function sql_where2($col1, $col2)
-	{
-		/*
-		 Equation for determining whether one bible reference overlaps another
-
-		 a1 <= b1 and b1 <= a2 or
-		 a1 <= b2 and b2 <= a2
-		 or
-		 b1 <= a1 and a1 <= b2 or
-		 b1 <= a2 and a2 <= b2
-
-		 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
-		 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
-
-		 */
-
-		global $wpdb;
-		return $wpdb->prepare("((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
-							    ((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
-							  $this->verse_end->unique_id, $this->verse_start->unique_id, $this->verse_end->unique_id,
-							  $this->verse_start->unique_id, $this->verse_start->unique_id, $this->verse_end->unique_id);
-	}
-}
-
 class BibleGroupPassage extends BibleRefs
 {
 	private $group;
@@ -887,13 +732,8 @@ class BibleGroupPassage extends BibleRefs
 	}
 }
 
-/*
- This class is a wrapper around BiblePassage to store it in an array
- */
-class BibleRefs extends RefSequence
-{
-	public function __construct($value = NULL)
-	{
+class BibleRefs extends RefSequence {
+	public function __construct($value = NULL) {
 		if (is_string($value)) $this->push_string($value);
 		elseif ($value instanceof BibleRefs) $this->add_seqs($value->get_seqs());
 	}
@@ -940,8 +780,7 @@ class BibleRefs extends RefSequence
 	 * @param object $cv
 	 * @return array
 	 */
-	private static function bcv_to_chapter_seqs($book, $cv)
-	{
+	private static function bcv_to_chapter_seqs($book, $cv) {
 		list($ch1, $vs1) = $cv->start;
 		list($ch2, $vs2) = $cv->end;
 
@@ -975,8 +814,7 @@ class BibleRefs extends RefSequence
 	 * @param integer $chapter_size
 	 * @return array of BibleRefs
 	 */
-	public function get_sections($chapter_size)
-	{
+	public function get_sections($chapter_size) {
 		$sections = array(new BibleRefs());
 		$index = 0;
 		$ch_count = 0;

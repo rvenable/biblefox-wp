@@ -498,8 +498,9 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 */
 	function temp() {
-		echo BfoxPosts::get_post_ids(RefManager::get_from_str('Gen 1'));
-		echo BfoxPosts::get_post_ids_for_blogs(RefManager::get_from_str('Gen 1'), array(1, 2, 3));
+		$refs = new BibleRefs;
+		$refs->push_string('Gen 1');
+		echo $refs->get_string();
 	}
 
 }
