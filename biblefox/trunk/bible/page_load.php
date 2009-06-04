@@ -24,11 +24,28 @@ $page_name = $_REQUEST[BfoxQuery::var_page];
 
 if (empty($page_name)) $page_name = BfoxQuery::page_passage;
 elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str)) {
-	// See if the search is really a passage
-	$refs = BfoxRefParser::bible_search($search_str);
-	if ($refs->is_valid()) {
-		$page_name = BfoxQuery::page_passage;
-		$ref_str = $refs->get_string();
+	list($new_search, $ref_str) = preg_split('/\s*in\s*:\s*/i', $search_str, 2);
+
+	if (!empty($ref_str)) {
+		$new_search = trim($new_search);
+		$ref_str = trim($ref_str);
+
+		if (empty($new_search)) {
+			$refs = BfoxRefParser::bible_search($ref_str);
+			if ($refs->is_valid()) {
+				$page_name = BfoxQuery::page_passage;
+				$ref_str = $refs->get_string();
+			}
+		}
+		else $search_str = $new_search;
+	}
+	else {
+		// See if the search is really a passage
+		$refs = BfoxRefParser::bible_search($search_str);
+		if ($refs->is_valid()) {
+			$page_name = BfoxQuery::page_passage;
+			$ref_str = $refs->get_string();
+		}
 	}
 }
 
