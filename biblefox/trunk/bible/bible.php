@@ -39,33 +39,12 @@ class BfoxBible {
 		// Get the bible page to view
 		$page_name = $_REQUEST[BfoxQuery::var_page];
 
+		// If no page was specified, use the passage page
 		if (empty($page_name)) $page_name = BfoxQuery::page_passage;
+		// If we have a search string but no ref_str, we should try to extract refs from the search string
 		elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str)) {
-			list($new_search, $ref_str) = preg_split('/\s*in\s*:\s*/i', $search_str, 2);
-
-			if (!empty($ref_str)) {
-				$new_search = trim($new_search);
-				$ref_str = trim($ref_str);
-
-				if (empty($new_search)) {
-					$refs = BfoxRefParser::bible_search($ref_str);
-					if ($refs->is_valid()) {
-						$page_name = BfoxQuery::page_passage;
-						$ref_str = $refs->get_string();
-					}
-				}
-				else $search_str = $new_search;
-			}
-			else {
-				// See if the search is really a passage
-				list($refs, $leftovers) = BfoxRefParser::bible_search_leftovers($search_str);
-				if ($refs->is_valid()) {
-					$search_str = trim($leftovers);
-					$ref_str = $refs->get_string();
-
-					if (empty($search_str)) $page_name = BfoxQuery::page_passage;
-				}
-			}
+			list($ref_str, $search_str) = self::extract_refs($search_str);
+			if (empty($search_str)) $page_name = BfoxQuery::page_passage;
 		}
 
 		switch ($page_name) {
@@ -111,6 +90,52 @@ class BfoxBible {
 		$title = $this->page->get_title();
 		if ('right' == $seplocation) return "$title $sep";
 		else return "$sep $title";
+	}
+
+	/**
+	 * Extract Bible References from a search string
+	 *
+	 * @param $search_str
+	 * @return array (ref_str, search_str)
+	 */
+	private static function extract_refs($search_str) {
+
+		// First try to extract refs using the 'in:' keyword
+		list($new_search, $ref_str) = preg_split('/\s*in\s*:\s*/i', $search_str, 2);
+		if (!empty($ref_str)) {
+			$new_search = trim($new_search);
+			$ref_str = trim($ref_str);
+
+			if (empty($new_search)) {
+				$refs = self::parse_search_ref_str($ref_str);
+				if ($refs->is_valid()) {
+					$page_name = BfoxQuery::page_passage;
+					$ref_str = $refs->get_string();
+				}
+			}
+			else $search_str = $new_search;
+		}
+		// If there was no 'in:' keyword...
+		else {
+			// Parse out any references in the string, using level 2, no whole books, and save the leftovers
+			$refs = new BibleRefs;
+			$data = new BfoxRefParserData($refs, 2, FALSE, FALSE, TRUE);
+			BfoxRefParser::parse_string($search_str, $data);
+
+			// If we found bible references
+			if ($refs->is_valid()) {
+				$ref_str = $refs->get_string();
+
+				// The leftovers become the new search string
+				$search_str = trim($data->leftovers);
+			}
+		}
+
+		return array($ref_str, $search_str);
+	}
+
+	public static function parse_search_ref_str($str) {
+		return BfoxRefParser::with_groups($str);
 	}
 }
 

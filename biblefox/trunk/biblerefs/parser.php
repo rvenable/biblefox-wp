@@ -37,24 +37,6 @@ class BfoxRefParser {
 		else return self::simple($str);
 	}
 
-	public static function bible_search($str) {
-		return self::with_groups($str);
-	}
-
-	public static function bible_search_leftovers($str) {
-		$leftovers = '';
-
-		if (isset(BibleMeta::$book_groups[$str])) $total_refs = new BibleGroupPassage($str);
-		else {
-			$total_refs = new BibleRefs;
-			$data = new BfoxRefParserData($total_refs, 2, FALSE, FALSE, TRUE);
-			self::parse_string($str, $data);
-			$leftovers = $data->leftovers;
-		}
-
-		return array($total_refs, $leftovers);
-	}
-
 	public static function text_flat($text) {
 		return self::simple($text);
 	}
