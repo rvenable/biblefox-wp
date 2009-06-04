@@ -2,9 +2,9 @@
 
 class BfoxRefParser {
 
-	public static function simple($str, $max_level = 0) {
+	public static function simple($str) {
 		$refs = new BibleRefs;
-		self::parse_string($str, $refs, $max_level);
+		self::parse_string($str, $refs, 2, TRUE);
 		return $refs;
 	}
 
@@ -22,8 +22,8 @@ class BfoxRefParser {
 	}
 
 	public static function simple_html($html, BibleRefs &$total_refs = NULL) {
-		// Simple HTML parsing should only use level 0 and no whole books
-		return self::parse_html($html, $total_refs, 0, FALSE);
+		// Simple HTML parsing should only use level 1 and no whole books
+		return self::parse_html($html, $total_refs, 1, FALSE);
 	}
 
 	/**
