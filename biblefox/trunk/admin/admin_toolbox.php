@@ -482,8 +482,6 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 */
 	public function temp() {
-		$refs = new BibleGroupPassage('new');
-		echo $refs->get_string();
 	}
 
 }

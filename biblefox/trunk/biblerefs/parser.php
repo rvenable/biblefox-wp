@@ -1,11 +1,35 @@
 <?php
 
+/**
+ * Class for specifying parsing options and storing parsing results
+ *
+ */
+class BfoxRefParserData {
+	public $total_refs, $max_level, $add_whole_books, $save_refs_array, $save_leftovers;
+	public $refs_array, $leftovers;
+
+	public function __construct(BibleRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE, $save_refs_array = FALSE, $save_leftovers = FALSE) {
+		$this->total_refs = $total_refs;
+		$this->max_level = $max_level;
+		$this->add_whole_books = $add_whole_books;
+		$this->save_refs_array = $save_refs_array;
+		$this->save_leftovers = $save_leftovers;
+
+		$this->refs_array = array();
+		$this->leftovers = '';
+	}
+}
+
+/**
+ * Class for parsing strings, looking for bible references
+ *
+ */
 class BfoxRefParser {
 
 	public static function simple($str) {
-		$refs = new BibleRefs;
-		self::parse_string($str, $refs, 2, TRUE);
-		return $refs;
+		$total_refs = new BibleRefs;
+		self::parse_string($str, new BfoxRefParserData($total_refs, 2));
+		return $total_refs;
 	}
 
 	public static function with_groups($str) {
@@ -17,13 +41,27 @@ class BfoxRefParser {
 		return self::with_groups($str);
 	}
 
+	public static function bible_search_leftovers($str) {
+		$leftovers = '';
+
+		if (isset(BibleMeta::$book_groups[$str])) $total_refs = new BibleGroupPassage($str);
+		else {
+			$total_refs = new BibleRefs;
+			$data = new BfoxRefParserData($total_refs, 2, FALSE, FALSE, TRUE);
+			self::parse_string($str, $data);
+			$leftovers = $data->leftovers;
+		}
+
+		return array($total_refs, $leftovers);
+	}
+
 	public static function text_flat($text) {
 		return self::simple($text);
 	}
 
 	public static function simple_html($html, BibleRefs &$total_refs = NULL) {
 		// Simple HTML parsing should only use level 1 and no whole books
-		return self::parse_html($html, $total_refs, 1, FALSE);
+		return self::parse_html($html, new BfoxRefParserData($total_refs, 1, FALSE));
 	}
 
 	/**
@@ -31,8 +69,8 @@ class BfoxRefParser {
 	 * @param string $content
 	 * @return string
 	 */
-	private static function parse_html($html, BibleRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE) {
-		return bfox_process_html_text($html, 'BfoxRefParser::parse_string', array($total_refs, $max_level, $add_whole_books));
+	private static function parse_html($html, BfoxRefParserData &$data) {
+		return bfox_process_html_text($html, 'BfoxRefParser::parse_string', array($data));
 	}
 
 	/**
@@ -41,23 +79,42 @@ class BfoxRefParser {
 	 * @param BibleRefs $refs
 	 * @param string $str
 	 */
-	public static function parse_string($str, BibleRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE) {
+	public static function parse_string($str, BfoxRefParserData &$data) {
 		// Get all the bible reference substrings in this string
-		$substrs = BibleMeta::get_bcv_substrs($str, $max_level);
+		$substrs = BibleMeta::get_bcv_substrs($str, $data->max_level);
 
 		// Add each substring to our sequences
+		$refs_array = array();
+		$leftovers = '';
+		$leftover_end = strlen($str);
+
 		foreach (array_reverse($substrs) as $substr) {
 			$refs = new BibleRefs;
 
 			// If there is a chapter, verse string use it
 			if ($substr->cv_offset) self::parse_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
-			elseif ($add_whole_books) $refs->add_whole_book($substr->book);
+			elseif ($data->add_whole_books) $refs->add_whole_book($substr->book);
 
-			if ($refs->is_valid()) {
+			$is_valid = $refs->is_valid();
+
+			if ($data->save_leftovers) {
+				if ($is_valid) $leftover_begin = $substr->offset + $substr->length;
+				else $leftover_begin = $substr->offset;
+				$leftovers = substr($str, $leftover_begin, $leftover_end - $leftover_begin) . $leftovers;
+				$leftover_end = $substr->offset;
+			}
+
+			if ($is_valid) {
+				if ($data->save_refs_array) $refs_array []= $refs;
+
 				$str = substr_replace($str, BfoxBlog::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
-				if (!is_null($total_refs)) $total_refs->add($refs);
+
+				if (!is_null($data->total_refs)) $data->total_refs->add($refs);
 			}
 		}
+
+		if ($data->save_refs_array) $data->refs_array = array_merge($data->refs_array, array_reverse($refs_array));
+		if ($data->save_leftovers) $data->leftovers .= substr($str, 0, $leftover_end) . $leftovers;
 
 		return $str;
 	}

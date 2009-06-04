@@ -41,10 +41,12 @@ elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str)) {
 	}
 	else {
 		// See if the search is really a passage
-		$refs = BfoxRefParser::bible_search($search_str);
+		list($refs, $leftovers) = BfoxRefParser::bible_search_leftovers($search_str);
 		if ($refs->is_valid()) {
-			$page_name = BfoxQuery::page_passage;
+			$search_str = trim($leftovers);
 			$ref_str = $refs->get_string();
+
+			if (empty($search_str)) $page_name = BfoxQuery::page_passage;
 		}
 	}
 }
