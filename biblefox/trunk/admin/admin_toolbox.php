@@ -462,21 +462,6 @@ class BfoxMainToolbox extends BfoxToolBox
 		BfoxPlans::create_tables();
 	}
 
-	/*public function create_history_table() {
-		global $wpdb;
-		require_once BFOX_BIBLE_DIR . '/history.php';
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxHistory::table);
-		BfoxHistory::create_table();
-	}
-
-	public function create_note_tables() {
-		global $wpdb;
-		require_once BFOX_BIBLE_DIR . '/notes.php';
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxNotes::table_notes);
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxNotes::table_refs);
-		BfoxNotes::create_tables();
-	}*/
-
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *
