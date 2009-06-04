@@ -54,9 +54,10 @@ class BfoxQuery
 		return $url;
 	}
 
-	public static function passage_page_url($ref_str, Translation $translation = NULL)
+	public static function passage_page_url($ref_str = '', Translation $translation = NULL)
 	{
-		$url = add_query_arg(self::var_reference, urlencode($ref_str), self::page_url(self::page_passage));
+		$url = self::page_url(self::page_passage);
+		if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
 		if (!is_null($translation)) $url = add_query_arg(self::var_translation, $translation->id, $url);
 
 		return $url;

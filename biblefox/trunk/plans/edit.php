@@ -238,10 +238,6 @@ class BfoxPlanEdit
 		return "<a href='$this->url'>$str</a>";
 	}
 
-	private function ref_link($ref_str) {
-		return "<a href='" . BfoxQuery::passage_page_url($ref_str) . "'>$ref_str</a>";
-	}
-
 	private function user_url($user_id, $user_type) {
 		if (BfoxPlans::user_type_blog == $user_type) $var = self::var_blog;
 		elseif (BfoxPlans::user_type_user == $user_type) $var = self::var_user;
@@ -457,7 +453,7 @@ class BfoxPlanEdit
 				// If this reading is 'read', then mark it as such
 				if (!$unread->is_valid()) $attrs = "class='finished'";
 			}
-			$row->add_col($this->ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
+			$row->add_col(Biblefox::ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
 
 			// Add the Date column
 			if ($plan->is_scheduled) {
@@ -467,7 +463,7 @@ class BfoxPlanEdit
 
 			// Add the History column
 			/*if (!empty($unread_readings)) {
-				if (isset($unread_readings[$reading_id])) $row->add_col($this->ref_link($unread_readings[$reading_id]->get_string(BibleMeta::name_short)));
+				if (isset($unread_readings[$reading_id])) $row->add_col(Biblefox::ref_link($unread_readings[$reading_id]->get_string(BibleMeta::name_short)));
 				else $row->add_col();
 			}*/
 

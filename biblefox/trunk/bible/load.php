@@ -11,6 +11,8 @@ function bfox_bible_page_load()
 	BfoxUtility::register_style('bfox_bible', 'bible/bible.css', array('bfox_scripture'));
 	BfoxUtility::register_style('bfox_search', 'bible/search.css', array('bfox_bible'));
 
+	Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
+
 	require BFOX_BIBLE_DIR . '/page_load.php';
 
 	add_filter('wp_title', 'bfox_bible_wp_title', 10, 3);

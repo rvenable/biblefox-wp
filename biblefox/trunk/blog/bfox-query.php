@@ -185,7 +185,7 @@ class BfoxBlogQueryData
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 				$nav_bar .= BfoxBlog::ref_link($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");
 			}
-			$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
+			$nav_bar .= "<br/>" . Biblefox::ref_link($ref_str, __('View in advanced Bible reader'), Biblefox::ref_url_bible) . "</div>";
 
 			$new_post = self::add_verse_post_content(array(), $book_refs, $nav_bar);
 			$new_post['ID'] = -1;
@@ -194,8 +194,8 @@ class BfoxBlogQueryData
 			$new_post['post_type'] = BfoxBlog::var_bible_ref;
 			$new_post['post_date'] = current_time('mysql', false);
 			$new_post['post_date_gmt'] = current_time('mysql', true);
-			$new_post['bfox_permalink'] = BfoxBlog::ref_url($ref_str);
-			$new_post['bfox_author'] = "<a href='" . BfoxQuery::passage_page_url($ref_str) . "'>Biblefox</a>";
+			$new_post['bfox_permalink'] = Biblefox::ref_url($ref_str, Biblefox::ref_url_bible);
+			$new_post['bfox_author'] = Biblefox::ref_link('', __('Biblefox'), Biblefox::ref_url_bible);
 
 			// Turn off comments
 			$new_post['comment_status'] = 'closed';
@@ -232,7 +232,7 @@ class BfoxBlogQueryData
 			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->readings[$reading_id + 1]->get_string() . ' &gt;</a>';
 		}
-		$nav_bar .= "<br/><a href='" . BfoxQuery::passage_page_url($ref_str) . "'>View in Biblefox Bible Viewer</a></div>";
+		$nav_bar .= "<br/>" . Biblefox::ref_link($ref_str, __('View in advanced Bible reader'), Biblefox::ref_url_bible) . "</div>";
 
 		$new_post = self::add_verse_post_content(array(), $refs, $nav_bar);
 		$new_post['ID'] = -1;

@@ -82,17 +82,41 @@ add_action('get_footer', 'bfox_pre_deb');
 function bfox_posts_requests($request) { deb("REQUEST: $request"); return $request; }
 //add_filter('posts_request', 'bfox_posts_requests'); // Uncomment this to show the WP_Query SQL request query
 
-function biblefox_init() {
-	global $current_site;
-	BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . '?');
+class Biblefox {
 
-	// Register all the global scripts and styles
-	BfoxUtility::register_style('bfox_scripture', 'scripture.css');
+	const ref_url_blog = 'blog';
+	const ref_url_bible = 'bible';
 
-	bfox_query_init();
-	bfox_widgets_init();
+	private static $default_ref_url = '';
+
+	public static function init() {
+		global $current_site;
+		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . '?');
+
+		// Register all the global scripts and styles
+		BfoxUtility::register_style('bfox_scripture', 'scripture.css');
+
+		bfox_query_init();
+		bfox_widgets_init();
+	}
+
+	public static function set_default_ref_url($ref_url) {
+		self::$default_ref_url = $ref_url;
+	}
+
+	public static function ref_url($ref_str, $ref_url = '') {
+		if (empty($ref_url)) $ref_url = self::$default_ref_url;
+
+		if (self::ref_url_bible == $ref_url) return BfoxQuery::passage_page_url($ref_str);
+		else return BfoxBlog::ref_url($ref_str);
+	}
+
+	public static function ref_link($ref_str, $text = '', $ref_url = '') {
+		return "<a href='" . self::ref_url($ref_str, $ref_url) . "'>$text</a>";
+	}
+
 }
 
-add_action('init', 'biblefox_init');
+add_action('init', 'Biblefox::init');
 
 ?>

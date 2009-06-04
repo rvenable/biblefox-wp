@@ -34,7 +34,7 @@
 				$book_refs->add_bcv($book, $cv);
 			}
 
-			$bible_viewer_link = "Biblefox Bible Viewer: <a href='" . BfoxQuery::passage_page_url($ref_str) . "' target='blank'>$ref_str</a>";
+			$bible_viewer_link = "Biblefox Bible Viewer: <a href='" . Biblefox::ref_url($ref_str, Biblefox::ref_url_bible) . "' target='blank'>$ref_str</a>";
 			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(0, this)'>$ref_str_short</a>";
 
 			// Create the navigation bar with the prev/write/next links
