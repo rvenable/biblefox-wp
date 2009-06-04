@@ -196,13 +196,21 @@ function bfox_save_post($post_id = 0, $post)
 {
 	if (!empty($post_id))
 	{
-		// Post Content Refs
+		/*
+		 * Post Content Refs
+		 */
+		$content_refs = new BibleRefs;
+
 		// Get the bible references from the post content
-		$content_refs = RefManager::get_from_str(strip_tags($post->post_content), 0);
+		BfoxRefParser::simple_html($post->post_content, $content_refs);
+
 		// Save these bible references
 		if ($content_refs->is_valid()) BfoxPosts::set_post_refs($post_id, $content_refs, BfoxPosts::ref_type_content);
 
-		// Post Tag Refs
+
+		/*
+		 * Post Tag Refs
+		 */
 		$tags_refs = new BibleRefs;
 
 		// Try to get a hidden tag from form input

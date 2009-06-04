@@ -4,7 +4,7 @@ class BfoxRefParser {
 
 	public static function simple($str, $max_level = 0) {
 		$refs = new BibleRefs;
-		self::add_string($refs, $str, $max_level);
+		self::parse_string($str, $refs, $max_level);
 		return $refs;
 	}
 
@@ -21,22 +21,45 @@ class BfoxRefParser {
 		return self::simple($text);
 	}
 
+	public static function simple_html($html, BibleRefs &$total_refs = NULL) {
+		// Simple HTML parsing should only use level 0 and no whole books
+		return self::parse_html($html, $total_refs, 0, FALSE);
+	}
+
+	/**
+	 * Replaces bible references with bible links in a given html string
+	 * @param string $content
+	 * @return string
+	 */
+	private static function parse_html($html, BibleRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE) {
+		return bfox_process_html_text($html, 'BfoxRefParser::parse_string', array($total_refs, $max_level, $add_whole_books));
+	}
+
 	/**
 	 * Add using a bible reference string
 	 *
 	 * @param BibleRefs $refs
 	 * @param string $str
 	 */
-	public static function add_string(BibleRefs &$refs, $str, $max_level = 0) {
+	public static function parse_string($str, BibleRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE) {
 		// Get all the bible reference substrings in this string
 		$substrs = BibleMeta::get_bcv_substrs($str, $max_level);
 
 		// Add each substring to our sequences
-		foreach ($substrs as $substr) {
+		foreach (array_reverse($substrs) as $substr) {
+			$refs = new BibleRefs;
+
 			// If there is a chapter, verse string use it
-			if ($substr->cv_offset) self::add_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
-			else $refs->add_whole_book($substr->book);
+			if ($substr->cv_offset) self::parse_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
+			elseif ($add_whole_books) $refs->add_whole_book($substr->book);
+
+			if ($refs->is_valid()) {
+				$str = substr_replace($str, BfoxBlog::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
+				if (!is_null($total_refs)) $total_refs->add($refs);
+			}
 		}
+
+		return $str;
 	}
 
 	/**
@@ -46,7 +69,7 @@ class BfoxRefParser {
 	 * @param integer $book_id
 	 * @param string $str
 	 */
-	public static function add_book_str(BibleRefs &$refs, $book_id, $str) {
+	private static function parse_book_str(BibleRefs &$refs, $book_id, $str) {
 		// Spaces between numbers count as semicolons
 		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
 

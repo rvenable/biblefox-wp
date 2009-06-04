@@ -395,40 +395,12 @@ function bfox_get_edit_post_link($link)
 }
 
 /**
- * Replaces bible references with bible links
- * @param string $str
- * @param integer $max_level
- * @return string
- */
-function bfox_ref_replace($str, $max_level = 0)
-{
-	// Get all the bible reference substrings in this string
-	$substrs = BibleMeta::get_bcv_substrs($str, $max_level);
-
-	// Add each substring to our sequences
-	foreach (array_reverse($substrs) as $substr)
-	{
-		$refs = new BibleRefs;
-
-		// If there is a chapter, verse string use it
-		if ($substr->cv_offset) BfoxRefParser::add_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
-		// We are not currently adding whole books
-		//else $refs->add_whole_book($substr->book);
-
-		if ($refs->is_valid()) $str = substr_replace($str, BfoxBlog::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
-	}
-
-	return $str;
-}
-
-/**
  * Replaces bible references with bible links in a given html string
  * @param string $content
  * @return string
  */
-function bfox_ref_replace_html($content)
-{
-	return bfox_process_html_text($content, 'bfox_ref_replace');
+function bfox_ref_replace_html($content) {
+	return BfoxRefParser::simple_html($content);
 }
 
 function bfox_query_init()

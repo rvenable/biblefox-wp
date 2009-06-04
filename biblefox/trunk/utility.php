@@ -380,22 +380,19 @@ class BfoxHtmlOptionTable extends BfoxHtmlTable {
 	 It will skip all html tags and call $func for each chunk of text.
 	 The $func function should take the text as its parameter and return the modified text.
 	 */
-	function bfox_process_html_text($html, $func)
-	{
+	function bfox_process_html_text($html, $func, $params = array()) {
 		if (!is_callable($func)) return $html;
 
 		$text_start = 0;
-		while (1 == preg_match('/<[^<>]*[^<>\s][^<>]*>/', $html, $matches, PREG_OFFSET_CAPTURE, $text_start))
-		{
+		while (1 == preg_match('/<[^<>]*[^<>\s][^<>]*>/', $html, $matches, PREG_OFFSET_CAPTURE, $text_start)) {
 			// Store the match data in more readable variables
 			$text_end = (int) $matches[0][1];
 			$pattern = (string) $matches[0][0];
 
 			$text_len = $text_end - $text_start;
-			if (0 < $text_len)
-			{
+			if (0 < $text_len) {
 				// Modify the data with the replacement text
-				$replacement = call_user_func($func, substr($html, $text_start, $text_len));
+				$replacement = call_user_func_array($func, array_merge(array(substr($html, $text_start, $text_len)), $params));
 				$html = substr_replace($html, $replacement, $text_start, $text_len);
 
 				// Skip the rest of the replacement string
@@ -405,10 +402,9 @@ class BfoxHtmlOptionTable extends BfoxHtmlTable {
 		}
 
 		$text_len = strlen($html) - $text_start;
-		if (0 < $text_len)
-		{
+		if (0 < $text_len) {
 			// Modify the data with the replacement text
-			$replacement = call_user_func($func, substr($html, $text_start, $text_len));
+			$replacement = call_user_func_array($func, array_merge(array(substr($html, $text_start, $text_len)), $params));
 			$html = substr_replace($html, $replacement, $text_start, $text_len);
 		}
 
