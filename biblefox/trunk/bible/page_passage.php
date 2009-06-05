@@ -19,8 +19,8 @@ class BfoxPagePassage extends BfoxPage {
 		$this->refs = new BibleRefs($ref_str);
 
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
-		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
 		$this->cboxes['plans'] = new BfoxCboxPlans($url, 'plans', 'My Reading Plans');
+		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
 
 		// Get the passage history
 		$earliest = $this->cboxes['plans']->get_earliest_time();
@@ -126,10 +126,114 @@ class BfoxPagePassage extends BfoxPage {
 		}
 	}
 
-	private static function ref_content(BibleRefs $refs, Translation $translation, &$footnotes)
+	private static function toolbox() {
+		$top_boxes = array('commentaries' => __('Blogs'), 'notes' => __('Notes'), 'none' => __('Hide'));
+
+		?>
+		<div class="sideview">
+			<ul id='sideview_list'>
+			<?php foreach ($top_boxes as $id => $title): ?>
+				<li><a onclick='bfox_sideshow("<?php echo $id ?>")'><?php echo $title ?></a></li>
+			<?php endforeach ?>
+			</ul>
+			<?php foreach ($top_boxes as $id => $title): ?>
+				<div id='sideview_<?php echo $id ?>' class='sideview_content'></div>
+			<?php endforeach ?>
+		</div>
+		<?php
+	}
+
+	private static function ref_footnotes($footnotes) {
+		if (!empty($footnotes)) {
+			?>
+			<div class="box_head">Footnotes</div>
+			<div class="box_inside">
+				<ul>
+				<?php foreach ($footnotes as $index => $footnote): ?>
+					<li><?php echo $footnote ?></li>
+				<?php endforeach; ?>
+				</ul>
+			</div>
+			<?php
+		}
+	}
+
+	private static function ref_footer(BibleRefs $refs, Translation $translation) {
+		?>
+		<div class="box_menu">
+			<center>
+				<?php echo self::ref_toc($refs, $translation); ?>
+			</center>
+		</div>
+		<?php
+	}
+
+	private static function ref_content(BibleRefs $refs, Translation $translation, &$footnotes) {
+		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+		if (!empty($bcvs)) {
+			if ((1 < count($bcvs)) || (1 < count(current($bcvs)))) {
+				?>
+				<div>
+					<div class="reference">
+						<?php echo self::ref_content_complex($refs, $translation, $footnotes, $bcvs) ?>
+					</div>
+					<?php echo self::ref_footnotes($footnotes) ?>
+					<div class="clear"></div>
+				</div>
+				<div class="box_menu">
+					<center>
+						<?php echo self::ref_toc($refs, $translation); ?>
+					</center>
+				</div>
+				<?php
+			}
+			else return self::ref_content_simple($refs, $translation, $footnotes, $bcvs);
+		}
+	}
+
+	private static function prev_page_bar($bcvs) {
+		if (!empty($bcvs)) {
+			$ch = reset(reset($bcvs))->start[0] - 1;
+			$ref_str = BibleMeta::get_book_name(key($bcvs)) . " $ch";
+
+			if (BibleMeta::start_chapter <= $ch) echo Biblefox::ref_link($ref_str, __('Previous: ') . $ref_str, '', "class='ref_bar'");
+		}
+	}
+
+	private static function next_page_bar($bcvs) {
+		if (!empty($bcvs)) {
+			$ch = end(end($bcvs))->end[0] + 1;
+			$book = key($bcvs);
+			$ref_str = BibleMeta::get_book_name($book) . " $ch";
+
+			if (BibleMeta::end_verse_max($book) >= $ch) echo Biblefox::ref_link($ref_str, __('Next: ') . $ref_str, '', "class='ref_bar'");
+		}
+	}
+
+	private static function ref_content_simple(BibleRefs $refs, Translation $translation, &$footnotes, $bcvs) {
+		$cv = reset(reset($bcvs));
+		$book = key($bcvs);
+		$ch1 = $cv->start[0];
+		$ch2 = $cv->end[0];
+
+		?>
+		<?php self::prev_page_bar($bcvs) ?>
+		<div class='ref_content'>
+			<?php self::toolbox() ?>
+			<div class="reference">
+				<?php echo self::get_chapters_content($book, $ch1, $ch2, $refs->sql_where(), $footnotes, $translation) ?>
+			</div>
+			<?php echo self::ref_footnotes($footnotes) ?>
+			<div class="clear"></div>
+		</div>
+		<?php self::next_page_bar($bcvs) ?>
+		<?php self::ref_footer($refs, $translation) ?>
+		<?php
+	}
+
+	private static function ref_content_complex(BibleRefs $refs, Translation $translation, &$footnotes, $bcvs)
 	{
 		$visible = $refs->sql_where();
-		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 
 		foreach ($bcvs as $book => $cvs)
 		{
@@ -186,7 +290,7 @@ class BfoxPagePassage extends BfoxPage {
 		return $content;
 	}
 
-	private function ref_toc(BibleRefs $refs)
+	private static function ref_toc(BibleRefs $refs, Translation $translation)
 	{
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 
@@ -199,7 +303,7 @@ class BfoxPagePassage extends BfoxPage {
 			<?php echo $book_name ?>
 			<ul class='flat_toc'>
 			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
-				<li><a href='<?php echo BfoxQuery::passage_page_url("$book_name $ch", $this->translation) ?>'><?php echo $ch ?></a></li>
+				<li><a href='<?php echo BfoxQuery::passage_page_url("$book_name $ch", $translation) ?>'><?php echo $ch ?></a></li>
 			<?php endfor; ?>
 			</ul>
 			<?php
@@ -232,8 +336,6 @@ class BfoxPagePassage extends BfoxPage {
 
 		$footnotes = array();
 
-		$top_boxes = array('commentaries' => __('Blogs'), 'notes' => __('Notes'), 'none' => __('Hide'));
-
 		?>
 
 		<div id="bible_passage">
@@ -243,45 +345,8 @@ class BfoxPagePassage extends BfoxPage {
 					<?php echo $ref_str ?>
 					<a id="verse_layout_toggle" class="button">Switch to Verse View</a>
 				</div>
-				<div>
-					<div class="sideview">
-						<div class="commentary_list_head">
-							Commentary Blog Posts (<a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_commentary) ?>">edit</a>)
-						</div>
-						<ul id='sideview_list'>
-						<?php foreach ($top_boxes as $id => $title): ?>
-							<li><a onclick='bfox_sideshow("<?php echo $id ?>")'><?php echo $title ?></a></li>
-						<?php endforeach ?>
-						</ul>
-						<?php foreach ($top_boxes as $id => $title): ?>
-							<div id='sideview_<?php echo $id ?>' class='sideview_content'></div>
-						<?php endforeach ?>
-					</div>
-					<div class="reference">
-						<?php echo self::ref_content($this->refs, $this->translation, $footnotes); ?>
-					</div>
-					<div class="clear"></div>
-				</div>
-				<div>
-				</div>
-				<div class="box_menu">
-					<center>
-						<?php echo $this->ref_toc($this->refs); ?>
-					</center>
-				</div>
+				<?php self::ref_content($this->refs, $this->translation, $footnotes); ?>
 			</div>
-			<?php if (!empty($footnotes)): ?>
-			<div class="roundbox">
-				<div class="box_head">Footnotes</div>
-				<div class="box_inside">
-					<ul>
-					<?php foreach ($footnotes as $index => $footnote): ?>
-						<li><?php echo $footnote ?></li>
-					<?php endforeach; ?>
-					</ul>
-				</div>
-			</div>
-			<?php endif; ?>
 		</div>
 
 		<div id='history' class='cbox'>

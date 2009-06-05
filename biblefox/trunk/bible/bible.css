@@ -345,6 +345,14 @@ Scripture Layout
 	clear: left;
 }
 
+#bible a.ref_bar {
+	display: block;
+	text-align: center;
+	background-color: #EEE;
+	border-top: 1px solid #DDD;
+	border-bottom: 1px solid #DDD;
+}
+
 /*
 Blog Commentaries
 */

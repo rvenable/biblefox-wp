@@ -110,8 +110,11 @@ class Biblefox {
 		else return BfoxBlog::ref_url($ref_str);
 	}
 
-	public static function ref_link($ref_str, $text = '', $ref_url = '') {
-		return "<a href='" . self::ref_url($ref_str, $ref_url) . "'>$text</a>";
+	public static function ref_link($ref_str, $text = '', $ref_url = '', $attrs = '') {
+		if (empty($text)) $text = $ref_str;
+
+		if (!empty($attrs)) $attrs = ' ' . $attrs;
+		return "<a href='" . self::ref_url($ref_str, $ref_url) . "'$attrs>$text</a>";
 	}
 
 }
