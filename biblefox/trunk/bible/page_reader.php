@@ -1,5 +1,7 @@
 <?php
 
+require_once BFOX_BIBLE_DIR . '/ref_content.php';
+
 class BfoxPageReader extends BfoxPage {
 
 	const var_query = 'query';
@@ -8,10 +10,6 @@ class BfoxPageReader extends BfoxPage {
 
 	const query_home = 'home';
 	const query_plan = 'plan';
-
-	const var_submit = 'submit';
-//	const var_plan_id = 'plan_id';
-	const var_content = 'content';
 
 	private $query = self::query_home;
 	private $plans = array();
@@ -73,7 +71,12 @@ class BfoxPageReader extends BfoxPage {
 			$reading_id + 1,
 			"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name</a>",
 			array("<a href='" . $this->reading_url($plan->id, $reading_id) . "'>$ref_str</a>", $ref_attrs));
-		if ($is_selected) $row->add_sub_row('Selected');
+		if ($is_selected) {
+			ob_start();
+			BfoxRefContent::ref_content($plan->readings[$reading_id], $this->translation);
+			$ref_content = ob_get_clean();
+			$row->add_sub_row($ref_content);
+		}
 		return $row;
 	}
 

@@ -83,8 +83,6 @@ class BfoxPagePassage extends BfoxPage {
 
 		$ref_str = $this->refs->get_string();
 
-		$footnotes = array();
-
 		?>
 
 		<div id="bible_passage">
@@ -94,7 +92,7 @@ class BfoxPagePassage extends BfoxPage {
 					<?php echo $ref_str ?>
 					<a id="verse_layout_toggle" class="button">Switch to Verse View</a>
 				</div>
-				<?php BfoxRefContent::ref_content($this->refs, $this->translation, $footnotes); ?>
+				<?php BfoxRefContent::ref_content($this->refs, $this->translation); ?>
 			</div>
 		</div>
 

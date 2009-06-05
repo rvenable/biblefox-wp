@@ -112,10 +112,11 @@ class BfoxRefContent {
 		<?php
 	}
 
-	public static function ref_content(BibleRefs $refs, Translation $translation, &$footnotes) {
+	public static function ref_content(BibleRefs $refs, Translation $translation) {
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 		if (!empty($bcvs)) {
 			if ((1 < count($bcvs)) || (1 < count(current($bcvs)))) {
+				$footnotes = array();
 				?>
 				<div>
 					<div class="reference">
@@ -131,7 +132,7 @@ class BfoxRefContent {
 				</div>
 				<?php
 			}
-			else return self::ref_content_simple($refs, $translation, $footnotes, $bcvs);
+			else self::ref_content_simple($refs, $translation, $bcvs);
 		}
 	}
 
@@ -154,11 +155,13 @@ class BfoxRefContent {
 		}
 	}
 
-	private static function ref_content_simple(BibleRefs $refs, Translation $translation, &$footnotes, $bcvs) {
+	private static function ref_content_simple(BibleRefs $refs, Translation $translation, $bcvs) {
 		$cv = reset(reset($bcvs));
 		$book = key($bcvs);
 		$ch1 = $cv->start[0];
 		$ch2 = $cv->end[0];
+
+		$footnotes = array();
 
 		?>
 		<?php self::prev_page_bar($bcvs) ?>
