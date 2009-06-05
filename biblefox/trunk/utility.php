@@ -183,6 +183,7 @@ class BfoxHtmlElement {
 
 class BfoxHtmlRow extends BfoxHtmlElement {
 	private $cols = array();
+	private $sub_row = '';
 
 	public function __construct() {
 		$args = func_get_args();
@@ -210,14 +211,20 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 		foreach ((array) $cols as $col) $this->add_header_col($col, $attrs);
 	}
 
+	public function add_sub_row($text, $col_span = 0) {
+		if (empty($col_span)) $col_span = count($this->cols);
+		$this->sub_row = "	<tr class='sub_row'><td colspan='$col_span'>$text</td></tr>\n";
+	}
+
 	public function content($extra_class = '') {
 		// TODO3: This extra_class param isn't safe if $this->attrs already has a class
 		$attrs = $this->attrs;
-		if (!empty($extra_class)) $attrs .= "class='$extra_class'";
+		if (!empty($extra_class)) $attrs .= " class='$extra_class'";
 
 		$content = "	<tr $attrs>\n";
 		foreach ($this->cols as $col) $content .= "		$col\n";
 		$content .= "	</tr>\n";
+		if (!empty($this->sub_row)) $content .= $this->sub_row;
 		return $content;
 	}
 }

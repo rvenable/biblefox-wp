@@ -49,6 +49,17 @@ class BfoxBible {
 
 		switch ($page_name) {
 
+			default:
+			case BfoxQuery::page_reader:
+				require BFOX_BIBLE_DIR . '/page_reader.php';
+				$this->page = new BfoxPageReader();
+				break;
+
+			case BfoxQuery::page_passage:
+				require BFOX_BIBLE_DIR . '/page_passage.php';
+				$this->page = new BfoxPagePassage($ref_str, $trans_str);
+				break;
+
 			case BfoxQuery::page_search:
 				require BFOX_BIBLE_DIR . '/page_search.php';
 				$this->page = new BfoxPageSearch($search_str, $ref_str, $trans_str);
@@ -67,12 +78,6 @@ class BfoxBible {
 			case BfoxQuery::page_history:
 				require BFOX_BIBLE_DIR . '/page_history.php';
 				$this->page = new BfoxPageHistory();
-				break;
-
-			case BfoxQuery::page_passage:
-			default:
-				require BFOX_BIBLE_DIR . '/page_passage.php';
-				$this->page = new BfoxPagePassage($ref_str, $trans_str);
 				break;
 		}
 
