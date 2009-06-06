@@ -178,6 +178,32 @@ class BfoxRefContent {
 		<?php
 	}
 
+	public static function ref_content_paged(BibleRefs $refs, Translation $translation, $base_url, $page_var, $page_num = 0, $chs_per_page = 2) {
+
+		$pages = $refs->get_sections($chs_per_page);
+
+		if (!isset($pages[$page_num])) $page_num = 0;
+		$page_refs = $pages[$page_num];
+
+		if (isset($pages[$page_num - 1])) $prev_link = "<a href='" . add_query_arg($page_var, $page_num - 1, $base_url) . "' class='ref_bar'>Previous page: " . $pages[$page_num - 1]->get_string() . "</a>";
+		if (isset($pages[$page_num + 1])) $next_link = "<a href='" . add_query_arg($page_var, $page_num + 1, $base_url) . "' class='ref_bar'>Next page: " . $pages[$page_num + 1]->get_string() . "</a>";
+
+		$footnotes = array();
+
+		?>
+		<?php echo $prev_link ?>
+		<div class='ref_content'>
+			<?php self::toolbox() ?>
+			<div class="reference">
+				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
+			</div>
+			<?php echo self::ref_footnotes($footnotes) ?>
+			<div class="clear"></div>
+		</div>
+		<?php echo $next_link ?>
+		<?php
+	}
+
 	private static function ref_content_complex(BibleRefs $refs, Translation $translation, &$footnotes, $bcvs) {
 		$visible = $refs->sql_where();
 

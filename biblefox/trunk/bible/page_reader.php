@@ -7,6 +7,7 @@ class BfoxPageReader extends BfoxPage {
 	const var_query = 'query';
 	const var_plan_id = 'plan_id';
 	const var_reading_id = 'reading_id';
+	const var_page_num = 'page_num';
 
 	const query_home = 'home';
 	const query_plan = 'plan';
@@ -15,6 +16,7 @@ class BfoxPageReader extends BfoxPage {
 	private $plans = array();
 	private $plan_id = 0;
 	private $reading_id = 0;
+	private $page_num = 0;
 
 	public function __construct() {
 		parent::__construct();
@@ -41,10 +43,13 @@ class BfoxPageReader extends BfoxPage {
 
 		if (!empty($_REQUEST[self::var_plan_id])) $this->plan_id = $_REQUEST[self::var_plan_id];
 		if (!empty($_REQUEST[self::var_reading_id])) $this->reading_id = $_REQUEST[self::var_reading_id];
+		if (!empty($_REQUEST[self::var_page_num])) $this->page_num = $_REQUEST[self::var_page_num];
 	}
 
-	private function reading_url($plan_id, $reading_id) {
-		return add_query_arg(array(self::var_query => $this->query, self::var_plan_id => $plan_id, self::var_reading_id => $reading_id), BfoxQuery::page_url(BfoxQuery::page_reader)) . "#plan_{$plan_id}_$reading_id";
+	private function reading_url($plan_id, $reading_id, $page_num = 0) {
+		$url = add_query_arg(array(self::var_query => $this->query, self::var_plan_id => $plan_id, self::var_reading_id => $reading_id), BfoxQuery::page_url(BfoxQuery::page_reader)) . "#plan_{$plan_id}_$reading_id";
+		if (!empty($page_num)) $url = add_query_arg(self::var_page_num, $page_num, $url);
+		return $url;
 	}
 
 	public function page_load() {
@@ -73,7 +78,7 @@ class BfoxPageReader extends BfoxPage {
 			array("<a href='" . $this->reading_url($plan->id, $reading_id) . "'>$ref_str</a>", $ref_attrs));
 		if ($is_selected) {
 			ob_start();
-			BfoxRefContent::ref_content($plan->readings[$reading_id], $this->translation);
+			BfoxRefContent::ref_content_paged($plan->readings[$reading_id], $this->translation, $this->reading_url($plan->id, $reading_id), self::var_page_num, $this->page_num);
 			$ref_content = ob_get_clean();
 			$row->add_sub_row($ref_content);
 		}
