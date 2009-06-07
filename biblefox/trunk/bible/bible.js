@@ -95,7 +95,7 @@ jQuery(document).ready( function() {
 	jQuery('.sideview_content').hide().each(function() {
 		var content = jQuery(this);
 		var from = jQuery('#' + content.attr('id').substring(9));
-		content.html(from.children('.cbox_body').clone(true));
+		content.html(from.children('.cbox_body').show().clone(true));
 		jQuery(from).remove();
 	});
 	

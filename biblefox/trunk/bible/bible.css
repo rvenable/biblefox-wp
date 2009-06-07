@@ -400,7 +400,7 @@ Scripture Layout
 Blog Commentaries
 */
 
-#bible_passage .sideview {
+#bible .sideview {
 	background-color: #EEEEEE;
 	float: right;
 	width: 50%;
@@ -414,12 +414,12 @@ Blog Commentaries
 	display: none;
 }
 
-#bible_passage .commentary_list_head {
+#bible .commentary_list_head {
 	border-bottom: 1px solid #DFDFDF;
 	padding: 5px;
 }
 
-#bible_passage .post h3 {
+#bible .post h3 {
 	font-size: 12px;
 	background-color: #EEEEEE;
 	margin: 0px;
@@ -427,7 +427,7 @@ Blog Commentaries
 	padding: 5px;
 }
 
-#bible_passage .post_content {
+#bible .post_content {
 	position: relative;
 	padding: 5px;
 	border-bottom: 1px solid #DFDFDF;
