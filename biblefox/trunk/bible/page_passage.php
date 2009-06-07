@@ -3,6 +3,10 @@
 require_once BFOX_BIBLE_DIR . '/ref_content.php';
 
 class BfoxPagePassage extends BfoxPage {
+
+	const var_history_id = 'history_id';
+	const var_page_num = 'page_num';
+
 	/**
 	 * The bible references being used
 	 *
@@ -11,14 +15,15 @@ class BfoxPagePassage extends BfoxPage {
 	protected $refs;
 
 	protected $history;
+	protected $history_id = '';
 
 	protected $cboxes = array();
 
 	public function __construct($ref_str, $trans_str = '') {
 		$this->refs = new BibleRefs($ref_str);
 
-		// Get the passage history
-		$this->history = BfoxHistory::get_history(5);
+		// Get the last viewed
+		$this->history = BfoxHistory::get_history(1);
 		if (!empty($this->history)) $last_viewed = current($this->history);
 
 		if ($this->refs->is_valid()) {
@@ -32,6 +37,12 @@ class BfoxPagePassage extends BfoxPage {
 			else $this->refs = new BibleRefs('Genesis 1');
 		}
 
+		// Get the passage history
+		$this->history = BfoxHistory::get_history(25);
+		if (!empty($this->history)) $last_viewed = current($this->history);
+		if (!empty($_REQUEST[self::var_history_id])) $this->history_id = $_REQUEST[self::var_history_id];
+		else $this->history_id = self::history_id($last_viewed->time);
+
 		parent::__construct($trans_str);
 	}
 
@@ -41,6 +52,16 @@ class BfoxPagePassage extends BfoxPage {
 
 	public function get_search_str() {
 		return $this->refs->get_string(BibleMeta::name_short);
+	}
+
+	private static function history_id($time) {
+		return 'hist_' . strtotime($time);
+	}
+
+	private static function history_url($history_id, $page_num = 0) {
+		$url = add_query_arg(self::var_history_id, $history_id, BfoxQuery::page_url(BfoxQuery::page_passage)) . "#$history_id";
+		if (!empty($page_num)) $url = add_query_arg(self::var_page_num, $page_num, $url);
+		return $url;
 	}
 
 	public function content() {
@@ -58,34 +79,27 @@ class BfoxPagePassage extends BfoxPage {
 				$toggle = __('Mark as Read');
 			}
 
-			$history_table->add_row('', 3,
-				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>",
+			$history_id = self::history_id($history->time);
+
+			$row = new BfoxHtmlRow("id='$history_id'",
+				"<a href='" . self::history_url($history_id) . "'>$ref_str</a>",
 				"$intro $history->time",
 				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
+
+			$is_selected = ($this->history_id == $history_id);
+			if ($is_selected) {
+				ob_start();
+				BfoxRefContent::ref_content_paged($history->refs, $this->translation, self::history_url($history_id), self::var_page_num, $this->page_num);
+				$ref_content = ob_get_clean();
+				$row->add_sub_row($ref_content);
+			}
+
+			$history_table->add_row($row);
 		}
 
 		$ref_str = $this->refs->get_string();
 
-		?>
-
-		<div id="bible_passage">
-			<div id="bible_note_popup"></div>
-			<div class="roundbox">
-				<div class="box_head">
-					<?php echo $ref_str ?>
-					<a id="verse_layout_toggle" class="button">Switch to Verse View</a>
-				</div>
-				<?php BfoxRefContent::ref_content($this->refs, $this->translation); ?>
-			</div>
-		</div>
-
-		<div id='history' class='cbox'>
-			<div class='cbox_head'>Passage History</div>
-			<div class='cbox_body box_inside'>
-			<?php echo $history_table->content() ?>
-			</div>
-		</div>
-		<?php
+		echo $history_table->content();
 	}
 }
 

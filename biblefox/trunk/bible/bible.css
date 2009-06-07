@@ -309,10 +309,14 @@ ul#bible_tool_options li {
 Scripture Layout
 */
 
-#bible .ref_seq {
+#bible .reference {
 	font-size: 13px;
+	margin: 1.5em 0 0 0;
+}
+
+#bible .ref_seq {
 	margin: 0.5em;
-	margin-top: 0;
+	margin-top: 0em;
 	border: 1px solid #DDD;
 	-moz-border-radius: 0.5em;
 }
@@ -408,7 +412,7 @@ Blog Commentaries
 	border: 0px solid #EEEEEE;
 	border-bottom-width: 1px;
 	border-left-width: 1px;
-	margin: 0px 0px 5px 5px;
+	margin: 0;
 	padding: 0px;
 	-moz-border-radius-bottomleft: 0.5em;
 	display: none;
