@@ -2,7 +2,7 @@
 
 require_once BFOX_BIBLE_DIR . '/ref_content.php';
 require_once BFOX_BIBLE_DIR . '/cbox_notes.php';
-require_once BFOX_BIBLE_DIR . '/cbox_plans.php';
+require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 
 class BfoxPagePassage extends BfoxPage {
 	/**
@@ -20,15 +20,11 @@ class BfoxPagePassage extends BfoxPage {
 		$this->refs = new BibleRefs($ref_str);
 
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
-		$this->cboxes['plans'] = new BfoxCboxPlans($url, 'plans', 'My Reading Plans');
-		$this->cboxes['notes'] = new BfoxCboxNotes($url, 'notes', 'My Bible Notes');
+		$this->cboxes['blogs'] = new BfoxCboxBlogs($this->refs, $url, 'commentaries', 'Blog Posts');
+		$this->cboxes['notes'] = new BfoxCboxNotes($this->refs, $url, 'notes', 'My Bible Notes');
 
 		// Get the passage history
-		$earliest = $this->cboxes['plans']->get_earliest_time();
-		if (empty($earliest)) $limit = 5;
-		else $limit = 0;
-		$this->history = BfoxHistory::get_history($limit, $earliest);
-		$this->cboxes['plans']->set_history($this->history);
+		$this->history = BfoxHistory::get_history(5);
 		if (!empty($this->history)) $last_viewed = current($this->history);
 
 		if ($this->refs->is_valid()) {
@@ -105,12 +101,6 @@ class BfoxPagePassage extends BfoxPage {
 		<?php
 			foreach ($this->cboxes as $cbox) echo $cbox->cbox();
 		?>
-		<div id='commentaries' class='cbox'>
-			<div class='cbox_head'>Blog Posts</div>
-			<div class='cbox_body'>
-				<?php BfoxRefContent::output_posts($this->refs); ?>
-			</div>
-		</div>
 		<?php
 	}
 }

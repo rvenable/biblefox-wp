@@ -80,11 +80,13 @@ abstract class BfoxPage
 
 abstract class BfoxCbox {
 
+	protected $refs;
 	protected $url;
 	protected $id;
 	protected $title;
 
-	public function __construct($url, $id = '', $title = '') {
+	public function __construct(BibleRefs $refs, $url, $id = '', $title = '') {
+		$this->refs = $refs;
 		$this->url = $url;
 		$this->id = $id;
 		$this->title = $title;
