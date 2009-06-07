@@ -87,19 +87,26 @@ class BfoxRefContent {
 		<?php
 	}
 
+	private static function ref_seq($head = '', $body = '', $foot = '') {
+		$content = '';
+		if (!empty($head)) $content .= "<div class='ref_seq_head'>$head</div>";
+		if (!empty($body)) $content .= "<div class='ref_seq_body'>$body</div>";
+		if (!empty($foot)) $content .= "<div class='ref_seq_foot'>$foot</div>";
+
+		return "<div class='ref_seq'>$content</div>";
+	}
+
 	private static function ref_footnotes($footnotes) {
+		$content = '';
+
 		if (!empty($footnotes)) {
-			?>
-			<div class="box_head">Footnotes</div>
-			<div class="box_inside">
-				<ul>
-				<?php foreach ($footnotes as $index => $footnote): ?>
-					<li><?php echo $footnote ?></li>
-				<?php endforeach; ?>
-				</ul>
-			</div>
-			<?php
+			$body = '<ul>';
+			foreach ($footnotes as $index => $footnote) $body .= "<li>$footnote</li>\n";
+			$body .= '</ul>';
+			$content = self::ref_seq(__('Footnotes'), $body);
 		}
+
+		return $content;
 	}
 
 	private static function ref_footer(BibleRefs $refs, Translation $translation) {
@@ -119,10 +126,11 @@ class BfoxRefContent {
 				$footnotes = array();
 				?>
 				<div>
+					<?php self::toolbox() ?>
 					<div class="reference">
 						<?php echo self::ref_content_complex($refs, $translation, $footnotes, $bcvs) ?>
+						<?php echo self::ref_footnotes($footnotes) ?>
 					</div>
-					<?php echo self::ref_footnotes($footnotes) ?>
 					<div class="clear"></div>
 				</div>
 				<div class="box_menu">
@@ -136,22 +144,31 @@ class BfoxRefContent {
 		}
 	}
 
+	private static function prev_link($book, $ch, $book_name = '', $title = '', $attrs = '') {
+		if (empty($book_name)) $book_name = BibleMeta::get_book_name($book);
+		if (BibleMeta::start_chapter <= --$ch) return Biblefox::ref_link("$book_name $ch", $title, '', $attrs);
+	}
+
+	private static function next_link($book, $ch, $book_name = '', $title = '', $attrs = '') {
+		if (empty($book_name)) $book_name = BibleMeta::get_book_name($book);
+		if (BibleMeta::end_verse_max($book) >= ++$ch) return Biblefox::ref_link("$book_name $ch", $title, '', $attrs);
+	}
+
 	private static function prev_page_bar($bcvs) {
 		if (!empty($bcvs)) {
-			$ch = reset(reset($bcvs))->start[0] - 1;
-			$ref_str = BibleMeta::get_book_name(key($bcvs)) . " $ch";
-
-			if (BibleMeta::start_chapter <= $ch) echo Biblefox::ref_link($ref_str, __('Previous: ') . $ref_str, '', "class='ref_bar'");
+			$ch = reset(reset($bcvs))->start[0];
+			$book = key($bcvs);
+			$book_name = BibleMeta::get_book_name($book);
+			echo self::prev_link($book, $ch, $book_name, __('Previous: ') . "$book_name $ch", "class='ref_bar'");
 		}
 	}
 
 	private static function next_page_bar($bcvs) {
 		if (!empty($bcvs)) {
-			$ch = end(end($bcvs))->end[0] + 1;
+			$ch = end(end($bcvs))->end[0];
 			$book = key($bcvs);
-			$ref_str = BibleMeta::get_book_name($book) . " $ch";
-
-			if (BibleMeta::end_verse_max($book) >= $ch) echo Biblefox::ref_link($ref_str, __('Next: ') . $ref_str, '', "class='ref_bar'");
+			$book_name = BibleMeta::get_book_name($book);
+			echo self::next_link($book, $ch, $book_name, __('Next: ') . "$book_name $ch", "class='ref_bar'");
 		}
 	}
 
@@ -169,8 +186,8 @@ class BfoxRefContent {
 			<?php self::toolbox() ?>
 			<div class="reference">
 				<?php echo self::get_chapters_content($book, $ch1, $ch2, $refs->sql_where(), $footnotes, $translation) ?>
+				<?php echo self::ref_footnotes($footnotes) ?>
 			</div>
-			<?php echo self::ref_footnotes($footnotes) ?>
 			<div class="clear"></div>
 		</div>
 		<?php self::next_page_bar($bcvs) ?>
@@ -196,8 +213,8 @@ class BfoxRefContent {
 			<?php self::toolbox() ?>
 			<div class="reference">
 				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
+				<?php echo self::ref_footnotes($footnotes) ?>
 			</div>
-			<?php echo self::ref_footnotes($footnotes) ?>
 			<div class="clear"></div>
 		</div>
 		<?php echo $next_link ?>
@@ -209,6 +226,7 @@ class BfoxRefContent {
 
 		foreach ($bcvs as $book => $cvs) {
 			$book_name = BibleMeta::get_book_name($book);
+			$book_short = BibleMeta::get_book_name($book, BibleMeta::name_short);
 			$book_str = BibleRefs::create_book_string($book, $cvs);
 
 			unset($ch1);
@@ -217,43 +235,13 @@ class BfoxRefContent {
 				list($ch2, $vs2) = $cv->end;
 			}
 
-			// Get the previous and next chapters as well
 			$ch1 = max($ch1, BibleMeta::start_chapter);
 			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
 
-			// Create the verse context string now before we get the surrounding chapters
-			if ($ch1 == $ch2) $vs_context = "$book_name $ch1";
-			else $vs_context = "$book_name $ch1-$ch2";
-			if ($vs_context == $book_str) $vs_context = '';
+			$prev = self::prev_link($book, $ch1, $book_short, '', "class='ref_seq_prev'");
+			$next = self::next_link($book, $ch2, $book_short, '', "class='ref_seq_next'");
 
-			// Get the previous and next chapters as well
-			$ch1 = max($ch1 - 1, BibleMeta::start_chapter);
-			$ch2++;
-			if ($ch2 >= BibleMeta::end_verse_min($book)) $ch2 = BibleMeta::end_verse_max($book);
-
-			// Create the chapter context string now that we have the surrounding chapters
-			if ($ch1 == $ch2) $ch_context = "$book_name $ch1";
-			else $ch_context = "$book_name $ch1-$ch2";
-			if (($ch_context == $book_str) || ($ch_context == $vs_context)) $ch_context = '';
-
-			// Create the context links string
-			$context = $book_str;
-			if ($book_str != $book_name) {
-				$links = array();
-				if (!empty($vs_context)) $links []= "<a onclick='bfox_set_context_verses(this)'>$vs_context</a>";
-				if (!empty($ch_context)) $links []= "<a onclick='bfox_set_context_chapters(this)'>$ch_context</a>";
-
-				if (!empty($links)) $context = "<a onclick='bfox_set_context_none(this)'>$book_str</a> - Preview Context: " . implode(', ', $links);
-			}
-
-			$content .= "
-				<div class='ref_partition'>
-					<div class='partition_header box_menu'>$context</div>
-					<div class='partition_body'>
-						" . self::get_chapters_content($book, $ch1, $ch2, $visible, $footnotes, $translation) . "
-					</div>
-				</div>
-				";
+			$content .= self::ref_seq("<span class='ref_seq_title'>$prev$next$book_str</span>", self::get_chapters_content($book, $ch1, $ch2, $visible, $footnotes, $translation));
 		}
 
 		return $content;
@@ -377,8 +365,7 @@ class BfoxRefContent {
 					}
 				}
 
-				// TODO3: is h5 allowed in a span?
-				$content .= "<span class='chapter $chapter_class'>\n<h5>$chapter_id</h5>\n$chapter_content</span>\n";
+				$content .= "<span class='chapter $chapter_class'>\n<span class='chapter_head'>$chapter_id</span>\n$chapter_content</span>\n";
 			}
 
 		}

@@ -309,18 +309,61 @@ ul#bible_tool_options li {
 Scripture Layout
 */
 
-#bible .partition_body {
-	padding: 5px;
+#bible .ref_seq {
+	font-size: 13px;
+	margin: 0.5em;
+	margin-top: 0;
+	border: 1px solid #DDD;
+	-moz-border-radius: 0.5em;
 }
 
-#bible .chapter h5 {
+#bible .ref_seq_head, #bible .ref_seq_foot {
+	background-color: #EEE;
+	text-align: center;
+	padding: 0.5em;
+}
+
+#bible .ref_seq_title {
+	font-size: 1.6em;
+	display: block;
+}
+
+#bible .ref_seq_prev, #bible .ref_seq_next {
+	font-size: 0.5em;
+	margin-top: 1em;
+}
+
+#bible .ref_seq_prev {
+	text-align: left;
+	float: left;
+}
+
+#bible .ref_seq_next {
+	text-align: right;
+	float: right;
+}
+
+#bible .ref_seq_prev:before {
+	content: "\00AB \0020";
+}
+
+#bible .ref_seq_next:after {
+	content: "\0020 \00BB";
+}
+
+#bible .ref_seq_body {
+	padding: 1em;
+}
+
+#bible .chapter_head {
 	font-size: 2em;
 	float: left;
 	margin: 0 4px 0 0;
 	padding: 0 6px;
 	text-align: center;
+	font-weight: bold;
 	background-color: #EEEEEE;
-	-moz-border-radius: 0.5em;
+	-moz-border-radius: 0.3em;
 }
 
 #bible .sequence {

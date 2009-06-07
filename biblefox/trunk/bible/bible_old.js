@@ -1,6 +1,6 @@
 function bfox_get_context_parent(toggle)
 {
-	return jQuery(toggle).parents('.ref_partition').children('.partition_body');
+	return jQuery(toggle).parents('.ref_seq').children('.ref_seq_body');
 }
 
 function bfox_get_context_chapters(parent)
