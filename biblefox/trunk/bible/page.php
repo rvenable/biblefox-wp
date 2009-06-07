@@ -90,6 +90,8 @@ abstract class BfoxCbox {
 		$this->url = $url;
 		$this->id = $id;
 		$this->title = $title;
+
+		$this->page_load();
 	}
 
 	public function page_load() {}

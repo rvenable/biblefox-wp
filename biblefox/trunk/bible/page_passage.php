@@ -1,8 +1,6 @@
 <?php
 
 require_once BFOX_BIBLE_DIR . '/ref_content.php';
-require_once BFOX_BIBLE_DIR . '/cbox_notes.php';
-require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 
 class BfoxPagePassage extends BfoxPage {
 	/**
@@ -18,10 +16,6 @@ class BfoxPagePassage extends BfoxPage {
 
 	public function __construct($ref_str, $trans_str = '') {
 		$this->refs = new BibleRefs($ref_str);
-
-		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
-		$this->cboxes['blogs'] = new BfoxCboxBlogs($this->refs, $url, 'commentaries', 'Blog Posts');
-		$this->cboxes['notes'] = new BfoxCboxNotes($this->refs, $url, 'notes', 'My Bible Notes');
 
 		// Get the passage history
 		$this->history = BfoxHistory::get_history(5);
@@ -41,22 +35,15 @@ class BfoxPagePassage extends BfoxPage {
 		parent::__construct($trans_str);
 	}
 
-	public function page_load() {
-		foreach ($this->cboxes as $cbox) $cbox->page_load();
-	}
-
-	public function get_title()
-	{
+	public function get_title() {
 		return $this->refs->get_string();
 	}
 
-	public function get_search_str()
-	{
+	public function get_search_str() {
 		return $this->refs->get_string(BibleMeta::name_short);
 	}
 
-	public function content()
-	{
+	public function content() {
 		$history_table = new BfoxHtmlTable("class='widefat'");
 		$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
 		foreach ($this->history as $history) {
@@ -98,9 +85,6 @@ class BfoxPagePassage extends BfoxPage {
 			<?php echo $history_table->content() ?>
 			</div>
 		</div>
-		<?php
-			foreach ($this->cboxes as $cbox) echo $cbox->cbox();
-		?>
 		<?php
 	}
 }

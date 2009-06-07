@@ -1,6 +1,18 @@
 <?php
 
+require_once BFOX_BIBLE_DIR . '/cbox_notes.php';
+require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
+
 class BfoxRefContent {
+
+	private static function add_cboxes(BibleRefs $refs) {
+		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
+		$cboxes = array();
+		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
+		$cboxes['notes'] = new BfoxCboxNotes($refs, $url, 'notes', 'My Bible Notes');
+
+		foreach ($cboxes as $cbox) echo $cbox->cbox();
+	}
 
 	private static function toolbox() {
 		$top_boxes = array('commentaries' => __('Blogs'), 'notes' => __('Notes'), 'none' => __('Hide'));
@@ -62,6 +74,7 @@ class BfoxRefContent {
 					<div class="reference">
 						<?php echo self::ref_content_complex($refs, $translation, $footnotes, $bcvs) ?>
 						<?php echo self::ref_footnotes($footnotes) ?>
+						<?php self::add_cboxes($refs) ?>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -119,6 +132,7 @@ class BfoxRefContent {
 			<div class="reference">
 				<?php echo self::get_chapters_content($book, $ch1, $ch2, $refs->sql_where(), $footnotes, $translation) ?>
 				<?php echo self::ref_footnotes($footnotes) ?>
+				<?php self::add_cboxes($refs) ?>
 			</div>
 			<div class="clear"></div>
 		</div>
@@ -146,6 +160,7 @@ class BfoxRefContent {
 			<div class="reference">
 				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
 				<?php echo self::ref_footnotes($footnotes) ?>
+				<?php self::add_cboxes($refs) ?>
 			</div>
 			<div class="clear"></div>
 		</div>
