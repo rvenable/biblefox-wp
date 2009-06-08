@@ -184,6 +184,7 @@ class BfoxHtmlElement {
 class BfoxHtmlRow extends BfoxHtmlElement {
 	private $cols = array();
 	private $sub_row = '';
+	public $sort_val = 0;
 
 	public function __construct() {
 		$args = func_get_args();
@@ -216,6 +217,10 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 		$this->sub_row = "	<tr class='sub_row'><td colspan='$col_span'>$text</td></tr>\n";
 	}
 
+	public function add_sort_val($val) {
+		$this->sort_val = $val;
+	}
+
 	public function content($extra_class = '') {
 		// TODO3: This extra_class param isn't safe if $this->attrs already has a class
 		$attrs = $this->attrs;
@@ -226,6 +231,11 @@ class BfoxHtmlRow extends BfoxHtmlElement {
 		$content .= "	</tr>\n";
 		if (!empty($this->sub_row)) $content .= $this->sub_row;
 		return $content;
+	}
+
+	public static function cmp(BfoxHtmlRow $a, BfoxHtmlRow $b) {
+		if ($a->sort_val == $b->sort_val) return 0;
+		return ($a->sort_val < $b->sort_val) ? -1 : 1;
 	}
 }
 
@@ -273,10 +283,12 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 		return count($this->rows);
 	}
 
-	private static function row_section($section, $rows, $alternates = array()) {
+	private static function row_section($section, $rows, $sort = FALSE, $alternates = array()) {
 		$content = '';
 
 		$num_alt = count($alternates);
+
+		if ($sort) usort($rows, 'BfoxHtmlRow::cmp');
 
 		if (!empty($rows)) {
 			$content = "<$section>\n";
@@ -289,12 +301,12 @@ class BfoxHtmlTable extends BfoxHtmlElement {
 		return $content;
 	}
 
-	public function content() {
+	public function content($sort = FALSE) {
 		if (!empty($this->caption)) $caption = "<caption>$this->caption</caption>";
 		return "<table $this->attrs>\n" .
 			$caption .
 			self::row_section('thead', $this->header_rows) .
-			self::row_section('tbody', $this->rows, $this->alternates) .
+			self::row_section('tbody', $this->rows, $sort, $this->alternates) .
 			self::row_section('tfoot', $this->footer_rows) .
 			"</table>\n";
 	}

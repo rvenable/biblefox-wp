@@ -37,7 +37,7 @@ class BfoxPageReader extends BfoxPage {
 		}
 
 		if (!empty($earliest)) {
-			$history_array = BfoxHistory::get_history(0, $earliest);
+			$history_array = BfoxHistory::get_history(0, $earliest, 0, TRUE);
 			foreach ($this->plans as &$plan) $plan->set_history($history_array);
 		}
 
@@ -62,10 +62,9 @@ class BfoxPageReader extends BfoxPage {
 		}*/
 	}
 
-	private function create_reading_row(BfoxReadingPlan $plan, $reading_id) {
+	private function create_reading_row(BfoxReadingPlan $plan, $reading_id, $is_unread = TRUE) {
 
-		$unread = $plan->get_unread($plan->readings[$reading_id]);
-		if (!$unread->is_valid()) $ref_attrs = "class='finished'";
+		if (!$is_unread) $ref_attrs = "class='finished'";
 		else $ref_attrs = '';
 
 		$is_selected = (($this->plan_id == $plan->id) && ($this->reading_id == $reading_id));
@@ -76,6 +75,9 @@ class BfoxPageReader extends BfoxPage {
 			$reading_id + 1,
 			"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name</a>",
 			array("<a href='" . $this->reading_url($plan->id, $reading_id) . "'>$ref_str</a>", $ref_attrs));
+
+		$row->add_sort_val($plan->dates[$reading_id]);
+
 		if ($is_selected) {
 			ob_start();
 			BfoxRefContent::ref_content_paged($plan->readings[$reading_id], $this->translation, $this->reading_url($plan->id, $reading_id), self::var_page_num, $this->page_num);
@@ -95,16 +97,18 @@ class BfoxPageReader extends BfoxPage {
 			$upcoming_table->add_header_row('', 4, 'Date', '#', 'Reading List', 'Scriptures');
 
 			foreach ($this->plans as $plan) if ($plan->is_current()) {
-				$current_table->add_row($this->create_reading_row($plan, $plan->current_reading_id));
+				foreach ($plan->readings as $reading_id => $reading) {
+					$unread = $plan->get_unread($reading);
+					$is_unread = $unread->is_valid();
 
-				// Add upcoming rows
-				for ($i = 1; $i <= 3; $i++) if (($plan->current_reading_id + $i) < count($plan->readings)) $upcoming_table->add_row($this->create_reading_row($plan, $plan->current_reading_id + $i));
+					//if ($reading_id < $plan->current_reading_id) pre($plan);
+
+					// If the passage is unread or current, add it
+					if ($is_unread || ($reading_id >= $plan->current_reading_id)) $current_table->add_row($this->create_reading_row($plan, $reading_id, $is_unread));
+				}
 			}
 
-			echo "<h3>Current Readings</h3>";
-			echo $current_table->content();
-			echo "<h3>Upcoming Readings</h3>";
-			echo $upcoming_table->content();
+			echo $current_table->content(TRUE);
 		}
 	}
 }
