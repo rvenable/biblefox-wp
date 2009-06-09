@@ -90,7 +90,7 @@ abstract class BfoxCbox {
 
 	public function cbox() {
 		?>
-		<div id='<?php echo $this->id ?>' class='cbox'>
+		<div class='cbox <?php echo $this->id ?>'>
 			<div class='cbox_head'><?php echo $this->title ?></div>
 			<div class='cbox_body box_inside'>
 				<?php echo $this->content() ?>

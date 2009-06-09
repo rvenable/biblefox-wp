@@ -104,6 +104,7 @@ class BfoxPageReader extends BfoxPage {
 			}
 
 			echo $list->content(TRUE);
+			BfoxRefContent::ref_js();
 		}
 	}
 }

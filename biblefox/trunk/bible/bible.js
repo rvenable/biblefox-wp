@@ -61,56 +61,66 @@ function bfox_sideshow(id) {
 }
 
 function bfox_ref_load(content) {
-	content.children('.ref_loader').each(function() {
-		content.load(jQuery(this).attr('href'));
-	}).remove();
+	var loader = content.children('.ref_loader:first');
+	if (1 == loader.size()) {
+		content.load(loader.attr('href'), '', function() {
+			bfox_refresh_ref_js(content);
+		});
+		loader.remove();
+	}
+	else {
+		bfox_refresh_ref_js(content);
+	}
+}
+
+function bfox_move(from_str, to) {
+	var from = jQuery(from_str);
+	to.html(from.clone(true));
+	from.remove();
+}
+
+function bfox_refresh_ref_js(prow_content) {
+	var new_ref_js_hold = prow_content.children('.ref_js_hold:first');
+	if (1 == new_ref_js_hold.size()) {
+		// Hide all the ref_content, because we just show the ref_js 
+		prow_content.children('.ref_content').hide();
+	
+		// Move content from the bottom of the page to the side viewer
+		bfox_move('#ref_js', new_ref_js_hold);
+		var ref_js = jQuery('#ref_js');
+	
+		// Move all the cbox content to the sideview
+		ref_js.find('.sideview_content').each(function() {
+			var to = jQuery(this);
+			var item = to.attr('id').substring(9);
+			var from = prow_content.find('.' + item);
+			to.html(from.children('.cbox_body').clone());
+		});
+		
+		// Move the passage
+		jQuery('#ref_js_passage').html(prow_content.find('.ref_content > .reference').clone(true));
+		
+		// Expand all sub sections
+		ref_js.find('.cbox_sub .cbox_body').show();
+		// Collapse all sub_sub sections
+		ref_js.find('.cbox_sub_sub .cbox_body').hide();
+		
+		// Add toggle functionality to sub and sub_sub sections
+		ref_js.find('.cbox_sub .cbox_head, .cbox_sub_sub .cbox_head').click(function() {
+			jQuery(this).siblings('.cbox_body').toggle('fast');
+		});
+	}
 }
 
 jQuery(document).ready( function() {
 	jQuery('#verse_layout_toggle').click(bfox_toggle_verse_paragraph);
 	
-	// Set all collapsable boxes to their cookied values
-	jQuery('.cbox').each(function() {
-		var box = jQuery(this);
-		var id = box.attr('id');
-		var body = box.children('.cbox_body');
-		var display = jQuery.cookie('passage_ui_' + id + '_display');
-		if (null != display) {
-			body.css('display', display);
-		}
-	});
-	
-	// Toggle all collapsable boxes using their headers
-	jQuery('.cbox .cbox_head').click(function() {
-		var box = jQuery(this).parent('.cbox');
-		var id = box.attr('id');
-		var body = box.children('.cbox_body');
-		body.toggle('fast', function() {
-			jQuery.cookie('passage_ui_' + id + '_display', body.css('display'));
-		});
-	});
-	
-	jQuery('.cbox_sub .cbox_body').show();
-	jQuery('.cbox_sub_sub .cbox_body').hide();
-	
-	jQuery('.cbox_sub .cbox_head, .cbox_sub_sub .cbox_head').click(function() {
-		jQuery(this).siblings('.cbox_body').toggle('fast');
-	});
-
-	// Move content from the bottom of the page to the side viewer
-	jQuery('.sideview_content').hide().each(function() {
-		var content = jQuery(this);
-		var from = jQuery('#' + content.attr('id').substring(9));
-		content.html(from.children('.cbox_body').show().clone(true));
-		jQuery(from).remove();
-	});
-	
 	// Show the cookied sideview item
 	var sideshow_id = jQuery.cookie('sideshow_id');
 	if (null != sideshow_id) bfox_sideshow(sideshow_id);
 	
-	jQuery('.sideview').show();
-
+	jQuery('#sideview').show();
+	
 	// Deactivate any already active ui states (we only had them active for non-javascript users)
 	jQuery('.ui-state-active').removeClass('ui-state-active');
 	
@@ -126,4 +136,6 @@ jQuery(document).ready( function() {
 		collapsible: true,
 		autoHeight: false
 	});
+
+	bfox_refresh_ref_js(jQuery('.ref_content:first').parent('.prow_content'));
 });

@@ -17,6 +17,15 @@ class BfoxRefContent {
 			</div></div>";
 	}
 
+	public static function ref_js() {
+		?>
+		<div id='ref_js'>
+			<?php self::toolbox() ?>
+			<div id='ref_js_passage'></div>
+		</div>
+		<?php
+	}
+
 	private static function add_cboxes(BibleRefs $refs) {
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$cboxes = array();
@@ -30,7 +39,7 @@ class BfoxRefContent {
 		$top_boxes = array('commentaries' => __('Blogs'), 'notes' => __('Notes'), 'none' => __('Hide'));
 
 		?>
-		<div class="sideview">
+		<div id="sideview">
 			<ul id='sideview_list'>
 			<?php foreach ($top_boxes as $id => $title): ?>
 				<li><a onclick='bfox_sideshow("<?php echo $id ?>")'><?php echo $title ?></a></li>
@@ -166,17 +175,18 @@ class BfoxRefContent {
 		$footnotes = array();
 
 		?>
-		<?php echo $prev_link ?>
+		<div class='ref_js_hold'></div>
 		<div class='ref_content'>
+			<?php echo $prev_link ?>
 			<?php //self::toolbox() ?>
 			<div class="reference">
 				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
 				<?php echo self::ref_footnotes($footnotes) ?>
-				<?php self::add_cboxes($refs) ?>
 			</div>
+			<?php self::add_cboxes($refs) ?>
 			<div class="clear"></div>
+			<?php echo $next_link ?>
 		</div>
-		<?php echo $next_link ?>
 		<?php
 	}
 

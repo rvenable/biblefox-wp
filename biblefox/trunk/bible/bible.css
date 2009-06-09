@@ -409,7 +409,7 @@ Scripture Layout
 Blog Commentaries
 */
 
-#bible .sideview {
+#bible #sideview {
 	background-color: #EEEEEE;
 	float: right;
 	width: 50%;
