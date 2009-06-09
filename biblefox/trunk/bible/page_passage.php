@@ -146,7 +146,8 @@ class BfoxPagePassage extends BfoxPage {
 				"<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>$manage</a>" . __(' page to edit your plans</p>');
 		}
 		else {
-			$header = __('<p>Here are upcoming readings for your reading plans:</p>');
+			$manage = __('Manage your reading plans');
+			$header = __('<p>Here are upcoming readings for your reading plans:</p>') . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>$manage</a>";
 		}
 
 		return $header . $table->content(TRUE);
