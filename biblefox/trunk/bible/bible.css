@@ -305,6 +305,11 @@ ul#bible_tool_options li {
 	text-align: left;
 }
 
+.reading_date {
+	width: 25%;
+	float: left;
+}
+
 /*
 Scripture Layout
 */
@@ -637,7 +642,7 @@ td.noborder {
 	border: 0;
 }
 
-td.finished {
+td.finished, a.finished {
 	text-decoration: line-through;
 }
 

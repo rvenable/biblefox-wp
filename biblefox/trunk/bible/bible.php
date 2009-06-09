@@ -16,10 +16,15 @@ class BfoxBible {
 
 	public function __construct() {
 
+		// Register the bible jquery scripts and styles
+		BfoxUtility::register_script('bfox_jquery', 'bible/jquery/js/jquery-1.3.2.min.js');
+		BfoxUtility::register_script('bfox_jquery_ui', 'bible/jquery/js/jquery-ui-1.7.2.custom.min.js', array('bfox_jquery'));
+		BfoxUtility::register_style('bfox_jquery_ui', 'bible/jquery/css/humanity/jquery-ui-1.7.2.custom.css');
+
 		// Register all the bible scripts and styles
-		BfoxUtility::register_script('jquery_cookie', 'bible/jquery.cookie.js', array('jquery'));
-		BfoxUtility::register_script('bfox_bible', 'bible/bible.js', array('jquery', 'jquery_cookie'));
-		BfoxUtility::register_style('bfox_bible', 'bible/bible.css', array('bfox_scripture'));
+		BfoxUtility::register_script('jquery_cookie', 'bible/jquery.cookie.js', array('bfox_jquery'));
+		BfoxUtility::register_script('bfox_bible', 'bible/bible.js', array('bfox_jquery', 'bfox_jquery_ui', 'jquery_cookie'));
+		BfoxUtility::register_style('bfox_bible', 'bible/bible.css', array('bfox_jquery_ui'));
 		BfoxUtility::register_style('bfox_search', 'bible/search.css', array('bfox_bible'));
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);

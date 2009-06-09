@@ -5,6 +5,14 @@ require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 
 class BfoxRefContent {
 
+	public static function passage_row($head, $menu, $content) {
+		return "<div class='prow_head ui-accordion-header ui-state-active ui-corner-top'>$head</div>
+			<div class='ui-accordion-content ui-widget-content ui-corner-bottom ui-accordion-content-active'><div>
+				<div class='prow_menu'>$menu</div>
+				<div class='prow_content'>$content</div>
+			</div></div>";
+	}
+
 	private static function add_cboxes(BibleRefs $refs) {
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$cboxes = array();
@@ -156,7 +164,7 @@ class BfoxRefContent {
 		?>
 		<?php echo $prev_link ?>
 		<div class='ref_content'>
-			<?php self::toolbox() ?>
+			<?php //self::toolbox() ?>
 			<div class="reference">
 				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
 				<?php echo self::ref_footnotes($footnotes) ?>

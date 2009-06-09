@@ -104,4 +104,19 @@ jQuery(document).ready( function() {
 	if (null != sideshow_id) bfox_sideshow(sideshow_id);
 	
 	jQuery('.sideview').show();
+
+	// Deactivate any already active ui states (we only had them active for non-javascript users)
+	jQuery('.ui-state-active').removeClass('ui-state-active');
+	
+	// Add the accordion
+	jQuery('.passage_list').accordion({
+		changestart: function(event, ui) {
+			ui.oldContent.children('.prow_content').hide();
+		},
+		change: function(event, ui) {
+			ui.newContent.children('.prow_content').show();
+		},
+		collapsible: true,
+		autoHeight: false
+	});
 });

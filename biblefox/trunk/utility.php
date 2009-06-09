@@ -387,6 +387,27 @@ class BfoxHtmlOptionTable extends BfoxHtmlTable {
 	}
 }
 
+class BfoxHtmlList extends BfoxHtmlElement {
+	private $lis = array();
+	private $sort_vals = array();
+
+	public function add($li, $sort_val = 0) {
+		$this->lis []= $li;
+		$this->sort_vals []= $sort_val;
+	}
+
+	public function content($sort = FALSE, $page_num = 0, $page_size = 20) {
+		if ($sort) array_multisort($this->sort_vals, $this->lis);
+
+		$content = "<ul $this->attrs>\n";
+		$count = count($this->lis);
+		for ($i = $page_num * $page_size; ($i < $count) && ($i < (($page_num + 1) * $page_size)); $i++) $content .= "<li>{$this->lis[$i]}</li>\n";
+		$content .= "</ul>\n";
+
+		return $content;
+	}
+}
+
 // TODO3: The remaining functions may be obsolete
 
 	function bfox_admin_page_url($page_name)
