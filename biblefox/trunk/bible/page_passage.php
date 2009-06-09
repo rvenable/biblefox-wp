@@ -64,8 +64,57 @@ class BfoxPagePassage extends BfoxPage {
 		return $url;
 	}
 
+	public function tools_tab(BibleRefs $refs) {
+		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
+		$cboxes = array();
+		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
+		$cboxes['notes'] = new BfoxCboxNotes($refs, $url, 'notes', 'My Bible Notes');
+
+		ob_start();
+		$cboxes['blogs']->content();
+		$blog_content = ob_get_clean();
+
+		ob_start();
+		$cboxes['notes']->content();
+		$note_content = ob_get_clean();
+
+		$tool_tabs = new BfoxHtmlTabs("id='tool_tabs' class='tabs'");
+		$tool_tabs->add('blogs', __('Blogs'), $blog_content);
+		$tool_tabs->add('notes', __('Notes'), $note_content);
+
+		return $tool_tabs->content();
+	}
+
+	public function content_new() {
+		$history = reset($this->history);
+		$history_id = self::history_id($history->time);
+
+		$refs = $history->refs;
+		ob_start();
+		?>
+			<?php echo $this->tools_tab($refs) ?>
+			<?php BfoxRefContent::ref_content_new($refs, $this->translation) ?>
+			<div class="clear"></div>
+		<?php
+		$ref_content = ob_get_clean();
+
+		$passage_tabs = new BfoxHtmlTabs("id='passage_tabs' class='tabs'");
+		$passage_tabs->add('passage', $history->refs->get_string(), $ref_content);
+		$passage_tabs->add('plans', __('Upcoming Readings'), '');
+		$passage_tabs->add('history', __('History'), '');
+
+		?>
+		<div id='left_col'>
+			<?php echo $passage_tabs->content() ?>
+		</div>
+		<div id='right_col'>
+		</div>
+		<?php
+	}
+
 	public function content() {
 		if ($this->display_full) {
+			return $this->content_new();
 			$history_table = new BfoxHtmlTable("class='widefat'");
 			$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
 			foreach ($this->history as $history) {

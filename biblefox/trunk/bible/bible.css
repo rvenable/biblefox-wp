@@ -405,6 +405,16 @@ Scripture Layout
 	border-bottom: 1px solid #DDD;
 }
 
+#tool_tabs {
+	float: right;
+	width: 50%;
+	margin: 0 0 0.5em 0.5em;
+}
+
+.ref_content {
+	margin: 0;
+}
+
 /*
 Blog Commentaries
 */

@@ -408,6 +408,28 @@ class BfoxHtmlList extends BfoxHtmlElement {
 	}
 }
 
+class BfoxHtmlTabs extends BfoxHtmlElement {
+	private $lis = array();
+	private $sort_vals = array();
+
+	public function add($id, $name, $content) {
+		$this->tabs []= (object) array('id' => $id, 'name' => $name, 'content' => $content);
+	}
+
+	public function content() {
+		if ($sort) array_multisort($this->sort_vals, $this->lis);
+
+		$content = "<div $this->attrs>\n";
+		$content .= "<ul>";
+		foreach ($this->tabs as $tab) $content .= "<li><a href='#tab_$tab->id'>$tab->name</a></li>";
+		$content .= "</ul>";
+		foreach ($this->tabs as $tab) $content .= "<div id='tab_$tab->id'>$tab->content</div>";
+		$content .= "</div>\n";
+
+		return $content;
+	}
+}
+
 // TODO3: The remaining functions may be obsolete
 
 	function bfox_admin_page_url($page_name)

@@ -136,6 +136,8 @@ jQuery(document).ready( function() {
 		collapsible: true,
 		autoHeight: false
 	});
+	
+	jQuery('.tabs').tabs();
 
 	bfox_refresh_ref_js(jQuery('.ref_content:first').parent('.prow_content'));
 });

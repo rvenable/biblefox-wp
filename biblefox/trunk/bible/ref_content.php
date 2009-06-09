@@ -162,6 +162,17 @@ class BfoxRefContent {
 		<?php
 	}
 
+	public static function ref_content_new(BibleRefs $refs, Translation $translation) {
+		$footnotes = array();
+
+		?>
+		<div class='ref_content'>
+			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
+			<?php echo self::ref_footnotes($footnotes) ?>
+		</div>
+		<?php
+	}
+
 	public static function ref_content_paged(BibleRefs $refs, Translation $translation, $base_url, $page_var, $page_num = 0, $chs_per_page = 2) {
 
 		$pages = $refs->get_sections($chs_per_page);
