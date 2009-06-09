@@ -412,8 +412,16 @@ Scripture Layout
 	font-size: 0.8em;
 }
 
+#passage_tabs .tab_content, #tool_tabs .tab_content {
+	padding: 0;
+}
+
 #tool_tabs .tab_content a {
-	color: #B85700;
+	color: #0066CC;
+}
+
+#tool_tabs .tab_content h3 {
+	margin: 0;
 }
 
 .ref_content {

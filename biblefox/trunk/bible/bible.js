@@ -137,7 +137,10 @@ jQuery(document).ready( function() {
 		autoHeight: false
 	});
 	
-	jQuery('.tabs').tabs();
+	jQuery('.tabs').tabs({
+		collapsible: true,
+		cookie: { expires: 30 }
+	});
 	
 	// Expand all sub sections
 	jQuery('.cbox_sub .cbox_body').show();

@@ -81,7 +81,6 @@ class BfoxPagePassage extends BfoxPage {
 		$tool_tabs = new BfoxHtmlTabs("id='tool_tabs' class='tabs'");
 		$tool_tabs->add('blogs', __('Blogs'), $blog_content);
 		$tool_tabs->add('notes', __('Notes'), $note_content);
-		$tool_tabs->add('none', __('None'), '');
 
 		return $tool_tabs->content();
 	}
