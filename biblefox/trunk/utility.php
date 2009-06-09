@@ -423,7 +423,7 @@ class BfoxHtmlTabs extends BfoxHtmlElement {
 		$content .= "<ul>";
 		foreach ($this->tabs as $tab) $content .= "<li><a href='#tab_$tab->id'>$tab->name</a></li>";
 		$content .= "</ul>";
-		foreach ($this->tabs as $tab) $content .= "<div id='tab_$tab->id'>$tab->content</div>";
+		foreach ($this->tabs as $tab) $content .= "<div id='tab_$tab->id' class='tab_content'>$tab->content</div>";
 		$content .= "</div>\n";
 
 		return $content;

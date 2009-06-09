@@ -138,6 +138,16 @@ jQuery(document).ready( function() {
 	});
 	
 	jQuery('.tabs').tabs();
+	
+	// Expand all sub sections
+	jQuery('.cbox_sub .cbox_body').show();
+	// Collapse all sub_sub sections
+	jQuery('.cbox_sub_sub .cbox_body').hide();
 
-	bfox_refresh_ref_js(jQuery('.ref_content:first').parent('.prow_content'));
+	// Add toggle functionality to sub and sub_sub sections
+	jQuery('.cbox_sub .cbox_head, .cbox_sub_sub .cbox_head').click(function() {
+		jQuery(this).siblings('.cbox_body').slideToggle('fast');
+	});
+	
+	//bfox_refresh_ref_js(jQuery('.ref_content:first').parent('.prow_content'));
 });

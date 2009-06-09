@@ -409,6 +409,11 @@ Scripture Layout
 	float: right;
 	width: 50%;
 	margin: 0 0 0.5em 0.5em;
+	font-size: 0.8em;
+}
+
+#tool_tabs .tab_content a {
+	color: #B85700;
 }
 
 .ref_content {
