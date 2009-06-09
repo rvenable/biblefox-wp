@@ -5,6 +5,32 @@ require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 
 class BfoxRefContent {
 
+	public static function get_plans() {
+		global $user_ID;
+
+		$plans = array();
+
+		$subs = BfoxPlans::get_user_subs($user_ID, BfoxPlans::user_type_user);
+
+		$plan_ids = array();
+		foreach ($subs as $sub) if ($sub->is_subscribed && !$sub->is_finished) $plan_ids []= $sub->plan_id;
+
+		if (!empty($plan_ids)) $plans = BfoxPlans::get_plans($plan_ids);
+
+		$earliest = '';
+		foreach($plans as $plan) {
+			$start_time = $plan->raw_start_date();
+			if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
+		}
+
+		if (!empty($earliest)) {
+			$history_array = BfoxHistory::get_history(0, $earliest, 0, TRUE);
+			foreach ($plans as &$plan) $plan->set_history($history_array);
+		}
+
+		return $plans;
+	}
+
 	public static function ref_loader($ref_str) {
 		return "<a href='" . BfoxQuery::add_display_type(BfoxQuery::display_ajax, BfoxQuery::passage_page_url($ref_str)) . "' class='ref_loader'></a>";
 	}

@@ -86,10 +86,7 @@ class BfoxQuery
 	{
 		?>
 		<ul>
-			<li><a href="<?php echo self::page_url(self::page_reader) ?>">Bible Reader</a></li>
-			<li><a href="<?php echo self::page_url(self::page_commentary) ?>">Commentaries</a></li>
-			<li><a href="<?php echo self::page_url(self::page_plans) ?>">Reading Plans</a></li>
-			<li><a href="<?php echo self::page_url(self::page_history) ?>">Reading History</a></li>
+			<li><a href="<?php echo self::page_url(self::page_passage) ?>">Bible Reader</a></li>
 		</ul>
 		<?php
 	}

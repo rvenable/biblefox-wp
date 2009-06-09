@@ -21,25 +21,7 @@ class BfoxPageReader extends BfoxPage {
 	public function __construct() {
 		parent::__construct();
 
-		global $user_ID;
-
-		$subs = BfoxPlans::get_user_subs($user_ID, BfoxPlans::user_type_user);
-
-		$plan_ids = array();
-		foreach ($subs as $sub) if ($sub->is_subscribed && !$sub->is_finished) $plan_ids []= $sub->plan_id;
-
-		if (!empty($plan_ids)) $this->plans = BfoxPlans::get_plans($plan_ids);
-
-		$earliest = '';
-		foreach($this->plans as $plan) {
-			$start_time = $plan->raw_start_date();
-			if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
-		}
-
-		if (!empty($earliest)) {
-			$history_array = BfoxHistory::get_history(0, $earliest, 0, TRUE);
-			foreach ($this->plans as &$plan) $plan->set_history($history_array);
-		}
+		$this->plans = BfoxRefContent::get_plans();
 
 		if (!empty($_REQUEST[self::var_plan_id])) $this->plan_id = $_REQUEST[self::var_plan_id];
 		if (!empty($_REQUEST[self::var_reading_id])) $this->reading_id = $_REQUEST[self::var_reading_id];

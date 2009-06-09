@@ -19,6 +19,8 @@ class BfoxPagePassage extends BfoxPage {
 
 	protected $cboxes = array();
 
+	protected $default_tab = NULL;
+
 	public function __construct($ref_str, $trans_str = '') {
 		$this->refs = new BibleRefs($ref_str);
 
@@ -28,7 +30,10 @@ class BfoxPagePassage extends BfoxPage {
 
 		if ($this->refs->is_valid()) {
 			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
-			if (empty($last_viewed) || ($this->refs->get_string() != $last_viewed->refs->get_string())) BfoxHistory::view_passage($this->refs);
+			if (empty($last_viewed) || ($this->refs->get_string() != $last_viewed->refs->get_string())) {
+				$this->default_tab = 0;
+				BfoxHistory::view_passage($this->refs);
+			}
 		}
 		else {
 			// If we don't have a valid bible ref, we should use the history
@@ -43,7 +48,30 @@ class BfoxPagePassage extends BfoxPage {
 		if (!empty($_REQUEST[self::var_history_id])) $this->history_id = $_REQUEST[self::var_history_id];
 		else $this->history_id = self::history_id($last_viewed->time);
 
+		add_action('wp_head', array($this, 'wp_head'));
+
 		parent::__construct($trans_str);
+	}
+
+	public function wp_head() {
+		if (!is_null($this->default_tab)) $selected = "selected: $this->default_tab,";
+
+		?>
+		<script type="text/javascript">
+		//<![CDATA[
+		jQuery(document).ready( function() {
+			jQuery('#passage_tabs').tabs({
+				<?php echo $selected ?>
+				cookie: { expires: 30 }
+			});
+			jQuery('#tool_tabs').tabs({
+				collapsible: true,
+				cookie: { expires: 30 }
+			});
+		});
+		//]]>
+		</script>
+		<?php
 	}
 
 	public function get_title() {
@@ -79,10 +107,101 @@ class BfoxPagePassage extends BfoxPage {
 		$note_content = ob_get_clean();
 
 		$tool_tabs = new BfoxHtmlTabs("id='tool_tabs' class='tabs'");
-		$tool_tabs->add('blogs', __('Blogs'), $blog_content);
+		$tool_tabs->add('blogs', __('Blogs'), $blog_content . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>");
 		$tool_tabs->add('notes', __('Notes'), $note_content);
 
 		return $tool_tabs->content();
+	}
+
+	private function readings() {
+		$plans = BfoxRefContent::get_plans();
+
+		$table = new BfoxHtmlTable("class='widefat'");
+
+		foreach ($plans as $plan) if ($plan->is_current()) {
+			foreach ($plan->readings as $reading_id => $reading) {
+				$unread = $plan->get_unread($reading);
+				$is_unread = $unread->is_valid();
+
+				// If the passage is unread or current, add it
+				if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
+					$ref_str = $plan->readings[$reading_id]->get_string();
+					$url = Biblefox::ref_url($ref_str);
+					$row = new BfoxHtmlRow('',
+						date('l, M jS', $plan->dates[$reading_id]),
+						"<a href='$url'>$ref_str</a>",
+						"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
+					$row->add_sort_val($plan->dates[$reading_id]);
+					$table->add_row($row);
+				}
+			}
+		}
+
+		"<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>Manage my reading plans</a>";
+
+
+		if (empty($plans)) {
+			$manage = __('manage reading plans');
+			$header = __('<p>You are not subscribed to any reading plans. Biblefox has many reading plans you can subscribe to, or you can create your own. Visit the ') .
+				"<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>$manage</a>" . __(' page to edit your plans</p>');
+		}
+		else {
+			$header = __('<p>Here are upcoming readings for your reading plans:</p>');
+		}
+
+		return $header . $table->content(TRUE);
+	}
+
+	private function history() {
+		$history_table = new BfoxHtmlTable("class='widefat'");
+		//$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
+		foreach ($this->history as $history) {
+			$ref_str = $history->refs->get_string();
+
+			if ($history->is_read) {
+				$intro = __('Read on');
+				$toggle = __('Mark as Unread');
+			}
+			else {
+				$intro = __('Viewed on');
+				$toggle = __('Mark as Read');
+			}
+
+			$history_id = self::history_id($history->time);
+
+			$row = new BfoxHtmlRow('',
+				Biblefox::ref_link($ref_str),
+				"$intro $history->time",
+				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
+
+			$history_table->add_row($row);
+		}
+
+		return __('<p>Here are the passages you have viewed recently. You can mark them as read to keep track of your reading progress.<p>') . $history_table->content();
+
+		$table = new BfoxHtmlTable("class='widefat'");
+
+		foreach ($this->history as $history) if ($plan->is_current()) {
+			foreach ($plan->readings as $reading_id => $reading) {
+				$unread = $plan->get_unread($reading);
+				$is_unread = $unread->is_valid();
+
+				// If the passage is unread or current, add it
+				if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
+					$ref_str = $plan->readings[$reading_id]->get_string();
+					$url = Biblefox::ref_url($ref_str);
+					$row = new BfoxHtmlRow('',
+						date('l, M jS', $plan->dates[$reading_id]),
+						"<a href='$url'>$ref_str</a>",
+						"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
+					$row->add_sort_val($plan->dates[$reading_id]);
+					$table->add_row($row);
+				}
+			}
+		}
+
+		return $table->content(TRUE);
+
 	}
 
 	public function content_new() {
@@ -100,57 +219,16 @@ class BfoxPagePassage extends BfoxPage {
 
 		$passage_tabs = new BfoxHtmlTabs("id='passage_tabs' class='tabs'");
 		$passage_tabs->add('passage', $history->refs->get_string(), $ref_content);
-		$passage_tabs->add('plans', __('Upcoming Readings'), '');
-		$passage_tabs->add('history', __('History'), '');
+		$passage_tabs->add('plans', __('Readings'), $this->readings());
+		$passage_tabs->add('history', __('History'), $this->history());
 
 		?>
-		<div id='left_col'>
-			<?php echo $passage_tabs->content() ?>
-		</div>
-		<div id='right_col'>
-		</div>
+		<?php echo $passage_tabs->content($this->default_tab) ?>
 		<?php
 	}
 
 	public function content() {
-		if ($this->display_full) {
-			return $this->content_new();
-			$history_table = new BfoxHtmlTable("class='widefat'");
-			$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
-			foreach ($this->history as $history) {
-				$ref_str = $history->refs->get_string();
-
-				if ($history->is_read) {
-					$intro = __('Read on');
-					$toggle = __('Mark as Unread');
-				}
-				else {
-					$intro = __('Viewed on');
-					$toggle = __('Mark as Read');
-				}
-
-				$history_id = self::history_id($history->time);
-
-				$row = new BfoxHtmlRow("id='$history_id'",
-					"<a href='" . self::history_url($history_id) . "'>$ref_str</a>",
-					"$intro $history->time",
-					"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
-
-				$is_selected = ($this->history_id == $history_id);
-				if ($is_selected) {
-					ob_start();
-					BfoxRefContent::ref_content_paged($history->refs, $this->translation, self::history_url($history_id), self::var_page_num, $this->page_num);
-					$ref_content = ob_get_clean();
-					$row->add_sub_row($ref_content);
-				}
-
-				$history_table->add_row($row);
-			}
-
-			$ref_str = $this->refs->get_string();
-
-			echo $history_table->content();
-		}
+		if ($this->display_full) return $this->content_new();
 		else {
 			$history = reset($this->history);
 			$history_id = self::history_id($history->time);
