@@ -67,15 +67,16 @@ class BfoxPageReader extends BfoxPage {
 		if (!$is_unread) $finished = " finished";
 		else $finished = '';
 
+		$ref_str = $plan->readings[$reading_id]->get_string();
+
 		if (($this->plan_id == $plan->id) && ($this->reading_id == $reading_id)) {
 			ob_start();
 			BfoxRefContent::ref_content_paged($plan->readings[$reading_id], $this->translation, $this->reading_url($plan->id, $reading_id), self::var_page_num, $this->page_num);
 			$ref_content = ob_get_clean();
 		}
-		else $ref_content = '';
+		else $ref_content = BfoxRefContent::ref_loader($ref_str);
 		$url = $this->reading_url($plan->id, $reading_id);
 
-		$ref_str = $plan->readings[$reading_id]->get_string();
 		return BfoxRefContent::passage_row("<a href='$url' id='plan_{$plan->id}_$reading_id'><div class='reading_date'>" . date('l, M jS', $plan->dates[$reading_id]) . "</div><div class='reading_title$finished'>$plan->name #" . ($reading_id + 1) . ": $ref_str</div></a>",
 			"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>View plan</a>Mark as Read",
 			$ref_content);

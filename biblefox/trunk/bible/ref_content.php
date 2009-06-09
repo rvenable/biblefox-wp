@@ -5,6 +5,10 @@ require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 
 class BfoxRefContent {
 
+	public static function ref_loader($ref_str) {
+		return "<a href='" . BfoxQuery::add_display_type(BfoxQuery::display_ajax, BfoxQuery::passage_page_url($ref_str)) . "' class='ref_loader'></a>";
+	}
+
 	public static function passage_row($head, $menu, $content) {
 		return "<div class='prow_head ui-accordion-header ui-state-active ui-corner-top'>$head</div>
 			<div class='ui-accordion-content ui-widget-content ui-corner-bottom ui-accordion-content-active'><div>

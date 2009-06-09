@@ -13,6 +13,10 @@ abstract class BfoxPage
 	 */
 	protected $translation;
 
+	protected $display_full = TRUE;
+
+	protected $display = '';
+
 	public function __construct($trans_str = '') {
 		// TODO3: if (empty($trans)) $translation = get_from_history
 		if (empty($trans_str)) $this->translation = $GLOBALS['bfox_trans'];
@@ -20,61 +24,48 @@ abstract class BfoxPage
 
 		BfoxUtility::enqueue_script('bfox_bible');
 		BfoxUtility::enqueue_style('bfox_bible');
+
+		$this->display = $_REQUEST[BfoxQuery::var_display];
+		if (BfoxQuery::display_ajax == $this->display) $this->display_full = FALSE;
 	}
 
 	public function page_load() {}
 
 	protected abstract function content();
 
-	public function get_title()
-	{
+	public function get_title() {
 		return 'Biblefox Bible Viewer';
 	}
 
-	public function get_search_str()
-	{
+	public function get_search_str() {
 		return '';
 	}
 
-	public function page()
-	{
-		// TODO3: Remove 'page' form input when removing from admin pages
-		?>
-		<div id="bible" class="">
-			<div id="bible_head">
-				<div id="bible_head_content">
-					<h2>Biblefox Bible Viewer</h2>
-					<form id="bible_search_form" action="<?php echo BfoxQuery::post_url() ?>" method="get">
-						<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_search ?>" />
-						<?php Translations::output_select($this->translation->id) ?>
-						<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo $this->get_search_str() ?>" />
-						<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
-					</form>
+	public function page() {
+		if ($this->display_full) {
+			get_header();
+			// TODO3: Remove 'page' form input when removing from admin pages
+			?>
+			<div id="bible" class="">
+				<div id="bible_head">
+					<div id="bible_head_content">
+						<h2>Biblefox Bible Viewer</h2>
+						<form id="bible_search_form" action="<?php echo BfoxQuery::post_url() ?>" method="get">
+							<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_search ?>" />
+							<?php Translations::output_select($this->translation->id) ?>
+							<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo $this->get_search_str() ?>" />
+							<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
+						</form>
+					</div>
+				</div>
+				<div id="bible_page">
+					<?php $this->content() ?>
 				</div>
 			</div>
-			<div id="bible_page">
 			<?php
-				$this->content();
-				/*
-				switch ($this->page)
-				{
-					case BfoxQuery::page_search:
-						include('bible-search.php');
-						break;
-					case BfoxQuery::page_commentary:
-						BfoxPageCommentaries::manage_page();
-						break;
-					case BfoxQuery::page_history:
-					case BfoxQuery::page_passage:
-					default:
-						$refs = $this->refs;
-						include('bible-passage.php');
-				}
-				*/
-			?>
-			</div>
-		</div>
-		<?php
+			get_footer();
+		}
+		else $this->content();
 	}
 }
 

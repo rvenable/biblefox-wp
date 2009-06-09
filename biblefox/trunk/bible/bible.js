@@ -60,6 +60,12 @@ function bfox_sideshow(id) {
 	jQuery.cookie('sideshow_id', id);
 }
 
+function bfox_ref_load(content) {
+	content.children('.ref_loader').each(function() {
+		content.load(jQuery(this).attr('href'));
+	}).remove();
+}
+
 jQuery(document).ready( function() {
 	jQuery('#verse_layout_toggle').click(bfox_toggle_verse_paragraph);
 	
@@ -112,6 +118,7 @@ jQuery(document).ready( function() {
 	jQuery('.passage_list').accordion({
 		changestart: function(event, ui) {
 			ui.oldContent.children('.prow_content').hide();
+			bfox_ref_load(ui.newContent.children('.prow_content'));
 		},
 		change: function(event, ui) {
 			ui.newContent.children('.prow_content').show();

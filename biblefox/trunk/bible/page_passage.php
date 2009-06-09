@@ -65,41 +65,48 @@ class BfoxPagePassage extends BfoxPage {
 	}
 
 	public function content() {
-		$history_table = new BfoxHtmlTable("class='widefat'");
-		$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
-		foreach ($this->history as $history) {
-			$ref_str = $history->refs->get_string();
+		if ($this->display_full) {
+			$history_table = new BfoxHtmlTable("class='widefat'");
+			$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
+			foreach ($this->history as $history) {
+				$ref_str = $history->refs->get_string();
 
-			if ($history->is_read) {
-				$intro = __('Read on');
-				$toggle = __('Mark as Unread');
+				if ($history->is_read) {
+					$intro = __('Read on');
+					$toggle = __('Mark as Unread');
+				}
+				else {
+					$intro = __('Viewed on');
+					$toggle = __('Mark as Read');
+				}
+
+				$history_id = self::history_id($history->time);
+
+				$row = new BfoxHtmlRow("id='$history_id'",
+					"<a href='" . self::history_url($history_id) . "'>$ref_str</a>",
+					"$intro $history->time",
+					"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
+
+				$is_selected = ($this->history_id == $history_id);
+				if ($is_selected) {
+					ob_start();
+					BfoxRefContent::ref_content_paged($history->refs, $this->translation, self::history_url($history_id), self::var_page_num, $this->page_num);
+					$ref_content = ob_get_clean();
+					$row->add_sub_row($ref_content);
+				}
+
+				$history_table->add_row($row);
 			}
-			else {
-				$intro = __('Viewed on');
-				$toggle = __('Mark as Read');
-			}
 
-			$history_id = self::history_id($history->time);
+			$ref_str = $this->refs->get_string();
 
-			$row = new BfoxHtmlRow("id='$history_id'",
-				"<a href='" . self::history_url($history_id) . "'>$ref_str</a>",
-				"$intro $history->time",
-				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
-
-			$is_selected = ($this->history_id == $history_id);
-			if ($is_selected) {
-				ob_start();
-				BfoxRefContent::ref_content_paged($history->refs, $this->translation, self::history_url($history_id), self::var_page_num, $this->page_num);
-				$ref_content = ob_get_clean();
-				$row->add_sub_row($ref_content);
-			}
-
-			$history_table->add_row($row);
+			echo $history_table->content();
 		}
-
-		$ref_str = $this->refs->get_string();
-
-		echo $history_table->content();
+		else {
+			$history = reset($this->history);
+			$history_id = self::history_id($history->time);
+			echo BfoxRefContent::ref_content_paged($history->refs, $this->translation, self::history_url($history_id), self::var_page_num, $this->page_num);
+		}
 	}
 }
 

@@ -6,13 +6,15 @@ global $user_ID;
 
 if ($user_ID) $bible = new BfoxBible();
 
-get_header();
-if (isset($bible)) $bible->page();
+if (isset($bible)) {
+	$bible->page();
+}
 else {
-?>
+	get_header();
+	?>
 	<p>The Biblefox Bible viewer is currently being tested and is therefore disabled for those without user accounts.</p>
-<?php
+	<?php
+	get_footer();
 }
 
-get_footer();
 ?>

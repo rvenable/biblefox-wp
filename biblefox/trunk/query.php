@@ -19,6 +19,9 @@ class BfoxQuery
 	const var_search = 'bible_search';
 	const var_message = 'bible_message';
 	const var_toggle_read = 'bible_read';
+	const var_display = 'bible_display';
+
+	const display_ajax = 'ajax';
 
 	const var_plan_id = 'plan_id';
 
@@ -73,6 +76,10 @@ class BfoxQuery
 		if (empty($url)) $url = self::page_url(self::page_history);
 
 		return add_query_arg(self::var_toggle_read, urlencode($time), $url);
+	}
+
+	public static function add_display_type($type, $url) {
+		return add_query_arg(self::var_display, $type, $url);
 	}
 
 	public static function sidebar_list()
