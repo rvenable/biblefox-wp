@@ -361,18 +361,20 @@ Scripture Layout
 }
 
 #bible .ref_seq_body {
-	padding: 1em;
+	padding: 0.5em;
 }
 
 #bible .chapter_head {
-	font-size: 2em;
+	font-size: 1.8em;
 	float: left;
-	margin: 0 4px 0 0;
-	padding: 0 6px;
+	margin: 0 0.2em 0 0;
+	padding: 0;
+	min-width: 1.5em;
 	text-align: center;
 	font-weight: bold;
 	background-color: #EEEEEE;
-	-moz-border-radius: 0.3em;
+	-moz-border-radius: 6px;
+	border: 1px solid #DDD;
 }
 
 #bible .sequence {
