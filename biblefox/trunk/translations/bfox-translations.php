@@ -69,12 +69,13 @@ class BfoxVerseFormatter {
 	const trans_end_poetry = 'bible_end_poetry';
 	const trans_end_p = 'bible_end_p';
 
-	private $use_span, $c_text, $c_poetry1, $c_poetry2;
+	private $use_span, $c_text, $c_poetry;
 
 	public $only_visible = FALSE;
 	public $use_verse0 = FALSE;
 
-	private $total_text = '';
+	private $ps = array();
+	private $p_count = 0;
 	private $cur_text = '';
 	private $first = '';
 
@@ -82,11 +83,10 @@ class BfoxVerseFormatter {
 	private $footnote_index = 0;
 	private $footnotes = array();
 
-	public function __construct($use_span = FALSE, $c_text = 'bible_text', $c_poetry1 = 'poetry_1', $c_poetry2 = 'poetry_2') {
+	public function __construct($use_span = FALSE, $c_text = 'bible_text', $c_poetry = 'bible_poetry') {
 		$this->use_span = $use_span;
 		$this->c_text = $c_text;
-		$this->c_poetry1 = $c_poetry1;
-		$this->c_poetry2 = $c_poetry2;
+		$this->c_poetry = $c_poetry;
 	}
 
 	public function use_footnotes($footnotes) {
@@ -110,25 +110,31 @@ class BfoxVerseFormatter {
 	}
 
 	public function format($verses) {
-		$this->total_text = '';
+		$this->ps = array();
+		$this->p_count = 0;
 		$this->cur_text = '';
 		if ($this->use_span) $this->first = 'first_p';
 
+		$is_poetry_sub_line = FALSE;
 		$cur_p = '';
 
 		foreach ($verses as $verse) if ($this->use_verse($verse)) {
 			$verse_span = "<span class='bible_verse' verse='$verse->verse_id'>";
-			$parts = preg_split('/<span class="(.*?)"><\/span>/i', "<b class='verse_num'>$verse->verse_id</b> $verse->verse", -1, PREG_SPLIT_DELIM_CAPTURE);
+
+			// HACK: Removing bible poetry breakpoints (we should remove these from the actual translation data instead)
+			$verse->verse = str_ireplace('<br class="bible_poetry" />', '', $verse->verse);
+
+			$parts = preg_split('/<span class="(.*?)"><\/span>/i', " <b class='verse_num'>$verse->verse_id</b> $verse->verse", -1, PREG_SPLIT_DELIM_CAPTURE);
 			foreach ($parts as $index => $part) {
-				$part = trim($part);
-				if (!empty($part)) {
+				$trim = trim($part);
+				if (!empty($trim)) {
 					if (0 == ($index % 2)) $this->add_text($part, $verse_span);
 					else {
-						if (self::trans_begin_poetry_1 == $part) $cur_p = $this->c_poetry1;
-						elseif (self::trans_begin_poetry_2 == $part) $cur_p = $this->c_poetry2;
+						if (self::trans_begin_poetry_2 == $part) $is_poetry_sub_line = TRUE;
 						elseif (self::trans_end_poetry == $part) {
-							if (empty($cur_p)) $cur_p = $this->c_poetry1;
-							$this->add_p($cur_p);
+							if ($is_poetry_sub_line && !empty($this->p_count)) $this->add_poetry_line();
+							else $this->add_p($this->c_poetry);
+							$is_poetry_sub_line = FALSE;
 						}
 						elseif (self::trans_end_p == $part) $this->add_p("bible_text$first");
 					}
@@ -136,10 +142,14 @@ class BfoxVerseFormatter {
 			}
 		}
 
-		if ($this->do_footnotes) $this->total_text = preg_replace_callback('/<footnote>(.*?)<\/footnote>/', array($this, 'footnote_replace'), $this->total_text);
-		//else $this->total_text = preg_replace('/<footnote>(.*?)<\/footnote>/', '', $this->total_text);
+		$total_text = '';
+		foreach ($this->ps as $p) $total_text .= "<p class='{$p[0]}'>{$p[1]}</p>\n";
+		$this->ps = array();
 
-		return $this->total_text;
+		if ($this->do_footnotes) $total_text = preg_replace_callback('/<footnote>(.*?)<\/footnote>/', array($this, 'footnote_replace'), $total_text);
+		//else $total_text = preg_replace('/<footnote>(.*?)<\/footnote>/', '', $total_text);
+
+		return $total_text;
 	}
 
 	private function footnote_replace($match) {
@@ -161,9 +171,16 @@ class BfoxVerseFormatter {
 		else $this->cur_text .= $text;
 	}
 
+	private function add_poetry_line() {
+		// Add the poetry line to the last p
+		$this->ps[$this->p_count - 1][1] .= "<br/>\n$this->cur_text";
+		$this->cur_text = '';
+		$this->first = '';
+	}
+
 	private function add_p($class) {
 		if (!empty($this->first)) $class .= ' ' . $this->first;
-		$this->total_text .= "<p class='$class'>$this->cur_text</p>";
+		$this->ps[$this->p_count++] = array($class, $this->cur_text);
 		$this->cur_text = '';
 		$this->first = '';
 	}

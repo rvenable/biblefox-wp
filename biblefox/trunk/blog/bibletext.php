@@ -90,7 +90,7 @@
 		else
 		{
 			$ref_str = $ref->get_string();
-			$content = addslashes(bfox_get_ref_content_quick($ref));
+			$content = addslashes(str_replace("\n", '', bfox_get_ref_content_quick($ref)));
 		}
 
 		$script = "bfox_quick_view_loaded('$ref_str', '$content');";
