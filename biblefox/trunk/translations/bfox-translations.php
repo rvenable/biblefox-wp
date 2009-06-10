@@ -58,6 +58,10 @@ if (!defined('BFOX_FT_MIN_WORD_LEN'))
 global $bfox_ft_stopwords;
 if (empty($bfox_ft_stopwords)) include('stopwords.php');
 
+/**
+ * A class for formatting verses from the translation into text for the user
+ *
+ */
 class BfoxVerseFormatter {
 
 	const trans_begin_poetry_1 = 'bible_poetry_indent_1';
@@ -74,11 +78,35 @@ class BfoxVerseFormatter {
 	private $cur_text = '';
 	private $first = '';
 
+	private $do_footnotes = FALSE;
+	private $footnote_index = 0;
+	private $footnotes = array();
+
 	public function __construct($use_span = TRUE, $c_text = 'bible_text', $c_poetry1 = 'poetry_1', $c_poetry2 = 'poetry_2') {
 		$this->use_span = $use_span;
 		$this->c_text = $c_text;
 		$this->c_poetry1 = $c_poetry1;
 		$this->c_poetry2 = $c_poetry2;
+	}
+
+	public function use_footnotes($footnotes) {
+		$this->do_footnotes = TRUE;
+		$this->footnotes = $footnotes;
+		$this->footnote_index = count($this->footnotes);
+	}
+
+	public function get_footnotes() {
+		return $this->footnotes;
+	}
+
+	public function format_cv($chapters) {
+		$content = '';
+		foreach ((array) $chapters as $chapter_id => $verses) {
+			$verse_content = $this->format($verses);
+			if ($this->use_span) $content .= "<div class='chapter'>\n<span class='chapter_head'>$chapter_id</span>\n$verse_content</div>\n";
+			else $content .= $verse_content;
+		}
+		return $content;
 	}
 
 	public function format($verses) {
@@ -108,7 +136,20 @@ class BfoxVerseFormatter {
 			}
 		}
 
+		if ($this->do_footnotes) {
+			$this->total_text = preg_replace_callback('/<footnote>(.*?)<\/footnote>/', array($this, 'footnote_replace'), $this->total_text);
+
+		}
+
 		return $this->total_text;
+	}
+
+	private function footnote_replace($match) {
+		$this->footnote_index++;
+		$note = "<a name=\"footnote_$this->footnote_index\" href=\"#footnote_ref_$this->footnote_index\">[$this->footnote_index]</a> " . BfoxRefParser::simple_html($match[1]);
+		$link = "<a name='footnote_ref_$this->footnote_index' href='#footnote_$this->footnote_index' title='" . strip_tags($match[1]) . "' class='ref_foot_link'>[$this->footnote_index]</a>";
+		$this->footnotes []= $note;
+		return $link;
 	}
 
 	private function use_verse($verse) {
@@ -199,10 +240,7 @@ class Translation {
 			foreach ($verses as $verse) $chapters[$verse->chapter_id] []= $verse;
 		}
 
-		if (!is_null($formatter)) {
-			$formatter->only_visible = TRUE;
-			foreach ($chapters as &$chapter) $chapter = $formatter->format($chapter);
-		}
+		if (!is_null($formatter)) return $formatter->format_cv($chapters);
 		return $chapters;
 	}
 }

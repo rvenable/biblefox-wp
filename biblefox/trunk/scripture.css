@@ -4,7 +4,6 @@ Scripture Text
 
 b.verse_num {
 	padding-left: 0.2em;
-	//display: none;
 }
 
 p.bible_text {
@@ -24,7 +23,6 @@ p.poetry_1 {
 p.poetry_2 {
 	text-indent: -1em;
 	margin: 0 0 0 7em;
-	//color: #CCC;
 }
 
 p.bible_psalm_desc {

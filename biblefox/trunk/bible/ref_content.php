@@ -285,99 +285,11 @@ class BfoxRefContent {
 	private static function get_chapters_content($book, $chapter1, $chapter2, $visible, &$footnotes, Translation $trans = NULL) {
 		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
 
-		$content = '';
-		$footnote_index = count($footnotes);
-
-		$book_name = BibleMeta::get_book_name($book);
-
 		// Get the verse data from the bible translation
-		$chapters = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible, new BfoxVerseFormatter());
-
-		if (!empty($chapters)) {
-			// We don't want to start with a hidden rule
-			$add_rule = FALSE;
-
-			foreach ($chapters as $chapter_id => $verses) {
-				$sections[0] = $verses;
-				$is_hidden_chapter = FALSE;
-				/*
-				$prev_visible = TRUE;
-				$index = 0;
-
-				$sections = array();
-
-				foreach ($verses as $verse) {
-					if (0 == $verse->verse_id) continue;
-
-					if ($verse->visible) $is_hidden_chapter = FALSE;
-
-					if ($prev_visible != $verse->visible) $index++;
-					$prev_visible = $verse->visible;
-
-					// TODO3: Remove 'verse' attribute
-					$sections[$index] .= "<span class='bible_verse' verse='$verse->verse_id'><b>$verse->verse_id</b> $verse->verse</span>\n";
-				}
-				$last_index = $index;
-				*/
-
-				if ($is_hidden_chapter) {
-					$chapter_class = 'hidden_chapter';
-					$chapter_content = $sections[1];
-
-					// TODO3: Instead of removing footnotes, find a way to show them when showing hidden chapters
-					// Remove any footnotes
-					$ch_footnotes = BfoxUtility::find_footnotes($chapter_content);
-					foreach (array_reverse($ch_footnotes) as $footnote) $chapter_content = substr_replace($chapter_content, '', $footnote[0], $footnote[1]);
-
-					// Don't show a hidden rule immediately following a hidden chapter
-					$add_rule = FALSE;
-				}
-				else {
-					$chapter_class = 'visible_chapter';
-					$chapter_content = '';
-					foreach ($sections as $index => $section) {
-						// Every odd numbered section is hidden
-						if ($index % 2) {
-							$chapter_content .= "<span class='hidden_verses'>\n$section\n</span>\n";
-
-							// If we can add a rule, do it now
-							// We don't want to add a rule for the last section, though
-							if ($add_rule) { // && ($last_index != $index))
-								$chapter_content .= "<hr class='hidden_verses_rule' />\n";
-
-								// Don't add a rule immediately after this one
-								$add_rule = FALSE;
-							}
-						}
-						else {
-							$chapter_content .= $section;
-
-							// We only want to add a rule if the previous section was not hidden
-							$add_rule = TRUE;
-						}
-					}
-
-					$ch_footnotes = BfoxUtility::find_footnotes($chapter_content);
-					$foot_count = count($ch_footnotes);
-					if (0 < $foot_count) {
-						foreach ($ch_footnotes as $index => $footnote) {
-							$index += $footnote_index + 1;
-							$footnotes[$index] = "<a name=\"footnote_$index\" href=\"#footnote_ref_$index\">[$index]</a> " . $footnote[2];
-						}
-
-						foreach (array_reverse($ch_footnotes, TRUE) as $index => $footnote) {
-							$index += $footnote_index + 1;
-							$chapter_content = substr_replace($chapter_content, "<a name='footnote_ref_$index' href='#footnote_$index' title='" . strip_tags($footnote[2]) . "'>[$index]</a>", $footnote[0], $footnote[1]);
-						}
-
-						$footnote_index += $foot_count;
-					}
-				}
-
-				$content .= "<div class='chapter $chapter_class'>\n<span class='chapter_head'>$chapter_id</span>\n$chapter_content</div>\n";
-			}
-
-		}
+		$formatter = new BfoxVerseFormatter();
+		$formatter->use_footnotes($footnotes);
+		$content = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible, $formatter);
+		$footnotes = $formatter->get_footnotes();
 
 		return $content;
 	}
