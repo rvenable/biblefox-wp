@@ -82,7 +82,7 @@ class BfoxVerseFormatter {
 	private $footnote_index = 0;
 	private $footnotes = array();
 
-	public function __construct($use_span = TRUE, $c_text = 'bible_text', $c_poetry1 = 'poetry_1', $c_poetry2 = 'poetry_2') {
+	public function __construct($use_span = FALSE, $c_text = 'bible_text', $c_poetry1 = 'poetry_1', $c_poetry2 = 'poetry_2') {
 		$this->use_span = $use_span;
 		$this->c_text = $c_text;
 		$this->c_poetry1 = $c_poetry1;
@@ -112,7 +112,7 @@ class BfoxVerseFormatter {
 	public function format($verses) {
 		$this->total_text = '';
 		$this->cur_text = '';
-		$this->first = 'first_p';
+		if ($this->use_span) $this->first = 'first_p';
 
 		$cur_p = '';
 
@@ -136,10 +136,8 @@ class BfoxVerseFormatter {
 			}
 		}
 
-		if ($this->do_footnotes) {
-			$this->total_text = preg_replace_callback('/<footnote>(.*?)<\/footnote>/', array($this, 'footnote_replace'), $this->total_text);
-
-		}
+		if ($this->do_footnotes) $this->total_text = preg_replace_callback('/<footnote>(.*?)<\/footnote>/', array($this, 'footnote_replace'), $this->total_text);
+		//else $this->total_text = preg_replace('/<footnote>(.*?)<\/footnote>/', '', $this->total_text);
 
 		return $this->total_text;
 	}

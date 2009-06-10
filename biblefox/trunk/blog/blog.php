@@ -17,8 +17,8 @@ require_once('bibletext.php');
 
 require_once BFOX_PLANS_DIR . '/plans.php';
 
-class BfoxBlog
-{
+class BfoxBlog {
+
 	const var_bible_ref = 'bfox_bible_ref';
 	const var_plan_id = 'bfox_plan_id';
 	const var_reading_id = 'bfox_reading_id';
@@ -147,21 +147,20 @@ class BfoxBlog
 	 * @param Translation $trans
 	 * @return string
 	 */
-	public static function get_verse_content(BibleRefs $refs, Translation $trans = NULL)
-	{
+	public static function get_verse_content(BibleRefs $refs, Translation $trans = NULL) {
 		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
 
-		$content = '';
+		// Get the verse data from the bible translation
+		$formatter = new BfoxVerseFormatter();
+		return $trans->get_verses($refs->sql_where(), $formatter);
+	}
 
-		$verses = $trans->get_verses($refs->sql_where());
-
-		foreach ($verses as $verse)
-		{
-			if ($verse->verse_id != 0) $content .= '<b>' . $verse->verse_id . '</b> ';
-			$content .= $verse->verse;
-		}
-
-		return $content;
+	public static function get_verse_content_foot(BibleRefs $refs) {
+		// Get the verse content, and filter it using the <footnote> tags as if they were [footnote] shortcodes
+		// The regex being used here should mirror the regex returned by get_shortcode_regex() and is being used similarly to do_shortcode(),
+		//  the only difference being that we only need to look for <footnote> shortcodes (and using chevrons instead of brackets)
+		$content = preg_replace_callback('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\1>)?/s', 'do_shortcode_tag', BfoxBlog::get_verse_content($refs));
+		return array($content, shortfoot_get_list());
 	}
 
 	/**
@@ -171,8 +170,7 @@ class BfoxBlog
 	 * @param Translation $trans
 	 * @return string
 	 */
-	public static function get_verse_content_email(BibleRefs $refs, Translation $trans = NULL)
-	{
+	public static function get_verse_content_email(BibleRefs $refs, Translation $trans = NULL) {
 		// Pre formatting is for when we can't use CSS (ie. in an email)
 		// We just replace the tags which would have been formatted by css with tags that don't need formatting
 		// We also need to run the shortcode function to correctly output footnotes

@@ -286,7 +286,7 @@ class BfoxRefContent {
 		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
 
 		// Get the verse data from the bible translation
-		$formatter = new BfoxVerseFormatter();
+		$formatter = new BfoxVerseFormatter(TRUE);
 		$formatter->use_footnotes($footnotes);
 		$content = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible, $formatter);
 		$footnotes = $formatter->get_footnotes();

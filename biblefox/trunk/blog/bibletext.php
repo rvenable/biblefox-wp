@@ -52,7 +52,8 @@
 			}
 			$nav_bar .= "<br/>$tag_link</div>";
 
-			$content = $nav_bar . BfoxBlog::get_verse_content($book_refs) . $nav_bar;
+			list($verse_content, $foot_list) = BfoxBlog::get_verse_content_foot($book_refs);
+			$content = $nav_bar . $verse_content . $nav_bar;
 			$content .= '<hr/>';
 
 			// Add the Table of Contents to the end of the output

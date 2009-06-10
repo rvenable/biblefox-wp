@@ -1,9 +1,8 @@
 <?php
 
-class BfoxUtility
-{
-	public static function create_table($table, $column_list)
-	{
+class BfoxUtility {
+
+	public static function create_table($table, $column_list) {
 		// Note this function creates the table with dbDelta() which apparently has some pickiness
 		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
 
@@ -32,8 +31,7 @@ class BfoxUtility
 		else wp_enqueue_style($handle, BFOX_URL . '/' . $src_file, $deps, $version);
 	}
 
-	public static function divide_into_cols($array, $max_cols, $height_threshold = 0)
-	{
+	public static function divide_into_cols($array, $max_cols, $height_threshold = 0) {
 		$count = count($array);
 		if (0 < $count)
 		{
@@ -67,8 +65,7 @@ class BfoxUtility
 	 desired timezone, we have to temporarily change the timezone, get the timestamp from strtotime(), format it using date(),
 	 then finally reset the timezone back to its original state.
 	 */
-	public static function format_local_date($date_str, $format = 'm/d/Y')
-	{
+	public static function format_local_date($date_str, $format = 'm/d/Y') {
 		// Get the current default timezone because we need to set it back when we are done
 		$tz = date_default_timezone_get();
 
@@ -100,32 +97,9 @@ class BfoxUtility
 	 * @param string $table_name
 	 * @return boolean
 	 */
-	public static function does_table_exist($table_name)
-	{
+	public static function does_table_exist($table_name) {
 		global $wpdb;
 		return (bool) ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name);
-	}
-
-	/**
-	 * Finds the footnotes in a string and returns their offset, length, and content
-	 *
-	 * @param string $content
-	 * @return array of array(offset, length, content)
-	 */
-	public static function find_footnotes($str)
-	{
-		$footnotes = array();
-		if (preg_match_all('/<footnote>(.*?)<\/footnote>/', $str, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE))
-		{
-			// Add the matches as an array(offset, length, content)
-			foreach ($matches as $match) $footnotes []= array(
-				$match[0][1], // offset
-				strlen($match[0][0]), // length
-				$match[1][0] // footnote content
-			);
-		}
-
-		return $footnotes;
 	}
 
 	public static function hidden_input($name, $value = '') {

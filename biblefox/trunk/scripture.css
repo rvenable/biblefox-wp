@@ -6,21 +6,21 @@ b.verse_num {
 	padding-left: 0.2em;
 }
 
-p.bible_text {
+p.bible_text, #poststuff #bible-text p.bible_text {
 	margin: 0 0 0.5em 0;
 	text-indent: 1em;
 }
 
-p.first_p {
+p.first_p, #poststuff #bible-text p.first_p {
 	text-indent: 0;
 }
 
-p.poetry_1 {
+p.poetry_1, #poststuff #bible-text p.poetry_1 {
 	text-indent: -1em;
 	margin: 0 0 0 5em;
 }
 
-p.poetry_2 {
+p.poetry_2, #poststuff #bible-text p.poetry_2 {
 	text-indent: -1em;
 	margin: 0 0 0 7em;
 }

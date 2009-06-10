@@ -131,13 +131,11 @@ class BfoxBlogQueryData
 		 * Then once the footnotes have been found in the verse content, we can add the footnote list.
 		 */
 
-		// Get the verse content, and filter it using the <footnote> tags as if they were [footnote] shortcodes
-		// The regex being used here should mirror the regex returned by get_shortcode_regex() and is being used similarly to do_shortcode(),
-		//  the only difference being that we only need to look for <footnote> shortcodes (and using chevrons instead of brackets)
-		$post['bfox_pre_content'] = $nav_bar . preg_replace_callback('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\1>)?/s', 'do_shortcode_tag', BfoxBlog::get_verse_content($refs)) . $nav_bar;
+		list($content, $foot_list) = BfoxBlog::get_verse_content_foot($refs);
+		$post['bfox_pre_content'] = $nav_bar . $content . $nav_bar;
 
 		// The footnote list can go in 'post_content', because we want it to be filtered by Wordpress
-		$post['post_content'] = shortfoot_get_list();
+		$post['post_content'] = $foot_list;
 
 		return $post;
 	}
