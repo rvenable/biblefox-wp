@@ -49,7 +49,7 @@ class BfoxBible {
 		// If we have a search string but no ref_str, we should try to extract refs from the search string
 		elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str)) {
 			list($ref_str, $search_str) = self::extract_refs($search_str);
-			if (empty($search_str)) $page_name = BfoxQuery::page_passage;
+			if (empty($search_str)) wp_redirect(BfoxQuery::passage_page_url($ref_str));
 		}
 
 		switch ($page_name) {
