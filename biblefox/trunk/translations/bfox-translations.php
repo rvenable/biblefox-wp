@@ -124,7 +124,7 @@ class BfoxVerseFormatter {
 			// HACK: Removing bible poetry breakpoints (we should remove these from the actual translation data instead)
 			$verse->verse = str_ireplace('<br class="bible_poetry" />', '', $verse->verse);
 
-			$parts = preg_split('/<span class="(.*?)"><\/span>/i', " <b class='verse_num'>$verse->verse_id</b> $verse->verse", -1, PREG_SPLIT_DELIM_CAPTURE);
+			$parts = preg_split('/<span class="([^"]*)"><\/span>/i', " <b class='verse_num'>$verse->verse_id</b> $verse->verse", -1, PREG_SPLIT_DELIM_CAPTURE);
 			foreach ($parts as $index => $part) {
 				$trim = trim($part);
 				if (!empty($trim)) {
@@ -154,8 +154,8 @@ class BfoxVerseFormatter {
 
 	private function footnote_replace($match) {
 		$this->footnote_index++;
-		$note = "<a name=\"footnote_$this->footnote_index\" href=\"#footnote_ref_$this->footnote_index\">[$this->footnote_index]</a> " . BfoxRefParser::simple_html($match[1]);
-		$link = "<a name='footnote_ref_$this->footnote_index' href='#footnote_$this->footnote_index' title='" . strip_tags($match[1]) . "' class='ref_foot_link'>[$this->footnote_index]</a>";
+		$note = "<a name='footnote_$this->footnote_index' href='#footnote_ref_$this->footnote_index'>[$this->footnote_index]</a> " . BfoxRefParser::simple_html($match[1]);
+		$link = " <a name='footnote_ref_$this->footnote_index' href='#footnote_$this->footnote_index' title='" . strip_tags($match[1]) . "' class='ref_foot_link'>[$this->footnote_index]</a> ";
 		$this->footnotes []= $note;
 		return $link;
 	}
