@@ -24,7 +24,7 @@ class BfoxBible {
 		// Register all the bible scripts and styles
 		BfoxUtility::register_script('jquery_cookie', 'bible/jquery.cookie.js', array('bfox_jquery'));
 		BfoxUtility::register_script('bfox_bible', 'bible/bible.js', array('bfox_jquery', 'bfox_jquery_ui', 'jquery_cookie'));
-		BfoxUtility::register_style('bfox_bible', 'bible/bible.css', array('bfox_jquery_ui'));
+		BfoxUtility::register_style('bfox_bible', 'bible/bible.css', array('bfox_scripture', 'bfox_jquery_ui'));
 		BfoxUtility::register_style('bfox_search', 'bible/search.css', array('bfox_bible'));
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);

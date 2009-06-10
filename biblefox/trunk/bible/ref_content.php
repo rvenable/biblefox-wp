@@ -291,14 +291,16 @@ class BfoxRefContent {
 		$book_name = BibleMeta::get_book_name($book);
 
 		// Get the verse data from the bible translation
-		$chapters = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible);
+		$chapters = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible, new BfoxVerseFormatter());
 
 		if (!empty($chapters)) {
 			// We don't want to start with a hidden rule
 			$add_rule = FALSE;
 
 			foreach ($chapters as $chapter_id => $verses) {
-				$is_hidden_chapter = TRUE;
+				$sections[0] = $verses;
+				$is_hidden_chapter = FALSE;
+				/*
 				$prev_visible = TRUE;
 				$index = 0;
 
@@ -316,6 +318,7 @@ class BfoxRefContent {
 					$sections[$index] .= "<span class='bible_verse' verse='$verse->verse_id'><b>$verse->verse_id</b> $verse->verse</span>\n";
 				}
 				$last_index = $index;
+				*/
 
 				if ($is_hidden_chapter) {
 					$chapter_class = 'hidden_chapter';
@@ -371,7 +374,7 @@ class BfoxRefContent {
 					}
 				}
 
-				$content .= "<span class='chapter $chapter_class'>\n<span class='chapter_head'>$chapter_id</span>\n$chapter_content</span>\n";
+				$content .= "<div class='chapter $chapter_class'>\n<span class='chapter_head'>$chapter_id</span>\n$chapter_content</div>\n";
 			}
 
 		}

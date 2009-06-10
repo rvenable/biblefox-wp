@@ -58,12 +58,83 @@ if (!defined('BFOX_FT_MIN_WORD_LEN'))
 global $bfox_ft_stopwords;
 if (empty($bfox_ft_stopwords)) include('stopwords.php');
 
+class BfoxVerseFormatter {
+
+	const trans_begin_poetry_1 = 'bible_poetry_indent_1';
+	const trans_begin_poetry_2 = 'bible_poetry_indent_2';
+	const trans_end_poetry = 'bible_end_poetry';
+	const trans_end_p = 'bible_end_p';
+
+	private $use_span, $c_text, $c_poetry1, $c_poetry2;
+
+	public $only_visible = FALSE;
+	public $use_verse0 = FALSE;
+
+	private $total_text = '';
+	private $cur_text = '';
+	private $first = '';
+
+	public function __construct($use_span = TRUE, $c_text = 'bible_text', $c_poetry1 = 'poetry_1', $c_poetry2 = 'poetry_2') {
+		$this->use_span = $use_span;
+		$this->c_text = $c_text;
+		$this->c_poetry1 = $c_poetry1;
+		$this->c_poetry2 = $c_poetry2;
+	}
+
+	public function format($verses) {
+		$this->total_text = '';
+		$this->cur_text = '';
+		$this->first = 'first_p';
+
+		$cur_p = '';
+
+		foreach ($verses as $verse) if ($this->use_verse($verse)) {
+			$verse_span = "<span class='bible_verse' verse='$verse->verse_id'>";
+			$parts = preg_split('/<span class="(.*?)"><\/span>/i', "<b class='verse_num'>$verse->verse_id</b> $verse->verse", -1, PREG_SPLIT_DELIM_CAPTURE);
+			foreach ($parts as $index => $part) {
+				$part = trim($part);
+				if (!empty($part)) {
+					if (0 == ($index % 2)) $this->add_text($part, $verse_span);
+					else {
+						if (self::trans_begin_poetry_1 == $part) $cur_p = $this->c_poetry1;
+						elseif (self::trans_begin_poetry_2 == $part) $cur_p = $this->c_poetry2;
+						elseif (self::trans_end_poetry == $part) {
+							if (empty($cur_p)) $cur_p = $this->c_poetry1;
+							$this->add_p($cur_p);
+						}
+						elseif (self::trans_end_p == $part) $this->add_p("bible_text$first");
+					}
+				}
+			}
+		}
+
+		return $this->total_text;
+	}
+
+	private function use_verse($verse) {
+		$use_verse = (!empty($verse->verse_id) || $this->use_verse0);
+		$use_verse = $use_verse && (!$this->only_visible || $verse->visible);
+		return $use_verse;
+	}
+
+	private function add_text($text, $verse_span) {
+		if ($this->use_span) $this->cur_text .= "$verse_span$text</span>";
+		else $this->cur_text .= $text;
+	}
+
+	private function add_p($class) {
+		if (!empty($this->first)) $class .= ' ' . $this->first;
+		$this->total_text .= "<p class='$class'>$this->cur_text</p>";
+		$this->cur_text = '';
+		$this->first = '';
+	}
+}
+
 /**
  * A class for individual bible translations
  *
  */
-class Translation
-{
+class Translation {
 	public $id, $short_name, $long_name, $is_default, $is_enabled;
 	public $table;
 
@@ -72,8 +143,7 @@ class Translation
 	 *
 	 * @param stdClass $translation
 	 */
-	function __construct(stdClass $translation)
-	{
+	function __construct(stdClass $translation) {
 		$this->id = (int) $translation->id;
 		$this->short_name = (string) $translation->short_name;
 		$this->long_name = (string) $translation->long_name;
@@ -92,17 +162,16 @@ class Translation
 	 * @param string $ref_where SQL WHERE statement as returned from BibleRefs::sql_where()
 	 * @return string Formatted bible verse output
 	 */
-	public function get_verses($ref_where)
-	{
+	public function get_verses($ref_where, BfoxVerseFormatter $formatter = NULL) {
 		$verses = array();
 
 		// We can only grab verses if the verse data exists
-		if (!empty($this->table))
-		{
+		if (!empty($this->table)) {
 			global $wpdb;
 			$verses = $wpdb->get_results("SELECT unique_id, book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
 		}
 
+		if (!is_null($formatter)) return $formatter->format($verses);
 		return $verses;
 	}
 
@@ -115,13 +184,11 @@ class Translation
 	 * @param string $visible SQL WHERE statement to determine which scriptures are visible (ex. as returned from BibleRefs::sql_where())
 	 * @return string Formatted bible verse output
 	 */
-	public function get_chapter_verses($book, $chapter1, $chapter2, $visible)
-	{
+	public function get_chapter_verses($book, $chapter1, $chapter2, $visible, BfoxVerseFormatter $formatter = NULL) {
 		$chapters = array();
 
 		// We can only grab verses if the verse data exists
-		if (!empty($this->table))
-		{
+		if (!empty($this->table)) {
 			global $wpdb;
 			$verses = (array) $wpdb->get_results($wpdb->prepare("
 				SELECT unique_id, chapter_id, verse_id, verse, ($visible) as visible
@@ -132,6 +199,10 @@ class Translation
 			foreach ($verses as $verse) $chapters[$verse->chapter_id] []= $verse;
 		}
 
+		if (!is_null($formatter)) {
+			$formatter->only_visible = TRUE;
+			foreach ($chapters as &$chapter) $chapter = $formatter->format($chapter);
+		}
 		return $chapters;
 	}
 }
