@@ -62,11 +62,11 @@ class BfoxPagePassage extends BfoxPage {
 		jQuery(document).ready( function() {
 			jQuery('#passage_tabs').tabs({
 				<?php echo $selected ?>
-				cookie: { expires: 30 }
+				cookie: { expires: 30, name: 'passage_tabs' }
 			});
 			jQuery('#tool_tabs').tabs({
 				collapsible: true,
-				cookie: { expires: 30 }
+				cookie: { expires: 30, name: 'tool_tabs' }
 			});
 		});
 		//]]>
@@ -92,6 +92,22 @@ class BfoxPagePassage extends BfoxPage {
 		return $url;
 	}
 
+	private static function check_option($name, $label) {
+		$id = "option_$name";
+
+		return "<input type='checkbox' name='$name' id='$id' class='view_option'/><label for='$id'>$label</label>";
+	}
+
+	private function options() {
+		$table = new BfoxHtmlList();
+		$table->add($this->check_option('jesus', __('Show Jesus\' words in red')));
+		$table->add($this->check_option('paragraphs', __('Display verses as paragraphs')));
+		$table->add($this->check_option('verse_nums', __('Hide verse numbers')));
+		$table->add($this->check_option('footnotes', __('Hide footnote links')));
+
+		return $table->content();
+	}
+
 	public function tools_tab(BibleRefs $refs) {
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$cboxes = array();
@@ -109,6 +125,7 @@ class BfoxPagePassage extends BfoxPage {
 		$tool_tabs = new BfoxHtmlTabs("id='tool_tabs' class='tabs'");
 		$tool_tabs->add('blogs', __('Blogs'), $blog_content . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>");
 		$tool_tabs->add('notes', __('Notes'), $note_content);
+		$tool_tabs->add('options', __('Options'), $this->options());
 
 		return $tool_tabs->content();
 	}

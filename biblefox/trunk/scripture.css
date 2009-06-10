@@ -16,6 +16,18 @@ p.bible_poetry, #poststuff #bible-text p.bible_poetry {
 	margin: 0 5em 0.5em 5em;
 }
 
+
+p.bible_text.bible_display_flat {
+	display: inline;
+	text-indent: 0;
+}
+
+p.bible_text.bible_display_flat span.bible_verse {
+	display: block;
+	margin: 0;
+	margin-bottom: 0.5em;
+}
+
 p.bible_psalm_desc {
 	font-style: italic;
 	display: block;
@@ -30,11 +42,6 @@ p.bible_psalm_desc {
 	font-weight: bold;
 	margin: 0px;
 	padding: 5px;
-}
-
-.bible_verse {
-	display: inline;
-	margin: 0px;
 }
 
 .bible_end_p {

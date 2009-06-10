@@ -35,24 +35,6 @@ function bfox_set_context_chapters(toggle)
 	parent.children('.hidden_chapter').show();
 }
 
-function bfox_toggle_verse_paragraph()
-{
-	verse = 'Switch to Verse View';
-	paragraph = 'Switch to Paragraph View';
-	if (verse == jQuery('#verse_layout_toggle').html())
-	{
-		jQuery('.bible_verse').css('display', 'block').css('margin', '8px 0px 8px 0px');
-		jQuery('.bible_end_p').css('display', 'none');
-		jQuery('#verse_layout_toggle').html(paragraph);
-	}
-	else
-	{
-		jQuery('.bible_verse').css('display', 'inline').css('margin', '0px');
-		jQuery('.bible_end_p').css('display', 'block');
-		jQuery('#verse_layout_toggle').html(verse);
-	}
-}
-
 // Select a specific tab to show in the sideviewer
 function bfox_sideshow(id) {
 	jQuery('.sideview_content').hide();
@@ -112,9 +94,28 @@ function bfox_refresh_ref_js(prow_content) {
 	}
 }
 
-jQuery(document).ready( function() {
-	jQuery('#verse_layout_toggle').click(bfox_toggle_verse_paragraph);
+function bfox_view_option_set(name, checked) {
 	
+	if ('jesus' == name) {
+		jQuery('.bible_jesus').toggleClass('red_words', checked);
+	}
+	else if ('paragraphs' == name) {
+		jQuery('p.bible_text').toggleClass('bible_display_flat', checked);
+	}
+	else if ('verse_nums' == name) {
+		var e = jQuery('.verse_num');
+		if (checked) e.hide();
+		else e.show();
+	}
+	else if ('footnotes' == name) {
+		var e = jQuery('.ref_foot_link');
+		if (checked) e.hide();
+		else e.show();
+	}
+}
+
+jQuery(document).ready( function() {
+
 	// Show the cookied sideview item
 	var sideshow_id = jQuery.cookie('sideshow_id');
 	if (null != sideshow_id) bfox_sideshow(sideshow_id);
@@ -146,6 +147,21 @@ jQuery(document).ready( function() {
 	jQuery('.cbox_sub .cbox_head, .cbox_sub_sub .cbox_head').click(function() {
 		jQuery(this).siblings('.cbox_body').slideToggle('fast');
 	});
-	
+
+	jQuery('input.view_option').each(function() {
+		var option = jQuery(this);
+		var name = option.attr('name');
+		var checked = ('true' === jQuery.cookie('view_option_' + name));
+		option.attr('checked', checked);
+		bfox_view_option_set(name, checked);
+	});
+	jQuery('input.view_option').change(function() {
+		var option = jQuery(this);
+		var name = option.attr('name');
+		var checked = option.attr('checked');
+		jQuery.cookie('view_option_' + name, checked);
+		bfox_view_option_set(name, checked);
+	});
+
 	//bfox_refresh_ref_js(jQuery('.ref_content:first').parent('.prow_content'));
 });
