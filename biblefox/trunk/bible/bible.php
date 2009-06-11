@@ -16,7 +16,7 @@ class BfoxBible {
 
 	private $page;
 
-	public function __construct() {
+	public function __construct($query_str = '') {
 
 		// Register the bible jquery scripts and styles
 		BfoxUtility::register_script('bfox_jquery', 'bible/jquery/js/jquery-1.3.2.min.js');
@@ -31,17 +31,23 @@ class BfoxBible {
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
-
-		$search_str = $_REQUEST[BfoxQuery::var_search];
+		$page_name = $_REQUEST[BfoxQuery::var_page];
+		$trans_str = $_REQUEST[BfoxQuery::var_translation];
 		$ref_str = $_REQUEST[BfoxQuery::var_reference];
-		$toggle_read_time = $_REQUEST[BfoxQuery::var_toggle_read];
+		$search_str = $_REQUEST[BfoxQuery::var_search];
+
+		if (!empty($query_str)) {
+			$vars = explode('/', $query_str);
+			if (1 < count($vars)) list($trans_str, $ref_str) = $vars;
+			else list($ref_str) = $vars;
+		}
 
 		// Cookied Translations:
 		// If we were passed a translation, use it and save the cookie
 		// Otherwise, if we have a cookied translation, use it
 		// Otherwise use the default translation
-		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
-			$translation = Translations::get_translation($_REQUEST[BfoxQuery::var_translation]);
+		if (!empty($trans_str)) {
+			$translation = Translations::get_translation($trans_str);
 			$trans_str = $translation->id;
 			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
 		}
@@ -52,13 +58,10 @@ class BfoxBible {
 		else $trans_str = Translations::get_default_id();
 
 		// If we are toggling is_read, then we should do it now, and redirect without the parameter
-		if (!empty($toggle_read_time)) {
-			BfoxHistory::toggle_is_read($toggle_read_time);
+		if (!empty($_REQUEST[BfoxQuery::var_toggle_read])) {
+			BfoxHistory::toggle_is_read($_REQUEST[BfoxQuery::var_toggle_read]);
 			wp_redirect(remove_query_arg(array(BfoxQuery::var_toggle_read), $_SERVER['REQUEST_URI']));
 		}
-
-		// Get the bible page to view
-		$page_name = $_REQUEST[BfoxQuery::var_page];
 
 		// If no page was specified, use the passage page
 		if (empty($page_name)) $page_name = BfoxQuery::page_passage;

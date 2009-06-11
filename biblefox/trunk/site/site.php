@@ -6,8 +6,7 @@ include_once BFOX_SITE_DIR . '/wordpress-admin-bar/wordpress-admin-bar.php';
 include_once BFOX_SITE_DIR . '/marketing.php';
 include_once BFOX_SITE_DIR . '/shortfoot.php';
 
-class BiblefoxSite
-{
+class BiblefoxSite {
 	/**
 	 * Returns the bible study blogs for a given user
 	 *
@@ -16,8 +15,7 @@ class BiblefoxSite
 	 * @param integer $user_id
 	 * @return array of blogs (see get_blogs_of_user())
 	 */
-	public static function get_bible_study_blogs($user_id)
-	{
+	public static function get_bible_study_blogs($user_id) {
 		// Get the blogs for the user
 		$blogs = get_blogs_of_user($user_id);
 
@@ -35,8 +33,7 @@ class BiblefoxSite
 	 *
 	 * @return unknown
 	 */
-	public static function loginout()
-	{
+	public static function loginout() {
 		// From auth_redirect()
 		if ( is_ssl() )
 			$proto = 'https://';
@@ -62,37 +59,39 @@ class BiblefoxSite
 		return $link;
 	}
 
-	public static function query_vars($qvars)
-	{
+	public static function query_vars($qvars) {
 		// Add a query variable for bible references
-		$qvars[] = BfoxQuery::var_page;
+		$qvars []= BfoxQuery::var_page;
+		$qvars []= BfoxQuery::var_pretty_query;
 		return $qvars;
 	}
 
-	public static function parse_request(WP $wp)
-	{
+	public static function parse_request(WP $wp) {
 		// We don't need wp_query for the bible viewer, so we can exit at the end of request parsing, before wp_query is called
-		if (isset($wp->query_vars[BfoxQuery::var_page]))
-		{
+		if (isset($wp->query_vars[BfoxQuery::var_page]) || isset($wp->query_vars[BfoxQuery::var_pretty_query])) {
 			global $current_blog, $current_site;
 
 			// The bible should always be on the main blog, so if it isn't just redirect it
-			if (is_main_blog()) require dirname(__FILE__) . '/bible-index.php';
+			if (is_main_blog()) {
+				auth_redirect();
+
+				require_once BFOX_DIR . '/bible/bible.php';
+				$bible = new BfoxBible($wp->query_vars[BfoxQuery::var_pretty_query]);
+				$bible->page();
+			}
 			else wp_redirect((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . substr($_SERVER['REQUEST_URI'], strlen($current_blog->path)));
 			exit;
 		}
 	}
 
-	public static function widget_bible_pages($args)
-	{
+	public static function widget_bible_pages($args) {
 		extract($args);
 		$title = "<a href='" . BfoxQuery::page_url(BfoxQuery::page_passage) . "'>Bible Viewer</a>";
 		echo $before_widget . $before_title . $title . $after_title;
 		echo $after_widget;
 	}
 
-	public function init()
-	{
+	public function init() {
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
 		register_sidebar_widget('Bible Pages', array('BiblefoxSite', 'widget_bible_pages'));

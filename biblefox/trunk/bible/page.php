@@ -44,14 +44,14 @@ abstract class BfoxPage
 	public function page() {
 		if ($this->display_full) {
 			get_header();
-			// TODO3: Remove 'page' form input when removing from admin pages
+			list($post_url, $hiddens) = BfoxUtility::get_post_url(BfoxQuery::page_url(BfoxQuery::page_search));
 			?>
 			<div id="bible" class="">
 				<div id="bible_head">
 					<div id="bible_head_content">
 						<h2><a href='<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>'>Biblefox Bible Viewer</a></h2>
-						<form id="bible_search_form" action="<?php echo BfoxQuery::post_url() ?>" method="get">
-							<input type="hidden" name="<?php echo BfoxQuery::var_page ?>" value="<?php echo BfoxQuery::page_search ?>" />
+						<form id="bible_search_form" action="<?php echo $post_url ?>" method="get">
+							<?php echo $hiddens ?>
 							<?php Translations::output_select($this->translation->id) ?>
 							<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo $this->get_search_str() ?>" />
 							<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />

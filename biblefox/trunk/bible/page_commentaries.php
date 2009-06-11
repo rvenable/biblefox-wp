@@ -59,11 +59,14 @@ class BfoxPageCommentaries extends BfoxPage
 		foreach ((array) get_blogs_of_user($user_ID) as $blog) if (!isset($coms[$blog->userblog_id])) $your_blogs []= $blog;
 		unset($user_blogs);
 
+		list($post_url, $hiddens) = BfoxUtility::get_post_url(BfoxQuery::page_url(BfoxQuery::page_commentary));
+
 		?>
 		<?php if (!empty($coms)): ?>
 		<h3>My Commentaries</h3>
 		<p>These are the commentaries you currently have selected. You can disable them from being shown in the <a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>">Biblefox Bible Viewer</a> or delete them from your commentary list entirely.</p>
-		<form action="<?php echo BfoxQuery::page_post_url(BfoxQuery::page_commentary) ?>" method="post">
+		<form action="<?php echo $post_url ?>" method="post">
+		<?php echo $hiddens ?>
 		<table id="commentaries">
 			<tr>
 				<th>Name</th>
@@ -104,7 +107,8 @@ class BfoxPageCommentaries extends BfoxPage
 		</ul>
 		<h4>Other Blogs</h4>
 		<p>You can add any biblefox.com blog by entering the blog URL. For example, add blogs that your friends have created to keep updated with what they are learning from the Bible.</p>
-		<form action="<?php echo BfoxQuery::page_post_url(BfoxQuery::page_commentary) ?>" method="post">
+		<form action="<?php echo $post_url ?>" method="post">
+		<?php echo $hiddens ?>
 		<p>Add any biblefox.com blog by entering its url:
 		<input name="add_url" id="add_url" type="text" value="" size="40" maxlength="127" />
 		<input type="submit" value="Add URL" name="update" class="button-secondary delete" /></p>

@@ -4,8 +4,10 @@
  * For generating HTTP Bible queries
  *
  */
-class BfoxQuery
-{
+class BfoxQuery {
+
+	const default_base = 'bible';
+
 	const page_reader = 'reader';
 	const page_passage = 'passage';
 	const page_commentary = 'commentary';
@@ -21,36 +23,31 @@ class BfoxQuery
 	const var_toggle_read = 'bible_read';
 	const var_display = 'bible_display';
 
+	const var_pretty_query = 'bfox_pquery';
+
 	const display_ajax = 'ajax';
 
 	const var_plan_id = 'plan_id';
 
 	private static $url = '';
-	private static $post_url = '';
+	private static $use_pretty_urls = FALSE;
 
-	public static function set_url($url)
-	{
+	public static function set_url($url, $use_pretty_urls = FALSE, $base = self::default_base) {
+		$url = rtrim($url, '/') . '/';
 		self::$url = $url;
-		list(self::$post_url, $args) = explode('?', $url);
+		self::$use_pretty_urls = $use_pretty_urls;
+		if ($use_pretty_urls) {
+			$base = trim($base, '/');
+			self::$url .= $base . '/';
+			add_rewrite_rule("$base(\/.*)$", 'index.php?' . self::var_pretty_query . '=$matches[1]');
+		}
 	}
 
-	public static function post_url()
-	{
-		return self::$post_url;
-	}
-
-	public static function page_post_url($page)
-	{
-		return add_query_arg(self::var_page, $page, self::$post_url);
-	}
-
-	public static function page_url($page)
-	{
+	public static function page_url($page) {
 		return add_query_arg(self::var_page, $page, self::$url);
 	}
 
-	public static function search_page_url($search_text, $ref_str = '', Translation $display_translation = NULL)
-	{
+	public static function search_page_url($search_text, $ref_str = '', Translation $display_translation = NULL) {
 		$url = add_query_arg(self::var_search, urlencode($search_text), self::page_url(self::page_search));
 		if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
 		if (!is_null($display_translation)) $url = add_query_arg(self::var_translation, $display_translation->id, $url);
@@ -58,13 +55,22 @@ class BfoxQuery
 		return $url;
 	}
 
-	public static function passage_page_url($ref_str = '', Translation $translation = NULL)
-	{
-		$url = self::page_url(self::page_passage);
-		if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
-		if (!is_null($translation)) $url = add_query_arg(self::var_translation, $translation->id, $url);
+	public static function ref_url($ref_str = '', $trans_str = '') {
+		if (self::$use_pretty_urls) {
+			if (!empty($trans_str)) $ref_str = "$trans_str/$ref_str";
+			return self::$url . urlencode($ref_str) . '/';
+		}
+		else {
+			$url = self::page_url(self::page_passage);
+			if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
+			if (!empty($trans_str)) $url = add_query_arg(self::var_translation, $trans_str, $url);
+			return $url;
+		}
+	}
 
-		return $url;
+	public static function passage_page_url($ref_str = '', Translation $translation = NULL) {
+		if (!is_null($translation)) $trans_str = $translation->id;
+		return self::ref_url($ref_str, $trans_str);
 	}
 
 	public static function reading_plan_url($plan_id, $editor_url = '') {
@@ -82,8 +88,8 @@ class BfoxQuery
 		return add_query_arg(self::var_display, $type, $url);
 	}
 
-	public static function sidebar_list()
-	{
+	// TODO3: Are we still using this?
+	public static function sidebar_list() {
 		?>
 		<ul>
 			<li><a href="<?php echo self::page_url(self::page_passage) ?>">Bible Reader</a></li>

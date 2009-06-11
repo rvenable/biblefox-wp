@@ -90,7 +90,8 @@ class Biblefox {
 
 	public static function init() {
 		global $current_site;
-		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . '?');
+
+		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path, !(TRUE === BFOX_NO_PRETTY_URLS));
 
 		// Register all the global scripts and styles
 		BfoxUtility::register_style('bfox_scripture', 'scripture.css');
