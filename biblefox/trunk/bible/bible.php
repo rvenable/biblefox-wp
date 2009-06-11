@@ -12,6 +12,8 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 
 class BfoxBible {
 
+	const cookie_translation = 'trans_str';
+
 	private $page;
 
 	public function __construct() {
@@ -32,8 +34,22 @@ class BfoxBible {
 
 		$search_str = $_REQUEST[BfoxQuery::var_search];
 		$ref_str = $_REQUEST[BfoxQuery::var_reference];
-		$trans_str = $_REQUEST[BfoxQuery::var_translation];
 		$toggle_read_time = $_REQUEST[BfoxQuery::var_toggle_read];
+
+		// Cookied Translations:
+		// If we were passed a translation, use it and save the cookie
+		// Otherwise, if we have a cookied translation, use it
+		// Otherwise use the default translation
+		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
+			$translation = Translations::get_translation($_REQUEST[BfoxQuery::var_translation]);
+			$trans_str = $translation->id;
+			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
+		}
+		elseif (!empty($_COOKIE[self::cookie_translation])) {
+			$translation = Translations::get_translation($_COOKIE[self::cookie_translation]);
+			$trans_str = $translation->id;
+		}
+		else $trans_str = Translations::get_default_id();
 
 		// If we are toggling is_read, then we should do it now, and redirect without the parameter
 		if (!empty($toggle_read_time)) {
