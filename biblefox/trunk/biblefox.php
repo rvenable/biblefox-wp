@@ -56,9 +56,6 @@ include_once BFOX_DIR . '/admin/admin-tools.php';
 include_once BFOX_DIR . '/blog/blog.php';
 include_once BFOX_DIR . '/site/site.php';
 
-// TODO3: These files are probably obsolete
-require_once BFOX_DIR . '/site/message.php';
-
 /**
  * Hacky function for showing DB errors. Hacked into the wpdb query filter to make sure that the errors always show.
  *
