@@ -41,7 +41,7 @@ if (current_user_can(BiblefoxSite::manage_trans_min_user_level))
 	<tbody id="the-list" class="list:cat">
 <?php
 	// Get all the bible translations, even the disabled ones
-	$translations = Translation::get_installed();
+	$translations = BfoxTrans::get_installed();
 
 	foreach ($translations as $trans)
 	{

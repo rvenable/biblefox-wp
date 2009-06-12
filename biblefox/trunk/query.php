@@ -47,7 +47,7 @@ class BfoxQuery {
 		return add_query_arg(self::var_page, $page, self::$url);
 	}
 
-	public static function search_page_url($search_text, $ref_str = '', Translation $display_translation = NULL) {
+	public static function search_page_url($search_text, $ref_str = '', BfoxTrans $display_translation = NULL) {
 		$url = add_query_arg(self::var_search, urlencode($search_text), self::page_url(self::page_search));
 		if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
 		if (!is_null($display_translation)) $url = add_query_arg(self::var_translation, $display_translation->id, $url);
@@ -68,7 +68,7 @@ class BfoxQuery {
 		}
 	}
 
-	public static function passage_page_url($ref_str = '', Translation $translation = NULL) {
+	public static function passage_page_url($ref_str = '', BfoxTrans $translation = NULL) {
 		if (!is_null($translation)) $trans_str = $translation->id;
 		return self::ref_url($ref_str, $trans_str);
 	}

@@ -64,11 +64,11 @@ class BibleSearch {
 	/**
 	 * The bible translation to display the verses in
 	 *
-	 * @var Translation
+	 * @var BfoxTrans
 	 */
 	private $display_translation;
 
-	public function __construct($text, Translation $translation, $page = 0) {
+	public function __construct($text, BfoxTrans $translation, $page = 0) {
 		if (empty($page)) $page = 1;
 
 		$this->set_text($text);
@@ -302,10 +302,10 @@ class BibleSearch {
 	/**
 	 * Refresh the index data for a given translation
 	 *
-	 * @param Translation $trans
+	 * @param BfoxTrans $trans
 	 * @param string $group
 	 */
-	private static function refresh_translation_index(Translation $trans, $group = 'protest') {
+	private static function refresh_translation_index(BfoxTrans $trans, $group = 'protest') {
 		global $wpdb;
 
 		// Delete all the old index data for this translation
@@ -387,7 +387,7 @@ class BibleSearch {
 		$msg = "Dropped and recreated the index table.<br/>";
 
 		// Loop through each enabled bible translation and refresh their index data
-		$translations = Translation::get_enabled();
+		$translations = BfoxTrans::get_enabled();
 		foreach ($translations as $translation) {
 			$msg .= "Refreshing $translation->long_name (ID: $translation->id)...<br/>";
 			self::refresh_translation_index($translation);

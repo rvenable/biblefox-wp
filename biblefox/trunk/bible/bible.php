@@ -93,11 +93,11 @@ class BfoxBible {
 		// Otherwise, if we have a cookied translation, use it
 		// Otherwise use the default translation
 		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
-			$translation = new Translation($_REQUEST[BfoxQuery::var_translation]);
+			$translation = new BfoxTrans($_REQUEST[BfoxQuery::var_translation]);
 			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
 		}
-		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new Translation($_COOKIE[self::cookie_translation]);
-		else $translation = new Translation();
+		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new BfoxTrans($_COOKIE[self::cookie_translation]);
+		else $translation = new BfoxTrans();
 
 		return $translation;
 	}

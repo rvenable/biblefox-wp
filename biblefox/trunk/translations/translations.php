@@ -8,7 +8,7 @@ require_once BFOX_TRANS_DIR . '/formatter.php';
  * A class for individual bible translations
  *
  */
-class Translation {
+class BfoxTrans {
 	public $id, $short_name, $long_name, $is_default, $is_enabled;
 	public $table;
 
@@ -20,7 +20,7 @@ class Translation {
 	);
 
 	/**
-	 * Construct an instance using an stdClass object (as returned by querying the Translation::translation_table DB table)
+	 * Construct an instance using an stdClass object (as returned by querying the BfoxTrans::translation_table DB table)
 	 *
 	 * @param stdClass $translation
 	 */
@@ -109,20 +109,20 @@ class Translation {
 	}
 
 	/**
-	 * Returns all the enabled Translations in an array
+	 * Returns all the enabled BfoxTranss in an array
 	 *
-	 * @return array of Translations
+	 * @return array of BfoxTranss
 	 */
 	public static function get_enabled() {
 		$translations = array();
-		foreach (Translation::$meta as $id => $meta) $translations []= new Translation($id);
+		foreach (BfoxTrans::$meta as $id => $meta) $translations []= new BfoxTrans($id);
 		return $translations;
 	}
 
 	/**
-	 * Returns all the installed Translations in an array
+	 * Returns all the installed BfoxTranss in an array
 	 *
-	 * @return array of Translations
+	 * @return array of BfoxTranss
 	 */
 	public static function get_installed() {
 		return self::get_enabled();

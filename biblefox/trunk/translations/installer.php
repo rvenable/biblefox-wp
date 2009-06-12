@@ -136,7 +136,7 @@ class BfoxTransInstaller
 		// If a file was specified, we need to add verse data from that file
 		if (!empty($trans->file_name))
 		{
-			$table_name = Translation::get_translation_table_name($id);
+			$table_name = BfoxTrans::get_translation_table_name($id);
 
 			// Drop the table if it already exists
 			$wpdb->query("DROP TABLE IF EXISTS $table_name");
@@ -212,7 +212,7 @@ class BfoxTransInstaller
 		global $wpdb;
 
 		// Drop the verse data table if it exists
-		$table_name = Translation::get_translation_table_name($trans_id);
+		$table_name = BfoxTrans::get_translation_table_name($trans_id);
 		if (BfoxUtility::does_table_exist($table_name)) $wpdb->query("DROP TABLE $table_name");
 
 		// Delete the translation data from the translation table

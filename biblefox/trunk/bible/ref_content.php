@@ -100,7 +100,7 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_footer(BibleRefs $refs, Translation $translation) {
+	private static function ref_footer(BibleRefs $refs, BfoxTrans $translation) {
 		?>
 		<div class="box_menu">
 			<center>
@@ -110,7 +110,7 @@ class BfoxRefContent {
 		<?php
 	}
 
-	public static function ref_content(BibleRefs $refs, Translation $translation) {
+	public static function ref_content(BibleRefs $refs, BfoxTrans $translation) {
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 		if (!empty($bcvs)) {
 			if ((1 < count($bcvs)) || (1 < count(current($bcvs)))) {
@@ -164,7 +164,7 @@ class BfoxRefContent {
 		}
 	}
 
-	private static function ref_content_simple(BibleRefs $refs, Translation $translation, $bcvs) {
+	private static function ref_content_simple(BibleRefs $refs, BfoxTrans $translation, $bcvs) {
 		$cv = reset(reset($bcvs));
 		$book = key($bcvs);
 		$ch1 = $cv->start[0];
@@ -188,7 +188,7 @@ class BfoxRefContent {
 		<?php
 	}
 
-	public static function ref_content_new(BibleRefs $refs, Translation $translation) {
+	public static function ref_content_new(BibleRefs $refs, BfoxTrans $translation) {
 		$footnotes = array();
 
 		?>
@@ -199,7 +199,7 @@ class BfoxRefContent {
 		<?php
 	}
 
-	public static function ref_content_paged(BibleRefs $refs, Translation $translation, $base_url, $page_var, $page_num = 0, $chs_per_page = 2) {
+	public static function ref_content_paged(BibleRefs $refs, BfoxTrans $translation, $base_url, $page_var, $page_num = 0, $chs_per_page = 2) {
 
 		$pages = $refs->get_sections($chs_per_page);
 
@@ -227,7 +227,7 @@ class BfoxRefContent {
 		<?php
 	}
 
-	private static function ref_content_complex(BibleRefs $refs, Translation $translation, &$footnotes, $bcvs) {
+	private static function ref_content_complex(BibleRefs $refs, BfoxTrans $translation, &$footnotes, $bcvs) {
 		$visible = $refs->sql_where();
 
 		foreach ($bcvs as $book => $cvs) {
@@ -253,7 +253,7 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_toc(BibleRefs $refs, Translation $translation) {
+	private static function ref_toc(BibleRefs $refs, BfoxTrans $translation) {
 		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 
 		foreach ($bcvs as $book => $cvs) {
@@ -279,10 +279,10 @@ class BfoxRefContent {
 	 * @param integer $chapter2
 	 * @param string $visible
 	 * @param array $footnotes
-	 * @param Translation $trans
+	 * @param BfoxTrans $trans
 	 * @return string
 	 */
-	private static function get_chapters_content($book, $chapter1, $chapter2, $visible, &$footnotes, Translation $translation) {
+	private static function get_chapters_content($book, $chapter1, $chapter2, $visible, &$footnotes, BfoxTrans $translation) {
 
 		// Get the verse data from the bible translation
 		$formatter = new BfoxVerseFormatter(TRUE);

@@ -231,7 +231,7 @@ class BfoxMainToolbox extends BfoxToolBox
 
 	public function verse_count() {
 		global $wpdb;
-		$translations = Translation::get_installed();
+		$translations = BfoxTrans::get_installed();
 
 		$errors = array();
 		$vs_counts = array();

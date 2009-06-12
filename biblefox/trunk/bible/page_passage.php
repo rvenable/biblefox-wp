@@ -17,7 +17,7 @@ class BfoxPagePassage extends BfoxPage {
 	/**
 	 * The bible translation to use for displaying scripture
 	 *
-	 * @var Translation
+	 * @var BfoxTrans
 	 */
 	protected $translation;
 
@@ -28,7 +28,7 @@ class BfoxPagePassage extends BfoxPage {
 
 	protected $default_tab = NULL;
 
-	public function __construct($ref_str, Translation $translation) {
+	public function __construct($ref_str, BfoxTrans $translation) {
 		$this->refs = new BibleRefs($ref_str);
 		$this->translation = $translation;
 

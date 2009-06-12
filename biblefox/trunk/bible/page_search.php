@@ -12,7 +12,7 @@ class BfoxPageSearch extends BfoxPage {
 	 */
 	protected $search;
 
-	public function __construct($search_str, $ref_str = '', Translation $translation) {
+	public function __construct($search_str, $ref_str = '', BfoxTrans $translation) {
 		parent::__construct();
 
 		$this->translation = $translation;

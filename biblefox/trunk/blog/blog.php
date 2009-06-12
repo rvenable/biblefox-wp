@@ -203,12 +203,12 @@ class BfoxBlog {
 	 * Return verse content for the given bible refs with minimum formatting
 	 *
 	 * @param BibleRefs $refs
-	 * @param Translation $trans
+	 * @param BfoxTrans $trans
 	 * @return string
 	 */
 	public static function get_verse_content(BibleRefs $refs) {
 		// Get the verse data from the bible translation
-		$translation = new Translation();
+		$translation = new BfoxTrans();
 		$formatter = new BfoxVerseFormatter();
 		return $translation->get_verses($refs->sql_where(), $formatter);
 	}
@@ -225,10 +225,10 @@ class BfoxBlog {
 	 * Return verse content for the given bible refs formatted for email output
 	 *
 	 * @param BibleRefs $refs
-	 * @param Translation $trans
+	 * @param BfoxTrans $trans
 	 * @return string
 	 */
-	public static function get_verse_content_email(BibleRefs $refs, Translation $trans = NULL) {
+	public static function get_verse_content_email(BibleRefs $refs, BfoxTrans $trans = NULL) {
 		// Pre formatting is for when we can't use CSS (ie. in an email)
 		// We just replace the tags which would have been formatted by css with tags that don't need formatting
 		// We also need to run the shortcode function to correctly output footnotes
