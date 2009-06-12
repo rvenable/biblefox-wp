@@ -32,7 +32,6 @@ class BfoxBible {
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
 		$page_name = $_REQUEST[BfoxQuery::var_page];
-		$trans_str = $_REQUEST[BfoxQuery::var_translation];
 		$ref_str = $_REQUEST[BfoxQuery::var_reference];
 		$search_str = $_REQUEST[BfoxQuery::var_search];
 
@@ -41,18 +40,6 @@ class BfoxBible {
 			if (1 < count($vars)) list($trans_str, $ref_str) = $vars;
 			else list($ref_str) = $vars;
 		}
-
-
-		// Cookied Translations:
-		// If we were passed a translation, use it and save the cookie
-		// Otherwise, if we have a cookied translation, use it
-		// Otherwise use the default translation
-		if (!empty($trans_str)) {
-			$translation = new Translation($trans_str);
-			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
-		}
-		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new Translation($_COOKIE[self::cookie_translation]);
-		else $translation = new Translation();
 
 		// If we are toggling is_read, then we should do it now, and redirect without the parameter
 		if (!empty($_REQUEST[BfoxQuery::var_toggle_read])) {
@@ -73,12 +60,12 @@ class BfoxBible {
 			default:
 			case BfoxQuery::page_passage:
 				require BFOX_BIBLE_DIR . '/page_passage.php';
-				$this->page = new BfoxPagePassage($ref_str, $translation);
+				$this->page = new BfoxPagePassage($ref_str, self::get_input_trans());
 				break;
 
 			case BfoxQuery::page_search:
 				require BFOX_BIBLE_DIR . '/page_search.php';
-				$this->page = new BfoxPageSearch($search_str, $ref_str, $translation);
+				$this->page = new BfoxPageSearch($search_str, $ref_str, self::get_input_trans());
 				break;
 
 			case BfoxQuery::page_commentary:
@@ -98,6 +85,21 @@ class BfoxBible {
 		}
 
 		add_filter('wp_title', array(&$this, 'wp_title'), 10, 3);
+	}
+
+	public static function get_input_trans() {
+		// Cookied Translations:
+		// If we were passed a translation, use it and save the cookie
+		// Otherwise, if we have a cookied translation, use it
+		// Otherwise use the default translation
+		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
+			$translation = new Translation($_REQUEST[BfoxQuery::var_translation]);
+			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
+		}
+		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new Translation($_COOKIE[self::cookie_translation]);
+		else $translation = new Translation();
+
+		return $translation;
 	}
 
 	public function page() {
