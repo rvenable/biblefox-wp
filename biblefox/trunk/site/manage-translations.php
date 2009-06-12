@@ -1,16 +1,16 @@
 <?php
 
-$bfox_page_url = 'admin.php?page=' . BfoxTransInstaller::page;
+$bfox_page_url = 'admin.php?page=' . BiblefoxSite::manage_trans_page;
 
 $header = __('Manage Translations');
-if (current_user_can(BfoxTransInstaller::min_user_level))
+if (current_user_can(BiblefoxSite::manage_trans_min_user_level))
 	$header .= ' (<a href="#addtrans">' . __('add new') . '</a>)';
 
 ?>
 
 <div class="wrap">
 <form action="" method="post">
-<input type="hidden" name="page" value="<?php echo BfoxTransInstaller::page; ?>">
+<input type="hidden" name="page" value="<?php echo BiblefoxSite::manage_trans_page; ?>">
 <h2><?php echo $header ?></h2>
 
 <br class="clear" />
@@ -41,7 +41,7 @@ if (current_user_can(BfoxTransInstaller::min_user_level))
 	<tbody id="the-list" class="list:cat">
 <?php
 	// Get all the bible translations, even the disabled ones
-	$translations = BfoxTransInstaller::get_translations(TRUE);
+	$translations = Translation::get_installed();
 
 	foreach ($translations as $trans)
 	{
@@ -71,7 +71,7 @@ if (current_user_can(BfoxTransInstaller::min_user_level))
 </div>
 
 <?php
-	if ( current_user_can(BfoxTransInstaller::min_user_level) )
+	if ( current_user_can(BiblefoxSite::manage_trans_min_user_level) )
 		include('edit-translation-form.php');
 
 ?>

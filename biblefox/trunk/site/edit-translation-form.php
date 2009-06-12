@@ -1,6 +1,6 @@
 <?php
 
-$bfox_page_url = 'admin.php?page=' . BfoxTransInstaller::page;
+$bfox_page_url = 'admin.php?page=' . BiblefoxSite::manage_trans_page;
 
 if ( !empty($trans_id) ) {
 	$heading = __('Edit Translation') . " (<a href='$bfox_page_url'>" . __('view all') . '</a>)';
@@ -30,7 +30,7 @@ $trans_files = BfoxTransInstaller::get_translation_files();
 <h2><?php echo $heading ?></h2>
 <div id="ajax-response"></div>
 <form <?php echo $form; ?>>
-<input type="hidden" name="page" value="<?php echo BfoxTransInstaller::page; ?>" />
+<input type="hidden" name="page" value="<?php echo BiblefoxSite::manage_trans_page; ?>" />
 <input type="hidden" name="action" value="<?php echo $action; ?>" />
 <input type="hidden" name="trans_id" value="<?php echo $trans_id; ?>" />
 <?php wp_nonce_field($nonce_action); ?>

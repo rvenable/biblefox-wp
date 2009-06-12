@@ -206,12 +206,11 @@ class BfoxBlog {
 	 * @param Translation $trans
 	 * @return string
 	 */
-	public static function get_verse_content(BibleRefs $refs, Translation $trans = NULL) {
-		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
-
+	public static function get_verse_content(BibleRefs $refs) {
 		// Get the verse data from the bible translation
+		$translation = new Translation();
 		$formatter = new BfoxVerseFormatter();
-		return $trans->get_verses($refs->sql_where(), $formatter);
+		return $translation->get_verses($refs->sql_where(), $formatter);
 	}
 
 	public static function get_verse_content_foot(BibleRefs $refs) {

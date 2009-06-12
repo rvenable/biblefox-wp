@@ -282,13 +282,12 @@ class BfoxRefContent {
 	 * @param Translation $trans
 	 * @return string
 	 */
-	private static function get_chapters_content($book, $chapter1, $chapter2, $visible, &$footnotes, Translation $trans = NULL) {
-		if (is_null($trans)) $trans = $GLOBALS['bfox_trans'];
+	private static function get_chapters_content($book, $chapter1, $chapter2, $visible, &$footnotes, Translation $translation) {
 
 		// Get the verse data from the bible translation
 		$formatter = new BfoxVerseFormatter(TRUE);
 		$formatter->use_footnotes($footnotes);
-		$content = $trans->get_chapter_verses($book, $chapter1, $chapter2, $visible, $formatter);
+		$content = $translation->get_chapter_verses($book, $chapter1, $chapter2, $visible, $formatter);
 		$footnotes = $formatter->get_footnotes();
 
 		return $content;

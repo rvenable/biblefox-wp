@@ -13,29 +13,9 @@ define(BFOX_TRANSLATION_DATA_DIR, BFOX_DATA_DIR . '/translations');
  */
 class BfoxTransInstaller
 {
-	const page = 'bfox-translations';
-	const min_user_level = 10;
 	const translation_table = BFOX_TRANSLATIONS_TABLE;
 	const book_counts_table = BFOX_BOOK_COUNTS_TABLE;
 	const dir = BFOX_TRANSLATION_DATA_DIR;
-
-	public static function init()
-	{
-		// Set the global translation (using the default translation)
-		self::set_global_translations();
-		add_action('admin_menu', 'BfoxTransInstaller::add_admin_menu');
-	}
-
-	public static function add_admin_menu()
-	{
-		// These menu pages are only for the site admin
-		if (is_site_admin())
-		{
-			// Add the translation page to the WPMU admin menu along with the corresponding load action
-			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', BfoxTransInstaller::min_user_level, BfoxTransInstaller::page, array('BfoxTransInstaller', 'manage_page'));
-			add_action('load-' . get_plugin_page_hookname(BfoxTransInstaller::page, 'wpmu-admin.php'), array('BfoxTransInstaller', 'manage_page_load'));
-		}
-	}
 
 	/**
 	 * Creates the DB table for the translations
@@ -62,27 +42,15 @@ class BfoxTransInstaller
 	}
 
 	/**
-	 * Returns all the data from the translation table
-	 *
-	 * @param bool $get_disabled Whether we should include disabled translations in the results
-	 * @return unknown
-	 */
-	public static function get_translations($get_disabled = FALSE) {
-		$translations = array();
-		foreach (Translation::$meta as $id => $meta) $translations []= new Translation($id);
-		return $translations;
-	}
-
-	/**
 	 * Returns an array of file names for the translations files in the translation directory
 	 *
 	 * @return unknown
 	 */
-	private static function get_translation_files()
+	public static function get_translation_files()
 	{
 		$files = array();
 
-		$translations_dir = opendir(BfoxTransInstaller::dir);
+		$translations_dir = opendir(self::dir);
 		if ($translations_dir)
 		{
 			while (($file_name = readdir($translations_dir)) !== false)
@@ -94,17 +62,6 @@ class BfoxTransInstaller
 		@closedir($translations_dir);
 
 		return $files;
-	}
-
-	/**
-	 * Returns the translation table name for a given translation id
-	 *
-	 * @param integer $trans_id
-	 * @return string
-	 */
-	public static function get_translation_table_name($trans_id)
-	{
-		return BFOX_BASE_TABLE_PREFIX . "trans{$trans_id}_verses";
 	}
 
 	/**
@@ -179,7 +136,7 @@ class BfoxTransInstaller
 		// If a file was specified, we need to add verse data from that file
 		if (!empty($trans->file_name))
 		{
-			$table_name = self::get_translation_table_name($id);
+			$table_name = Translation::get_translation_table_name($id);
 
 			// Drop the table if it already exists
 			$wpdb->query("DROP TABLE IF EXISTS $table_name");
@@ -208,7 +165,7 @@ class BfoxTransInstaller
 		require_once('usfx.php');
 		$usfx = new BfoxUsfx();
 		$usfx->set_table_name($table_name);
-		$usfx->read_file(BfoxTransInstaller::dir . '/' . $file_name);
+		$usfx->read_file(self::dir . '/' . $file_name);
 	}
 
 	/**
@@ -255,7 +212,7 @@ class BfoxTransInstaller
 		global $wpdb;
 
 		// Drop the verse data table if it exists
-		$table_name = self::get_translation_table_name($trans_id);
+		$table_name = Translation::get_translation_table_name($trans_id);
 		if (BfoxUtility::does_table_exist($table_name)) $wpdb->query("DROP TABLE $table_name");
 
 		// Delete the translation data from the translation table
@@ -264,142 +221,6 @@ class BfoxTransInstaller
 		// Delete the translation data from the book counts table
 		$wpdb->query($wpdb->prepare("DELETE FROM " . self::book_counts_table . " WHERE trans_id = %d", $trans_id));
 	}
-
-	/**
-	 * Outputs an html select input with a list of translations
-	 *
-	 * @param unknown_type $select_id
-	 */
-	public static function output_select($select_id = NULL, $use_short = FALSE)
-	{
-		// Get the list of enabled translations
-		$translations = self::get_translations();
-
-		?>
-		<select name="<?php echo BfoxQuery::var_translation ?>">
-		<?php foreach ($translations as $translation): ?>
-			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo ($use_short) ? $translation->short_name : $translation->long_name; ?></option>
-		<?php endforeach; ?>
-		</select>
-		<?php
-	}
-
-	/**
-	 * Called before loading the manage translations admin page
-	 *
-	 * Performs all the user's translation edit requests before loading the page
-	 *
-	 */
-	public function manage_page_load()
-	{
-		$bfox_page_url = 'admin.php?page=' . self::page;
-
-		$action = $_POST['action'];
-		if ( isset($_POST['deleteit']) && isset($_POST['delete']) )
-			$action = 'bulk-delete';
-
-		switch($action)
-		{
-		case 'addtrans':
-
-			check_admin_referer('add-translation');
-
-			if ( !current_user_can(self::min_user_level))
-				wp_die(__('Cheatin&#8217; uh?'));
-
-			$trans = array();
-			$trans['short_name'] = stripslashes($_POST['short_name']);
-			$trans['long_name'] = stripslashes($_POST['long_name']);
-			$trans['is_enabled'] = (int) $_POST['is_enabled'];
-			$trans['file_name'] = stripslashes($_POST['trans_file']);
-			$trans_id = self::edit_translation((object) $trans);
-
-			wp_redirect(add_query_arg(array('action' => 'edit', 'trans_id' => $trans_id, 'message' => 1), $bfox_page_url));
-
-			exit;
-		break;
-
-		case 'bulk-delete':
-			check_admin_referer('bulk-translations');
-
-			if ( !current_user_can(self::min_user_level) )
-				wp_die( __('You are not allowed to delete translations.') );
-
-			foreach ((array) $_POST['delete'] as $trans_id)
-				self::delete_translation($trans_id);
-
-			wp_redirect(add_query_arg('message', 2, $bfox_page_url));
-
-			exit;
-		break;
-
-		case 'editedtrans':
-			$trans_id = (int) $_POST['trans_id'];
-			check_admin_referer('update-translation-' . $trans_id);
-
-			if ( !current_user_can(self::min_user_level) )
-				wp_die(__('Cheatin&#8217; uh?'));
-
-			$trans = array();
-			$trans['short_name'] = stripslashes($_POST['short_name']);
-			$trans['long_name'] = stripslashes($_POST['long_name']);
-			$trans['is_enabled'] = (int) $_POST['is_enabled'];
-			$trans['file_name'] = stripslashes($_POST['trans_file']);
-			$trans_id = self::edit_translation((object) $trans, $trans_id);
-
-			wp_redirect(add_query_arg(array('action' => 'edit', 'trans_id' => $trans_id, 'message' => 3), $bfox_page_url));
-
-			exit;
-		break;
-		}
-	}
-
-	/**
-	 * Outputs the translation management admin page
-	 *
-	 */
-	public function manage_page()
-	{
-		$messages[1] = __('Translation added.');
-		$messages[2] = __('Translation deleted.');
-		$messages[3] = __('Translation updated.');
-		$messages[4] = __('Translation not added.');
-		$messages[5] = __('Translation not updated.');
-
-		if (isset($_GET['message']) && ($msg = (int) $_GET['message'])): ?>
-			<div id="message" class="updated fade"><p><?php echo $messages[$msg]; ?></p></div>
-			<?php $_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-		endif;
-
-		switch($_GET['action'])
-		{
-		case 'edit':
-			$trans_id = (int) $_GET['trans_id'];
-			include('edit-translation-form.php');
-			break;
-
-		case 'validate':
-			$file = (string) $_GET['file'];
-			bfox_usfx_menu($file);
-			break;
-
-		default:
-			include('manage-translations.php');
-			break;
-		}
-	}
-
-	/**
-	 * Sets the global translation to the default translation ID
-	 *
-	 */
-	public static function set_global_translations()
-	{
-		global $bfox_trans;
-		$bfox_trans = new Translation();
-	}
 }
-
-add_action('init', 'BfoxTransInstaller::init');
 
 ?>

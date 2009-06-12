@@ -387,7 +387,7 @@ class BibleSearch {
 		$msg = "Dropped and recreated the index table.<br/>";
 
 		// Loop through each enabled bible translation and refresh their index data
-		$translations = BfoxTransInstaller::get_translations();
+		$translations = Translation::get_enabled();
 		foreach ($translations as $translation) {
 			$msg .= "Refreshing $translation->long_name (ID: $translation->id)...<br/>";
 			self::refresh_translation_index($translation);

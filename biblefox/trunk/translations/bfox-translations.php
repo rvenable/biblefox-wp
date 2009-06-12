@@ -171,9 +171,20 @@ class Translation {
 		$this->is_enabled = TRUE;
 
 		// Set the translation table if it exists
-		$table = BfoxTransInstaller::get_translation_table_name($this->id);
+		$table = self::get_translation_table_name($this->id);
 		if (BfoxUtility::does_table_exist($table)) $this->table = $table;
 		else $this->table = '';
+	}
+
+	/**
+	 * Returns the translation table name for a given translation id
+	 *
+	 * @param integer $trans_id
+	 * @return string
+	 */
+	public static function get_translation_table_name($trans_id) {
+		// TODO3: remove this function (we save the table name as a member anyway)
+		return BFOX_BASE_TABLE_PREFIX . "trans{$trans_id}_verses";
 	}
 
 	/**
@@ -222,8 +233,44 @@ class Translation {
 		if (!is_null($formatter)) return $formatter->format_cv($chapters);
 		return $chapters;
 	}
-}
 
-require_once BFOX_TRANS_DIR . '/installer.php';
+	/**
+	 * Returns all the enabled Translations in an array
+	 *
+	 * @return array of Translations
+	 */
+	public static function get_enabled() {
+		$translations = array();
+		foreach (Translation::$meta as $id => $meta) $translations []= new Translation($id);
+		return $translations;
+	}
+
+	/**
+	 * Returns all the installed Translations in an array
+	 *
+	 * @return array of Translations
+	 */
+	public static function get_installed() {
+		return self::get_enabled();
+	}
+
+	/**
+	 * Outputs an html select input with a list of translations
+	 *
+	 * @param translation_id $select_id
+	 */
+	public static function output_select($select_id = NULL, $use_short = FALSE) {
+		// Get the list of enabled translations
+		$translations = self::get_enabled();
+
+		?>
+		<select name="<?php echo BfoxQuery::var_translation ?>">
+		<?php foreach ($translations as $translation): ?>
+			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo ($use_short) ? $translation->short_name : $translation->long_name; ?></option>
+		<?php endforeach; ?>
+		</select>
+		<?php
+	}
+}
 
 ?>

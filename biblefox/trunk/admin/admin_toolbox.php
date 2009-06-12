@@ -229,16 +229,14 @@ class BfoxMainToolbox extends BfoxToolBox
 		}
 	}
 
-	public function verse_count()
-	{
+	public function verse_count() {
 		global $wpdb;
-		$translations = BfoxTransInstaller::get_translations();
+		$translations = Translation::get_installed();
 
 		$errors = array();
 		$vs_counts = array();
 
-		foreach ($translations as $trans)
-		{
+		foreach ($translations as $trans) {
 			$vals = array('name' => $trans->short_name, 'id' => $trans->id);
 			$vals['total_count'] = $wpdb->get_var("SELECT COUNT(*) FROM $trans->table");
 			$vals['book_count'] = $wpdb->get_var("SELECT COUNT(DISTINCT book_id) FROM $trans->table");
@@ -249,11 +247,9 @@ class BfoxMainToolbox extends BfoxToolBox
 			pre($vals);
 
 			$this_ch_counts = $wpdb->get_col("SELECT COUNT(DISTINCT chapter_id) FROM $trans->table WHERE chapter_id != 0 GROUP BY book_id");
-			foreach ($this_ch_counts as $book => $ch_count)
-			{
+			foreach ($this_ch_counts as $book => $ch_count) {
 				$book++;
-				if (isset($vs_counts[$book][0]) && ($ch_count != $vs_counts[$book][0]))
-				{
+				if (isset($vs_counts[$book][0]) && ($ch_count != $vs_counts[$book][0])) {
 					$errors []= "($trans->id) Chapter Count Error: Book $book";
 					$vs_counts[$book][0] = min($ch_count, $vs_counts[$book][0]);
 				}
@@ -261,10 +257,8 @@ class BfoxMainToolbox extends BfoxToolBox
 			}
 
 			$this_vs_counts = $wpdb->get_results("SELECT book_id, chapter_id, COUNT(DISTINCT verse_id) as vs_count FROM $trans->table WHERE verse_id != 0 GROUP BY book_id, chapter_id");
-			foreach ($this_vs_counts as $vs_count)
-			{
-				if (isset($vs_counts[$vs_count->book_id][$vs_count->chapter_id]) && ($vs_count->vs_count != $vs_counts[$vs_count->book_id][$vs_count->chapter_id]))
-				{
+			foreach ($this_vs_counts as $vs_count) {
+				if (isset($vs_counts[$vs_count->book_id][$vs_count->chapter_id]) && ($vs_count->vs_count != $vs_counts[$vs_count->book_id][$vs_count->chapter_id])) {
 					$errors []= "($trans->id) Verse Count Error: Book $vs_count->book_id, Chapter $vs_count->chapter_id";
 					$vs_counts[$vs_count->book_id][$vs_count->chapter_id] = min($vs_count->vs_count, $vs_counts[$vs_count->book_id][$vs_count->chapter_id]);
 					$max_vs_counts[$vs_count->book_id][$vs_count->chapter_id] = max($vs_count->vs_count, $vs_counts[$vs_count->book_id][$vs_count->chapter_id], $max_vs_counts[$vs_count->book_id][$vs_count->chapter_id]);
@@ -286,8 +280,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		var_export($max_vs_counts);
 		echo '</pre>';
 		$str = '';
-		foreach ($max_vs_counts as $book => $counts)
-		{
+		foreach ($max_vs_counts as $book => $counts) {
 			$chs = array();
 			foreach ($counts as $ch => $count) $chs []= "$ch => $count";
 			$str .= "$book => array(" . implode(', ', $chs) . "),\n";
