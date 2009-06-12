@@ -40,7 +40,7 @@ class BibleSearch
 
 		// Parse the search text into words
 		$this->words = str_word_count($text, 1);
-		$this->index_words = Translations::get_index_words($text);
+		$this->index_words = BfoxTransInstaller::get_index_words($text);
 	}
 
 	public function set_search_translation_id($trans_id)
@@ -88,7 +88,7 @@ class BibleSearch
 
 		$verse_ids = $wpdb->get_results("
 			SELECT SQL_CALC_FOUND_ROWS unique_id, $match as match_val
-			FROM " . Translations::index_table . "
+			FROM " . BfoxTransInstaller::index_table . "
 			WHERE $match $this->trans_where $this->ref_where
 			GROUP BY unique_id
 			ORDER BY unique_id ASC
@@ -109,7 +109,7 @@ class BibleSearch
 		global $wpdb;
 		$counts = $wpdb->get_results("
 			SELECT book_id, COUNT(DISTINCT unique_id) AS count
-			FROM " . Translations::index_table . "
+			FROM " . BfoxTransInstaller::index_table . "
 			WHERE $match $this->trans_where
 			GROUP BY book_id");
 

@@ -165,8 +165,8 @@ class BfoxMainToolbox extends BfoxToolBox
 	function create_translation_index_table()
 	{
 		global $wpdb;
-		$wpdb->query('DROP TABLE ' . Translations::index_table);
-		Translations::create_translation_index_table();
+		$wpdb->query('DROP TABLE ' . BfoxTransInstaller::index_table);
+		BfoxTransInstaller::create_translation_index_table();
 		echo "Dropped and recreated the index table. Please run refresh_all_translation_indexes().";
 	}
 
@@ -176,11 +176,11 @@ class BfoxMainToolbox extends BfoxToolBox
 	 */
 	function refresh_all_translation_indexes()
 	{
-		$translations = Translations::get_translations();
+		$translations = BfoxTransInstaller::get_translations();
 		foreach ($translations as $translation)
 		{
 			echo "Refreshing $translation->long_name (ID: $translation->id)...<br/>";
-			Translations::refresh_translation_index($translation);
+			BfoxTransInstaller::refresh_translation_index($translation);
 		}
 		echo 'Finished<br/>';
 	}
@@ -255,7 +255,7 @@ class BfoxMainToolbox extends BfoxToolBox
 	public function verse_count()
 	{
 		global $wpdb;
-		$translations = Translations::get_translations();
+		$translations = BfoxTransInstaller::get_translations();
 
 		$errors = array();
 		$vs_counts = array();

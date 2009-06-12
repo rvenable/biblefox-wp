@@ -591,7 +591,7 @@
 				// Save the verse data to the DB
 				if (!empty($this->table_name) && isset($this->vs['book']))
 				{
-					Translations::update_verse_text($this->table_name, $bible_verse, $this->vs['text']);
+					BfoxTransInstaller::update_verse_text($this->table_name, $bible_verse, $this->vs['text']);
 				}
 			}
 
@@ -767,7 +767,7 @@
 	function bfox_usfx_menu($file = 'web-usfx.xml')
 	{
 		$usfx = new BfoxUsfx();
-		$usfx->read_file(Translations::dir . '/' . $file);
+		$usfx->read_file(BfoxTransInstaller::dir . '/' . $file);
 		$all = $usfx->get_all_elements();
 
 		$schema = $usfx->get_key_value_elements('schema', TRUE);
