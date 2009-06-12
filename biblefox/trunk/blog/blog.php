@@ -47,8 +47,7 @@ class BfoxBlog {
 		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'BfoxBlog::plan_editor');
 		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'BfoxBlog::plan_editor_load');
 
-		//add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
-		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
+		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
 
 		// Flush the hidden ref tags on the post-new screen
@@ -103,6 +102,46 @@ class BfoxBlog {
 				<?php
 			}
 		}
+	}
+
+	/**
+	 * Creates the form displaying the scripture quick view
+	 *
+	 */
+	public static function quick_view_meta_box() {
+		global $post_ID;
+		$refs = BfoxPosts::get_post_refs($post_ID);
+
+		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
+			$hidden_refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
+			if ($hidden_refs->is_valid()) {
+				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::var_bible_ref . "' value='" . $hidden_refs->get_string(BibleMeta::name_short) . "'/>";
+				$refs->add_seqs($hidden_refs->get_seqs());
+			}
+		}
+		$is_valid = $refs->is_valid();
+		if ($is_valid) $ref_str = $refs->get_string();
+
+		// Create the form
+		?>
+		<?php if (empty($ref_str)): ?>
+			<p>This post currently has no bible references.</p>
+		<?php else: ?>
+			<p>This post is currently referencing: <?php echo BfoxBlog::ref_link_ajax($ref_str) ?></p>
+		<?php endif ?>
+			<p>Add more bible references by typing them into the post, or adding them to the post tags.</p>
+			<div class="hide-if-no-js">
+				<h4>Quick Scripture Viewer</h4>
+				<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
+				<input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
+				<span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
+				<br/>
+			</div>
+
+			<h4 id="bible-text-progress"><span id='bible_progress'><?php if ($is_valid) echo 'Viewing'?></span> <span id='bible_view_ref'><?php if ($is_valid) echo $refs->get_string(BibleMeta::name_short) ?></span></h4>
+			<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+			<div id="bible-text"><?php if ($is_valid) echo bfox_get_ref_content_quick($refs) ?></div>
+		<?php
 	}
 
 	public static function admin_url($page) {
@@ -237,20 +276,6 @@ function bfox_tags_to_edit($tags_to_edit)
  	return $tags_to_edit;
 }
 */
-
-function bfox_post_scripture_tag_meta_box($post)
-{
-	// TODO3: Get rid of this include
-	require_once("bfox-write.php");
-	bfox_form_edit_scripture_tags();
-}
-
-function bfox_post_scripture_quick_view_meta_box($post)
-{
-	// TODO3: Get rid of this include
-	require_once("bfox-write.php");
-	bfox_form_scripture_quick_view();
-}
 
 /**
  * Filter function for adding biblefox columns to the edit posts list
