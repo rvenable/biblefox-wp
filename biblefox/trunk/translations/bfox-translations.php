@@ -1,10 +1,12 @@
 <?php
 
+define(BFOX_TRANS_DIR, dirname(__FILE__));
+
 // TODO3: Remove BOOK COUNTS TABLE
 define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
 define('BFOX_BOOK_COUNTS_TABLE', BFOX_BASE_TABLE_PREFIX . 'book_counts');
 define('BFOX_TRANSLATION_INDEX_TABLE', BFOX_BASE_TABLE_PREFIX . 'trans_index');
-define('BFOX_TRANSLATIONS_DIR', BFOX_DATA_DIR . '/translations');
+define(BFOX_TRANSLATION_DATA_DIR, BFOX_DATA_DIR . '/translations');
 
 /*
  * FULLTEXT Indexing Workaround:
@@ -46,17 +48,6 @@ if (!defined('BFOX_FT_INDEX_PREFIX'))
  */
 if (!defined('BFOX_FT_MIN_WORD_LEN'))
 	define('BFOX_FT_MIN_WORD_LEN', 4);
-
-/*
- * Define the list of MySQL FULLTEXT stop words to ignore. Any of these words
- * will be prefixed with BFOX_FT_INDEX_PREFIX so that MySQL won't detect them
- * as stop words and they will be successfully indexed.
- *
- * This can be over-ridden in the wp-config file for different server setups.
- * Remember to rebuild the translation indexes if modifying this value.
- */
-global $bfox_ft_stopwords;
-if (empty($bfox_ft_stopwords)) include('stopwords.php');
 
 /**
  * A class for formatting verses from the translation into text for the user
@@ -271,7 +262,7 @@ class Translations
 	const translation_table = BFOX_TRANSLATIONS_TABLE;
 	const book_counts_table = BFOX_BOOK_COUNTS_TABLE;
 	const index_table = BFOX_TRANSLATION_INDEX_TABLE;
-	const dir = BFOX_TRANSLATIONS_DIR;
+	const dir = BFOX_TRANSLATION_DATA_DIR;
 
 	public static function init()
 	{
@@ -488,19 +479,25 @@ class Translations
 	 * @param string $text
 	 * @return array of strings
 	 */
-	public static function get_index_words($text)
-	{
-		global $bfox_ft_stopwords;
+	public static function get_index_words($text) {
 
-		// TODO1: Use str_word_count()
+		/*
+		 * Define the list of MySQL FULLTEXT stop words to ignore. Any of these words
+		 * will be prefixed with BFOX_FT_INDEX_PREFIX so that MySQL won't detect them
+		 * as stop words and they will be successfully indexed.
+		 *
+		 * This can be over-ridden in the wp-config file for different server setups.
+		 * Remember to rebuild the translation indexes if modifying this value.
+		 */
+		global $bfox_ft_stopwords;
+		if (empty($bfox_ft_stopwords)) include_once BFOX_TRANS_DIR . '/stopwords.php';
 
 		// Strip out HTML tags, lowercase it, and parse into words
 		$words = str_word_count(strtolower(strip_tags($text)), 1);
 
 		// Check each word to see if it is below the FULLTEXT min word length, or if it is a FULLTEXT stopword
 		// If so, we need to prefix it with some characters so that it doesn't get ignored by MySQL
-		foreach ($words as &$word)
-		{
+		foreach ($words as &$word) {
 			if ((strlen($word) < BFOX_FT_MIN_WORD_LEN) || isset($bfox_ft_stopwords[$word]))
 				$word = BFOX_FT_INDEX_PREFIX . $word;
 		}
