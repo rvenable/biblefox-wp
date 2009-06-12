@@ -330,12 +330,6 @@ class BfoxMainToolbox extends BfoxToolBox
 		foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 	}
 
-	private function random_populate($str, $junk)
-	{
-		$refs = new BibleRefs($str);
-		BfoxPosts::set_post_refs(rand(200,900), $refs, FALSE);
-	}
-
 	function random_populate_posts_table()
 	{
 		// Test the typical references
@@ -467,6 +461,9 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 */
 	public function temp() {
+		global $wpdb;
+		$posts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'post'");
+		pre($posts);
 	}
 
 }

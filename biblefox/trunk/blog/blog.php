@@ -49,7 +49,7 @@ class BfoxBlog {
 
 		//add_meta_box('bible-tag-div', __('Scripture Tags'), 'bfox_post_scripture_tag_meta_box', 'post', 'normal', 'core');
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
-		add_action('save_post', 'bfox_save_post', 10, 2);
+		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
 
 		/*
 		 * This would be the perfect way to add scripture tags for new posts, but wordpress doesn't call
@@ -76,6 +76,10 @@ class BfoxBlog {
 		$bfox_plan_editor->content();
 	}
 
+	public static function save_post($post_id = 0, $post) {
+		BfoxPosts::update_post($post, TRUE);
+	}
+
 	public static function admin_url($page) {
 		return self::$home_url . '/wp-admin/' . $page;
 	}
@@ -87,54 +91,46 @@ class BfoxBlog {
 	 * @param string $text The text to use in the link
 	 * @return string
 	 */
-	public static function admin_link($page, $text = '')
-	{
+	public static function admin_link($page, $text = '') {
 		if (empty($text)) $text = $page;
 
 		return "<a href='" . self::admin_url($page) . "'>$text</a>";
 	}
 
-	public static function ref_url($ref_str)
-	{
+	public static function ref_url($ref_str) {
 		return self::$home_url . '/?' . self::var_bible_ref . '=' . urlencode($ref_str);
 	}
 
-	public static function ref_link($ref_str, $text = '', $attrs = '')
-	{
+	public static function ref_link($ref_str, $text = '', $attrs = '') {
 		if (empty($text)) $text = $ref_str;
 
 		return "<a href='" . self::ref_url($ref_str) . "' $attrs>$text</a>";
 	}
 
-	public static function ref_link_ajax($ref_str, $text = '', $attrs = '')
-	{
+	public static function ref_link_ajax($ref_str, $text = '', $attrs = '') {
 		if (empty($text)) $text = $ref_str;
 
 		return "<a href='#bible_ref' onclick='bible_text_request(\"$ref_str\")' $attrs>$text</a>";
 	}
 
-	public static function ref_write_url($ref_str)
-	{
+	public static function ref_write_url($ref_str) {
 		return self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
 	}
 
-	public static function ref_write_link($ref_str, $text = '')
-	{
+	public static function ref_write_link($ref_str, $text = '') {
 		if (empty($text)) $text = $ref_str;
 
 		return "<a href='" . self::ref_write_url($ref_str) . "'>$text</a>";
 	}
 
-	public static function ref_edit_posts_link($ref_str, $text = '')
-	{
+	public static function ref_edit_posts_link($ref_str, $text = '') {
 		if (empty($text)) $text = $ref_str;
 		$href = self::$home_url . '/wp-admin/edit.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
 
 		return "<a href='$href'>$text</a>";
 	}
 
-	public static function reading_plan_url($plan_id, $reading_id = -1)
-	{
+	public static function reading_plan_url($plan_id, $reading_id = -1) {
 		$url = self::$home_url . '/?' . BfoxBlog::var_plan_id . '=' . $plan_id;
 		if (0 <= $reading_id) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
 		return $url;
@@ -189,58 +185,6 @@ class BfoxBlog {
 }
 
 add_action('init', array('BfoxBlog', 'init'));
-
-function bfox_save_post($post_id = 0, $post)
-{
-	if (!empty($post_id))
-	{
-		/*
-		 * Post Content Refs
-		 */
-		$content_refs = new BibleRefs;
-
-		// Get the bible references from the post content
-		BfoxRefParser::simple_html($post->post_content, $content_refs);
-
-		// Save these bible references
-		if ($content_refs->is_valid()) BfoxPosts::set_post_refs($post_id, $content_refs, BfoxPosts::ref_type_content);
-
-
-		/*
-		 * Post Tag Refs
-		 */
-		$tags_refs = new BibleRefs;
-
-		// Try to get a hidden tag from form input
-		$new_tag_refs = new BibleRefs($_POST[BfoxBlog::var_bible_ref]);
-		if ($new_tag_refs->is_valid())
-		{
-			$tags_refs->add_seqs($new_tag_refs->get_seqs());
-			$new_tag = $new_tag_refs->get_string(BibleMeta::name_short);
-		}
-
-		// Get the bible references from the post tags
-		$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
-		foreach ($tags as &$tag)
-		{
-			$refs = new BibleRefs($tag);
-			if ($refs->is_valid())
-			{
-				$tag = $refs->get_string(BibleMeta::name_short);
-				$tags_refs->add_seqs($refs->get_seqs());
-			}
-
-			if (trim($tag) == $new_tag) $new_tag = '';
-		}
-
-		if (!empty($new_tag)) $tags []= $new_tag;
-
-		// Save these bible references
-		BfoxPosts::set_post_refs($post_id, $tags_refs, BfoxPosts::ref_type_tag);
-		// If we actually found some references, then re-save the tags again to use our modified tags
-		if ($tags_refs->is_valid()) wp_set_post_tags($post_id, $tags);
-	}
-}
 
 /* This function can be used if wordpress updates get_tags_to_edit()
 function bfox_tags_to_edit($tags_to_edit)

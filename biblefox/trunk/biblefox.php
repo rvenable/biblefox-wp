@@ -83,10 +83,19 @@ class Biblefox {
 	const ref_url_blog = 'blog';
 	const ref_url_bible = 'bible';
 
+	const option_version = 'bfox_version';
+
 	private static $default_ref_url = '';
 
 	public static function init() {
 		global $current_site;
+
+		/*$old_ver = get_site_option(self::option_version);
+		if (BFOX_VERSION != $old_ver) {
+			include_once BFOX_DIR . '/blog/upgrade.php';
+			include_once BFOX_DIR . '/blog/upgrade.php';
+			update_site_option(self::option_version, BFOX_VERSION);
+		}*/
 
 		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path, !(TRUE === BFOX_NO_PRETTY_URLS));
 
