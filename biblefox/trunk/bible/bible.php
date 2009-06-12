@@ -49,17 +49,10 @@ class BfoxBible {
 		// Otherwise use the default translation
 		if (!empty($trans_str)) {
 			$translation = new Translation($trans_str);
-			$trans_str = $translation->id;
 			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
 		}
-		elseif (!empty($_COOKIE[self::cookie_translation])) {
-			$translation = new Translation($_COOKIE[self::cookie_translation]);
-			$trans_str = $translation->id;
-		}
-		else {
-			$translation = new Translation();
-			$trans_str = $translation->id;
-		}
+		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new Translation($_COOKIE[self::cookie_translation]);
+		else $translation = new Translation();
 
 		// If we are toggling is_read, then we should do it now, and redirect without the parameter
 		if (!empty($_REQUEST[BfoxQuery::var_toggle_read])) {
@@ -80,32 +73,32 @@ class BfoxBible {
 			default:
 			case BfoxQuery::page_reader:
 				require BFOX_BIBLE_DIR . '/page_reader.php';
-				$this->page = new BfoxPageReader();
+				$this->page = new BfoxPageReader($translation);
 				break;
 
 			case BfoxQuery::page_passage:
 				require BFOX_BIBLE_DIR . '/page_passage.php';
-				$this->page = new BfoxPagePassage($ref_str, $trans_str);
+				$this->page = new BfoxPagePassage($ref_str, $translation);
 				break;
 
 			case BfoxQuery::page_search:
 				require BFOX_BIBLE_DIR . '/page_search.php';
-				$this->page = new BfoxPageSearch($search_str, $ref_str, $trans_str);
+				$this->page = new BfoxPageSearch($search_str, $ref_str, $translation);
 				break;
 
 			case BfoxQuery::page_commentary:
 				require BFOX_BIBLE_DIR . '/page_commentaries.php';
-				$this->page = new BfoxPageCommentaries();
+				$this->page = new BfoxPageCommentaries($translation);
 				break;
 
 			case BfoxQuery::page_plans:
 				require BFOX_BIBLE_DIR . '/page_plans.php';
-				$this->page = new BfoxPagePlans();
+				$this->page = new BfoxPagePlans($translation);
 				break;
 
 			case BfoxQuery::page_history:
 				require BFOX_BIBLE_DIR . '/page_history.php';
-				$this->page = new BfoxPageHistory();
+				$this->page = new BfoxPageHistory($translation);
 				break;
 		}
 

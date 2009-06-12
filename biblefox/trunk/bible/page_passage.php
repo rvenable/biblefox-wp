@@ -21,7 +21,7 @@ class BfoxPagePassage extends BfoxPage {
 
 	protected $default_tab = NULL;
 
-	public function __construct($ref_str, $trans_str = '') {
+	public function __construct($ref_str, Translation $translation) {
 		$this->refs = new BibleRefs($ref_str);
 
 		// Get the last viewed
@@ -50,7 +50,7 @@ class BfoxPagePassage extends BfoxPage {
 
 		add_action('wp_head', array($this, 'wp_head'));
 
-		parent::__construct($trans_str);
+		parent::__construct($translation);
 	}
 
 	public function wp_head() {

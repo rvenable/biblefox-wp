@@ -2,8 +2,7 @@
 
 require_once BFOX_BIBLE_DIR . '/bible-search.php';
 
-class BfoxPageSearch extends BfoxPage
-{
+class BfoxPageSearch extends BfoxPage {
 	const var_page_num = 'results_page';
 
 	/**
@@ -13,9 +12,8 @@ class BfoxPageSearch extends BfoxPage
 	 */
 	protected $search;
 
-	public function __construct($search_str, $ref_str = '', $trans_str = '')
-	{
-		parent::__construct($trans_str);
+	public function __construct($search_str, $ref_str = '', Translation $translation) {
+		parent::__construct($translation);
 
 		$this->search = new BibleSearch(strip_tags($search_str), $this->translation, $_REQUEST[self::var_page_num]);
 
