@@ -12,18 +12,13 @@ class BfoxTrans {
 	public $id, $short_name, $long_name, $is_default, $is_enabled;
 	public $table;
 
-	public static $meta = array(
+	private static $meta = array(
 		'WEB' => 'World English Bible',
 		'HNV' => 'Hebrew Names Version',
 		'KJV' => 'King James Version',
 		'ASV' => 'American Standard Version'
 	);
 
-	/**
-	 * Construct an instance using an stdClass object (as returned by querying the BfoxTrans::translation_table DB table)
-	 *
-	 * @param stdClass $translation
-	 */
 	function __construct($id = '') {
 		if (empty($id)) $id = 'WEB';
 
@@ -48,6 +43,10 @@ class BfoxTrans {
 		$table = self::get_translation_table_name($this->id);
 		if (BfoxUtility::does_table_exist($table)) $this->table = $table;
 		else $this->table = '';
+	}
+
+	public static function is_valid_id($id) {
+		return isset(self::$meta[$id]);
 	}
 
 	/**
@@ -109,23 +108,37 @@ class BfoxTrans {
 	}
 
 	/**
-	 * Returns all the enabled BfoxTranss in an array
+	 * Returns all the enabled BfoxTrans in an array
 	 *
-	 * @return array of BfoxTranss
+	 * @return array of BfoxTrans
 	 */
 	public static function get_enabled() {
+		return self::get_installed();
+	}
+
+	/**
+	 * Returns all the installed BfoxTrans in an array
+	 *
+	 * @return array of BfoxTrans
+	 */
+	public static function get_installed() {
 		$translations = array();
-		foreach (BfoxTrans::$meta as $id => $meta) $translations []= new BfoxTrans($id);
+		foreach (self::$meta as $id => $meta) {
+			$trans = new BfoxTrans($id);
+			if (BfoxUtility::does_table_exist($trans->table)) $translations[$id] = $trans;
+		}
 		return $translations;
 	}
 
 	/**
-	 * Returns all the installed BfoxTranss in an array
+	 * Returns every possible BfoxTrans supported by Biblefox in an array
 	 *
-	 * @return array of BfoxTranss
+	 * @return array of BfoxTrans
 	 */
-	public static function get_installed() {
-		return self::get_enabled();
+	public static function get_possible() {
+		$translations = array();
+		foreach (self::$meta as $id => $meta) $translations []= new BfoxTrans($id);
+		return $translations;
 	}
 
 	/**

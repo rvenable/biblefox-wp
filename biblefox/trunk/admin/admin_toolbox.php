@@ -368,9 +368,9 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 */
 	public function temp() {
-		global $wpdb;
-		$posts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'post'");
-		pre($posts);
+		include BFOX_TRANS_DIR . '/installer.php';
+		$files = BfoxTransInstaller::get_translation_files();
+		pre($files);
 	}
 
 }
