@@ -9,7 +9,6 @@ define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
 define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
 
 require_once BFOX_BLOG_DIR . '/posts.php';
-require_once('bfox-blog-specific.php');
 require_once('bfox-query.php');
 require_once('bfox-widgets.php');
 require_once('bibletext.php');

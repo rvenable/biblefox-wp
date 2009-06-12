@@ -388,64 +388,6 @@ class BfoxMainToolbox extends BfoxToolBox
 		", 'Genesis 1; 3-8:2; Exodus; 1 Samuel 3-4; John 21; 1 Thessalonians 4'); // TODO3: 'ex' is not detected because it is only 2 letters
 	}
 
-	private function post_refs_to_tags($blog_id) {
-		global $wpdb;
-
-		// Get all the post info for this blog
-		$results = $wpdb->get_results($wpdb->prepare("SELECT post_id, FALSE, verse_begin, verse_end FROM " . $wpdb->bfox_bible_ref));
-		$post_refs = array();
-
-
-		foreach ($results as $result) {
-			if (!isset($post_refs[$result->post_id])) $post_refs[$result->post_id] = new BibleRefs;
-			$post_refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
-		}
-
-		foreach ($post_refs as $post_id => $new_tag_refs) {
-			if ($new_tag_refs->is_valid()) {
-				$new_tag = $new_tag_refs->get_string(BibleMeta::name_short);
-
-				// Get the bible references from the post tags
-				$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
-				//pre($tags);
-				foreach ($tags as &$tag)
-				{
-					if (trim($tag) == $new_tag) $new_tag = '';
-				}
-
-				if (!empty($new_tag)) {
-					$tags []= $new_tag;
-					echo "New tag: $post_id - $new_tag (" . implode(',', $tags) . ")<br/>";
-					wp_set_post_tags($post_id, $tags);
-				}
-				echo "Saving $post_id<br/>";
-				bfox_save_post($post_id, get_post($post_id));
-			}
-		}
-	}
-
-	public function repopulate_posts_table() {
-		global $wpdb;
-
-		/*echo 'Dropping table<br/>';
-		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPosts::table);
-		echo 'Creating table<br/>';
-		BfoxPosts::create_table();*/
-
-		$blogs = get_blog_list(0, 'all');
-
-		echo 'Populating from blogs:<br/>';
-		foreach ($blogs as $blog) {
-			$blog = (object) $blog;
-			switch_to_blog($blog->blog_id);
-			/*$wpdb->query($wpdb->prepare("INSERT INTO " . BfoxPosts::table . " (blog_id, post_id, ref_type, verse_begin, verse_end)
-			SELECT %d, post_id, FALSE, verse_begin, verse_end FROM " . $wpdb->bfox_bible_ref, $blog->blog_id));*/
-			$this->post_refs_to_tags($blog->blog_id);
-			restore_current_blog();
-			echo "Populated from blog $blog->blog_id ($blog->domain$blog->path)<br/>";
-		}
-	}
-
 	public function recreate_plans_table() {
 		/*global $wpdb;
 		echo 'Dropping tables<br/>';
