@@ -134,12 +134,4 @@ jQuery(document).ready( function() {
 	jQuery('#add-bible-ref').click(bible_ref_flush_to_text);
 	jQuery('#view-bible-ref').click(bible_text_request_new);
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
-
-	// Add any hidden bible references as tags
-	var hidden_refs = jQuery('#hidden_refs').val();
-	if (null != hidden_refs) {
-		jQuery('#newtag').val(hidden_refs);
-		jQuery('#hidden_refs').val('');
-		tag_flush_to_text();
-	}
 });

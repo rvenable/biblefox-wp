@@ -51,6 +51,9 @@ class BfoxBlog {
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'bfox_post_scripture_quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
 
+		// Flush the hidden ref tags on the post-new screen
+		add_action('admin_head-post-new.php', 'BfoxBlog::flush_tag_script');
+
 		/*
 		 * This would be the perfect way to add scripture tags for new posts, but wordpress doesn't call
 		 * this tag for new posts (see get_tags_to_edit() which bails out on post_id of 0)
@@ -78,6 +81,28 @@ class BfoxBlog {
 
 	public static function save_post($post_id = 0, $post) {
 		BfoxPosts::update_post($post, TRUE);
+	}
+
+	/**
+	 * Output a script to flush the hidden bible ref to the tags
+	 */
+	public static function flush_tag_script() {
+		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
+			$hidden_refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
+			if ($hidden_refs->is_valid()) {
+				?>
+				<script type='text/javascript'>
+				//<![CDATA[
+				jQuery(document).ready( function() {
+					jQuery('#newtag').val('<?php echo $hidden_refs->get_string(BibleMeta::name_short) ?>');
+					jQuery('#bfox_hidden_refs').val('');
+					tag_flush_to_text();
+				});
+				//]]>
+				</script>
+				<?php
+			}
+		}
 	}
 
 	public static function admin_url($page) {

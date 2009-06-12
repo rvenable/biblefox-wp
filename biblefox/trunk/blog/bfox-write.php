@@ -46,17 +46,14 @@ For instance, if this post is about Genesis 1, add Genesis 1 as a scripture tag.
 	 * Function for creating the form displaying the scripture quick view
 	 *
 	 */
-	function bfox_form_scripture_quick_view()
-	{
+	function bfox_form_scripture_quick_view() {
 		global $post_ID;
 		$refs = BfoxPosts::get_post_refs($post_ID);
 
-		if (!empty($_REQUEST[BfoxBlog::var_bible_ref]))
-		{
+		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
 			$hidden_refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
-			if ($hidden_refs->is_valid())
-			{
-				echo "<input id='hidden_refs' type='hidden' name='" . BfoxBlog::var_bible_ref . "' value='" . $hidden_refs->get_string(BibleMeta::name_short) . "'/>";
+			if ($hidden_refs->is_valid()) {
+				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::var_bible_ref . "' value='" . $hidden_refs->get_string(BibleMeta::name_short) . "'/>";
 				$refs->add_seqs($hidden_refs->get_seqs());
 			}
 		}
