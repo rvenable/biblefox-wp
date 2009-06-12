@@ -71,11 +71,6 @@ class BfoxBible {
 		switch ($page_name) {
 
 			default:
-			case BfoxQuery::page_reader:
-				require BFOX_BIBLE_DIR . '/page_reader.php';
-				$this->page = new BfoxPageReader($translation);
-				break;
-
 			case BfoxQuery::page_passage:
 				require BFOX_BIBLE_DIR . '/page_passage.php';
 				$this->page = new BfoxPagePassage($ref_str, $translation);
@@ -88,22 +83,19 @@ class BfoxBible {
 
 			case BfoxQuery::page_commentary:
 				require BFOX_BIBLE_DIR . '/page_commentaries.php';
-				$this->page = new BfoxPageCommentaries($translation);
+				$this->page = new BfoxPageCommentaries();
 				break;
 
 			case BfoxQuery::page_plans:
 				require BFOX_BIBLE_DIR . '/page_plans.php';
-				$this->page = new BfoxPagePlans($translation);
+				$this->page = new BfoxPagePlans();
 				break;
 
 			case BfoxQuery::page_history:
 				require BFOX_BIBLE_DIR . '/page_history.php';
-				$this->page = new BfoxPageHistory($translation);
+				$this->page = new BfoxPageHistory();
 				break;
 		}
-
-		// TODO3: page_load might as well be called by the page constructor
-		$this->page->page_load();
 
 		add_filter('wp_title', array(&$this, 'wp_title'), 10, 3);
 	}

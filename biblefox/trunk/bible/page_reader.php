@@ -18,9 +18,7 @@ class BfoxPageReader extends BfoxPage {
 	private $reading_id = BfoxReadingPlan::reading_id_invalid;
 	private $page_num = 0;
 
-	public function __construct() {
-		parent::__construct();
-
+	public function page_load() {
 		$this->plans = BfoxRefContent::get_plans();
 
 		if (!empty($_REQUEST[self::var_plan_id])) $this->plan_id = $_REQUEST[self::var_plan_id];
@@ -32,16 +30,6 @@ class BfoxPageReader extends BfoxPage {
 		$url = add_query_arg(array(self::var_query => $this->query, self::var_plan_id => $plan_id, self::var_reading_id => $reading_id), BfoxQuery::page_url(BfoxQuery::page_reader)) . "#plan_{$plan_id}_$reading_id";
 		if (!empty($page_num)) $url = add_query_arg(self::var_page_num, $page_num, $url);
 		return $url;
-	}
-
-	public function page_load() {
-
-		/*if (isset($_POST[self::var_submit])) {
-			$plan = BfoxPlans::get_plan($_POST[self::var_plan_id]);
-			$plan->set_content(strip_tags(stripslashes($_POST[self::var_content])));
-			BfoxPlans::save_plan($plan);
-			wp_redirect($this->edit_plan_url($plan->id));
-		}*/
 	}
 
 	private function create_reading_row(BfoxReadingPlan $plan, $reading_id, $is_unread = TRUE) {

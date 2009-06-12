@@ -4,27 +4,20 @@
  * Base class for all pages in the bible viewer
  *
  */
-abstract class BfoxPage
-{
-	/**
-	 * The bible translation to use for displaying scripture
-	 *
-	 * @var Translation
-	 */
-	protected $translation;
+abstract class BfoxPage {
 
 	protected $display_full = TRUE;
 
 	protected $display = '';
 
-	public function __construct(Translation $translation) {
-		$this->translation = $translation;
-
+	public function __construct() {
 		BfoxUtility::enqueue_script('bfox_bible');
 		BfoxUtility::enqueue_style('bfox_bible');
 
 		$this->display = $_REQUEST[BfoxQuery::var_display];
 		if (BfoxQuery::display_ajax == $this->display) $this->display_full = FALSE;
+
+		$this->page_load();
 	}
 
 	public function page_load() {}

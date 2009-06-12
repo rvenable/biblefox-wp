@@ -1,15 +1,14 @@
 <?php
 
-class BfoxPageCommentaries extends BfoxPage
-{
+class BfoxPageCommentaries extends BfoxPage {
+
 	/**
 	 * Called before loading the manage commentaries admin page
 	 *
 	 * Performs all the user's management edit requests before loading the page
 	 *
 	 */
-	public function page_load()
-	{
+	public function __construct() {
 		$action = $_POST['action'];
 		if ( isset($_POST['deleteit']) && isset($_POST['delete']) )
 			$action = 'bulk-delete';
@@ -28,10 +27,8 @@ class BfoxPageCommentaries extends BfoxPage
 		elseif (!empty($_POST['update'])) wp_redirect(BfoxQuery::page_url(BfoxQuery::page_commentary));
 	}
 
-	protected function message()
-	{
-		if (!empty($_GET[BfoxQuery::var_message]))
-		{
+	protected function message() {
+		if (!empty($_GET[BfoxQuery::var_message])) {
 			?>
 			<div id="page_message"><?php echo strip_tags(stripslashes(urldecode($_GET[BfoxQuery::var_message])), '<br/>') ?></div>
 			<?php
@@ -43,8 +40,7 @@ class BfoxPageCommentaries extends BfoxPage
 	 * Outputs the commentary management admin page
 	 *
 	 */
-	public function content()
-	{
+	public function content() {
 		$this->message();
 
 		$bfox_page_url = BfoxQuery::page_url(BfoxQuery::page_commentary);

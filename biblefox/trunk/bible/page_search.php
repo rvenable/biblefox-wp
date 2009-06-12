@@ -13,7 +13,9 @@ class BfoxPageSearch extends BfoxPage {
 	protected $search;
 
 	public function __construct($search_str, $ref_str = '', Translation $translation) {
-		parent::__construct($translation);
+		parent::__construct();
+
+		$this->translation = $translation;
 
 		$this->search = new BibleSearch(strip_tags($search_str), $this->translation, $_REQUEST[self::var_page_num]);
 

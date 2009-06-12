@@ -14,6 +14,13 @@ class BfoxPagePassage extends BfoxPage {
 	 */
 	protected $refs;
 
+	/**
+	 * The bible translation to use for displaying scripture
+	 *
+	 * @var Translation
+	 */
+	protected $translation;
+
 	protected $history;
 	protected $history_id = '';
 
@@ -23,6 +30,7 @@ class BfoxPagePassage extends BfoxPage {
 
 	public function __construct($ref_str, Translation $translation) {
 		$this->refs = new BibleRefs($ref_str);
+		$this->translation = $translation;
 
 		// Get the last viewed
 		$this->history = BfoxHistory::get_history(1);
