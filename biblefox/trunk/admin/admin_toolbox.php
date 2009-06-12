@@ -158,11 +158,6 @@ class BfoxMainToolbox extends BfoxToolBox
 			bfox_user_add_defaults($user_id);
 	}
 
-	function create_translation_table()
-	{
-		Translations::create_tables();
-	}
-
 	/**
 	 * Create the translation index table
 	 *

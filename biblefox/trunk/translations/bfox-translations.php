@@ -185,17 +185,37 @@ class Translation {
 	public $id, $short_name, $long_name, $is_default, $is_enabled;
 	public $table;
 
+	public static $meta = array(
+		'WEB' => 'World English Bible',
+		'HNV' => 'Hebrew Names Version',
+		'KJV' => 'King James Version',
+		'ASV' => 'American Standard Version'
+	);
+
 	/**
 	 * Construct an instance using an stdClass object (as returned by querying the Translation::translation_table DB table)
 	 *
 	 * @param stdClass $translation
 	 */
-	function __construct(stdClass $translation) {
-		$this->id = (int) $translation->id;
-		$this->short_name = (string) $translation->short_name;
-		$this->long_name = (string) $translation->long_name;
-		$this->is_default = (bool) $translation->is_default;
-		$this->is_enabled = (bool) $translation->is_enabled;
+	function __construct($id = '') {
+		if (empty($id)) $id = 'WEB';
+
+		// TODO3: Get rid of this num_id hack
+		$hack = array(12 => 'WEB', 31 => 'HNV', 32 => 'ASV', 33 => 'KJV');
+		if ((int) $id) {
+			$num_id = $id;
+			$id = $hack[$num_id];
+		}
+		else {
+			$hack2 = array_flip($hack);
+			$num_id = $hack2[$id];
+		}
+
+		$this->id = $num_id;
+		$this->short_name = $id;
+		$this->long_name = self::$meta[$id];
+		$this->is_default = FALSE;
+		$this->is_enabled = TRUE;
 
 		// Set the translation table if it exists
 		$table = Translations::get_translation_table_name($this->id);
@@ -300,12 +320,6 @@ class Translations
 			is_enabled boolean NOT NULL default 0,
 			PRIMARY KEY  (id)
 		);
-		CREATE TABLE " . self::book_counts_table . " (
-			trans_id int,
-			book_id int,
-			chapter_id int,
-			value int
-		);
 		";
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -318,27 +332,10 @@ class Translations
 	 * @param bool $get_disabled Whether we should include disabled translations in the results
 	 * @return unknown
 	 */
-	public static function get_translations($get_disabled = FALSE)
-	{
-		global $wpdb;
-		if (!$get_disabled) $where = 'WHERE is_enabled = 1';
-		$translations = (array) $wpdb->get_results("SELECT * FROM " . self::translation_table . " $where ORDER BY short_name, long_name");
-
-		foreach ($translations as &$translation) $translation = new Translation($translation);
-
+	public static function get_translations($get_disabled = FALSE) {
+		$translations = array();
+		foreach (Translation::$meta as $id => $meta) $translations []= new Translation($id);
 		return $translations;
-	}
-
-	/**
-	 * Returns the translation data for one particular translation
-	 *
-	 * @param int $trans_id
-	 * @return Translation
-	 */
-	public static function get_translation($trans_id)
-	{
-		global $wpdb;
-		return new Translation((object) $wpdb->get_row($wpdb->prepare("SELECT * FROM " . self::translation_table . " WHERE id = %d", $trans_id)));
 	}
 
 	/**
@@ -639,28 +636,6 @@ class Translations
 	}
 
 	/**
-	 * Returns the default bible translation id
-	 *
-	 * @return unknown
-	 */
-	private static function get_default_id()
-	{
-		global $wpdb;
-		return $wpdb->get_var("SELECT id FROM " . self::translation_table . " WHERE is_default = 1 LIMIT 1");
-	}
-
-	/**
-	 * Returns the user's default bible translation id
-	 *
-	 * @return unknown
-	 */
-	private static function get_user_default_id()
-	{
-		// TODO2: User should have his own default translation
-		return self::get_default_id();
-	}
-
-	/**
 	 * Outputs an html select input with a list of translations
 	 *
 	 * @param unknown_type $select_id
@@ -791,7 +766,7 @@ class Translations
 	public static function set_global_translations()
 	{
 		global $bfox_trans;
-		$bfox_trans = self::get_translation(self::get_default_id());
+		$bfox_trans = new Translation();
 	}
 }
 

@@ -20,7 +20,7 @@ abstract class BfoxPage
 	public function __construct($trans_str = '') {
 		// TODO3: if (empty($trans)) $translation = get_from_history
 		if (empty($trans_str)) $this->translation = $GLOBALS['bfox_trans'];
-		else $this->translation = Translations::get_translation($trans_str);
+		else $this->translation = new Translation($trans_str);
 
 		BfoxUtility::enqueue_script('bfox_bible');
 		BfoxUtility::enqueue_style('bfox_bible');

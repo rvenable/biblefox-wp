@@ -42,20 +42,24 @@ class BfoxBible {
 			else list($ref_str) = $vars;
 		}
 
+
 		// Cookied Translations:
 		// If we were passed a translation, use it and save the cookie
 		// Otherwise, if we have a cookied translation, use it
 		// Otherwise use the default translation
 		if (!empty($trans_str)) {
-			$translation = Translations::get_translation($trans_str);
+			$translation = new Translation($trans_str);
 			$trans_str = $translation->id;
 			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
 		}
 		elseif (!empty($_COOKIE[self::cookie_translation])) {
-			$translation = Translations::get_translation($_COOKIE[self::cookie_translation]);
+			$translation = new Translation($_COOKIE[self::cookie_translation]);
 			$trans_str = $translation->id;
 		}
-		else $trans_str = Translations::get_default_id();
+		else {
+			$translation = new Translation();
+			$trans_str = $translation->id;
+		}
 
 		// If we are toggling is_read, then we should do it now, and redirect without the parameter
 		if (!empty($_REQUEST[BfoxQuery::var_toggle_read])) {

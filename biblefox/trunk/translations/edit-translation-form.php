@@ -10,7 +10,7 @@ if ( !empty($trans_id) ) {
 	$action = 'editedtrans';
 	$nonce_action = 'update-translation-' . $trans_id;
 
-	$trans = Translations::get_translation($trans_id);
+	$trans = new Translation($trans_id);
 
 } else {
 	$heading = __('Add Translation');
