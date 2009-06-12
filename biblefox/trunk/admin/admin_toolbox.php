@@ -158,31 +158,8 @@ class BfoxMainToolbox extends BfoxToolBox
 			bfox_user_add_defaults($user_id);
 	}
 
-	/**
-	 * Create the translation index table
-	 *
-	 */
-	function create_translation_index_table()
-	{
-		global $wpdb;
-		$wpdb->query('DROP TABLE ' . BfoxTransInstaller::index_table);
-		BfoxTransInstaller::create_translation_index_table();
-		echo "Dropped and recreated the index table. Please run refresh_all_translation_indexes().";
-	}
-
-	/**
-	 * Loop through each enabled bible translation and refresh their index data
-	 *
-	 */
-	function refresh_all_translation_indexes()
-	{
-		$translations = BfoxTransInstaller::get_translations();
-		foreach ($translations as $translation)
-		{
-			echo "Refreshing $translation->long_name (ID: $translation->id)...<br/>";
-			BfoxTransInstaller::refresh_translation_index($translation);
-		}
-		echo 'Finished<br/>';
+	public function refresh_search_index() {
+		echo BibleSearch::refresh_search_index();
 	}
 
 	/**

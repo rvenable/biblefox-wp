@@ -5,49 +5,7 @@ define(BFOX_TRANS_DIR, dirname(__FILE__));
 // TODO3: Remove BOOK COUNTS TABLE
 define('BFOX_TRANSLATIONS_TABLE', BFOX_BASE_TABLE_PREFIX . 'translations');
 define('BFOX_BOOK_COUNTS_TABLE', BFOX_BASE_TABLE_PREFIX . 'book_counts');
-define('BFOX_TRANSLATION_INDEX_TABLE', BFOX_BASE_TABLE_PREFIX . 'trans_index');
 define(BFOX_TRANSLATION_DATA_DIR, BFOX_DATA_DIR . '/translations');
-
-/*
- * FULLTEXT Indexing Workaround:
- *
- * For bible searching, this plugin uses MySQL FULLTEXT indexes. However, the FULLTEXT
- * indexer exludes words that are too short or are considered 'stop words'. To counteract
- * this, we add a prefix to those words so that they are long enough and are not stop words,
- * and therefore will be indexed.
- */
-
-/*
- * BFOX_FT_INDEX_PREFIX is added to the beginning of words which don't fit the MySQL
- * FULLTEXT indexing criteria of minimum length and matching a stopword.
- * Thus, by adding this prefix to the word, the word passes the indexing criteria,
- * and thereby can be succesfully indexed (see Translation::get_index_words()).
- *
- * BFOX_FT_INDEX_PREFIX must be long enough to increase any word to at least the minimum
- * string length. For instance, if the min length is 4 (BFOX_FT_MIN_WORD_LEN should
- * reflect this), BFOX_FT_INDEX_PREFIX could be length 3, so that even 1 letter words
- * are prefixed with 3 additional letters to reach the minimum length of 4 letters.
- *
- * The characters in BFOX_FT_INDEX_PREFIX must be unique enough so that when prefixing
- * any word, the new word will not be a MySql stop word.
- *
- * This can be over-ridden in the wp-config file for different server setups.
- * Remember to rebuild the translation indexes if modifying this value.
- */
-if (!defined('BFOX_FT_INDEX_PREFIX'))
-	define('BFOX_FT_INDEX_PREFIX', 'bfx');
-
-/*
- * Define the minimum word length for full text searches to be 4 by default.
- * Any word shorter than length BFOX_FT_MIN_WORD_LEN will be prefixed with
- * BFOX_FT_INDEX_PREFIX so that they will be long enough to be indexed by
- * MySQL's FULLTEXT search.
- *
- * This can be over-ridden in the wp-config file for different server setups.
- * Remember to rebuild the translation indexes if modifying this value.
- */
-if (!defined('BFOX_FT_MIN_WORD_LEN'))
-	define('BFOX_FT_MIN_WORD_LEN', 4);
 
 /**
  * Manages all translations
@@ -59,7 +17,6 @@ class BfoxTransInstaller
 	const min_user_level = 10;
 	const translation_table = BFOX_TRANSLATIONS_TABLE;
 	const book_counts_table = BFOX_BOOK_COUNTS_TABLE;
-	const index_table = BFOX_TRANSLATION_INDEX_TABLE;
 	const dir = BFOX_TRANSLATION_DATA_DIR;
 
 	public static function init()
@@ -173,111 +130,6 @@ class BfoxTransInstaller
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql);
-	}
-
-	/**
-	 * Create the translation index table
-	 *
-	 */
-	public static function create_translation_index_table()
-	{
-		// TODO3: This function should not be called by admin tools and be private
-
-		// Note this function creates the table with dbDelta() which apparently has some pickiness
-		// See http://codex.wordpress.org/Creating_Tables_with_Plugins#Creating_or_Updating_the_Table
-
-		// Creates a FULLTEXT index on the verse data
-		$sql = "
-		CREATE TABLE " . self::index_table . " (
-			unique_id MEDIUMINT UNSIGNED NOT NULL,
-			book_id TINYINT UNSIGNED NOT NULL,
-			trans_id SMALLINT UNSIGNED NOT NULL,
-			index_text TEXT NOT NULL,
-			FULLTEXT (index_text),
-			INDEX (unique_id)
-		);
-		";
-
-		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-		dbDelta($sql);
-	}
-
-	/**
-	 * Refresh the index data for a given translation
-	 *
-	 * @param Translation $trans
-	 * @param string $group
-	 */
-	public static function refresh_translation_index(Translation $trans, $group = 'protest')
-	{
-		// TODO3: This function should not be called by admin tools and be private
-
-		global $wpdb;
-
-		// Delete all the old index data for this translation
-		$wpdb->query($wpdb->prepare("DELETE FROM " . self::index_table . " WHERE trans_id = %d", $trans->id));
-
-		// Add the new index data, one book at a time
-		$books = range(BibleGroupPassage::get_first_book($group), BibleGroupPassage::get_last_book($group));
-		foreach ($books as $book)
-		{
-			// Get all the verses to index for this book (we don't index chapter 0 or verse 0)
-			$verses = $wpdb->get_results($wpdb->prepare("SELECT unique_id, book_id, verse FROM $trans->table WHERE book_id = %d AND chapter_id != 0 AND verse_id != 0", $book));
-
-			// If we have verses for this book, insert their index text into the index table
-			if (!empty($verses))
-			{
-				$values = array();
-				foreach ($verses as $verse)
-				{
-					$values []= $wpdb->prepare('(%d, %d, %d, %s)', $verse->unique_id, $verse->book_id, $trans->id, implode(' ', self::get_index_words($verse->verse)));
-				}
-				$wpdb->query("INSERT INTO " . self::index_table . " (unique_id, book_id, trans_id, index_text) VALUES " . implode(', ', $values));
-			}
-		}
-	}
-
-	/**
-	 * Repairs a full text index
-	 *
-	 * @param string $table_name
-	 */
-	private static function repair_index($table_name)
-	{
-		global $wpdb;
-		$wpdb->query("REPAIR TABLE $table_name QUICK");
-	}
-
-	/**
-	 * Returns the words needed for indexing the given text string
-	 *
-	 * @param string $text
-	 * @return array of strings
-	 */
-	public static function get_index_words($text) {
-
-		/*
-		 * Define the list of MySQL FULLTEXT stop words to ignore. Any of these words
-		 * will be prefixed with BFOX_FT_INDEX_PREFIX so that MySQL won't detect them
-		 * as stop words and they will be successfully indexed.
-		 *
-		 * This can be over-ridden in the wp-config file for different server setups.
-		 * Remember to rebuild the translation indexes if modifying this value.
-		 */
-		global $bfox_ft_stopwords;
-		if (empty($bfox_ft_stopwords)) include_once BFOX_TRANS_DIR . '/stopwords.php';
-
-		// Strip out HTML tags, lowercase it, and parse into words
-		$words = str_word_count(strtolower(strip_tags($text)), 1);
-
-		// Check each word to see if it is below the FULLTEXT min word length, or if it is a FULLTEXT stopword
-		// If so, we need to prefix it with some characters so that it doesn't get ignored by MySQL
-		foreach ($words as &$word) {
-			if ((strlen($word) < BFOX_FT_MIN_WORD_LEN) || isset($bfox_ft_stopwords[$word]))
-				$word = BFOX_FT_INDEX_PREFIX . $word;
-		}
-
-		return $words;
 	}
 
 	/**

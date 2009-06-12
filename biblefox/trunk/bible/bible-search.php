@@ -1,7 +1,51 @@
 <?php
 
-class BibleSearch
-{
+define(BFOX_TRANSLATION_INDEX_TABLE, BFOX_BASE_TABLE_PREFIX . 'trans_index');
+
+/*
+ * FULLTEXT Indexing Workaround:
+ *
+ * For bible searching, this plugin uses MySQL FULLTEXT indexes. However, the FULLTEXT
+ * indexer exludes words that are too short or are considered 'stop words'. To counteract
+ * this, we add a prefix to those words so that they are long enough and are not stop words,
+ * and therefore will be indexed.
+ */
+
+/*
+ * BFOX_FT_INDEX_PREFIX is added to the beginning of words which don't fit the MySQL
+ * FULLTEXT indexing criteria of minimum length and matching a stopword.
+ * Thus, by adding this prefix to the word, the word passes the indexing criteria,
+ * and thereby can be succesfully indexed (see BibleSearch::get_index_words()).
+ *
+ * BFOX_FT_INDEX_PREFIX must be long enough to increase any word to at least the minimum
+ * string length. For instance, if the min length is 4 (BFOX_FT_MIN_WORD_LEN should
+ * reflect this), BFOX_FT_INDEX_PREFIX could be length 3, so that even 1 letter words
+ * are prefixed with 3 additional letters to reach the minimum length of 4 letters.
+ *
+ * The characters in BFOX_FT_INDEX_PREFIX must be unique enough so that when prefixing
+ * any word, the new word will not be a MySql stop word.
+ *
+ * This can be over-ridden in the wp-config file for different server setups.
+ * Remember to rebuild the translation indexes if modifying this value.
+ */
+if (!defined('BFOX_FT_INDEX_PREFIX'))
+	define('BFOX_FT_INDEX_PREFIX', 'bfx');
+
+/*
+ * Define the minimum word length for full text searches to be 4 by default.
+ * Any word shorter than length BFOX_FT_MIN_WORD_LEN will be prefixed with
+ * BFOX_FT_INDEX_PREFIX so that they will be long enough to be indexed by
+ * MySQL's FULLTEXT search.
+ *
+ * This can be over-ridden in the wp-config file for different server setups.
+ * Remember to rebuild the translation indexes if modifying this value.
+ */
+if (!defined('BFOX_FT_MIN_WORD_LEN'))
+	define('BFOX_FT_MIN_WORD_LEN', 4);
+
+class BibleSearch {
+
+	const index_table = BFOX_TRANSLATION_INDEX_TABLE;
 	const results_per_page = 40;
 
 	public $text = '';
@@ -40,7 +84,7 @@ class BibleSearch
 
 		// Parse the search text into words
 		$this->words = str_word_count($text, 1);
-		$this->index_words = BfoxTransInstaller::get_index_words($text);
+		$this->index_words = self::get_index_words($text);
 	}
 
 	public function set_search_translation_id($trans_id)
@@ -88,7 +132,7 @@ class BibleSearch
 
 		$verse_ids = $wpdb->get_results("
 			SELECT SQL_CALC_FOUND_ROWS unique_id, $match as match_val
-			FROM " . BfoxTransInstaller::index_table . "
+			FROM " . self::index_table . "
 			WHERE $match $this->trans_where $this->ref_where
 			GROUP BY unique_id
 			ORDER BY unique_id ASC
@@ -109,7 +153,7 @@ class BibleSearch
 		global $wpdb;
 		$counts = $wpdb->get_results("
 			SELECT book_id, COUNT(DISTINCT unique_id) AS count
-			FROM " . BfoxTransInstaller::index_table . "
+			FROM " . self::index_table . "
 			WHERE $match $this->trans_where
 			GROUP BY book_id");
 
@@ -249,6 +293,107 @@ class BibleSearch
 		else $content = '<div class="box_inside">No verses match your search</div>';
 
 		return $content;
+	}
+
+	/*
+	 * SEARCH INDEX FUNCTIONS
+	 */
+
+	/**
+	 * Refresh the index data for a given translation
+	 *
+	 * @param Translation $trans
+	 * @param string $group
+	 */
+	private static function refresh_translation_index(Translation $trans, $group = 'protest') {
+		global $wpdb;
+
+		// Delete all the old index data for this translation
+		$wpdb->query($wpdb->prepare("DELETE FROM " . self::index_table . " WHERE trans_id = %d", $trans->id));
+
+		// Add the new index data, one book at a time
+		$books = range(BibleGroupPassage::get_first_book($group), BibleGroupPassage::get_last_book($group));
+		foreach ($books as $book) {
+			// Get all the verses to index for this book (we don't index chapter 0 or verse 0)
+			$verses = $wpdb->get_results($wpdb->prepare("SELECT unique_id, book_id, verse FROM $trans->table WHERE book_id = %d AND chapter_id != 0 AND verse_id != 0", $book));
+
+			// If we have verses for this book, insert their index text into the index table
+			if (!empty($verses)) {
+				$values = array();
+				foreach ($verses as $verse) $values []= $wpdb->prepare('(%d, %d, %d, %s)', $verse->unique_id, $verse->book_id, $trans->id, implode(' ', self::get_index_words($verse->verse)));
+				$wpdb->query("INSERT INTO " . self::index_table . " (unique_id, book_id, trans_id, index_text) VALUES " . implode(', ', $values));
+			}
+		}
+	}
+
+	/**
+	 * Repairs a full text index
+	 *
+	 * @param string $table_name
+	 */
+	private static function repair_index($table_name) {
+		global $wpdb;
+		$wpdb->query("REPAIR TABLE $table_name QUICK");
+	}
+
+	/**
+	 * Returns the words needed for indexing the given text string
+	 *
+	 * @param string $text
+	 * @return array of strings
+	 */
+	public static function get_index_words($text) {
+
+		/*
+		 * Define the list of MySQL FULLTEXT stop words to ignore. Any of these words
+		 * will be prefixed with BFOX_FT_INDEX_PREFIX so that MySQL won't detect them
+		 * as stop words and they will be successfully indexed.
+		 *
+		 * This can be over-ridden in the wp-config file for different server setups.
+		 * Remember to rebuild the translation indexes if modifying this value.
+		 */
+		global $bfox_ft_stopwords;
+		if (empty($bfox_ft_stopwords)) include_once BFOX_TRANS_DIR . '/stopwords.php';
+
+		// Strip out HTML tags, lowercase it, and parse into words
+		$words = str_word_count(strtolower(strip_tags($text)), 1);
+
+		// Check each word to see if it is below the FULLTEXT min word length, or if it is a FULLTEXT stopword
+		// If so, we need to prefix it with some characters so that it doesn't get ignored by MySQL
+		foreach ($words as &$word) {
+			if ((strlen($word) < BFOX_FT_MIN_WORD_LEN) || isset($bfox_ft_stopwords[$word]))
+				$word = BFOX_FT_INDEX_PREFIX . $word;
+		}
+
+		return $words;
+	}
+
+	/**
+	 * Create the translation index table
+	 *
+	 */
+	public static function refresh_search_index() {
+		global $wpdb;
+		$wpdb->query('DROP TABLE IF EXISTS ' . self::index_table);
+
+		BfoxUtility::create_table(self::index_table, "
+			unique_id MEDIUMINT UNSIGNED NOT NULL,
+			book_id TINYINT UNSIGNED NOT NULL,
+			trans_id SMALLINT UNSIGNED NOT NULL,
+			index_text TEXT NOT NULL,
+			FULLTEXT (index_text),
+			INDEX (unique_id)");
+
+		$msg = "Dropped and recreated the index table.<br/>";
+
+		// Loop through each enabled bible translation and refresh their index data
+		$translations = BfoxTransInstaller::get_translations();
+		foreach ($translations as $translation) {
+			$msg .= "Refreshing $translation->long_name (ID: $translation->id)...<br/>";
+			self::refresh_translation_index($translation);
+		}
+		$msg .= 'Finished<br/>';
+		return $status;
 	}
 }
 
