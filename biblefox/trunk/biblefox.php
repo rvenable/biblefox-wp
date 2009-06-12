@@ -51,7 +51,7 @@ require_once BFOX_REFS_DIR . '/ref.php';
 require_once BFOX_DIR . '/utility.php';
 require_once BFOX_DIR . '/query.php';
 
-include_once BFOX_DIR . '/translations/bfox-translations.php';
+include_once BFOX_DIR . '/translations/translations.php';
 include_once BFOX_DIR . '/admin/admin-tools.php';
 include_once BFOX_DIR . '/blog/blog.php';
 include_once BFOX_DIR . '/site/site.php';
