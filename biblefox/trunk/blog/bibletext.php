@@ -52,7 +52,8 @@
 			}
 			$nav_bar .= "<br/>$tag_link</div>";
 
-			list($verse_content, $foot_list) = BfoxBlog::get_verse_content_foot($book_refs);
+			// Disable footnotes temporarily (until there is a good way to make them not copy to the post)
+			$verse_content = BfoxBlog::get_verse_content_foot($book_refs, TRUE);
 			$content = $nav_bar . $verse_content . $nav_bar;
 			$content .= '<hr/>';
 
