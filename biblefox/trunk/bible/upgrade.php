@@ -17,6 +17,7 @@ if (FALSE === $old_ver) {
 	$msgs []= "NOTE: You still need to install the bible translations!";
 }
 
-wp_mail(get_site_option('admin_email'), "BfoxBible Upgrade to " . BFOX_VERSION, implode("\n", $msgs));
+global $current_site;
+wp_mail(get_site_option('admin_email'), "BfoxBible Upgrade to " . BFOX_VERSION . " on $current_site->domain$current_site->path", implode("\n", $msgs));
 
 ?>

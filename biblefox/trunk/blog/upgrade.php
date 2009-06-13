@@ -19,6 +19,7 @@ if (FALSE === $old_ver) {
 }
 
 // TODO3: get_site_option() is a WPMU-only function
-wp_mail(get_site_option('admin_email'), "BfoxBlog Upgrade to " . BFOX_VERSION, implode("\n", $msgs));
+global $current_site;
+wp_mail(get_site_option('admin_email'), "BfoxBlog Upgrade to " . BFOX_VERSION . " on $current_site->domain$current_site->path", implode("\n", $msgs));
 
 ?>
