@@ -13,24 +13,47 @@ class BfoxTransInstaller {
 
 		// If this is a full refresh, then start by dropping all the possible translation tables
 		if ($refresh) {
-			$possible = BfoxTrans::get_possible();
-			$sql = array();
-			foreach ($possible as $tran) $sql []= "DROP TABLE IF EXISTS $trans->table";
-			$wpdb->query(implode('; ', $sql));
-			$msgs []= 'Refresh: Dropped all translation tables';
+			$installed = BfoxTrans::get_installed();
+			$msgs []= 'Refresh: Dropping all installed translation tables';
+			foreach ($installed as $trans) {
+				$wpdb->query("DROP TABLE IF EXISTS $trans->table");
+				$msgs []= "Dropped $trans->table";
+			}
 		}
 
-		$files = self::get_translation_files();
+		// Get the translation files
+		$files = array();
+		$trans_ids = BfoxTrans::get_ids_by_short_name();
+		$translations_dir = opendir(self::dir);
+		if ($translations_dir) {
+			while (($file_name = readdir($translations_dir)) !== false) {
+				if (substr($file_name, -9) == '-usfx.xml') {
+					$trans_name = strtoupper(substr($file_name, 0, -9));
+					if (isset($trans_ids[$trans_name])) {
+						$files[$trans_ids[$trans_name]] = $file_name;
+						$msgs []= "Found translations file: $file_name";
+					}
+				}
+			}
+		}
+		@closedir($translations_dir);
+
 		$installed = BfoxTrans::get_installed();
+		$done_installing = FALSE;
 
 		// Loop through all the translation files we have, and if not installed, install them
 		foreach ($files as $id => $file) if (!isset($installed[$id])) {
-			$trans = new BfoxTrans($id);
-			self::create_translation_table($trans->table);
-			self::load_usfx($trans, $file);
-			$msgs []= "Installed Translation: $trans->id ($trans->long_name) from $file";
-			$installed[$id] = $trans;
+			if (!$done_installing) {
+				$trans = new BfoxTrans($id);
+				self::create_translation_table($trans);
+				self::load_usfx($trans, $file);
+				$msgs []= "Installed: $file ($trans->short_name (ID: $trans->id) - $trans->long_name)";
+				$installed[$id] = $trans;
+				$done_installing = TRUE;
+			}
+			else $msgs []= "NOTE: Still need to install: $file";
 		}
+		else $msgs []= "Skipped: $file (already installed)";
 
 		// Enable all the installed translations
 		BfoxTrans::set_enabled($installed);
@@ -39,38 +62,16 @@ class BfoxTransInstaller {
 	}
 
 	/**
-	 * Returns an array of file names for the translations files in the translation directory
-	 *
-	 * @return array
-	 */
-	public static function get_translation_files() {
-		$files = array();
-
-		$translations_dir = opendir(self::dir);
-		if ($translations_dir) {
-			while (($file_name = readdir($translations_dir)) !== false) {
-				if (substr($file_name, -9) == '-usfx.xml') {
-					$trans_id = strtoupper(substr($file_name, 0, -9));
-					if (BfoxTrans::is_valid_id($trans_id)) $files [$trans_id] = $file_name;
-				}
-			}
-		}
-		@closedir($translations_dir);
-
-		return $files;
-	}
-
-	/**
 	 * Creates the verse data table
 	 *
 	 */
 	private static function create_translation_table(BfoxTrans $trans) {
 		BfoxUtility::create_table($trans->table, "
-			unique_id int unsigned NOT NULL,
-			book_id int unsigned NOT NULL,
-			chapter_id int unsigned NOT NULL,
-			verse_id int unsigned NOT NULL,
-			verse text NOT NULL,
+			unique_id MEDIUMINT UNSIGNED NOT NULL,
+			book_id TINYINT UNSIGNED NOT NULL,
+			chapter_id TINYINT UNSIGNED NOT NULL,
+			verse_id TINYINT UNSIGNED NOT NULL,
+			verse TEXT NOT NULL,
 			PRIMARY KEY  (unique_id)");
 	}
 

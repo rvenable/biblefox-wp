@@ -671,7 +671,7 @@
 	{
 		function __construct()
 		{
-			parent::__construct(BFOX_DIR . '/usfx-2005-09-08.xsd.xml');
+			parent::__construct(BFOX_TRANS_DIR . '/usfx-2005-09-08.xsd.xml');
 
 			$this->set_bcv('book', 'c', 'v');
 			$this->set_element_cbs('p', array($this, 'open_paragraph'));

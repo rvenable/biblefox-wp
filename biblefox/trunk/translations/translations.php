@@ -9,57 +9,41 @@ require_once BFOX_TRANS_DIR . '/formatter.php';
  *
  */
 class BfoxTrans {
-	public $id, $short_name, $long_name, $is_default, $is_enabled;
-	public $table;
+	public $id, $short_name, $long_name, $table, $installed;
 
+	const default_id = 1;
 	const option_enabled = 'bfox_enabled_trans';
 
 	private static $meta = array(
-		'WEB' => 'World English Bible',
-		'HNV' => 'Hebrew Names Version',
-		'KJV' => 'King James Version',
-		'ASV' => 'American Standard Version'
+		1 => array('WEB', 'World English Bible'),
+		2 => array('HNV', 'Hebrew Names Version'),
+		3 => array('KJV', 'King James Version'),
+		4 => array('ASV', 'American Standard Version')
 	);
 
-	function __construct($id = '') {
-		if (empty($id)) $id = 'WEB';
+	/**
+	 * Constructor
+	 *
+	 * @param $id
+	 * @param $quick When true, the SQL check for the table is not performed
+	 * @return unknown_type
+	 */
+	public function __construct($id = 0, $quick = FALSE) {
+		if (empty($id) || !isset(self::$meta[$id])) $id = self::default_id;
 
-		// TODO3: Get rid of this num_id hack
-		$hack = array(12 => 'WEB', 31 => 'HNV', 32 => 'ASV', 33 => 'KJV');
-		if ((int) $id) {
-			$num_id = $id;
-			$id = $hack[$num_id];
-		}
-		else {
-			$hack2 = array_flip($hack);
-			$num_id = $hack2[$id];
-		}
-
-		$this->id = $num_id;
-		$this->short_name = $id;
-		$this->long_name = self::$meta[$id];
-		$this->is_default = FALSE;
-		$this->is_enabled = TRUE;
+		$this->id = $id;
+		list($this->short_name, $this->long_name) = self::$meta[$id];
 
 		// Set the translation table if it exists
-		$table = self::get_translation_table_name($this->id);
-		if (BfoxUtility::does_table_exist($table)) $this->table = $table;
-		else $this->table = '';
+		$this->table = BFOX_BASE_TABLE_PREFIX . "trans_{$this->short_name}_verses";
+		if ($quick) $this->installed = FALSE;
+		else $this->installed = BfoxUtility::does_table_exist($this->table);
 	}
 
-	public static function is_valid_id($id) {
-		return isset(self::$meta[$id]);
-	}
-
-	/**
-	 * Returns the translation table name for a given translation id
-	 *
-	 * @param integer $trans_id
-	 * @return string
-	 */
-	public static function get_translation_table_name($trans_id) {
-		// TODO3: remove this function (we save the table name as a member anyway)
-		return BFOX_BASE_TABLE_PREFIX . "trans{$trans_id}_verses";
+	public static function get_ids_by_short_name() {
+		$arr = array();
+		foreach (self::$meta as $id => $meta) $arr[$meta[0]] = $id;
+		return $arr;
 	}
 
 	/**
@@ -72,7 +56,7 @@ class BfoxTrans {
 		$verses = array();
 
 		// We can only grab verses if the verse data exists
-		if (!empty($this->table)) {
+		if ($this->installed) {
 			global $wpdb;
 			$verses = $wpdb->get_results("SELECT unique_id, book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
 		}
@@ -94,7 +78,7 @@ class BfoxTrans {
 		$chapters = array();
 
 		// We can only grab verses if the verse data exists
-		if (!empty($this->table)) {
+		if ($this->installed) {
 			global $wpdb;
 			$verses = (array) $wpdb->get_results($wpdb->prepare("
 				SELECT unique_id, chapter_id, verse_id, verse, ($visible) as visible
@@ -114,14 +98,24 @@ class BfoxTrans {
 	 *
 	 * @return array of BfoxTrans
 	 */
-	public static function get_enabled() {
+	public static function get_enabled($quick = TRUE) {
 		$translations = array();
-		foreach ((array) get_site_option(self::option_enabled) as $id) $translations[$id] = new BfoxTrans($id);
+		$update = FALSE;
+
+		foreach ((array) get_site_option(self::option_enabled) as $id) {
+			$trans = new BfoxTrans($id, $quick);
+			if ($quick || $trans->installed) $translations[$id] = $trans;
+			else $update = TRUE;
+		}
+		if ($update) self::set_enabled($translations);
+
 		return $translations;
 	}
 
 	public static function set_enabled($translations) {
-		update_site_option(self::option_enabled, array_keys($translations));
+		$ids = array_keys($translations);
+		sort($ids);
+		update_site_option(self::option_enabled, $ids);
 	}
 
 	/**
@@ -133,19 +127,8 @@ class BfoxTrans {
 		$translations = array();
 		foreach (self::$meta as $id => $meta) {
 			$trans = new BfoxTrans($id);
-			if (BfoxUtility::does_table_exist($trans->table)) $translations[$id] = $trans;
+			if ($trans->installed) $translations[$id] = $trans;
 		}
-		return $translations;
-	}
-
-	/**
-	 * Returns every possible BfoxTrans supported by Biblefox in an array
-	 *
-	 * @return array of BfoxTrans
-	 */
-	public static function get_possible() {
-		$translations = array();
-		foreach (self::$meta as $id => $meta) $translations[$id] = new BfoxTrans($id);
 		return $translations;
 	}
 

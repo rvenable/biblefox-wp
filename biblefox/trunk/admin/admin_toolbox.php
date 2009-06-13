@@ -158,10 +158,6 @@ class BfoxMainToolbox extends BfoxToolBox
 			bfox_user_add_defaults($user_id);
 	}
 
-	public function refresh_search_index() {
-		echo BibleSearch::refresh_search_index();
-	}
-
 	/**
 	 * Run this to check if there are any synonyms that need to have their ignore words removed
 	 *
@@ -363,12 +359,21 @@ class BfoxMainToolbox extends BfoxToolBox
 		BfoxPlans::create_tables();
 	}
 
+	public function translation_install() {
+		include BFOX_TRANS_DIR . '/installer.php';
+		$msgs = BfoxTransInstaller::run();
+		echo implode("<br/>", $msgs);
+	}
+
+	public function refresh_search_index() {
+		echo BibleSearch::refresh_search_index();
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *
 	 */
 	public function temp() {
-		BfoxTrans::set_enabled(BfoxTrans::get_installed());
 	}
 
 }
