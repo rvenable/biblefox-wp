@@ -366,6 +366,8 @@ class BfoxMainToolbox extends BfoxToolBox
 	}
 
 	public function refresh_search_index() {
+		include BFOX_DIR . '/bible/bible.php';
+		include BFOX_BIBLE_DIR . '/bible-search.php';
 		echo BibleSearch::refresh_search_index();
 	}
 
