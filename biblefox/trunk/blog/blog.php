@@ -2,12 +2,6 @@
 
 define(BFOX_BLOG_DIR, dirname(__FILE__));
 
-define(BFOX_MANAGE_PLAN_SUBPAGE, 'bfox-manage-plan');
-
-// User Levels
-define('BFOX_USER_LEVEL_MANAGE_PLANS', 7);
-define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
-
 require_once BFOX_BLOG_DIR . '/posts.php';
 require_once('bfox-query.php');
 require_once('bfox-widgets.php');
@@ -23,6 +17,14 @@ class BfoxBlog {
 	const var_reading_id = 'bfox_reading_id';
 
 	const option_reading_plans = 'bfox_reading_plans';
+
+	const page_manage_plan = 'bfox-manage-plan';
+	const page_bible_settings = 'bfox-bible-settings';
+
+	const user_level_bible_settings = 7;
+	const user_level_plans = 7;
+
+	const settings_section_bible = 'bfox_bible_settings';
 
 	/**
 	 * Stores the home URL for this blog
@@ -42,9 +44,14 @@ class BfoxBlog {
 	}
 
 	public static function add_menu() {
+
+		// Bible Settings
+		//add_settings_section(self::settings_section_bible, 'Bible Settings', 'BfoxBlog::bible_settings', 'reading');
+		//add_settings_field('bfox_bible_translations', 'Enable Bible Translations', 'BfoxBlog::bible_setting_translations', 'reading', self::settings_section_bible);
+
 		// Add the reading plan page to the Post menu along with the corresponding load action
-		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', BFOX_USER_LEVEL_MANAGE_PLANS, BFOX_MANAGE_PLAN_SUBPAGE, 'BfoxBlog::plan_editor');
-		add_action('load-' . get_plugin_page_hookname(BFOX_MANAGE_PLAN_SUBPAGE, 'post-new.php'), 'BfoxBlog::plan_editor_load');
+		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', self::user_level_plans, self::page_manage_plan, 'BfoxBlog::plan_editor');
+		add_action('load-' . get_plugin_page_hookname(self::page_manage_plan, 'post-new.php'), 'BfoxBlog::plan_editor_load');
 
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
@@ -64,11 +71,26 @@ class BfoxBlog {
 		BfoxUtility::enqueue_script('bfox_admin', 'blog/admin.js', array('sack'));
 	}
 
+	/*public static function bible_settings() {
+	}
+
+	public static function bible_setting_translations() {
+		$installed = BfoxTrans::get_installed();
+		$enabled = BfoxTrans::get_enabled();
+
+		foreach ($installed as $trans) {
+			if (isset($enabled[$trans->short_name])) $checked = ' checked="checked"';
+			else $checked = '';
+			$id = "bfox_trans_$trans->id";
+			echo "<input type='checkbox'$checked name='bfox_enable_translations' id='$id' value='$trans->id' /> <label for='$id'>$trans->long_name</label><br/>";
+		}
+	}*/
+
 	public static function plan_editor_load() {
 		global $blog_id, $bfox_plan_editor;
 
 		require_once BFOX_PLANS_DIR . '/edit.php';
-		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, BfoxBlog::admin_url('admin.php?page=' . BFOX_MANAGE_PLAN_SUBPAGE));
+		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, BfoxBlog::admin_url('admin.php?page=' . self::page_manage_plan));
 		$bfox_plan_editor->page_load();
 	}
 

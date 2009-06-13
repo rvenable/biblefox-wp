@@ -137,7 +137,7 @@ class BfoxTrans {
 	 */
 	public static function get_possible() {
 		$translations = array();
-		foreach (self::$meta as $id => $meta) $translations []= new BfoxTrans($id);
+		foreach (self::$meta as $id => $meta) $translations[$id] = new BfoxTrans($id);
 		return $translations;
 	}
 

@@ -99,25 +99,6 @@ class BiblefoxSite {
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
 		register_sidebar_widget('Bible Pages', array('BiblefoxSite', 'widget_bible_pages'));
-		add_action('admin_menu', 'BiblefoxSite::add_admin_menu');
-	}
-
-	public static function add_admin_menu() {
-		// These menu pages are only for the site admin
-		if (is_site_admin()) {
-			// Add the translation page to the WPMU admin menu along with the corresponding load action
-			add_submenu_page('wpmu-admin.php', 'Manage Translations', 'Translations', self::manage_trans_min_user_level, self::manage_trans_page, 'BiblefoxSite::manage_trans');
-			add_action('load-' . get_plugin_page_hookname(self::manage_trans_page, 'wpmu-admin.php'), 'BiblefoxSite::manage_trans_load');
-		}
-	}
-
-	public static function manage_trans_load() {
-		include_once BFOX_SITE_DIR . '/manage-translations-load.php';
-		BfoxManageTranslations::manage_page_load();
-	}
-
-	public static function manage_trans() {
-		BfoxManageTranslations::manage_page();
 	}
 }
 add_action('init', 'BiblefoxSite::init');

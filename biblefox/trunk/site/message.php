@@ -1,6 +1,7 @@
 <?php
 
-	define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
+define('BFOX_USER_LEVEL_MANAGE_USERS', 'edit_users');
+define('BFOX_COL_TYPE_ID', 'BIGINT(20) UNSIGNED');
 
 	class BfoxMessage
 	{
