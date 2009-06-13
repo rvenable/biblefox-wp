@@ -39,7 +39,7 @@ class BfoxQuery {
 		if ($use_pretty_urls) {
 			$base = trim($base, '/');
 			self::$url .= $base . '/';
-			add_rewrite_rule("$base(\/.*)$", 'index.php?' . self::var_pretty_query . '=$matches[1]');
+			add_rewrite_rule("$base\/?(.*)$", 'index.php?' . self::var_pretty_query . '=/$matches[1]');
 		}
 	}
 
