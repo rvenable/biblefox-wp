@@ -1,5 +1,7 @@
 <?php
 
+require_once BFOX_DIR . '/bible/bible.php';
+
 $msgs = array();
 $old_ver = get_site_option(self::option_version);
 $blogs = get_blog_list(0, 'all');

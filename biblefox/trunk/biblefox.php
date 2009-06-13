@@ -92,8 +92,8 @@ class Biblefox {
 
 		$old_ver = get_site_option(self::option_version);
 		if (BFOX_VERSION != $old_ver) {
-			include_once BFOX_DIR . '/blog/upgrade.php';
-			include_once BFOX_DIR . '/blog/upgrade.php';
+			@include_once BFOX_DIR . '/bible/upgrade.php';
+			@include_once BFOX_DIR . '/blog/upgrade.php';
 			update_site_option(self::option_version, BFOX_VERSION);
 		}
 
