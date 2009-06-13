@@ -11,7 +11,7 @@ class BfoxVerseFormatter {
 	const trans_end_poetry = 'bible_end_poetry';
 	const trans_end_p = 'bible_end_p';
 
-	private $use_span, $c_text, $c_poetry;
+	private $use_span, $p_text, $p_poetry;
 
 	public $only_visible = FALSE;
 	public $use_verse0 = FALSE;
@@ -25,10 +25,10 @@ class BfoxVerseFormatter {
 	private $footnote_index = 0;
 	private $footnotes = array();
 
-	public function __construct($use_span = FALSE, $c_text = 'bible_text', $c_poetry = 'bible_poetry') {
+	public function __construct($use_span = FALSE, $p_text = 'bible_text', $p_poetry = 'bible_poetry') {
 		$this->use_span = $use_span;
-		$this->c_text = $c_text;
-		$this->c_poetry = $c_poetry;
+		$this->p_text = $p_text;
+		$this->p_poetry = $p_poetry;
 	}
 
 	public function use_footnotes($footnotes) {
@@ -72,16 +72,27 @@ class BfoxVerseFormatter {
 				if (!empty($trim)) {
 					if (0 == ($index % 2)) $this->add_text($part, $verse_span);
 					else {
-						if (self::trans_begin_poetry_2 == $part) $is_poetry_sub_line = TRUE;
+						if (self::trans_begin_poetry_1 == $part) $cur_p = $this->p_poetry;
+						elseif (self::trans_begin_poetry_2 == $part) {
+							$cur_p = $this->p_poetry;
+							$is_poetry_sub_line = TRUE;
+						}
 						elseif (self::trans_end_poetry == $part) {
 							if ($is_poetry_sub_line && !empty($this->p_count)) $this->add_poetry_line();
-							else $this->add_p($this->c_poetry);
+							else $this->add_p($this->p_poetry);
 							$is_poetry_sub_line = FALSE;
+							$cur_p = '';
 						}
-						elseif (self::trans_end_p == $part) $this->add_p("bible_text$first");
+						elseif (self::trans_end_p == $part) $this->add_p($this->p_text);
 					}
 				}
 			}
+		}
+
+		// Flush out any remaining text
+		if (!empty($this->cur_text)) {
+			if (empty($cur_p)) $cur_p = $this->p_text;
+			$this->add_p($cur_p);
 		}
 
 		$total_text = '';

@@ -89,7 +89,10 @@ class BfoxTrans {
 			foreach ($verses as $verse) $chapters[$verse->chapter_id] []= $verse;
 		}
 
-		if (!is_null($formatter)) return $formatter->format_cv($chapters);
+		if (!is_null($formatter)) {
+			$formatter->only_visible = TRUE;
+			return $formatter->format_cv($chapters);
+		}
 		return $chapters;
 	}
 
