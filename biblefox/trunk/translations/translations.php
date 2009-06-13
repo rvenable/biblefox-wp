@@ -12,6 +12,8 @@ class BfoxTrans {
 	public $id, $short_name, $long_name, $is_default, $is_enabled;
 	public $table;
 
+	const option_enabled = 'bfox_enabled_trans';
+
 	private static $meta = array(
 		'WEB' => 'World English Bible',
 		'HNV' => 'Hebrew Names Version',
@@ -113,7 +115,13 @@ class BfoxTrans {
 	 * @return array of BfoxTrans
 	 */
 	public static function get_enabled() {
-		return self::get_installed();
+		$translations = array();
+		foreach ((array) get_site_option(self::option_enabled) as $id) $translations[$id] = new BfoxTrans($id);
+		return $translations;
+	}
+
+	public static function set_enabled($translations) {
+		update_site_option(self::option_enabled, array_keys($translations));
 	}
 
 	/**

@@ -368,9 +368,7 @@ class BfoxMainToolbox extends BfoxToolBox
 	 *
 	 */
 	public function temp() {
-		include BFOX_TRANS_DIR . '/installer.php';
-		$files = BfoxTransInstaller::get_translation_files();
-		pre($files);
+		BfoxTrans::set_enabled(BfoxTrans::get_installed());
 	}
 
 }

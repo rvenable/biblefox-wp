@@ -29,7 +29,11 @@ class BfoxTransInstaller {
 			self::create_translation_table($trans->table);
 			self::load_usfx($trans, $file);
 			$msgs []= "Installed Translation: $trans->id ($trans->long_name) from $file";
+			$installed[$id] = $trans;
 		}
+
+		// Enable all the installed translations
+		BfoxTrans::set_enabled($installed);
 
 		return $msgs;
 	}
