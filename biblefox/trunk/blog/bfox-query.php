@@ -357,12 +357,11 @@ function bfox_the_permalink($permalink, $post)
  * @param string $content
  * @return string
  */
-function bfox_add_special_content($content)
-{
+function bfox_add_special_content($content) {
 	global $post;
 
 	// If this post have bible references, mention them at the beginning of the post
-	if (isset($post->bfox_bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bfox_bible_refs->get_string()) . '</p>' . $content;
+	//if (isset($post->bfox_bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bfox_bible_refs->get_string()) . '</p>' . $content;
 
 	// If this post has special biblefox pre content, prepend it
 	// This special content is usually something that we don't want to be modified with the standard content,
@@ -371,6 +370,11 @@ function bfox_add_special_content($content)
 	if (isset($post->bfox_pre_content)) $content = $post->bfox_pre_content . $content;
 
 	return $content;
+}
+
+function bfox_the_refs($name = '') {
+	global $post;
+	if (isset($post->bfox_bible_refs)) return Biblefox::ref_link($post->bfox_bible_refs->get_string($name));
 }
 
 function bfox_the_author($author)

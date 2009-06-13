@@ -55,7 +55,7 @@ class BfoxCboxBlogs extends BfoxCbox {
 					<?php while(!empty($post_ids) && $query->have_posts()) :?>
 						<?php $query->the_post() ?>
 						<div class="cbox_sub_sub">
-							<div class='cbox_head'><strong><?php the_title(); ?></strong> by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
+							<div class='cbox_head'><strong><?php the_title(); ?></strong> (<?php echo bfox_the_refs(BibleMeta::name_short) ?>) by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
 							<div class='cbox_body box_inside'>
 								<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
 								<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
