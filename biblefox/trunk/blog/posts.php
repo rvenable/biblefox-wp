@@ -172,8 +172,13 @@ class BfoxPosts {
 
 	public static function refresh_posts() {
 		global $wpdb;
+		$ids = array();
 		$posts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'post'");
-		foreach ($posts as $post) self::update_post($post);
+		foreach ($posts as $post) {
+			self::update_post($post);
+			$ids []= $post->ID;
+		}
+		return "Updated posts: " . implode(', ', $ids);
 	}
 }
 
