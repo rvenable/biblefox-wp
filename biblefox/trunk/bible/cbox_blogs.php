@@ -23,11 +23,12 @@ class BfoxCboxBlogs extends BfoxCbox {
 
 		$blog_ids = array();
 		$internal_coms = array();
-		foreach ($coms as $com)
-			if (!empty($com->blog_id)) {
-				$blog_ids []= $com->blog_id;
-				$internal_coms []= $com;
-			}
+		foreach ($coms as $com) if (!empty($com->blog_id)) {
+			$blog_ids []= $com->blog_id;
+			$internal_coms []= $com;
+		}
+
+		$ref_str = $refs->get_string();
 
 		// Output the posts for each commentary
 		if (!empty($blog_ids)) {
@@ -45,10 +46,13 @@ class BfoxCboxBlogs extends BfoxCbox {
 				}
 				else $post_count = 0;
 
+				if (current_user_can('edit_posts')) $add_post = BfoxBlog::ref_write_link($ref_str, 'Add post', "http://$com->blog_url");
+				else $add_post = '';
+
 				?>
 				<div class="cbox_sub">
 					<div class="cbox_head">
-						<span class="box_right"><?php echo $post_count ?> posts</span>
+						<span class="box_right"><?php echo $post_count ?> posts <?php echo $add_post ?></span>
 						<a href="http://<?php echo $com->blog_url ?>"><?php echo $com->name ?></a>
 					</div>
 					<div class='cbox_body'>

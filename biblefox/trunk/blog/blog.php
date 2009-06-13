@@ -198,14 +198,16 @@ class BfoxBlog {
 		return "<a href='#bible_ref' onclick='bible_text_request(\"$ref_str\")' $attrs>$text</a>";
 	}
 
-	public static function ref_write_url($ref_str) {
-		return self::$home_url . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
+	public static function ref_write_url($ref_str, $home_url = '') {
+		if (empty($home_url)) $home_url = self::$home_url;
+
+		return rtrim($home_url, '/') . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
 	}
 
-	public static function ref_write_link($ref_str, $text = '') {
+	public static function ref_write_link($ref_str, $text = '', $home_url = '') {
 		if (empty($text)) $text = $ref_str;
 
-		return "<a href='" . self::ref_write_url($ref_str) . "'>$text</a>";
+		return "<a href='" . self::ref_write_url($ref_str, $home_url) . "'>$text</a>";
 	}
 
 	public static function ref_edit_posts_link($ref_str, $text = '') {
