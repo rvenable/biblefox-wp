@@ -2,7 +2,6 @@
 
 define(BFOX_BIBLE_DIR, dirname(__FILE__));
 
-require_once BFOX_BIBLE_DIR . '/quicknote.php';
 require_once BFOX_BIBLE_DIR . '/commentaries.php';
 require_once BFOX_BIBLE_DIR . '/history.php';
 require_once BFOX_BIBLE_DIR . '/page.php';
