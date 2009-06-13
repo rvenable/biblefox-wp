@@ -92,6 +92,10 @@ h1, h2, h3 {
 h1 {
 	font-size: 4em;
 	}
+	
+h1 small {
+	font-size: 0.5em;
+	}
 
 #header .description {
 	font-size: 1.2em;
