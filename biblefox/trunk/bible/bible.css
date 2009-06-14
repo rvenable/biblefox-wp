@@ -70,6 +70,10 @@ body, td {
 }
 */
 
+h4 {
+	margin: 0;
+}
+
 /*
 Scripture Text
 */
@@ -430,6 +434,10 @@ Scripture Layout
 	margin: 0;
 }
 
+.ref_footer {
+	text-align: center;
+}
+
 /*
 Blog Commentaries
 */
@@ -572,9 +580,15 @@ Generic
 	font-weight: normal;
 }
 
+ul.flat_toc {
+	padding: 0.5em;
+	margin: 0;
+}
+
 ul.flat_toc li {
 	display: inline;
-	padding-right: 3px;
+	padding: 0 0.2em;
+	list-style: none;
 }
 
 /*

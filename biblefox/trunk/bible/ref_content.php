@@ -78,13 +78,14 @@ class BfoxRefContent {
 		<?php
 	}
 
-	private static function ref_seq($head = '', $body = '', $foot = '') {
+	private static function ref_seq($head = '', $body = '', $foot = '', $extra_classes = '') {
 		$content = '';
 		if (!empty($head)) $content .= "<div class='ref_seq_head'>$head</div>";
 		if (!empty($body)) $content .= "<div class='ref_seq_body'>$body</div>";
 		if (!empty($foot)) $content .= "<div class='ref_seq_foot'>$foot</div>";
 
-		return "<div class='ref_seq'>$content</div>";
+		if (!empty($extra_classes)) $extra_classes = ' ' . $extra_classes;
+		return "<div class='ref_seq$extra_classes'>$content</div>";
 	}
 
 	private static function ref_footnotes($footnotes) {
@@ -100,14 +101,10 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_footer(BibleRefs $refs, BfoxTrans $translation) {
-		?>
-		<div class="box_menu">
-			<center>
-				<?php echo self::ref_toc($refs, $translation); ?>
-			</center>
-		</div>
-		<?php
+	private static function ref_footer(BibleRefs $refs) {
+		$content = "<h4>Mark as Read</h4><p>Biblefox can keep track of all the bible passages that you read. If you finished reading this passage, mark it as read.</p>";
+		$content .= self::ref_toc($refs);
+		return self::ref_seq('', $content, '', 'ref_footer');
 	}
 
 	public static function ref_content(BibleRefs $refs, BfoxTrans $translation) {
@@ -127,7 +124,7 @@ class BfoxRefContent {
 				</div>
 				<div class="box_menu">
 					<center>
-						<?php echo self::ref_toc($refs, $translation); ?>
+						<?php echo self::ref_toc($refs); ?>
 					</center>
 				</div>
 				<?php
@@ -184,7 +181,7 @@ class BfoxRefContent {
 			<div class="clear"></div>
 		</div>
 		<?php self::next_page_bar($bcvs) ?>
-		<?php self::ref_footer($refs, $translation) ?>
+		<?php echo self::ref_footer($refs) ?>
 		<?php
 	}
 
@@ -195,6 +192,7 @@ class BfoxRefContent {
 		<div class='ref_content'>
 			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
 			<?php echo self::ref_footnotes($footnotes) ?>
+			<?php echo self::ref_footer($refs) ?>
 		</div>
 		<?php
 	}
@@ -253,22 +251,20 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_toc(BibleRefs $refs, BfoxTrans $translation) {
-		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+	private static function ref_toc(BibleRefs $refs) {
+		$content = '';
 
+		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
 		foreach ($bcvs as $book => $cvs) {
 			$book_name = BibleMeta::get_book_name($book);
 			$end_chapter = BibleMeta::end_verse_max($book);
 
-			?>
-			<?php echo $book_name ?>
-			<ul class='flat_toc'>
-			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
-				<li><a href='<?php echo BfoxQuery::passage_page_url("$book_name $ch", $translation) ?>'><?php echo $ch ?></a></li>
-			<?php endfor; ?>
-			</ul>
-			<?php
+			$content .= "<h4>$book_name - Table of Contents</h4><ul class='flat_toc'>";
+			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++) $content .= "<li><a href='" . BfoxQuery::passage_page_url("$book_name $ch") . "'>$ch</a></li>\n";
+			$content .= "</ul>";
 		}
+
+		return $content;
 	}
 
 	/**
