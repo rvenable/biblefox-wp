@@ -418,7 +418,7 @@ class BfoxPlanEdit
 
 		$unread_readings = array();
 		if ($use_history) {
-			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->start_time(), $my_sub->user_id, TRUE));
+			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->start_time(), NULL, TRUE));
 			$crossed_out = '<br/>' . __('*Note: Crossed out passages indicate that you have finished reading that passage');
 		}
 

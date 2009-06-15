@@ -2,6 +2,44 @@
 
 define(BFOX_TABLE_HISTORY, BFOX_BASE_TABLE_PREFIX . 'history');
 
+class BfoxHistoryEvent {
+
+	public $time = 0;
+	public $is_read = FALSE;
+	public $refs = NULL;
+
+	const table = BFOX_TABLE_HISTORY;
+
+	public function __construct(stdClass $db_data) {
+		$this->time = $db_data->time;
+		$this->is_read = $db_data->is_read;
+		$this->refs = new BibleRefs;
+		$this->refs->add_concat($db_data->verse_begin, $db_data->verse_end);
+	}
+
+	public function toggle_url() {
+		return add_query_arg(BfoxQuery::var_toggle_read, urlencode($this->time), BfoxQuery::page_url(BfoxQuery::page_passage));
+	}
+
+	public function toggle_link($unread_text = '', $read_text = '') {
+		if ($this->is_read) {
+			if (empty($read_text)) $text = __('Mark as unread');
+			else $text = $read_text;
+		}
+		else {
+			if (empty($unread_text)) $text = __('Mark as read');
+			else $text = $unread_text;
+		}
+		return "<a href='" . $this->toggle_url() . "'>$text</a>";
+	}
+
+	public function desc() {
+		if ($this->is_read) $intro = __('Read on');
+		else $intro = __('Viewed on');
+		return "$intro $this->time";
+	}
+}
+
 class BfoxHistory {
 
 	const table = BFOX_TABLE_HISTORY;
@@ -43,15 +81,15 @@ class BfoxHistory {
 		}
 	}
 
-	public static function get_history($limit = 0, $time = 0, $user_id = 0, $is_read = NULL) {
-		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
+	public static function get_history($limit = 0, $time = 0, BibleRefs $refs = NULL, $is_read = NULL) {
+		global $user_ID;
 
 		$history = array();
 
-		if (!empty($user_id)) {
+		if (!empty($user_ID)) {
 			global $wpdb;
 
-			$wheres = array($wpdb->prepare("user_id = %d", $user_id));
+			$wheres = array($wpdb->prepare("user_id = %d", $user_ID));
 
 			if (!empty($time)) {
 				if (is_array($time)) {
@@ -61,14 +99,11 @@ class BfoxHistory {
 				else $wheres []= $wpdb->prepare("time >= %d", $time);
 			}
 			if (!is_null($is_read)) $wheres []= $wpdb->prepare("is_read = %d", $is_read);
+			if (!is_null($refs)) $wheres []= $refs->sql_where2();
 
 			$results = $wpdb->get_results("SELECT time, is_read, GROUP_CONCAT(verse_begin) as verse_begin, GROUP_CONCAT(verse_end) as verse_end FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " GROUP BY time, is_read ORDER BY time DESC " . BfoxUtility::limit_str($limit));
 
-			foreach ($results as $result) {
-				$result->refs = new BibleRefs;
-				$result->refs->add_concat($result->verse_begin, $result->verse_end);
-				$history[$result->time] = $result;
-			}
+			foreach ($results as $result) $history[$result->time] = new BfoxHistoryEvent($result);
 		}
 
 		return $history;

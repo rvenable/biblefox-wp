@@ -76,11 +76,6 @@ class BfoxBible {
 				require BFOX_BIBLE_DIR . '/page_plans.php';
 				$this->page = new BfoxPagePlans();
 				break;
-
-			case BfoxQuery::page_history:
-				require BFOX_BIBLE_DIR . '/page_history.php';
-				$this->page = new BfoxPageHistory();
-				break;
 		}
 
 		add_filter('wp_title', array(&$this, 'wp_title'), 10, 3);

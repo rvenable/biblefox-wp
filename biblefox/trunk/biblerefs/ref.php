@@ -285,7 +285,7 @@ class RefSequence extends BfoxSequenceList {
 	 * @param string $col2
 	 * @return string
 	 */
-	public function sql_where2($col1, $col2)
+	public function sql_where2($col1 = 'verse_begin', $col2 = 'verse_end')
 	{
 		/*
 		 Equation for determining whether one bible reference overlaps another

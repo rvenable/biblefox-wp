@@ -78,12 +78,6 @@ class BfoxQuery {
 		return add_query_arg(self::var_plan_id, $plan_id, $editor_url);
 	}
 
-	public static function toggle_read_url($time, $url = '') {
-		if (empty($url)) $url = self::page_url(self::page_history);
-
-		return add_query_arg(self::var_toggle_read, urlencode($time), $url);
-	}
-
 	public static function add_display_type($type, $url) {
 		return add_query_arg(self::var_display, $type, $url);
 	}

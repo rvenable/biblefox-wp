@@ -28,7 +28,7 @@ class BfoxPosts {
 			$post_ids = $wpdb->get_col($wpdb->prepare("
 				SELECT DISTINCT post_id
 				FROM " . self::table ."
-				WHERE blog_id = %d AND " . $refs->sql_where2('verse_begin', 'verse_end'),
+				WHERE blog_id = %d AND " . $refs->sql_where2(),
 				$blog_id));
 		}
 
@@ -46,7 +46,7 @@ class BfoxPosts {
 			$results = $wpdb->get_results(
 				"SELECT DISTINCT blog_id, post_id
 				FROM " . self::table . "
-				WHERE blog_id IN (" . implode(',', $blog_ids) . ") AND " . $refs->sql_where2('verse_begin', 'verse_end'));
+				WHERE blog_id IN (" . implode(',', $blog_ids) . ") AND " . $refs->sql_where2());
 
 			foreach ((array) $results as $result) $post_ids[$result->blog_id] []= $result->post_id;
 		}

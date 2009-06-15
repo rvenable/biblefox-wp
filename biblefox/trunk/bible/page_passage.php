@@ -164,56 +164,6 @@ class BfoxPagePassage extends BfoxPage {
 		return $header . $table->content(TRUE);
 	}
 
-	private function history() {
-		$history_table = new BfoxHtmlTable("class='widefat'");
-		//$history_table->add_header_row('', 3, 'Passage', 'Time', 'Edit');
-		foreach ($this->history as $history) {
-			$ref_str = $history->refs->get_string();
-
-			if ($history->is_read) {
-				$intro = __('Read on');
-				$toggle = __('Mark as Unread');
-			}
-			else {
-				$intro = __('Viewed on');
-				$toggle = __('Mark as Read');
-			}
-
-			$row = new BfoxHtmlRow('',
-				Biblefox::ref_link($ref_str),
-				"$intro $history->time",
-				"<a href='" . BfoxQuery::toggle_read_url($history->time, BfoxQuery::page_url(BfoxQuery::page_passage)) . "'>" . $toggle . "</a>");
-
-			$history_table->add_row($row);
-		}
-
-		return __('<p>Here are the passages you have viewed recently. You can mark them as read to keep track of your reading progress.<p>') . $history_table->content();
-
-		$table = new BfoxHtmlTable("class='widefat'");
-
-		foreach ($this->history as $history) if ($plan->is_current()) {
-			foreach ($plan->readings as $reading_id => $reading) {
-				$unread = $plan->get_unread($reading);
-				$is_unread = $unread->is_valid();
-
-				// If the passage is unread or current, add it
-				if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
-					$ref_str = $plan->readings[$reading_id]->get_string();
-					$url = Biblefox::ref_url($ref_str);
-					$row = new BfoxHtmlRow('',
-						date('l, M jS', $plan->dates[$reading_id]),
-						"<a href='$url'>$ref_str</a>",
-						"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
-					$row->add_sort_val($plan->dates[$reading_id]);
-					$table->add_row($row);
-				}
-			}
-		}
-
-		return $table->content(TRUE);
-
-	}
-
 	private function ref_content() {
 		ob_start();
 		?>
@@ -230,7 +180,9 @@ class BfoxPagePassage extends BfoxPage {
 		$passage_tabs = new BfoxHtmlTabs("id='passage_tabs' class='tabs'");
 		$passage_tabs->add('passage', $this->refs->get_string(), $this->ref_content());
 		$passage_tabs->add('plans', __('Readings'), $this->readings());
-		$passage_tabs->add('history', __('History'), $this->history());
+		$passage_tabs->add('history', __('History'),
+			__('<p>Here are the passages you have viewed recently. You can mark them as read to keep track of your reading progress.<p>') .
+			BfoxRefContent::history_table($this->history));
 
 		?>
 		<?php echo $passage_tabs->content($this->default_tab) ?>

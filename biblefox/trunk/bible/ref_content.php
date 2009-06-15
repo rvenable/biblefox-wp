@@ -5,6 +5,14 @@ require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 
 class BfoxRefContent {
 
+	public static function history_table($history) {
+		$history_table = new BfoxHtmlTable("class='widefat'");
+
+		foreach ($history as $event) $history_table->add_row('', 3, Biblefox::ref_link($event->refs->get_string()), $event->desc(), $event->toggle_link());
+
+		return $history_table->content();
+	}
+
 	public static function get_plans() {
 		global $user_ID;
 
@@ -24,7 +32,7 @@ class BfoxRefContent {
 		}
 
 		if (!empty($earliest)) {
-			$history_array = BfoxHistory::get_history(0, $earliest, 0, TRUE);
+			$history_array = BfoxHistory::get_history(0, $earliest, NULL, TRUE);
 			foreach ($plans as &$plan) $plan->set_history($history_array);
 		}
 
@@ -102,8 +110,9 @@ class BfoxRefContent {
 	}
 
 	private static function ref_footer(BibleRefs $refs) {
-		$content = "<h4>Mark as Read</h4><p>Biblefox can keep track of all the bible passages that you read. If you finished reading this passage, mark it as read.</p>";
-		$content .= self::ref_toc($refs);
+		$ref_str = $refs->get_string();
+		$content = self::ref_toc($refs);
+		$content .= "<h4>Your History for $ref_str</h4>" . self::history_table(BfoxHistory::get_history($limit, 0, $refs));
 		return self::ref_seq('', $content, '', 'ref_footer');
 	}
 
