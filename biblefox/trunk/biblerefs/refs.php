@@ -265,8 +265,8 @@ class BfoxRefs extends BfoxSequenceList {
 
 		// Using the BETWEEN operator
 		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
-			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d)",
-			$seq->start, $seq->end, $seq->start, $seq->end);
+			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d) OR (%d BETWEEN $col1 AND $col2) OR (%d BETWEEN $col1 AND $col2)",
+			$seq->start, $seq->end, $seq->start, $seq->end, $seq->start, $seq->end);
 
 		return '(' . implode(' OR ', $wheres) . ')';
 	}

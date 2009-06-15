@@ -32,7 +32,7 @@
 
 *************************************************************************/
 
-define(BFOX_VERSION, '0.2.2');
+define(BFOX_VERSION, '0.3');
 
 define(BFOX_FILE, __FILE__);
 define(BFOX_DIR, dirname(__FILE__));
