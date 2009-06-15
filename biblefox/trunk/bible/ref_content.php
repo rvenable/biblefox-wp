@@ -6,11 +6,11 @@ require_once BFOX_BIBLE_DIR . '/cbox_blogs.php';
 class BfoxRefContent {
 
 	public static function history_table($history) {
-		$history_table = new BfoxHtmlTable("class='widefat'");
+		$table = new BfoxHtmlTable("class='widefat'");
 
-		foreach ($history as $event) $history_table->add_row('', 3, Biblefox::ref_link($event->refs->get_string()), $event->desc(), $event->toggle_link());
+		foreach ($history as $event) $table->add_row('', 3, Biblefox::ref_link($event->refs->get_string()), $event->desc(), $event->toggle_link());
 
-		return $history_table->content();
+		return $table->content();
 	}
 
 	public static function get_plans() {
@@ -109,11 +109,8 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_footer(BibleRefs $refs) {
-		$ref_str = $refs->get_string();
-		$content = self::ref_toc($refs);
-		$content .= "<h4>Your History for $ref_str</h4>" . self::history_table(BfoxHistory::get_history($limit, 0, $refs));
-		return self::ref_seq('', $content, '', 'ref_footer');
+	private static function ref_history(BibleRefs $refs) {
+		return self::ref_seq(__('Your History for ') . $refs->get_string(), self::history_table(BfoxHistory::get_history(10, 0, $refs)));
 	}
 
 	public static function ref_content(BibleRefs $refs, BfoxTrans $translation) {
@@ -190,7 +187,7 @@ class BfoxRefContent {
 			<div class="clear"></div>
 		</div>
 		<?php self::next_page_bar($bcvs) ?>
-		<?php echo self::ref_footer($refs) ?>
+		<?php echo self::ref_toc($refs); ?>
 		<?php
 	}
 
@@ -201,7 +198,8 @@ class BfoxRefContent {
 		<div class='ref_content'>
 			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
 			<?php echo self::ref_footnotes($footnotes) ?>
-			<?php echo self::ref_footer($refs) ?>
+			<?php echo self::ref_toc($refs); ?>
+			<?php echo self::ref_history($refs) ?>
 		</div>
 		<?php
 	}
@@ -268,9 +266,10 @@ class BfoxRefContent {
 			$book_name = BibleMeta::get_book_name($book);
 			$end_chapter = BibleMeta::end_verse_max($book);
 
-			$content .= "<h4>$book_name - Table of Contents</h4><ul class='flat_toc'>";
-			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++) $content .= "<li><a href='" . BfoxQuery::passage_page_url("$book_name $ch") . "'>$ch</a></li>\n";
-			$content .= "</ul>";
+			$book_content = "<ul class='flat_toc'>";
+			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++) $book_content .= "<li><a href='" . BfoxQuery::passage_page_url("$book_name $ch") . "'>$ch</a></li>\n";
+			$book_content .= "</ul>";
+			$content .= self::ref_seq("$book_name - Table of Contents", $book_content, '');
 		}
 
 		return $content;

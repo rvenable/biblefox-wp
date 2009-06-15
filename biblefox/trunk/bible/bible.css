@@ -434,10 +434,6 @@ Scripture Layout
 	margin: 0;
 }
 
-.ref_footer {
-	text-align: center;
-}
-
 /*
 Blog Commentaries
 */
@@ -583,6 +579,7 @@ Generic
 ul.flat_toc {
 	padding: 0.5em;
 	margin: 0;
+	text-align: center;
 }
 
 ul.flat_toc li {
