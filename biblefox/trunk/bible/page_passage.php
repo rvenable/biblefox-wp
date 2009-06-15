@@ -27,13 +27,16 @@ class BfoxPagePassage extends BfoxPage {
 	protected $default_tab = NULL;
 
 	public function __construct($ref_str, BfoxTrans $translation) {
-		$refs = new BfoxRefs($ref_str);
+		$input_refs = new BfoxRefs($ref_str);
 
 		// Get the last viewed passage
 		$history = BfoxHistory::get_history(1);
 		$last_viewed = reset($history);
 
-		if ($refs->is_valid()) {
+		if ($input_refs->is_valid()) {
+			// Limit the refs to 20 chapters
+			list($refs) = $input_refs->get_sections(20, 1);
+
 			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
 			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
 				$this->default_tab = 0;

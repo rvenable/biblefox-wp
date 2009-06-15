@@ -407,25 +407,28 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param integer $chapter_size
 	 * @return array of BfoxRefs
 	 */
-	public function get_sections($chapter_size) {
+	public function get_sections($chapter_size, $limit = 0) {
 		$sections = array(new BfoxRefs);
 		$index = 0;
 		$ch_count = 0;
 
 		$bcvs = self::get_bcvs($this->sequences);
 
-		foreach ($bcvs as $book => $cvs)
-		{
+		foreach ($bcvs as $book => $cvs) {
 			$prev_ch = 0;
-			foreach ($cvs as $cv)
-			{
+
+			foreach ($cvs as $cv) {
 				$ch_seqs = self::bcv_to_chapter_seqs($book, $cv);
-				foreach ($ch_seqs as $chapter => $seq)
-				{
+
+				foreach ($ch_seqs as $chapter => $seq) {
+
 					if ($prev_ch != $chapter) $ch_count++;
-					if ($ch_count > $chapter_size)
-					{
+					if ($ch_count > $chapter_size) {
 						$index++;
+
+						// Break out early if we've reached the limit
+						if (!empty($limit) && ($index >= $limit)) return $sections;
+
 						$ch_count = 1;
 						$sections[$index] = new BfoxRefs;
 					}

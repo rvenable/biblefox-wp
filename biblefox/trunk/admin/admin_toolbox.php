@@ -291,6 +291,15 @@ class BfoxMainToolbox extends BfoxToolBox
 		foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 	}
 
+	public function test_ref_limiting()
+	{
+		$seq = new BfoxRefs('john, acts, romans, 1 john, 2 john, 3 john');
+
+		$seqs = $seq->get_sections(3, 4);
+		pre($seqs);
+		foreach ($seqs as $sec) echo $sec->get_string() . '<br/>';
+	}
+
 	function random_populate_posts_table()
 	{
 		// Test the typical references
