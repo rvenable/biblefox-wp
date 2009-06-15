@@ -148,10 +148,11 @@ jQuery(document).ready( function() {
 		jQuery(this).siblings('.cbox_body').slideToggle('fast');
 	});
 
+	// View options
 	jQuery('input.view_option').each(function() {
 		var option = jQuery(this);
 		var name = option.attr('name');
-		var checked = ('true' === jQuery.cookie('view_option_' + name));
+		var checked = ('true' === jQuery.cookie('bfox_view_option_' + name));
 		option.attr('checked', checked);
 		bfox_view_option_set(name, checked);
 	});
@@ -159,7 +160,7 @@ jQuery(document).ready( function() {
 		var option = jQuery(this);
 		var name = option.attr('name');
 		var checked = option.attr('checked');
-		jQuery.cookie('view_option_' + name, checked);
+		jQuery.cookie('bfox_view_option_' + name, checked, {expires: 365});
 		bfox_view_option_set(name, checked);
 	});
 

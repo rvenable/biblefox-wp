@@ -11,7 +11,7 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 
 class BfoxBible {
 
-	const cookie_translation = 'trans_str';
+	const cookie_translation = 'bfox_trans_str';
 
 	private $page;
 
@@ -88,7 +88,7 @@ class BfoxBible {
 		// Otherwise use the default translation
 		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
 			$translation = new BfoxTrans($_REQUEST[BfoxQuery::var_translation]);
-			setcookie(self::cookie_translation, $translation->id, /*30 days from now: */ time() * 60 * 60 * 24 * 30);
+			setcookie(self::cookie_translation, $translation->id, /*365 days from now: */ time() + 60 * 60 * 24 * 365);
 		}
 		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new BfoxTrans($_COOKIE[self::cookie_translation]);
 		else $translation = new BfoxTrans();

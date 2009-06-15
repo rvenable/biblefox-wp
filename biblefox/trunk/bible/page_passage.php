@@ -69,11 +69,11 @@ class BfoxPagePassage extends BfoxPage {
 		jQuery(document).ready( function() {
 			jQuery('#passage_tabs').tabs({
 				<?php echo $selected ?>
-				cookie: { expires: 30, name: 'passage_tabs' }
+				cookie: { expires: 30, name: 'bfox_passage_tabs' }
 			});
 			jQuery('#tool_tabs').tabs({
 				collapsible: true,
-				cookie: { expires: 30, name: 'tool_tabs' }
+				cookie: { expires: 30, name: 'bfox_tool_tabs' }
 			});
 		});
 		//]]>
