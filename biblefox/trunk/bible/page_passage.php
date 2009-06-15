@@ -9,7 +9,7 @@ class BfoxPagePassage extends BfoxPage {
 	/**
 	 * The bible references being used
 	 *
-	 * @var BibleRefs
+	 * @var BfoxRefs
 	 */
 	protected $refs;
 
@@ -27,7 +27,7 @@ class BfoxPagePassage extends BfoxPage {
 	protected $default_tab = NULL;
 
 	public function __construct($ref_str, BfoxTrans $translation) {
-		$refs = new BibleRefs($ref_str);
+		$refs = new BfoxRefs($ref_str);
 
 		// Get the last viewed passage
 		$history = BfoxHistory::get_history(1);
@@ -102,7 +102,7 @@ class BfoxPagePassage extends BfoxPage {
 		return $table->content();
 	}
 
-	private function tools_tab(BibleRefs $refs) {
+	private function tools_tab(BfoxRefs $refs) {
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$cboxes = array();
 		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');

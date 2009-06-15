@@ -9,10 +9,10 @@ class BfoxCboxBlogs extends BfoxCbox {
 	/**
 	 * Outputs all the commentary posts for the given bible reference and user
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param integer $user_id
 	 */
-	public static function output_posts(BibleRefs $refs, $user_id = NULL) {
+	public static function output_posts(BfoxRefs $refs, $user_id = NULL) {
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 

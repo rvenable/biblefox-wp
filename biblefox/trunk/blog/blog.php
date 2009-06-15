@@ -108,7 +108,7 @@ class BfoxBlog {
 	 */
 	public static function flush_tag_script() {
 		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
-			$hidden_refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
+			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 			if ($hidden_refs->is_valid()) {
 				?>
 				<script type='text/javascript'>
@@ -134,7 +134,7 @@ class BfoxBlog {
 		$refs = BfoxPosts::get_post_refs($post_ID);
 
 		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
-			$hidden_refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
+			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 			if ($hidden_refs->is_valid()) {
 				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::var_bible_ref . "' value='" . $hidden_refs->get_string(BibleMeta::name_short) . "'/>";
 				$refs->add_seqs($hidden_refs->get_seqs());
@@ -226,18 +226,18 @@ class BfoxBlog {
 	/**
 	 * Return verse content for the given bible refs with minimum formatting
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param BfoxTrans $trans
 	 * @return string
 	 */
-	public static function get_verse_content(BibleRefs $refs) {
+	public static function get_verse_content(BfoxRefs $refs) {
 		// Get the verse data from the bible translation
 		$translation = new BfoxTrans();
 		$formatter = new BfoxVerseFormatter();
 		return $translation->get_verses($refs->sql_where(), $formatter);
 	}
 
-	public static function get_verse_content_foot(BibleRefs $refs, $delete_footnotes = FALSE) {
+	public static function get_verse_content_foot(BfoxRefs $refs, $delete_footnotes = FALSE) {
 		// Get the verse content, and filter it using the <footnote> tags as if they were [footnote] shortcodes
 		// The regex being used here should mirror the regex returned by get_shortcode_regex() and is being used similarly to do_shortcode(),
 		//  the only difference being that we only need to look for <footnote> shortcodes (and using chevrons instead of brackets)
@@ -249,11 +249,11 @@ class BfoxBlog {
 	/**
 	 * Return verse content for the given bible refs formatted for email output
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param BfoxTrans $trans
 	 * @return string
 	 */
-	public static function get_verse_content_email(BibleRefs $refs, BfoxTrans $trans = NULL) {
+	public static function get_verse_content_email(BfoxRefs $refs, BfoxTrans $trans = NULL) {
 		// Pre formatting is for when we can't use CSS (ie. in an email)
 		// We just replace the tags which would have been formatted by css with tags that don't need formatting
 		// We also need to run the shortcode function to correctly output footnotes
@@ -279,7 +279,7 @@ function bfox_tags_to_edit($tags_to_edit)
 	// If we have a bible reference passed as input, try to add it as a tag
 	if (!empty($_REQUEST[BfoxBlog::var_bible_ref]))
 	{
-		$refs = new BibleRefs($_REQUEST[BfoxBlog::var_bible_ref]);
+		$refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 		if ($refs->is_valid())
 		{
 			// Get the new tag string

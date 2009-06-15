@@ -47,7 +47,7 @@ define(BFOX_DOMAIN, 'biblefox');
 
 define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
-require_once BFOX_REFS_DIR . '/ref.php';
+require_once BFOX_REFS_DIR . '/refs.php';
 require_once BFOX_DIR . '/utility.php';
 require_once BFOX_DIR . '/query.php';
 

@@ -132,7 +132,7 @@ class BfoxBible {
 		// If there was no 'in:' keyword...
 		else {
 			// Parse out any references in the string, using level 2, no whole books, and save the leftovers
-			$refs = new BibleRefs;
+			$refs = new BfoxRefs;
 			$data = new BfoxRefParserData($refs, 2, FALSE, FALSE, TRUE);
 			BfoxRefParser::parse_string($search_str, $data);
 

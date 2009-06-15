@@ -67,9 +67,9 @@ abstract class TxtToBlog
 
 	public function __construct()
 	{
-		$this->book_refs = new BibleRefs;
-		$this->chapter_refs = new BibleRefs;
-		$this->verse_refs = new BibleRefs;
+		$this->book_refs = new BfoxRefs;
+		$this->chapter_refs = new BfoxRefs;
+		$this->verse_refs = new BfoxRefs;
 	}
 
 	public function get_post_indexing_title(BlogPost $post)
@@ -428,7 +428,7 @@ class MhccTxtToBlog extends TxtToBlog
 		$pcount = count($paragraphs);
 
 		// Create a ref string for this chapter, to compare with upcoming paragraphs
-		$chapter_ref = new BibleRefs($chapter);
+		$chapter_ref = new BfoxRefs($chapter);
 		$ch_ref_str = $chapter_ref->get_string();
 
 		// Try to parse the first paragraph as an outline
@@ -452,7 +452,7 @@ class MhccTxtToBlog extends TxtToBlog
 				{
 					list($ch, $new_key) = explode(':', substr($paragraph, 0, $substr->length), 2);
 
-					$ref = new BibleRefs($ch);
+					$ref = new BfoxRefs($ch);
 					$ref_str = $ref->get_string();
 
 					// If this reference matches the chapter's reference, this reference should be marking a section
@@ -670,7 +670,7 @@ class CalcomTxtToBlog extends TxtToBlog
 	protected function parse_section($section)
 	{
 		list ($title, $body) = self::parse_title_body($section);
-		$refs = new BibleRefs($title);
+		$refs = new BfoxRefs($title);
 
 		$posts = array();
 		if ($refs->is_valid()) $posts = $this->parse_bible_refs($refs, $title, $body);
@@ -678,7 +678,7 @@ class CalcomTxtToBlog extends TxtToBlog
 		else $this->add_post(new BlogPost($title, $body));
 	}
 
-	protected function parse_bible_refs(BibleRefs $refs, $title, $body)
+	protected function parse_bible_refs(BfoxRefs $refs, $title, $body)
 	{
 		$verses = array();
 		foreach ($body as $line)

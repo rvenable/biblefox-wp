@@ -5,7 +5,7 @@ require_once BFOX_REFS_DIR . '/verse.php';
 require_once BFOX_REFS_DIR . '/sequences.php';
 require_once BFOX_REFS_DIR . '/parser.php';
 
-class BibleRefs extends BfoxSequenceList {
+class BfoxRefs extends BfoxSequenceList {
 
 	/*
 	 * Creation and Modification Functions
@@ -15,18 +15,18 @@ class BibleRefs extends BfoxSequenceList {
 
 	public function __construct($value = NULL) {
 		if (is_string($value)) $this->add(BfoxRefParser::simple($value));
-		elseif ($value instanceof BibleRefs) $this->add_seqs($value->get_seqs());
+		elseif ($value instanceof BfoxRefs) $this->add_seqs($value->get_seqs());
 	}
 
 	/**
-	 * Returns an instance of BibleRefs for the refs_input
+	 * Returns an instance of BfoxRefs for the refs_input
 	 *
 	 * @param refs_input $refs_input
-	 * @return BibleRefs
+	 * @return BfoxRefs
 	 */
 	private static function refs_input($refs_input) {
-		if ($refs_input instanceof BibleRefs) return $refs_input;
-		else return new BibleRefs($refs_input);
+		if ($refs_input instanceof BfoxRefs) return $refs_input;
+		else return new BfoxRefs($refs_input);
 	}
 
 	/**
@@ -405,10 +405,10 @@ class BibleRefs extends BfoxSequenceList {
 	 * Divides a bible reference into smaller references of chapter size $chapter_size
 	 *
 	 * @param integer $chapter_size
-	 * @return array of BibleRefs
+	 * @return array of BfoxRefs
 	 */
 	public function get_sections($chapter_size) {
-		$sections = array(new BibleRefs);
+		$sections = array(new BfoxRefs);
 		$index = 0;
 		$ch_count = 0;
 
@@ -427,7 +427,7 @@ class BibleRefs extends BfoxSequenceList {
 					{
 						$index++;
 						$ch_count = 1;
-						$sections[$index] = new BibleRefs;
+						$sections[$index] = new BfoxRefs;
 					}
 
 					$sections[$index]->add_seq($seq);
@@ -443,7 +443,7 @@ class BibleRefs extends BfoxSequenceList {
 	}
 }
 
-class BibleGroupPassage extends BibleRefs {
+class BibleGroupPassage extends BfoxRefs {
 	private $group;
 
 	public function __construct($group = '') {

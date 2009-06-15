@@ -19,7 +19,7 @@ class BfoxPosts {
 			INDEX (verse_begin, verse_end)");
 	}
 
-	public static function get_post_ids(BibleRefs $refs) {
+	public static function get_post_ids(BfoxRefs $refs) {
 		$post_ids = array();
 
 		if ($refs->is_valid()) {
@@ -35,7 +35,7 @@ class BfoxPosts {
 		return $post_ids;
 	}
 
-	public static function get_post_ids_for_blogs(BibleRefs $refs, $blog_ids) {
+	public static function get_post_ids_for_blogs(BfoxRefs $refs, $blog_ids) {
 		$post_ids = array();
 
 		if (!empty($blog_ids)) {
@@ -54,7 +54,7 @@ class BfoxPosts {
 		return $post_ids;
 	}
 
-	private static function set_post_refs($post_id, BibleRefs $refs, $ref_type) {
+	private static function set_post_refs($post_id, BfoxRefs $refs, $ref_type) {
 		global $wpdb, $blog_id;
 
 		$wpdb->query($wpdb->prepare('DELETE FROM ' . self::table . ' WHERE (blog_id = %d) AND (post_id = %d) AND (ref_type = %d)', $blog_id, $post_id, $ref_type));
@@ -87,7 +87,7 @@ class BfoxPosts {
 				));
 
 			foreach ($results as $result) {
-				if (!isset($refs[$result->post_id])) $refs[$result->post_id] = new BibleRefs;
+				if (!isset($refs[$result->post_id])) $refs[$result->post_id] = new BfoxRefs;
 				$refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}
@@ -98,7 +98,7 @@ class BfoxPosts {
 	public static function get_post_refs($post_id) {
 		$refs = self::get_refs(array($post_id));
 		if (isset($refs[$post_id])) return $refs[$post_id];
-		else return new BibleRefs;
+		else return new BfoxRefs;
 	}
 
 	/*public static function get_refs_for_blogs($posts) {
@@ -113,7 +113,7 @@ class BfoxPosts {
 			$results = $wpdb->get_results('SELECT blog_id, post_id, ref_type, verse_begin, verse_end FROM ' . self::table . ' WHERE ' . implode(' OR ', $ids));
 
 			foreach ($results as $result) {
-				if (!isset($refs[$result->blog_id][$result->post_id][$result->ref_type])) $refs[$result->blog_id][$result->post_id][$result->ref_type] = new BibleRefs;
+				if (!isset($refs[$result->blog_id][$result->post_id][$result->ref_type])) $refs[$result->blog_id][$result->post_id][$result->ref_type] = new BfoxRefs;
 				$refs[$result->blog_id][$result->post_id][$result->ref_type]->add_seq($result->verse_begin, $result->verse_end);
 			}
 		}
@@ -127,7 +127,7 @@ class BfoxPosts {
 			/*
 			 * Post Content Refs
 			 */
-			$content_refs = new BibleRefs;
+			$content_refs = new BfoxRefs;
 
 			// Get the bible references from the post content
 			BfoxRefParser::simple_html($post->post_content, $content_refs);
@@ -138,11 +138,11 @@ class BfoxPosts {
 			/*
 			 * Post Tag Refs
 			 */
-			$tags_refs = new BibleRefs;
+			$tags_refs = new BfoxRefs;
 
 			// Try to get a hidden tag from form input
 			if ($get_input_tag) {
-				$new_tag_refs = new BibleRefs($_POST[BfoxBlog::var_bible_ref]);
+				$new_tag_refs = new BfoxRefs($_POST[BfoxBlog::var_bible_ref]);
 				if ($new_tag_refs->is_valid()) {
 					$tags_refs->add_seqs($new_tag_refs->get_seqs());
 					$new_tag = $new_tag_refs->get_string(BibleMeta::name_short);
@@ -152,7 +152,7 @@ class BfoxPosts {
 			// Get the bible references from the post tags
 			$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
 			foreach ($tags as &$tag) {
-				$refs = new BibleRefs($tag);
+				$refs = new BfoxRefs($tag);
 				if ($refs->is_valid()) {
 					$tag = $refs->get_string(BibleMeta::name_short);
 					$tags_refs->add_seqs($refs->get_seqs());

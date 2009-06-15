@@ -95,7 +95,7 @@ class TxtToBlogToolbox extends BfoxToolBox
 		self::test_whole_bible($parser->verse_refs, 'Verse Refs');
 	}
 
-	private static function test_whole_bible(BibleRefs $refs, $header = 'Refs')
+	private static function test_whole_bible(BfoxRefs $refs, $header = 'Refs')
 	{
 		$bible_start = BibleVerse::calc_unique_id(1);
 		$bible_end = BibleVerse::calc_unique_id(66, BibleVerse::max_chapter_id, BibleVerse::max_verse_id);

@@ -65,7 +65,7 @@ class BfoxRefContent {
 		<?php
 	}
 
-	private static function add_cboxes(BibleRefs $refs) {
+	private static function add_cboxes(BfoxRefs $refs) {
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$cboxes = array();
 		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
@@ -114,12 +114,12 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_history(BibleRefs $refs) {
+	private static function ref_history(BfoxRefs $refs) {
 		return self::ref_seq(__('Your History for ') . $refs->get_string(), self::history_table(BfoxHistory::get_history(10, 0, $refs)));
 	}
 
-	public static function ref_content(BibleRefs $refs, BfoxTrans $translation) {
-		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+	public static function ref_content(BfoxRefs $refs, BfoxTrans $translation) {
+		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
 		if (!empty($bcvs)) {
 			if ((1 < count($bcvs)) || (1 < count(current($bcvs)))) {
 				$footnotes = array();
@@ -172,7 +172,7 @@ class BfoxRefContent {
 		}
 	}
 
-	private static function ref_content_simple(BibleRefs $refs, BfoxTrans $translation, $bcvs) {
+	private static function ref_content_simple(BfoxRefs $refs, BfoxTrans $translation, $bcvs) {
 		$cv = reset(reset($bcvs));
 		$book = key($bcvs);
 		$ch1 = $cv->start[0];
@@ -196,12 +196,12 @@ class BfoxRefContent {
 		<?php
 	}
 
-	public static function ref_content_new(BibleRefs $refs, BfoxTrans $translation) {
+	public static function ref_content_new(BfoxRefs $refs, BfoxTrans $translation) {
 		$footnotes = array();
 
 		?>
 		<div class='ref_content'>
-			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
+			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BfoxRefs::get_bcvs($refs->get_seqs())) ?>
 			<?php echo self::ref_footnotes($footnotes) ?>
 			<?php echo self::ref_toc($refs); ?>
 			<?php echo self::ref_history($refs) ?>
@@ -209,7 +209,7 @@ class BfoxRefContent {
 		<?php
 	}
 
-	public static function ref_content_paged(BibleRefs $refs, BfoxTrans $translation, $base_url, $page_var, $page_num = 0, $chs_per_page = 2) {
+	public static function ref_content_paged(BfoxRefs $refs, BfoxTrans $translation, $base_url, $page_var, $page_num = 0, $chs_per_page = 2) {
 
 		$pages = $refs->get_sections($chs_per_page);
 
@@ -227,7 +227,7 @@ class BfoxRefContent {
 			<?php echo $prev_link ?>
 			<?php //self::toolbox() ?>
 			<div class="reference">
-				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BibleRefs::get_bcvs($refs->get_seqs())) ?>
+				<?php echo self::ref_content_complex($page_refs, $translation, $footnotes, BfoxRefs::get_bcvs($refs->get_seqs())) ?>
 				<?php echo self::ref_footnotes($footnotes) ?>
 			</div>
 			<?php self::add_cboxes($refs) ?>
@@ -237,13 +237,13 @@ class BfoxRefContent {
 		<?php
 	}
 
-	private static function ref_content_complex(BibleRefs $refs, BfoxTrans $translation, &$footnotes, $bcvs) {
+	private static function ref_content_complex(BfoxRefs $refs, BfoxTrans $translation, &$footnotes, $bcvs) {
 		$visible = $refs->sql_where();
 
 		foreach ($bcvs as $book => $cvs) {
 			$book_name = BibleMeta::get_book_name($book);
 			$book_short = BibleMeta::get_book_name($book, BibleMeta::name_short);
-			$book_str = BibleRefs::create_book_string($book, $cvs);
+			$book_str = BfoxRefs::create_book_string($book, $cvs);
 
 			unset($ch1);
 			foreach ($cvs as $cv) {
@@ -263,10 +263,10 @@ class BfoxRefContent {
 		return $content;
 	}
 
-	private static function ref_toc(BibleRefs $refs) {
+	private static function ref_toc(BfoxRefs $refs) {
 		$content = '';
 
-		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
 		foreach ($bcvs as $book => $cvs) {
 			$book_name = BibleMeta::get_book_name($book);
 			$end_chapter = BibleMeta::end_verse_max($book);

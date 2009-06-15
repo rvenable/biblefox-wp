@@ -14,7 +14,7 @@ class BfoxNote {
 	/**
 	 * The bible references
 	 *
-	 * @var BibleRefs
+	 * @var BfoxRefs
 	 */
 	private $refs;
 
@@ -41,7 +41,7 @@ class BfoxNote {
 
 	public function set_content($content) {
 		$this->content = $content;
-		$this->refs = new BibleRefs;
+		$this->refs = new BfoxRefs;
 		$this->display_content = wpautop(BfoxRefParser::simple_html($this->content, $this->refs));
 	}
 
@@ -61,7 +61,7 @@ class BfoxNote {
 	/**
 	 * Returns the bible references calculated for this note
 	 *
-	 * @return BibleRefs
+	 * @return BfoxRefs
 	 */
 	public function get_refs() {
 		return $this->refs;

@@ -13,7 +13,7 @@ class BfoxHistoryEvent {
 	public function __construct(stdClass $db_data) {
 		$this->time = $db_data->time;
 		$this->is_read = $db_data->is_read;
-		$this->refs = new BibleRefs;
+		$this->refs = new BfoxRefs;
 		$this->refs->add_concat($db_data->verse_begin, $db_data->verse_end);
 	}
 
@@ -59,7 +59,7 @@ class BfoxHistory {
 			INDEX (user_id, time)");
 	}
 
-	public static function view_passage(BibleRefs $refs, $user_id = 0) {
+	public static function view_passage(BfoxRefs $refs, $user_id = 0) {
 		if ($refs->is_valid()) {
 			if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
@@ -84,7 +84,7 @@ class BfoxHistory {
 		}
 	}
 
-	public static function get_history($limit = 0, $time = 0, BibleRefs $refs = NULL, $is_read = NULL) {
+	public static function get_history($limit = 0, $time = 0, BfoxRefs $refs = NULL, $is_read = NULL) {
 		global $user_ID;
 
 		$history = array();

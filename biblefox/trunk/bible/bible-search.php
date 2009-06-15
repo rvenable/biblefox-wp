@@ -92,7 +92,7 @@ class BibleSearch {
 		$this->trans_where =  $wpdb->prepare('AND trans_id = %d', $trans_id);
 	}
 
-	public function set_refs(BibleRefs $refs)
+	public function set_refs(BfoxRefs $refs)
 	{
 		if ($refs->is_valid())
 		{

@@ -51,12 +51,12 @@ class BfoxBlogQueryData
 	 *
 	 * These posts will be added to the query string via the bfox_posts_where() function
 	 *
-	 * @param mixed $value Either an array of post ids or a BibleRefs to get post ids that contain those references
+	 * @param mixed $value Either an array of post ids or a BfoxRefs to get post ids that contain those references
 	 */
 	public static function set_post_ids($value)
 	{
 		if (is_array($value)) self::$post_ids = $value;
-		elseif ($value instanceof BibleRefs) self::$post_ids = BfoxPosts::get_post_ids($value);
+		elseif ($value instanceof BfoxRefs) self::$post_ids = BfoxPosts::get_post_ids($value);
 
 		// Use the post ids, even if there aren't any (if there aren't any, the query must return no posts - see bfox_posts_where())
 		self::$use_post_ids = TRUE;
@@ -88,7 +88,7 @@ class BfoxBlogQueryData
 		return $new_posts;
 	}
 
-	public static function set_display_refs(BibleRefs $refs)
+	public static function set_display_refs(BfoxRefs $refs)
 	{
 		self::add_pre_posts(self::create_ref_posts($refs));
 	}
@@ -96,7 +96,7 @@ class BfoxBlogQueryData
 	public static function set_reading_plan($plan_id = 0, $reading_id = 0) {
 		global $blog_id;
 
-		$refs = new BibleRefs;
+		$refs = new BfoxRefs;
 		$new_posts = array();
 
 		$plan = BfoxPlans::get_plan($plan_id);
@@ -119,11 +119,11 @@ class BfoxBlogQueryData
 	 * Add verse content to a post array
 	 *
 	 * @param array $post
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param string $nav_bar
 	 * @return array
 	 */
-	private static function add_verse_post_content($post, BibleRefs $refs, $nav_bar = '')
+	private static function add_verse_post_content($post, BfoxRefs $refs, $nav_bar = '')
 	{
 		/*
 		 * Add the verse content as 'bfox_pre_content' so that Wordpress doesn't filter it like regular content.
@@ -143,21 +143,21 @@ class BfoxBlogQueryData
 	/**
 	 * Returns an array of posts with content for the given bible references
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param string $title
 	 * @return array of new_posts
 	 */
-	private function create_ref_posts(BibleRefs $refs, $title = '')
+	private function create_ref_posts(BfoxRefs $refs, $title = '')
 	{
-		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
 
 		foreach ($bcvs as $book => $cvs)
 		{
 			$book_name = BibleMeta::get_book_name($book);
-			$ref_str = BibleRefs::create_book_string($book, $cvs);
+			$ref_str = BfoxRefs::create_book_string($book, $cvs);
 
 			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
-			$book_refs = new BibleRefs;
+			$book_refs = new BfoxRefs;
 
 			// Get the first and last chapters
 			unset($ch1);
@@ -276,7 +276,7 @@ function bfox_parse_query($wp_query)
 
 	if ($wp_query->is_search)
 	{
-		$refs = new BibleRefs($wp_query->query_vars['s']);
+		$refs = new BfoxRefs($wp_query->query_vars['s']);
 		if ($refs->is_valid())
 		{
 			BfoxBlogQueryData::set_display_refs($refs);
@@ -291,7 +291,7 @@ function bfox_parse_query($wp_query)
 	}
 	elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
 	{
-		$refs = new BibleRefs($wp_query->query_vars[BfoxBlog::var_bible_ref]);
+		$refs = new BfoxRefs($wp_query->query_vars[BfoxBlog::var_bible_ref]);
 		if ($refs->is_valid())
 		{
 			BfoxBlogQueryData::set_post_ids($refs);

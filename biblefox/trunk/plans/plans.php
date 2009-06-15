@@ -109,7 +109,7 @@ class BfoxReadingPlan {
 		return wpautop($this->description);
 	}
 
-	public function set_reading(BibleRefs $refs, $reading_id = -1)
+	public function set_reading(BfoxRefs $refs, $reading_id = -1)
 	{
 		if ($refs->is_valid()) {
 			// If the reading id is not already there, we should just add it to the end
@@ -120,7 +120,7 @@ class BfoxReadingPlan {
 
 	public function add_verses($reading_id, $verse_start, $verse_end)
 	{
-		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BibleRefs;
+		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BfoxRefs;
 		$this->readings[$reading_id]->add_seq($verse_start, $verse_end);
 	}
 
@@ -129,12 +129,12 @@ class BfoxReadingPlan {
 		if (is_string($strings)) $strings = explode("\n", $strings);
 
 		$this->readings = array();
-		foreach ((array) $strings as $str) $this->set_reading(new BibleRefs($str));
+		foreach ((array) $strings as $str) $this->set_reading(new BfoxRefs($str));
 	}
 
 	public function add_passages($passages, $chunk_size)
 	{
-		$refs = new BibleRefs($passages);
+		$refs = new BfoxRefs($passages);
 		$chunks = $refs->get_sections($chunk_size);
 		foreach ($chunks as $chunk) $this->set_reading($chunk);
 	}
@@ -145,7 +145,7 @@ class BfoxReadingPlan {
 
 		if (!empty($this->readings))
 		{
-			$refs = new BibleRefs;
+			$refs = new BfoxRefs;
 			foreach ($this->readings as $reading) $refs->add_seqs($reading->get_seqs());
 			if ($refs->is_valid()) $ref_str = $refs->get_string();
 		}
@@ -288,7 +288,7 @@ class BfoxReadingPlan {
 	public function set_history($history_array) {
 
 		// Create the history refs
-		$history_refs = new BibleRefs;
+		$history_refs = new BfoxRefs;
 
 		// Accumulate all the history references since the starting date of this plan
 		$start_time = strtotime($this->start_date);
@@ -302,13 +302,13 @@ class BfoxReadingPlan {
 	}
 
 	public function get_history_refs() {
-		if ($this->history_refs instanceof BibleRefs) return $this->history_refs;
-		return new BibleRefs;
+		if ($this->history_refs instanceof BfoxRefs) return $this->history_refs;
+		return new BfoxRefs;
 	}
 
-	public function get_unread(BibleRefs $reading) {
-		$unread = new BibleRefs($reading);
-		if ($this->history_refs instanceof BibleRefs) $unread->sub($this->history_refs);
+	public function get_unread(BfoxRefs $reading) {
+		$unread = new BfoxRefs($reading);
+		if ($this->history_refs instanceof BfoxRefs) $unread->sub($this->history_refs);
 		return $unread;
 	}
 }

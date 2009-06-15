@@ -8,7 +8,7 @@ class BfoxRefParserData {
 	public $total_refs, $max_level, $add_whole_books, $save_refs_array, $save_leftovers;
 	public $refs_array, $leftovers;
 
-	public function __construct(BibleRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE, $save_refs_array = FALSE, $save_leftovers = FALSE) {
+	public function __construct(BfoxRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE, $save_refs_array = FALSE, $save_leftovers = FALSE) {
 		$this->total_refs = $total_refs;
 		$this->max_level = $max_level;
 		$this->add_whole_books = $add_whole_books;
@@ -27,7 +27,7 @@ class BfoxRefParserData {
 class BfoxRefParser {
 
 	public static function simple($str) {
-		$total_refs = new BibleRefs;
+		$total_refs = new BfoxRefs;
 		self::parse_string($str, new BfoxRefParserData($total_refs, 2));
 		return $total_refs;
 	}
@@ -41,7 +41,7 @@ class BfoxRefParser {
 		return self::simple($text);
 	}
 
-	public static function simple_html($html, BibleRefs &$total_refs = NULL) {
+	public static function simple_html($html, BfoxRefs &$total_refs = NULL) {
 		// Simple HTML parsing should only use level 1 and no whole books
 		return self::parse_html($html, new BfoxRefParserData($total_refs, 1, FALSE));
 	}
@@ -58,7 +58,7 @@ class BfoxRefParser {
 	/**
 	 * Add using a bible reference string
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param string $str
 	 */
 	public static function parse_string($str, BfoxRefParserData &$data) {
@@ -71,7 +71,7 @@ class BfoxRefParser {
 		$leftover_end = strlen($str);
 
 		foreach (array_reverse($substrs) as $substr) {
-			$refs = new BibleRefs;
+			$refs = new BfoxRefs;
 
 			// If there is a chapter, verse string use it
 			if ($substr->cv_offset) self::parse_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
@@ -104,11 +104,11 @@ class BfoxRefParser {
 	/**
 	 * Add the number part of a bible reference (ie, the 3:16 in John 3:16)
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param integer $book_id
 	 * @param string $str
 	 */
-	private static function parse_book_str(BibleRefs &$refs, $book_id, $str) {
+	private static function parse_book_str(BfoxRefs &$refs, $book_id, $str) {
 		// Spaces between numbers count as semicolons
 		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
 

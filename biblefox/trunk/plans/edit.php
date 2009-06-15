@@ -432,7 +432,7 @@ class BfoxPlanEdit
 		//if (!empty($unread_readings)) $header->add_header_col('Unread', '');
 		$sub_table->add_header_row($header);
 
-		$total_refs = new BibleRefs;
+		$total_refs = new BfoxRefs;
 
 		foreach ($plan->readings as $reading_id => $reading) {
 			$total_refs->add($reading);

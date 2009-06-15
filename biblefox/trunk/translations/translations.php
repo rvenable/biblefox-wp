@@ -49,7 +49,7 @@ class BfoxTrans {
 	/**
 	 * Get the verse content for some bible references
 	 *
-	 * @param string $ref_where SQL WHERE statement as returned from BibleRefs::sql_where()
+	 * @param string $ref_where SQL WHERE statement as returned from BfoxRefs::sql_where()
 	 * @return string Formatted bible verse output
 	 */
 	public function get_verses($ref_where, BfoxVerseFormatter $formatter = NULL) {
@@ -71,7 +71,7 @@ class BfoxTrans {
 	 * @param integer $book
 	 * @param integer $chapter1
 	 * @param integer $chapter2
-	 * @param string $visible SQL WHERE statement to determine which scriptures are visible (ex. as returned from BibleRefs::sql_where())
+	 * @param string $visible SQL WHERE statement to determine which scriptures are visible (ex. as returned from BfoxRefs::sql_where())
 	 * @return string Formatted bible verse output
 	 */
 	public function get_chapter_verses($book, $chapter1, $chapter2, $visible, BfoxVerseFormatter $formatter = NULL) {

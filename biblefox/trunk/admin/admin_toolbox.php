@@ -18,17 +18,17 @@ class BfoxMainToolbox extends BfoxToolBox
 	}
 
 	/**
-	 * Takes a bible ref string and uses it to create a BibleRefs to test BibleRefs for different inputs
+	 * Takes a bible ref string and uses it to create a BfoxRefs to test BfoxRefs for different inputs
 	 *
 	 * @param string $ref_str Bible Reference string to test
 	 */
 	private function test_ref($ref_str, $expected = '') {
-		// Test setting a BibleRefs by a string
-		$ref = new BibleRefs($ref_str);
+		// Test setting a BfoxRefs by a string
+		$ref = new BfoxRefs($ref_str);
 		$result = $ref->get_string();
 
-		// Test setting a BibleRefs by a set of unique ids
-		$ref2 = new BibleRefs($ref);
+		// Test setting a BfoxRefs by a set of unique ids
+		$ref2 = new BfoxRefs($ref);
 		$result2 = $ref2->get_string();
 
 		echo "$ref_str -> <strong>$result</strong>";
@@ -108,11 +108,11 @@ class BfoxMainToolbox extends BfoxToolBox
 		$start = 'eze 14,15';
 		$subs = array('eze 14:3', 'eze 14:5-15:2', 'eze 14:1-2', 'eze 14:4', 'eze 15:7-9', 'eze 13-16');
 
-		$refs = new BibleRefs($start);
+		$refs = new BfoxRefs($start);
 		pre("start:" . $refs->get_string());
 
 		foreach ($subs as $sub) {
-			$sub_refs = new BibleRefs($sub);
+			$sub_refs = new BfoxRefs($sub);
 			$refs->sub($sub_refs);
 			pre(" - " . $sub_refs->get_string() . " = " . $refs->get_string());
 			//pre($refs);
@@ -286,7 +286,7 @@ class BfoxMainToolbox extends BfoxToolBox
 
 	public function test_reading_plan_dividing()
 	{
-		$seq = new BibleRefs('john, acts, romans, 1 john, 2 john, 3 john');
+		$seq = new BfoxRefs('john, acts, romans, 1 john, 2 john, 3 john');
 		echo $seq->get_string() . '<br/>';
 		foreach ($seq->get_sections(3) as $sec) echo $sec->get_string() . '<br/>';
 	}

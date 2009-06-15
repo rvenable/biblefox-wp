@@ -5,24 +5,24 @@
 	 *
 	 * Includes a Table of Contents at the bottom.
 	 *
-	 * @param BibleRefs $refs
+	 * @param BfoxRefs $refs
 	 * @param unknown_type $limit The limit of how many chapters can be displayed in full
 	 * @return string Scripture Text Output (with TOC)
 	 */
-	function bfox_get_ref_content_quick(BibleRefs $refs, $limit = 5)
+	function bfox_get_ref_content_quick(BfoxRefs $refs, $limit = 5)
 	{
-		$bcvs = BibleRefs::get_bcvs($refs->get_seqs());
+		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
 
 		$book_content = array();
 		foreach ($bcvs as $book => $cvs)
 		{
 			$content = '';
 			$book_name = BibleMeta::get_book_name($book);
-			$ref_str = BibleRefs::create_book_string($book, $cvs);
-			$ref_str_short = BibleRefs::create_book_string($book, $cvs, BibleMeta::name_short);
+			$ref_str = BfoxRefs::create_book_string($book, $cvs);
+			$ref_str_short = BfoxRefs::create_book_string($book, $cvs, BibleMeta::name_short);
 
 			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
-			$book_refs = new BibleRefs;
+			$book_refs = new BfoxRefs;
 
 			unset($ch1);
 			foreach ($cvs as $cv)
@@ -79,7 +79,7 @@
 	function bfox_ajax_send_bible_text()
 	{
 		$ref_str = $_POST['ref_str'];
-		$ref = new BibleRefs($ref_str);
+		$ref = new BfoxRefs($ref_str);
 		sleep(1);
 
 		// If it is not valid, give the user an error message
