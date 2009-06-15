@@ -5,7 +5,7 @@ require_once BFOX_REFS_DIR . '/verse.php';
 require_once BFOX_REFS_DIR . '/sequences.php';
 require_once BFOX_REFS_DIR . '/parser.php';
 
-class RefSequence extends BfoxSequences {
+class RefSequence extends BfoxSequenceList {
 
 	/**
 	 * Add a sequence corresponding to a whole book
@@ -357,6 +357,11 @@ class BibleRefs extends RefSequence {
 	public function sub($refs) {
 		$sub_refs = self::refs_input($refs);
 		$this->sub_seqs($sub_refs->get_seqs());
+	}
+
+	public function add_concat($begin_str, $end_str, $delim = ',') {
+		$ends = explode($delim, $end_str);
+		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq($begin, $ends[$idx]);
 	}
 
 	/**

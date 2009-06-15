@@ -1,6 +1,6 @@
 <?php
 
-class BfoxSequences {
+abstract class BfoxSequenceList {
 	protected $sequences = array();
 
 	public function is_valid() {

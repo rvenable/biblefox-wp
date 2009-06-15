@@ -62,12 +62,12 @@ class BfoxHistory {
 			}
 			if (!is_null($is_read)) $wheres []= $wpdb->prepare("is_read = %d", $is_read);
 
-			$results = $wpdb->get_results("SELECT * FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " ORDER BY time DESC " . BfoxUtility::limit_str($limit));
+			$results = $wpdb->get_results("SELECT time, is_read, GROUP_CONCAT(verse_begin) as verse_begin, GROUP_CONCAT(verse_end) as verse_end FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " GROUP BY time, is_read ORDER BY time DESC " . BfoxUtility::limit_str($limit));
 
 			foreach ($results as $result) {
-				if (!isset($history[$result->time])) $history[$result->time] = $result;
-				if (!isset($history[$result->time]->refs)) $history[$result->time]->refs = new BibleRefs;
-				$history[$result->time]->refs->add_seq($result->verse_begin, $result->verse_end);
+				$result->refs = new BibleRefs;
+				$result->refs->add_concat($result->verse_begin, $result->verse_end);
+				$history[$result->time] = $result;
 			}
 		}
 

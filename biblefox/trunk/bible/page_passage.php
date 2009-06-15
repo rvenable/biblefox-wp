@@ -4,7 +4,6 @@ require_once BFOX_BIBLE_DIR . '/ref_content.php';
 
 class BfoxPagePassage extends BfoxPage {
 
-	const var_history_id = 'history_id';
 	const var_page_num = 'page_num';
 
 	/**
@@ -21,44 +20,41 @@ class BfoxPagePassage extends BfoxPage {
 	 */
 	protected $translation;
 
-	protected $history;
-	protected $history_id = '';
+	protected $history = array();
 
 	protected $cboxes = array();
 
 	protected $default_tab = NULL;
 
 	public function __construct($ref_str, BfoxTrans $translation) {
-		$this->refs = new BibleRefs($ref_str);
-		$this->translation = $translation;
+		$refs = new BibleRefs($ref_str);
 
-		// Get the last viewed
-		$this->history = BfoxHistory::get_history(1);
-		if (!empty($this->history)) $last_viewed = current($this->history);
+		// Get the last viewed passage
+		$history = BfoxHistory::get_history(1);
+		$last_viewed = reset($history);
 
-		if ($this->refs->is_valid()) {
+		if ($refs->is_valid()) {
 			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
-			if (empty($last_viewed) || ($this->refs->get_string() != $last_viewed->refs->get_string())) {
+			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
 				$this->default_tab = 0;
-				BfoxHistory::view_passage($this->refs);
+				BfoxHistory::view_passage($refs);
 			}
+
+			add_action('wp_head', array($this, 'wp_head'));
+
+			$this->refs = $refs;
+			$this->history = BfoxHistory::get_history(25);
+			$this->translation = $translation;
+			parent::__construct($translation);
 		}
 		else {
 			// If we don't have a valid bible ref, we should use the history
-			if (!empty($last_viewed)) $this->refs = $last_viewed->refs;
-			// If there is no history, show Genesis 1
-			else $this->refs = new BibleRefs('Genesis 1');
+			if (!empty($last_viewed)) $refs = $last_viewed->refs;
+
+			if ($refs->is_valid()) wp_redirect(BfoxQuery::ref_url($refs->get_string()));
+			else wp_redirect(BfoxQuery::ref_url('Genesis 1'));
+			exit;
 		}
-
-		// Get the passage history
-		$this->history = BfoxHistory::get_history(25);
-		if (!empty($this->history)) $last_viewed = current($this->history);
-		if (!empty($_REQUEST[self::var_history_id])) $this->history_id = $_REQUEST[self::var_history_id];
-		else $this->history_id = self::history_id($last_viewed->time);
-
-		add_action('wp_head', array($this, 'wp_head'));
-
-		parent::__construct($translation);
 	}
 
 	public function wp_head() {
@@ -90,16 +86,6 @@ class BfoxPagePassage extends BfoxPage {
 		return $this->refs->get_string(BibleMeta::name_short);
 	}
 
-	private static function history_id($time) {
-		return 'hist_' . strtotime($time);
-	}
-
-	private static function history_url($history_id, $page_num = 0) {
-		$url = add_query_arg(self::var_history_id, $history_id, BfoxQuery::page_url(BfoxQuery::page_passage)) . "#$history_id";
-		if (!empty($page_num)) $url = add_query_arg(self::var_page_num, $page_num, $url);
-		return $url;
-	}
-
 	private static function check_option($name, $label) {
 		$id = "option_$name";
 
@@ -116,7 +102,7 @@ class BfoxPagePassage extends BfoxPage {
 		return $table->content();
 	}
 
-	public function tools_tab(BibleRefs $refs) {
+	private function tools_tab(BibleRefs $refs) {
 		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
 		$cboxes = array();
 		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
@@ -193,8 +179,6 @@ class BfoxPagePassage extends BfoxPage {
 				$toggle = __('Mark as Read');
 			}
 
-			$history_id = self::history_id($history->time);
-
 			$row = new BfoxHtmlRow('',
 				Biblefox::ref_link($ref_str),
 				"$intro $history->time",
@@ -230,21 +214,21 @@ class BfoxPagePassage extends BfoxPage {
 
 	}
 
-	public function content_new() {
-		$history = reset($this->history);
-		$history_id = self::history_id($history->time);
-
-		$refs = $history->refs;
+	private function ref_content() {
 		ob_start();
 		?>
-			<?php echo $this->tools_tab($refs) ?>
-			<?php BfoxRefContent::ref_content_new($refs, $this->translation) ?>
+			<?php echo $this->tools_tab($this->refs) ?>
+			<?php BfoxRefContent::ref_content_new($this->refs, $this->translation) ?>
 			<div class="clear"></div>
 		<?php
-		$ref_content = ob_get_clean();
+
+		return ob_get_clean();
+	}
+
+	private function content_new() {
 
 		$passage_tabs = new BfoxHtmlTabs("id='passage_tabs' class='tabs'");
-		$passage_tabs->add('passage', $history->refs->get_string(), $ref_content);
+		$passage_tabs->add('passage', $this->refs->get_string(), $this->ref_content());
 		$passage_tabs->add('plans', __('Readings'), $this->readings());
 		$passage_tabs->add('history', __('History'), $this->history());
 
@@ -255,11 +239,7 @@ class BfoxPagePassage extends BfoxPage {
 
 	public function content() {
 		if ($this->display_full) return $this->content_new();
-		else {
-			$history = reset($this->history);
-			$history_id = self::history_id($history->time);
-			echo BfoxRefContent::ref_content_paged($history->refs, $this->translation, self::history_url($history_id), self::var_page_num, $this->page_num);
-		}
+		else return $this->ref_content();
 	}
 }
 
