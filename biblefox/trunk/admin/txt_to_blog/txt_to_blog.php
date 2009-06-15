@@ -692,7 +692,7 @@ class CalcomTxtToBlog extends TxtToBlog
 			else $verses[$verse_key][$verse_count] .= " $line";
 		}
 
-		list(list($verse_start)) = $refs->get_sets();
+		list(list($verse_start)) = $refs->get_seqs();
 		$verse_ref = new BibleVerse($verse_start);
 
 		foreach ($verses as $verse_num => $verse)

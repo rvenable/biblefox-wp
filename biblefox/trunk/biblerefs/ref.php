@@ -5,7 +5,54 @@ require_once BFOX_REFS_DIR . '/verse.php';
 require_once BFOX_REFS_DIR . '/sequences.php';
 require_once BFOX_REFS_DIR . '/parser.php';
 
-class RefSequence extends BfoxSequenceList {
+class BibleRefs extends BfoxSequenceList {
+
+	/*
+	 * Creation and Modification Functions
+	 *
+	 *
+	 */
+
+	public function __construct($value = NULL) {
+		if (is_string($value)) $this->add(BfoxRefParser::simple($value));
+		elseif ($value instanceof BibleRefs) $this->add_seqs($value->get_seqs());
+	}
+
+	/**
+	 * Returns an instance of BibleRefs for the refs_input
+	 *
+	 * @param refs_input $refs_input
+	 * @return BibleRefs
+	 */
+	private static function refs_input($refs_input) {
+		if ($refs_input instanceof BibleRefs) return $refs_input;
+		else return new BibleRefs($refs_input);
+	}
+
+	/**
+	 * Add bible references to this bible reference
+	 *
+	 * @param refs_input $refs
+	 */
+	public function add($refs) {
+		$add_refs = self::refs_input($refs);
+		$this->add_seqs($add_refs->get_seqs());
+	}
+
+	/**
+	 * Subtract bible references from this bible reference
+	 *
+	 * @param refs_input $refs
+	 */
+	public function sub($refs) {
+		$sub_refs = self::refs_input($refs);
+		$this->sub_seqs($sub_refs->get_seqs());
+	}
+
+	public function add_concat($begin_str, $end_str, $delim = ',') {
+		$ends = explode($delim, $end_str);
+		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq($begin, $ends[$idx]);
+	}
 
 	/**
 	 * Add a sequence corresponding to a whole book
@@ -96,6 +143,12 @@ class RefSequence extends BfoxSequenceList {
 			BibleVerse::calc_unique_id($book, $chapter2, $verse2));
 	}
 
+	/*
+	 * Get Functions
+	 *
+	 *
+	 */
+
 	/**
 	 * Returns a BCV array. These are useful for situations where the sequences need to be divided by books (such as in get_string()).
 	 *
@@ -146,7 +199,7 @@ class RefSequence extends BfoxSequenceList {
 	}
 
 	/**
-	 * Get the string for this RefSequence
+	 * Get the string
 	 *
 	 * @return string
 	 */
@@ -159,6 +212,70 @@ class RefSequence extends BfoxSequenceList {
 
 		return implode('; ', $books);
 	}
+
+	/**
+	 * Returns an SQL expression for comparing these bible references against one unique id column
+	 *
+	 * @param string $col1
+	 * @return string
+	 */
+	public function sql_where($col1 = 'unique_id')
+	{
+		global $wpdb;
+
+		$wheres = array();
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $seq->start, $seq->end);
+
+		return '(' . implode(' OR ', $wheres) . ')';
+	}
+
+	/**
+	 * Returns an SQL expression for comparing these bible references against two unique id columns
+	 *
+	 * @param string $col1
+	 * @param string $col2
+	 * @return string
+	 */
+	public function sql_where2($col1 = 'verse_begin', $col2 = 'verse_end')
+	{
+		/*
+		 Equation for determining whether one bible reference overlaps another
+
+		 a1 <= b1 and b1 <= a2 or
+		 a1 <= b2 and b2 <= a2
+		 or
+		 b1 <= a1 and a1 <= b2 or
+		 b1 <= a2 and a2 <= b2
+
+		 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
+		 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
+
+		 */
+
+		global $wpdb;
+
+		$wheres = array();
+
+		// Old equations using reduced <= and >= operators - these might not be as easy for MySQL to optimize as the BETWEEN operator
+		/*foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+			"((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
+			((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
+			$seq->end, $seq->start, $seq->end,
+			$seq->start, $seq->start, $seq->end);*/
+
+		// Using the BETWEEN operator
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d)",
+			$seq->start, $seq->end, $seq->start, $seq->end);
+
+		return '(' . implode(' OR ', $wheres) . ')';
+	}
+
+	/*
+	 * Utility Functions
+	 *
+	 *
+	 */
 
 	/**
 	 * Creates a string for a book with CVS values (see get_bcvs())
@@ -247,121 +364,6 @@ class RefSequence extends BfoxSequenceList {
 		if (!empty($str)) $str = " $str";
 
 		return BibleMeta::get_book_name($book, $name) . $str;
-	}
-
-	/**
-	 * Return unique id sets
-	 *
-	 * @return array of arrays
-	 */
-	public function get_sets()
-	{
-		// TODO3: get rid of this function and always use get_seqs instead
-		$sets = array();
-		foreach ($this->sequences as $seq) $sets []= array($seq->start, $seq->end);
-		return $sets;
-	}
-
-	/**
-	 * Returns an SQL expression for comparing these bible references against one unique id column
-	 *
-	 * @param string $col1
-	 * @return string
-	 */
-	public function sql_where($col1 = 'unique_id')
-	{
-		global $wpdb;
-
-		$wheres = array();
-		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $seq->start, $seq->end);
-
-		return '(' . implode(' OR ', $wheres) . ')';
-	}
-
-	/**
-	 * Returns an SQL expression for comparing these bible references against two unique id columns
-	 *
-	 * @param string $col1
-	 * @param string $col2
-	 * @return string
-	 */
-	public function sql_where2($col1 = 'verse_begin', $col2 = 'verse_end')
-	{
-		/*
-		 Equation for determining whether one bible reference overlaps another
-
-		 a1 <= b1 and b1 <= a2 or
-		 a1 <= b2 and b2 <= a2
-		 or
-		 b1 <= a1 and a1 <= b2 or
-		 b1 <= a2 and a2 <= b2
-
-		 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
-		 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
-
-		 */
-
-		global $wpdb;
-
-		$wheres = array();
-
-		// Old equations using reduced <= and >= operators - these might not be as easy for MySQL to optimize as the BETWEEN operator
-		/*foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
-			"((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
-			((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
-			$seq->end, $seq->start, $seq->end,
-			$seq->start, $seq->start, $seq->end);*/
-
-		// Using the BETWEEN operator
-		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
-			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d)",
-			$seq->start, $seq->end, $seq->start, $seq->end);
-
-		return '(' . implode(' OR ', $wheres) . ')';
-	}
-}
-
-class BibleRefs extends RefSequence {
-
-	public function __construct($value = NULL) {
-		if (is_string($value)) $this->add(BfoxRefParser::simple($value));
-		elseif ($value instanceof BibleRefs) $this->add_seqs($value->get_seqs());
-	}
-
-	/**
-	 * Returns an instance of BibleRefs for the refs_input
-	 *
-	 * @param refs_input $refs_input
-	 * @return BibleRefs
-	 */
-	private static function refs_input($refs_input) {
-		if ($refs_input instanceof BibleRefs) return $refs_input;
-		else return new BibleRefs($refs_input);
-	}
-
-	/**
-	 * Add bible references to this bible reference
-	 *
-	 * @param refs_input $refs
-	 */
-	public function add($refs) {
-		$add_refs = self::refs_input($refs);
-		$this->add_seqs($add_refs->get_seqs());
-	}
-
-	/**
-	 * Subtract bible references from this bible reference
-	 *
-	 * @param refs_input $refs
-	 */
-	public function sub($refs) {
-		$sub_refs = self::refs_input($refs);
-		$this->sub_seqs($sub_refs->get_seqs());
-	}
-
-	public function add_concat($begin_str, $end_str, $delim = ',') {
-		$ends = explode($delim, $end_str);
-		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq($begin, $ends[$idx]);
 	}
 
 	/**
