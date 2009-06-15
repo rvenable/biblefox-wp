@@ -38,9 +38,8 @@ class BfoxHistoryEvent {
 	}
 
 	public function desc() {
-		if ($this->is_read) $intro = __('Read on');
-		else $intro = __('Viewed on');
-		return "$intro $this->time";
+		if ($this->is_read) return __('Read');
+		else return __('Viewed');
 	}
 }
 

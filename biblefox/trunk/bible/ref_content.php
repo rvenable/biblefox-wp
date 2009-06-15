@@ -8,7 +8,12 @@ class BfoxRefContent {
 	public static function history_table($history) {
 		$table = new BfoxHtmlTable("class='widefat'");
 
-		foreach ($history as $event) $table->add_row('', 3, $event->ref_link(), $event->desc(), $event->toggle_link());
+		foreach ($history as $event) $table->add_row('', 5,
+			$event->desc(),
+			$event->ref_link(),
+			BfoxUtility::nice_date(strtotime($event->time)),
+			$date = date('g:i a', strtotime($event->time)),
+			$event->toggle_link());
 
 		return $table->content();
 	}

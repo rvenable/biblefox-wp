@@ -143,7 +143,7 @@ class BfoxPagePassage extends BfoxPage {
 					else $finished = '';
 
 					$row = new BfoxHtmlRow('',
-						date('l, M jS', $plan->dates[$reading_id]),
+						BfoxUtility::nice_date($plan->dates[$reading_id], 'l, M j'),
 						"<a href='$url'$finished>$ref_str</a>",
 						"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
 					$row->add_sort_val($plan->dates[$reading_id]);

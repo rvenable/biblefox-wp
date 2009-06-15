@@ -51,6 +51,17 @@ class BfoxUtility {
 		return $array;
 	}
 
+	public static function nice_date($time, $day_format = 'M j', $year_format = 'Y') {
+		$day = date($day_format, $time);
+		$year = date($year_format, $time);
+
+		if (date($year_format) != $year) $date = $day . ', ' . $year;
+		elseif (date($day_format) != $day) $date = $day;
+		else $date = 'Today';
+
+		return $date;
+	}
+
 	/*
 	 This function converts a date string to the specified format, using the local timezone
 	 Parameters:
