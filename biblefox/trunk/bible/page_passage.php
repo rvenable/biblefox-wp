@@ -138,9 +138,13 @@ class BfoxPagePassage extends BfoxPage {
 				if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
 					$ref_str = $plan->readings[$reading_id]->get_string();
 					$url = Biblefox::ref_url($ref_str);
+
+					if (!$is_unread) $finished = " class='finished'";
+					else $finished = '';
+
 					$row = new BfoxHtmlRow('',
 						date('l, M jS', $plan->dates[$reading_id]),
-						"<a href='$url'>$ref_str</a>",
+						"<a href='$url'$finished>$ref_str</a>",
 						"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
 					$row->add_sort_val($plan->dates[$reading_id]);
 					$table->add_row($row);

@@ -33,6 +33,10 @@ class BfoxHistoryEvent {
 		return "<a href='" . $this->toggle_url() . "'>$text</a>";
 	}
 
+	public function ref_link() {
+		return Biblefox::ref_link($this->refs->get_string(), '', '', ($this->is_read ? "class='finished'" : ''));
+	}
+
 	public function desc() {
 		if ($this->is_read) $intro = __('Read on');
 		else $intro = __('Viewed on');
