@@ -45,8 +45,10 @@ class BfoxVerseFormatter {
 		$content = '';
 		foreach ((array) $chapters as $chapter_id => $verses) {
 			$verse_content = $this->format($verses);
-			if ($this->use_span) $content .= "<div class='chapter'>\n<span class='chapter_head'>$chapter_id</span>\n$verse_content</div>\n";
-			else $content .= $verse_content;
+			if (!empty($verse_content)) {
+				if ($this->use_span) $content .= "<div class='chapter'>\n<span class='chapter_head'>$chapter_id</span>\n$verse_content</div>\n";
+				else $content .= $verse_content;
+			}
 		}
 		return $content;
 	}
