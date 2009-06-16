@@ -382,6 +382,8 @@ class BfoxMainToolbox extends BfoxToolBox
 
 	public function check_times() {
 		include BFOX_DIR . '/bible/bible.php';
+		BfoxUtility::set_timezone_offset(get_user_option(BfoxBible::user_option_tz));
+		pre(get_user_option(BfoxBible::user_option_tz));
 		pre('date: ' . date('Y-M-j g:i a c'));
 		pre('gmdt: ' . gmdate('Y-M-j g:i a c'));
 		$time = BfoxUtility::adjust_time(time());
