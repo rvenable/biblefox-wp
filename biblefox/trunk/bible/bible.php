@@ -15,6 +15,10 @@ class BfoxBible {
 	const cookie_tz = 'bfox_timezone';
 	const user_option_tz = 'bfox_timezone';
 
+	const var_note_submit = 'note_submit';
+	const var_note_id = 'note_id';
+	const var_note_content = 'note_content';
+
 	private $page;
 
 	public function __construct($query_str = '') {
@@ -51,6 +55,14 @@ class BfoxBible {
 		if (!empty($_REQUEST[BfoxQuery::var_toggle_read])) {
 			BfoxHistory::toggle_is_read($_REQUEST[BfoxQuery::var_toggle_read]);
 			wp_redirect(remove_query_arg(array(BfoxQuery::var_toggle_read), $_SERVER['REQUEST_URI']));
+		}
+
+		// Save any notes
+		if (isset($_POST[self::var_note_submit])) {
+			$note = BfoxNotes::get_note($_POST[self::var_note_id]);
+			$note->set_content(strip_tags(stripslashes($_POST[self::var_note_content])));
+			BfoxNotes::save_note($note);
+			wp_redirect(self::edit_note_url($note->id, $_SERVER['REQUEST_URI']));
 		}
 
 		// If no page was specified, use the passage page
@@ -157,6 +169,12 @@ class BfoxBible {
 
 	public static function parse_search_ref_str($str) {
 		return BfoxRefParser::with_groups($str);
+	}
+
+	public static function edit_note_url($note_id, $url) {
+		// TODO3: This is a temporary link without the # until AJAX updates are finished
+		//return $this->cbox_url(add_query_arg(self::var_note_id, $note_id, $this->url));
+		return add_query_arg(self::var_note_id, $note_id, $url);
 	}
 }
 

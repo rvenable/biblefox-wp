@@ -66,7 +66,7 @@ class BfoxRefContent {
 	}
 
 	private static function add_cboxes(BfoxRefs $refs) {
-		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
+		$url = BfoxQuery::ref_url($refs->get_string());
 		$cboxes = array();
 		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
 		$cboxes['notes'] = new BfoxCboxNotes($refs, $url, 'notes', 'My Bible Notes');

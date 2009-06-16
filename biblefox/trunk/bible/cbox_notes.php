@@ -2,24 +2,8 @@
 
 class BfoxCboxNotes extends BfoxCbox {
 
-	const var_submit = 'submit';
-	const var_note_id = 'note_id';
-	const var_content = 'content';
-
 	public function page_load() {
-
-		if (isset($_POST[self::var_submit])) {
-			$note = BfoxNotes::get_note($_POST[self::var_note_id]);
-			$note->set_content(strip_tags(stripslashes($_POST[self::var_content])));
-			BfoxNotes::save_note($note);
-			wp_redirect($this->edit_note_url($note->id));
-		}
-	}
-
-	public function edit_note_url($note_id) {
-		// TODO3: This is a temporary link without the # until AJAX updates are finished
-		//return $this->cbox_url(add_query_arg(self::var_note_id, $note_id, $this->url));
-		return add_query_arg(self::var_note_id, $note_id, $this->url);
+		$this->url = BfoxQuery::ref_url($this->refs->get_string());
 	}
 
 	public function content() {
@@ -33,13 +17,13 @@ class BfoxCboxNotes extends BfoxCbox {
 
 			$notes_table->add_row('', 3,
 				$note->get_modified(),
-				$note->get_title() . " (<a href='" . $this->edit_note_url($note->id) . "'>edit</a>)",
+				$note->get_title() . " (<a href='" . BfoxBible::edit_note_url($note->id, $this->url) . "'>edit</a>)",
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>");
 		}
 
 		echo $notes_table->content();
 
-		$note = BfoxNotes::get_note($_GET[self::var_note_id]);
+		$note = BfoxNotes::get_note($_GET[BfoxBible::var_note_id]);
 
 		if (empty($note->id)) $edit_header = __('Create a Note');
 		else $edit_header = __('Edit Note');
@@ -49,16 +33,16 @@ class BfoxCboxNotes extends BfoxCbox {
 	}
 
 	public function edit_note(BfoxNote $note) {
-		$table = new BfoxHtmlOptionTable("class='form-table'", "action='" . $this->url . "' method='post'",
-			BfoxUtility::hidden_input(self::var_note_id, $note->id),
-			"<p><input type='submit' name='" . self::var_submit . "' value='" . __('Save') . "' class='button'/></p>");
+		$table = new BfoxHtmlOptionTable("class='form-table'", "action='$this->url' method='post'",
+			BfoxUtility::hidden_input(BfoxBible::var_note_id, $note->id),
+			"<p><input type='submit' name='" . BfoxBible::var_note_submit . "' value='" . __('Save') . "' class='button'/></p>");
 
 		$content = $note->get_content();
 
 		if (!empty($content)) $table->add_option(__('Note'), '', $note->get_display_content(), '');
 
 		// Note Content
-		$table->add_option(__('Edit'), '', $table->option_textarea(self::var_content, $content, 15, 50), '');
+		$table->add_option(__('Edit'), '', $table->option_textarea(BfoxBible::var_note_content, $content, 15, 50), '');
 
 		echo $table->content();
 	}

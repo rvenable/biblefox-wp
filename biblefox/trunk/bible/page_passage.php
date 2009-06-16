@@ -55,8 +55,10 @@ class BfoxPagePassage extends BfoxPage {
 			if (!empty($last_viewed)) $refs = $last_viewed->refs;
 			else $refs = $input_refs;
 
-			if ($refs->is_valid()) wp_redirect(BfoxQuery::ref_url($refs->get_string()));
-			else wp_redirect(BfoxQuery::ref_url('Genesis 1'));
+			$args = array();
+			parse_str($_SERVER['QUERY_STRING'], $args);
+			if ($refs->is_valid()) wp_redirect(BfoxQuery::ref_url($refs->get_string(), '', $args));
+			else wp_redirect(BfoxQuery::ref_url('Genesis 1', '', $args));
 			exit;
 		}
 	}

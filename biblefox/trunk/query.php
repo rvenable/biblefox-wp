@@ -55,16 +55,24 @@ class BfoxQuery {
 		return $url;
 	}
 
-	public static function ref_url($ref_str = '', $trans_str = '') {
+	public static function ref_url($ref_str = '', $trans_str = '', $args = array()) {
 		if (self::$use_pretty_urls) {
+			if (empty($ref_str) && !empty($args[self::var_reference])) $ref_str = $args[self::var_reference];
+			if (empty($trans_str) && !empty($args[self::var_translation])) $trans_str = $args[self::var_translation];
 			if (!empty($trans_str)) $ref_str = "$trans_str/$ref_str";
-			return self::$url . urlencode($ref_str) . '/';
+
+			unset($args[self::var_reference]);
+			unset($args[self::var_translation]);
+
+			$url = self::$url . urlencode($ref_str) . '/';
+			if (!empty($args)) $url = add_query_arg($args, $url);
+			return $url;
 		}
 		else {
-			$url = self::page_url(self::page_passage);
-			if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
-			if (!empty($trans_str)) $url = add_query_arg(self::var_translation, $trans_str, $url);
-			return $url;
+			$args[self::var_page] = self::page_passage;
+			if (!empty($ref_str)) $args[self::var_reference] = urlencode($ref_str);
+			if (!empty($trans_str)) $args[self::var_translation] = $trans_str;
+			return add_query_arg($args, self::$url);
 		}
 	}
 
