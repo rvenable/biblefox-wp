@@ -40,8 +40,9 @@ class BfoxBible {
 		$ref_str = $_REQUEST[BfoxQuery::var_reference];
 		$search_str = $_REQUEST[BfoxQuery::var_search];
 
+		$query_str = trim(trim($query_str), '/');
 		if (!empty($query_str)) {
-			$vars = explode('/', trim($query_str, '/'));
+			$vars = explode('/', $query_str);
 			if (1 < count($vars)) list($trans_str, $ref_str) = $vars;
 			else list($ref_str) = $vars;
 		}
