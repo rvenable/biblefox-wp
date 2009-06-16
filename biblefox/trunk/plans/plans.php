@@ -31,20 +31,20 @@ class BfoxReadingPlan {
 	public $readings = array();
 
 	public $is_scheduled = TRUE;
-	private $start_date = '';
-	private $end_date = '';
+	private $start_time = 0;
+	private $end_time = 0;
 	public $is_recurring = FALSE;
 	public $frequency = 0;
 	private $frequency_options = self::freq_options_default;
 
-	public $dates = array();
+	private $dates = array();
 	public $current_reading_id = self::reading_id_invalid;
 
 	private $history_refs = NULL;
 
 	public function __construct($values = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
-		if (empty($this->start_date)) $this->set_start_date();
+		if (empty($this->start_time)) $this->set_start_date();
 	}
 
 	public function set_from_db(stdClass $db_data) {
@@ -56,8 +56,8 @@ class BfoxReadingPlan {
 		$this->description = $db_data->description;
 
 		$this->is_scheduled = $db_data->is_scheduled;
-		$this->start_date = $db_data->start_date;
-		$this->end_date = $db_data->end_date;
+		$this->set_start_date($db_data->start_date);
+		$this->end_time = strtotime($db_data->end_date);
 		$this->is_recurring = $db_data->is_recurring;
 		$this->frequency = $db_data->frequency;
 		$this->set_freq_options($db_data->frequency_options);
@@ -85,8 +85,8 @@ class BfoxReadingPlan {
 			// Get the dates for all the readings + 1 (the +1 is for the end date)
 			$this->dates = $this->get_dates($reading_count + 1);
 
-			// Set the end_date using the last date (-1 day)
-			$this->end_date = date(self::date_format_fixed, strtotime('-1 day', $this->dates[$reading_count]));
+			// Set the end_time using the last date (-1 day)
+			$this->end_time = strtotime('-1 day', $this->dates[$reading_count]);
 
 			// Set the index of the current reading
 			$this->current_reading_id = self::current_date_index($this->dates);
@@ -165,7 +165,7 @@ class BfoxReadingPlan {
 
 	public function set_start_date($start_date = '') {
 		if (empty($start_date)) $start_date = 'today';
-		$this->start_date = BfoxUtility::format_local_date($start_date, self::date_format_fixed);
+		$this->start_time = strtotime($start_date);
 	}
 
 	public function set_freq_options($options) {
@@ -219,34 +219,38 @@ class BfoxReadingPlan {
 		return $this->frequency_options;
 	}
 
-	public function frequency_desc()
-	{
+	public function frequency_desc() {
 		$desc = ucfirst($this->frequency_str(self::frequency_array_daily));
 		$days = $this->days_week_str();
 		if (!empty($days)) $desc .= ", $days";
 		return $desc;
 	}
 
-	public function start_time() {
-		return strtotime($this->start_date);
+	public function time($index = 0) {
+		return $this->dates[$index];
 	}
 
-	public function raw_start_date() {
-		return $this->start_date;
+	public function date($index = 0, $format = self::date_format_fixed) {
+		return date($format, $this->dates[$index]);
 	}
 
-	public function start_str($format = self::date_format_normal) {
-		return date($format, strtotime($this->start_date));
+	public function start_date($format = self::date_format_fixed) {
+		return date($format, $this->start_time);
 	}
 
-	public function end_str($format = self::date_format_normal) {
-		return date($format, strtotime($this->end_date));
+	public function end_date($format = self::date_format_fixed) {
+		return date($format, $this->end_time);
 	}
 
-	private function get_dates($count)
-	{
-		if (self::frequency_day == $this->frequency)
-		{
+	public function history_start_date($format = self::date_format_fixed) {
+		// We start tracking history from one week before the start of the plan
+		// NOTE: if we change to be the exact date, there will be time zone issues (right now there are issues, but they're obfuscated by the week buffer time)
+		return date($format, strtotime('-1 week', $this->start_time));
+	}
+
+	private function get_dates($count) {
+
+		if (self::frequency_day == $this->frequency) {
 			$select_format = 'w';
 			$select_values = $this->freq_options_array();
 		}
@@ -254,9 +258,8 @@ class BfoxReadingPlan {
 		$inc_str = '+1 ' . $this->frequency_str();
 
 		$dates = array();
-		$date = strtotime($this->start_date);
-		for ($index = 0; $index < $count; $index++)
-		{
+		$date = $this->start_time;
+		for ($index = 0; $index < $count; $index++) {
 			// If we have select_values, increment until we find a selected value
 			if (!empty($select_values)) while (!$select_values[date($select_format, $date)]) $date = strtotime($inc_str, $date);
 
@@ -270,7 +273,7 @@ class BfoxReadingPlan {
 	private static function current_date_index($dates, $now = 0) {
 
 		// If now is empty, get now according to the local blog settings, formatted as an integer number of seconds
-		if (empty($now)) $now = strtotime(BfoxUtility::format_local_date('today'));
+		if (empty($now)) $now = strtotime(date(self::date_format_fixed, BfoxUtility::adjust_time(time())));
 
 		foreach ($dates as $index => $date) {
 			if ($date > $now) break;
@@ -291,8 +294,8 @@ class BfoxReadingPlan {
 		$history_refs = new BfoxRefs;
 
 		// Accumulate all the history references since the starting date of this plan
-		$start_time = strtotime($this->start_date);
-		foreach ($history_array as $history) if (strtotime($history->time) >= $start_time) $history_refs->add($history->refs);
+		$start_time = strtotime($this->history_start_date());
+		foreach ($history_array as $history) if ($history->time >= $start_time) $history_refs->add($history->refs);
 
 		if ($history_refs->is_valid()) {
 			$this->history_refs = $history_refs;
@@ -419,7 +422,7 @@ class BfoxPlans {
 
 		$set = $wpdb->prepare(
 			"SET copied_from_id = %d, name = %s, description = %s, is_private = %d, is_scheduled = %d, start_date = %s, end_date = %s, is_recurring = %d, frequency = %d, frequency_options = %s",
-			$plan->copied_from_id, $plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->raw_start_date(), $plan->end_str(BfoxReadingPlan::date_format_fixed), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
+			$plan->copied_from_id, $plan->name, $plan->description, $plan->is_private, $plan->is_scheduled, $plan->start_date(), $plan->end_date(), $plan->is_recurring, $plan->frequency, $plan->get_freq_options());
 
 		if (empty($plan->id)) $wpdb->query("INSERT INTO " . self::table_plans . " $set");
 		else {

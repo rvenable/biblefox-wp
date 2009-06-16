@@ -11,7 +11,10 @@ class BfoxHistoryEvent {
 	const table = BFOX_TABLE_HISTORY;
 
 	public function __construct(stdClass $db_data) {
-		$this->time = $db_data->time;
+
+		// History time is adjusted for the user's timezone
+		$this->time = BfoxUtility::adjust_time(strtotime($db_data->time));
+
 		$this->is_read = $db_data->is_read;
 		$this->refs = new BfoxRefs;
 		$this->refs->add_concat($db_data->verse_begin, $db_data->verse_end);
@@ -80,7 +83,7 @@ class BfoxHistory {
 
 		if (!empty($time) && !empty($user_id)) {
 			global $wpdb;
-			$wpdb->query($wpdb->prepare("UPDATE " . self::table . " SET is_read = NOT(is_read) WHERE user_id = %d AND time = %s", $user_id, $time));
+			$wpdb->query($wpdb->prepare("UPDATE " . self::table . " SET is_read = NOT(is_read) WHERE user_id = %d AND time = FROM_UNIXTIME(%d)", $user_id, $time));
 		}
 	}
 

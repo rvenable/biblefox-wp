@@ -21,7 +21,7 @@
 				if ($oldest < 0) $oldest = 0;
 				for ($index = $plan->current_reading_id; $index >= $oldest; $index--) {
 					$scripture_link = '<a href="' . BfoxBlog::reading_plan_url($plan->id, $index) . '">' . $plan->readings[$index]->get_string() . '</a>';
-					$content .= '<li>' . $scripture_link . ' on ' . date('M d', $plan->dates[$index]) . '</li>';
+					$content .= '<li>' . $scripture_link . ' on ' . $plan->date($index, 'M d') . '</li>';
 				}
 				$content .= '</ul></li>';
 			}

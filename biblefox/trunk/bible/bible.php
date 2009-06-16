@@ -12,6 +12,8 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 class BfoxBible {
 
 	const cookie_translation = 'bfox_trans_str';
+	const cookie_tz = 'bfox_timezone';
+	const user_option_tz = 'bfox_timezone';
 
 	private $page;
 
@@ -29,6 +31,10 @@ class BfoxBible {
 		BfoxUtility::register_style('bfox_search', 'bible/search.css', array('bfox_bible'));
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
+
+		// Update the user's timezone from their cookies
+		if (isset($_COOKIE[self::cookie_tz])) update_user_option($GLOBALS['user_ID'], self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
+		BfoxUtility::set_timezone_offset(get_user_option(self::user_option_tz));
 
 		$page_name = $_REQUEST[BfoxQuery::var_page];
 		$ref_str = $_REQUEST[BfoxQuery::var_reference];

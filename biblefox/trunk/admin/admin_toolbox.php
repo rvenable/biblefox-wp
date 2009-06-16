@@ -380,6 +380,15 @@ class BfoxMainToolbox extends BfoxToolBox
 		echo BibleSearch::refresh_search_index();
 	}
 
+	public function check_times() {
+		include BFOX_DIR . '/bible/bible.php';
+		pre('date: ' . date('Y-M-j g:i a c'));
+		pre('gmdt: ' . gmdate('Y-M-j g:i a c'));
+		$time = BfoxUtility::adjust_time(time());
+		pre('date: ' . date('Y-M-j g:i a c', $time));
+		pre('gmdt: ' . gmdate('Y-M-j g:i a c', $time));
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *

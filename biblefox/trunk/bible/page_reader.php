@@ -47,7 +47,7 @@ class BfoxPageReader extends BfoxPage {
 		else $ref_content = BfoxRefContent::ref_loader($ref_str);
 		$url = $this->reading_url($plan->id, $reading_id);
 
-		return BfoxRefContent::passage_row("<a href='$url' id='plan_{$plan->id}_$reading_id'><div class='reading_date'>" . date('l, M jS', $plan->dates[$reading_id]) . "</div><div class='reading_title$finished'>$plan->name #" . ($reading_id + 1) . ": $ref_str</div></a>",
+		return BfoxRefContent::passage_row("<a href='$url' id='plan_{$plan->id}_$reading_id'><div class='reading_date'>" . $plan->date($reading_id, 'l, M jS') . "</div><div class='reading_title$finished'>$plan->name #" . ($reading_id + 1) . ": $ref_str</div></a>",
 			"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>View plan</a>Mark as Read",
 			$ref_content);
 	}
@@ -68,7 +68,7 @@ class BfoxPageReader extends BfoxPage {
 					if ($is_unread || ($reading_id >= $plan->current_reading_id)){
 						if (BfoxReadingPlan::reading_id_invalid == $this->reading_id) $this->reading_id = $reading_id;
 
-						$list->add($this->create_reading_row($plan, $reading_id, $is_unread), $plan->dates[$reading_id]);
+						$list->add($this->create_reading_row($plan, $reading_id, $is_unread), $plan->date($reading_id));
 					}
 				}
 			}

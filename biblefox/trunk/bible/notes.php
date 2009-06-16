@@ -11,6 +11,8 @@ class BfoxNote {
 	private $created_time = 0;
 	private $modified_time = 0;
 
+	const format_default = 'Y-M-j g:i a';
+
 	/**
 	 * The bible references
 	 *
@@ -26,8 +28,11 @@ class BfoxNote {
 	public function set_from_db(stdClass $db_data) {
 		$this->id = $db_data->id;
 		$this->user_id = $db_data->user_id;
-		$this->created_time = $db_data->created_time;
-		$this->modified_time = $db_data->modified_time;
+
+		// Creation and modification times are adjusted for the user's timezone
+		$this->created_time = BfoxUtility::adjust_time(strtotime($db_data->created_time));
+		$this->modified_time = BfoxUtility::adjust_time(strtotime($db_data->modified_time));
+
 		$this->set_content($db_data->content);
 	}
 
@@ -67,17 +72,12 @@ class BfoxNote {
 		return $this->refs;
 	}
 
-	private static function get_time($time_str, $format = '') {
-		if (empty($format)) return $time_str;
-		else return date($format, strtotime($time_str));
+	public function get_modified($format = self::format_default) {
+		return date($format, $this->modified_time);
 	}
 
-	public function get_modified($format = '') {
-		return self::get_time($this->modified_time, $format);
-	}
-
-	public function get_created($format = '') {
-		return self::get_time($this->created_time, $format);
+	public function get_created($format = self::format_default) {
+		return date($format, $this->created_time);
 	}
 }
 

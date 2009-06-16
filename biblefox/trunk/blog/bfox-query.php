@@ -212,21 +212,18 @@ class BfoxBlogQueryData
 	 * @param $reading_id
 	 * @return object new_post
 	 */
-	private function create_reading_post(BfoxReadingPlan $plan, $reading_id)
-	{
+	private function create_reading_post(BfoxReadingPlan $plan, $reading_id) {
 		$refs = $plan->readings[$reading_id];
 		$ref_str = $refs->get_string();
 
 		// Create the navigation bar with the prev/write/next links
 		$nav_bar = "<div class='bible_post_nav'>";
-		if (isset($plan->readings[$reading_id - 1]))
-		{
+		if (isset($plan->readings[$reading_id - 1])) {
 			$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
 			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->readings[$reading_id - 1]->get_string() . '</a>';
 		}
 		$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
-		if (isset($plan->readings[$reading_id + 1]))
-		{
+		if (isset($plan->readings[$reading_id + 1])) {
 			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->readings[$reading_id + 1]->get_string() . ' &gt;</a>';
 		}
@@ -241,15 +238,7 @@ class BfoxBlogQueryData
 		$new_post['bfox_author'] = '<a href="' . BfoxBlog::reading_plan_url($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
 
 		// Set the date according to the reading plan if possible, otherwise set it to the current date
-		if (isset($plan->dates[$reading_id]))
-		{
-			$new_post['post_date'] = $new_post['post_date_gmt'] = date('Y-m-d H:i:s', $plan->dates[$reading_id]);
-		}
-		else
-		{
-			$new_post['post_date'] = current_time('mysql', false);
-			$new_post['post_date_gmt'] = current_time('mysql', true);
-		}
+		$new_post['post_date'] = $new_post['post_date_gmt'] = $plan->date($reading_id, 'Y-m-d H:i:s');
 
 		// Turn off comments
 		$new_post['comment_status'] = 'closed';

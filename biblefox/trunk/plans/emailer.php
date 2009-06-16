@@ -42,7 +42,7 @@ class BfoxBibleEmailer {
 			if (0 < $plan->todays_reading)
 			{
 				$discussions = '';
-				$discussions .= bfox_get_discussions(array('min_date' => date('Y-m-d', $plan->dates[$plan->todays_reading - 1])));
+				$discussions .= bfox_get_discussions(array('min_date' => $plan->date($plan->todays_reading - 1, 'Y-m-d')));
 				if (!empty($discussions)) $message .= "<div><h3>Recent Blog Activity</h3>$discussions</div>";
 			}
 

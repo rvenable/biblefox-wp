@@ -53,6 +53,7 @@ class BfoxPagePassage extends BfoxPage {
 		else {
 			// If we don't have a valid bible ref, we should use the history
 			if (!empty($last_viewed)) $refs = $last_viewed->refs;
+			else $refs = $input_refs;
 
 			if ($refs->is_valid()) wp_redirect(BfoxQuery::ref_url($refs->get_string()));
 			else wp_redirect(BfoxQuery::ref_url('Genesis 1'));
@@ -146,10 +147,10 @@ class BfoxPagePassage extends BfoxPage {
 					else $finished = '';
 
 					$row = new BfoxHtmlRow('',
-						BfoxUtility::nice_date($plan->dates[$reading_id], 'l, M j'),
+						BfoxUtility::nice_date($plan->time($reading_id)),
 						"<a href='$url'$finished>$ref_str</a>",
 						"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
-					$row->add_sort_val($plan->dates[$reading_id]);
+					$row->add_sort_val($plan->date($reading_id));
 					$table->add_row($row);
 				}
 			}

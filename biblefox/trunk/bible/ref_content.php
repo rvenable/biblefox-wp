@@ -11,8 +11,8 @@ class BfoxRefContent {
 		foreach ($history as $event) $table->add_row('', 5,
 			$event->desc(),
 			$event->ref_link(),
-			BfoxUtility::nice_date(strtotime($event->time)),
-			$date = date('g:i a', strtotime($event->time)),
+			BfoxUtility::nice_date($event->time),
+			date('g:i a', $event->time),
 			$event->toggle_link());
 
 		return $table->content();
@@ -32,7 +32,7 @@ class BfoxRefContent {
 
 		$earliest = '';
 		foreach($plans as $plan) {
-			$start_time = $plan->raw_start_date();
+			$start_time = $plan->start_date();
 			if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
 		}
 

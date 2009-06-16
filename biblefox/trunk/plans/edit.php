@@ -266,7 +266,7 @@ class BfoxPlanEdit
 
 	private function schedule_desc(BfoxReadingPlan $plan) {
 		if ($plan->is_scheduled) {
-			$desc = $plan->start_str() . ' - ' . $plan->end_str();
+			$desc = $plan->start_date('M j, Y') . ' - ' . $plan->end_date('M j, Y');
 			if ($plan->is_recurring) $desc .= ' (recurring)';
 			$desc .= " (" . $plan->frequency_desc() . ")";
 		}
@@ -418,7 +418,7 @@ class BfoxPlanEdit
 
 		$unread_readings = array();
 		if ($use_history) {
-			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->start_time(), NULL, TRUE));
+			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->history_start_date(), NULL, TRUE));
 			$crossed_out = '<br/>' . __('*Note: Crossed out passages indicate that you have finished reading that passage');
 		}
 
@@ -456,10 +456,7 @@ class BfoxPlanEdit
 			$row->add_col(Biblefox::ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
 
 			// Add the Date column
-			if ($plan->is_scheduled) {
-				if (isset($plan->dates[$reading_id])) $row->add_col(date('M d', $plan->dates[$reading_id]));
-				else $row->add_col();
-			}
+			if ($plan->is_scheduled) $row->add_col($plan->date($reading_id, 'M d'));
 
 			// Add the History column
 			/*if (!empty($unread_readings)) {
@@ -586,7 +583,7 @@ class BfoxPlanEdit
 
 		// Start Date
 		$table->add_option(__('Start Date'), '',
-			$table->option_text(self::var_plan_start, $plan->start_str(), "size='10' maxlength='20'"),
+			$table->option_text(self::var_plan_start, $plan->start_date('M j, Y'), "size='10' maxlength='20'"),
 			'<p>' . __('Set the date at which this plan schedule will begin.') . '</p>');
 
 		// Frequency

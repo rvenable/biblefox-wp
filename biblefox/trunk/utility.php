@@ -51,12 +51,30 @@ class BfoxUtility {
 		return $array;
 	}
 
-	public static function nice_date($time, $day_format = 'M j', $year_format = 'Y') {
+	/**
+	 * Time Offset for adjusting to a user's time zone
+	 *
+	 * @var integer
+	 */
+	private static $time_offset = 0;
+
+	public static function set_timezone_offset($offset) {
+		self::$time_offset = ((date('O') / 100) + $offset) * 60 * 60;
+	}
+
+	public static function adjust_time($time) {
+		return $time + self::$time_offset;
+	}
+
+	public static function nice_date($time, $day_format = '', $year_format = '', $user_timezone = FALSE) {
+		if (empty($day_format)) $day_format = 'M j';
+		if (empty($year_format)) $year_format = 'Y';
 		$day = date($day_format, $time);
 		$year = date($year_format, $time);
+		$now = self::adjust_time(time());
 
-		if (date($year_format) != $year) $date = $day . ', ' . $year;
-		elseif (date($day_format) != $day) $date = $day;
+		if (date($year_format, $now) != $year) $date = $day . ', ' . $year;
+		elseif (date($day_format, $now) != $day) $date = $day;
 		else $date = 'Today';
 
 		return $date;

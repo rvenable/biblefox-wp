@@ -45,4 +45,8 @@ jQuery(document).ready( function() {
 		jQuery.cookie('bfox_view_option_' + name, checked, {expires: 365});
 		bfox_view_option_set(name, checked);
 	});
+
+	// User Timezone
+	var d = new Date();
+	jQuery.cookie('bfox_timezone', (d.getTimezoneOffset() / 60), {expires: 30});
 });
