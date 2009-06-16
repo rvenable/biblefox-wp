@@ -63,7 +63,7 @@ class BfoxUtility {
 	}
 
 	public static function adjust_time($time) {
-		return $time + self::$time_offset;
+		return $time - self::$time_offset;
 	}
 
 	public static function nice_date($time, $day_format = '', $year_format = '', $user_timezone = FALSE) {
