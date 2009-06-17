@@ -26,41 +26,22 @@ class BfoxPagePassage extends BfoxPage {
 
 	protected $default_tab = NULL;
 
-	public function __construct($ref_str, BfoxTrans $translation) {
-		$input_refs = new BfoxRefs($ref_str);
+	public function __construct(BfoxRefs $input_refs, BfoxTrans $translation, $last_viewed) {
+		// Limit the refs to 20 chapters
+		list($refs) = $input_refs->get_sections(20, 1);
 
-		// Get the last viewed passage
-		$history = BfoxHistory::get_history(1);
-		$last_viewed = reset($history);
-
-		if ($input_refs->is_valid()) {
-			// Limit the refs to 20 chapters
-			list($refs) = $input_refs->get_sections(20, 1);
-
-			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
-			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
-				$this->default_tab = 0;
-				BfoxHistory::view_passage($refs);
-			}
-
-			add_action('wp_head', array($this, 'wp_head'));
-
-			$this->refs = $refs;
-			$this->history = BfoxHistory::get_history(25);
-			$this->translation = $translation;
-			parent::__construct($translation);
+		// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
+		if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
+			$this->default_tab = 0;
+			BfoxHistory::view_passage($refs);
 		}
-		else {
-			// If we don't have a valid bible ref, we should use the history
-			if (!empty($last_viewed)) $refs = $last_viewed->refs;
-			else $refs = $input_refs;
 
-			$args = array();
-			parse_str($_SERVER['QUERY_STRING'], $args);
-			if ($refs->is_valid()) wp_redirect(BfoxQuery::ref_url($refs->get_string(), '', $args));
-			else wp_redirect(BfoxQuery::ref_url('Genesis 1', '', $args));
-			exit;
-		}
+		add_action('wp_head', array($this, 'wp_head'));
+
+		$this->refs = $refs;
+		$this->history = BfoxHistory::get_history(25);
+		$this->translation = $translation;
+		parent::__construct($translation);
 	}
 
 	public function wp_head() {

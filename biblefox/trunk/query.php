@@ -43,37 +43,45 @@ class BfoxQuery {
 		}
 	}
 
-	public static function page_url($page) {
-		return add_query_arg(self::var_page, $page, self::$url);
-	}
+	public static function url($args = array()) {
+		$url = self::$url;
 
-	public static function search_page_url($search_text, $ref_str = '', BfoxTrans $display_translation = NULL) {
-		$url = add_query_arg(self::var_search, urlencode($search_text), self::page_url(self::page_search));
-		if (!empty($ref_str)) $url = add_query_arg(self::var_reference, urlencode($ref_str), $url);
-		if (!is_null($display_translation)) $url = add_query_arg(self::var_translation, $display_translation->id, $url);
-
-		return $url;
-	}
-
-	public static function ref_url($ref_str = '', $trans_str = '', $args = array()) {
 		if (self::$use_pretty_urls) {
-			if (empty($ref_str) && !empty($args[self::var_reference])) $ref_str = $args[self::var_reference];
-			if (empty($trans_str) && !empty($args[self::var_translation])) $trans_str = $args[self::var_translation];
-			if (!empty($trans_str)) $ref_str = "$trans_str/$ref_str";
+			$ref_str = '';
+			if (!empty($args[self::var_reference])) $ref_str = trim(trim($args[self::var_reference]), '/');
+			if (!empty($args[self::var_translation])) $ref_str = trim(trim($args[self::var_translation]), '/') . '/' . $ref_str;
+
+			// Don't send a page var if it is the passage page
+			if (self::page_passage == $args[self::var_page]) unset($args[self::var_page]);
 
 			unset($args[self::var_reference]);
 			unset($args[self::var_translation]);
 
-			$url = self::$url . urlencode($ref_str) . '/';
-			if (!empty($args)) $url = add_query_arg($args, $url);
-			return $url;
+			$url .= urlencode($ref_str) . '/';
 		}
-		else {
-			$args[self::var_page] = self::page_passage;
-			if (!empty($ref_str)) $args[self::var_reference] = urlencode($ref_str);
-			if (!empty($trans_str)) $args[self::var_translation] = $trans_str;
-			return add_query_arg($args, self::$url);
-		}
+
+		return add_query_arg(array_map('urlencode', array_filter($args)), $url);
+	}
+
+	public static function page_url($page) {
+		return self::url(array(self::var_page => $page));
+	}
+
+	public static function search_page_url($search_text, $ref_str = '', BfoxTrans $display_translation = NULL, $args = array()) {
+		$args[self::var_page] = self::page_search;
+		$args[self::var_search] = $search_text;
+
+		if (!empty($ref_str)) $args[self::var_reference] = $ref_str;
+		if (!is_null($display_translation)) $args[self::var_translation] = $display_translation->id;
+
+		return self::url($args);
+	}
+
+	public static function ref_url($ref_str = '', $trans_str = '', $args = array()) {
+		$args[self::var_page] = self::page_passage;
+		$args[self::var_reference] = $ref_str;
+		if (!empty($trans_str)) $args[self::var_translation] = $trans_str;
+		return self::url($args);
 	}
 
 	public static function passage_page_url($ref_str = '', BfoxTrans $translation = NULL) {

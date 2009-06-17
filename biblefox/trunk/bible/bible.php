@@ -12,6 +12,7 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 class BfoxBible {
 
 	const cookie_translation = 'bfox_trans_str';
+	const cookie_note_id = 'bfox_note_id';
 	const cookie_tz = 'bfox_timezone';
 	const user_option_tz = 'bfox_timezone';
 
@@ -22,6 +23,8 @@ class BfoxBible {
 	private $page;
 
 	public function __construct($query_str = '') {
+
+		$redirect = FALSE;
 
 		// Register the bible jquery scripts and styles
 		BfoxUtility::register_script('bfox_jquery', 'bible/jquery/js/jquery-1.3.2.min.js');
@@ -40,50 +43,73 @@ class BfoxBible {
 		if (isset($_COOKIE[self::cookie_tz])) update_user_option($GLOBALS['user_ID'], self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
 		BfoxUtility::set_timezone_offset(get_user_option(self::user_option_tz));
 
-		$page_name = $_REQUEST[BfoxQuery::var_page];
-		$ref_str = $_REQUEST[BfoxQuery::var_reference];
-		$search_str = $_REQUEST[BfoxQuery::var_search];
+		// Create an array of all the query args
+		$q = array();
+		$requests = array(BfoxQuery::var_page, BfoxQuery::var_reference, BfoxQuery::var_search, BfoxQuery::var_translation, BfoxQuery::var_toggle_read);
+		foreach ($requests as $var) if (isset($_REQUEST[$var])) $q[$var] = $_REQUEST[$var];
 
 		$query_str = trim(trim($query_str), '/');
 		if (!empty($query_str)) {
 			$vars = explode('/', $query_str);
-			if (1 < count($vars)) list($trans_str, $ref_str) = $vars;
-			else list($ref_str) = $vars;
+			if (1 < count($vars)) list($q[BfoxQuery::var_translation], $q[BfoxQuery::var_reference]) = $vars;
+			else list($q[BfoxQuery::var_reference]) = $vars;
 		}
 
 		// If we are toggling is_read, then we should do it now, and redirect without the parameter
-		if (!empty($_REQUEST[BfoxQuery::var_toggle_read])) {
-			BfoxHistory::toggle_is_read($_REQUEST[BfoxQuery::var_toggle_read]);
-			wp_redirect(remove_query_arg(array(BfoxQuery::var_toggle_read), $_SERVER['REQUEST_URI']));
+		if (!empty($q[BfoxQuery::var_toggle_read])) {
+			BfoxHistory::toggle_is_read($q[BfoxQuery::var_toggle_read]);
+			unset($q[BfoxQuery::var_toggle_read]);
+			$redirect = TRUE;
 		}
 
 		// Save any notes
-		if (isset($_POST[self::var_note_submit])) {
-			$note = BfoxNotes::get_note($_POST[self::var_note_id]);
-			$note->set_content(strip_tags(stripslashes($_POST[self::var_note_content])));
-			BfoxNotes::save_note($note);
-			wp_redirect(self::edit_note_url($note->id, $_SERVER['REQUEST_URI']));
+		if (isset($_REQUEST[self::var_note_id])) {
+			$note_id = $_REQUEST[self::var_note_id];
+			setcookie(self::cookie_note_id, $note_id, /* 30 days from now: */ time() + 60 * 60 * 24 * 30);
+
+			if (isset($_POST[self::var_note_submit])) {
+				$note = BfoxNotes::get_note($note_id);
+				$note->set_content(strip_tags(stripslashes($_POST[self::var_note_content])));
+				BfoxNotes::save_note($note);
+			}
+
+			// Redirect without the note info
+			$redirect = TRUE;
 		}
 
-		// If no page was specified, use the passage page
-		if (empty($page_name)) $page_name = BfoxQuery::page_passage;
 		// If we have a search string but no ref_str, we should try to extract refs from the search string
-		elseif ((BfoxQuery::page_search == $page_name) && empty($ref_str)) {
-			list($ref_str, $search_str) = self::extract_refs($search_str);
-			if (empty($search_str)) wp_redirect(BfoxQuery::passage_page_url($ref_str));
+		if ((BfoxQuery::page_search == $q[BfoxQuery::var_page]) && empty($q[BfoxQuery::var_reference])) {
+			list($q[BfoxQuery::var_reference], $q[BfoxQuery::var_search]) = self::extract_refs($q[BfoxQuery::var_search]);
+			if (empty($q[BfoxQuery::var_search])) $redirect = TRUE;
 		}
 
-		switch ($page_name) {
+		switch ($q[BfoxQuery::var_page]) {
 
 			default:
 			case BfoxQuery::page_passage:
-				require BFOX_BIBLE_DIR . '/page_passage.php';
-				$this->page = new BfoxPagePassage($ref_str, self::get_input_trans());
+				$refs = new BfoxRefs($q[BfoxQuery::var_reference]);
+
+				// Get the last viewed passage
+				$history = BfoxHistory::get_history(1);
+				$last_viewed = reset($history);
+
+				if ($refs->is_valid()) {
+					require BFOX_BIBLE_DIR . '/page_passage.php';
+					$this->page = new BfoxPagePassage($refs, self::get_input_trans($q), $last_viewed);
+				}
+				else {
+					// If we don't have a valid bible ref, we should use the history
+					if (!empty($last_viewed)) $refs = $last_viewed->refs;
+
+					$redirect = TRUE;
+					if ($refs->is_valid()) $q[BfoxQuery::var_reference] = $refs->get_string();
+					else $q[BfoxQuery::var_reference] = 'Genesis 1';
+				}
 				break;
 
 			case BfoxQuery::page_search:
 				require BFOX_BIBLE_DIR . '/page_search.php';
-				$this->page = new BfoxPageSearch($search_str, $ref_str, self::get_input_trans());
+				$this->page = new BfoxPageSearch($q[BfoxQuery::var_search], $q[BfoxQuery::var_reference], self::get_input_trans($q));
 				break;
 
 			case BfoxQuery::page_commentary:
@@ -97,17 +123,19 @@ class BfoxBible {
 				break;
 		}
 
+		if ($redirect) wp_redirect(BfoxQuery::url($q));
+
 		add_filter('wp_title', array(&$this, 'wp_title'), 10, 3);
 	}
 
-	public static function get_input_trans() {
+	public static function get_input_trans($q) {
 		// Cookied Translations:
 		// If we were passed a translation, use it and save the cookie
 		// Otherwise, if we have a cookied translation, use it
 		// Otherwise use the default translation
-		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
-			$translation = new BfoxTrans($_REQUEST[BfoxQuery::var_translation]);
-			setcookie(self::cookie_translation, $translation->id, /*365 days from now: */ time() + 60 * 60 * 24 * 365);
+		if (!empty($q[BfoxQuery::var_translation])) {
+			$translation = new BfoxTrans($q[BfoxQuery::var_translation]);
+			setcookie(self::cookie_translation, $translation->id, /* 365 days from now: */ time() + 60 * 60 * 24 * 365);
 		}
 		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new BfoxTrans($_COOKIE[self::cookie_translation]);
 		else $translation = new BfoxTrans();
@@ -141,10 +169,7 @@ class BfoxBible {
 
 			if (empty($new_search)) {
 				$refs = self::parse_search_ref_str($ref_str);
-				if ($refs->is_valid()) {
-					$page_name = BfoxQuery::page_passage;
-					$ref_str = $refs->get_string();
-				}
+				if ($refs->is_valid()) $ref_str = $refs->get_string();
 			}
 			else $search_str = $new_search;
 		}

@@ -23,7 +23,7 @@ class BfoxCboxNotes extends BfoxCbox {
 
 		echo $notes_table->content();
 
-		$note = BfoxNotes::get_note($_GET[BfoxBible::var_note_id]);
+		$note = BfoxNotes::get_note($_COOKIE[BfoxBible::cookie_note_id]);
 
 		if (empty($note->id)) $edit_header = __('Create a Note');
 		else $edit_header = __('Edit Note');
