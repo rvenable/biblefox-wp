@@ -12,9 +12,10 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 class BfoxBible {
 
 	const cookie_translation = 'bfox_trans_str';
-	const cookie_note_id = 'bfox_note_id';
 	const cookie_tz = 'bfox_timezone';
+
 	const user_option_tz = 'bfox_timezone';
+	const user_option_note_id = 'bfox_note_id';
 
 	const var_note_submit = 'note_submit';
 	const var_note_id = 'note_id';
@@ -23,6 +24,7 @@ class BfoxBible {
 	private $page;
 
 	public function __construct($query_str = '') {
+		global $user_ID;
 
 		$redirect = FALSE;
 
@@ -40,7 +42,7 @@ class BfoxBible {
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
 		// Update the user's timezone from their cookies
-		if (isset($_COOKIE[self::cookie_tz])) update_user_option($GLOBALS['user_ID'], self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
+		if (isset($_COOKIE[self::cookie_tz])) update_user_option($user_ID, self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
 		BfoxUtility::set_timezone_offset(get_user_option(self::user_option_tz));
 
 		// Create an array of all the query args
@@ -65,13 +67,16 @@ class BfoxBible {
 		// Save any notes
 		if (isset($_REQUEST[self::var_note_id])) {
 			$note_id = $_REQUEST[self::var_note_id];
-			setcookie(self::cookie_note_id, $note_id, /* 30 days from now: */ time() + 60 * 60 * 24 * 30);
 
 			if (isset($_POST[self::var_note_submit])) {
 				$note = BfoxNotes::get_note($note_id);
 				$note->set_content(strip_tags(stripslashes($_POST[self::var_note_content])));
 				BfoxNotes::save_note($note);
+				$note_id = $note->id;
 			}
+
+			// Save the note_id as a user option
+			update_user_option($user_ID, self::user_option_note_id, $note_id, TRUE);
 
 			// Redirect without the note info
 			$redirect = TRUE;

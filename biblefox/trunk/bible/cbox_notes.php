@@ -20,10 +20,12 @@ class BfoxCboxNotes extends BfoxCbox {
 				$note->get_title() . " (<a href='" . BfoxBible::edit_note_url($note->id, $this->url) . "'>edit</a>)",
 				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>");
 		}
+		$notes_table->add_row('', 1, array("<a href='" . BfoxBible::edit_note_url(0, $this->url) . "'>Add New Note</a>", "colspan='3'"));
 
 		echo $notes_table->content();
 
-		$note = BfoxNotes::get_note($_COOKIE[BfoxBible::cookie_note_id]);
+		// Get the current not from the user options
+		$note = BfoxNotes::get_note(get_user_option(BfoxBible::user_option_note_id));
 
 		if (empty($note->id)) $edit_header = __('Create a Note');
 		else $edit_header = __('Edit Note');
