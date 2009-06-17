@@ -5,6 +5,7 @@ define(BFOX_TABLE_HISTORY, BFOX_BASE_TABLE_PREFIX . 'history');
 class BfoxHistoryEvent {
 
 	public $time = 0;
+	public $db_time = 0;
 	public $is_read = FALSE;
 	public $refs = NULL;
 
@@ -13,7 +14,8 @@ class BfoxHistoryEvent {
 	public function __construct(stdClass $db_data) {
 
 		// History time is adjusted for the user's timezone
-		$this->time = BfoxUtility::adjust_time(strtotime($db_data->time));
+		$this->db_time = strtotime($db_data->time);
+		$this->time = BfoxUtility::adjust_time($this->db_time);
 
 		$this->is_read = $db_data->is_read;
 		$this->refs = new BfoxRefs;
@@ -21,7 +23,7 @@ class BfoxHistoryEvent {
 	}
 
 	public function toggle_url() {
-		return add_query_arg(BfoxQuery::var_toggle_read, urlencode($this->time), BfoxQuery::page_url(BfoxQuery::page_passage));
+		return add_query_arg(BfoxQuery::var_toggle_read, urlencode($this->db_time), BfoxQuery::page_url(BfoxQuery::page_passage));
 	}
 
 	public function toggle_link($unread_text = '', $read_text = '') {
@@ -109,7 +111,7 @@ class BfoxHistory {
 
 			$results = $wpdb->get_results("SELECT time, is_read, GROUP_CONCAT(verse_begin) as verse_begin, GROUP_CONCAT(verse_end) as verse_end FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " GROUP BY time, is_read ORDER BY time DESC " . BfoxUtility::limit_str($limit));
 
-			foreach ($results as $result) $history[$result->time] = new BfoxHistoryEvent($result);
+			foreach ($results as $result) $history []= new BfoxHistoryEvent($result);
 		}
 
 		return $history;
