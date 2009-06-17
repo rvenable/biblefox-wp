@@ -126,6 +126,8 @@ class BiblefoxSite {
 		add_action('parse_request', 'BiblefoxSite::parse_request');
 		register_sidebar_widget('Bible Pages', array('BiblefoxSite', 'widget_bible_pages'));
 		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
+		wp_deregister_style('login');
+		BfoxUtility::register_style('login', 'site/login.css');
 	}
 }
 add_action('init', 'BiblefoxSite::init');
