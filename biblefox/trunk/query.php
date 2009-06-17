@@ -57,14 +57,15 @@ class BfoxQuery {
 			unset($args[self::var_reference]);
 			unset($args[self::var_translation]);
 
-			$url .= urlencode($ref_str) . '/';
+			if (!empty($ref_str)) $url .= urlencode($ref_str) . '/';
 		}
 
 		return add_query_arg(array_map('urlencode', array_filter($args)), $url);
 	}
 
-	public static function page_url($page) {
-		return self::url(array(self::var_page => $page));
+	public static function page_url($page, $args = array()) {
+		$args[self::var_page] = $page;
+		return self::url($args);
 	}
 
 	public static function search_page_url($search_text, $ref_str = '', BfoxTrans $display_translation = NULL, $args = array()) {
