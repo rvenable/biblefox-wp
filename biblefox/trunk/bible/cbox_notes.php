@@ -26,6 +26,7 @@ class BfoxCboxNotes extends BfoxCbox {
 
 		// Get the current not from the user options
 		$note = BfoxNotes::get_note(get_user_option(BfoxBible::user_option_note_id));
+		if (empty($note->id)) $note->set_content($this->refs->get_string());
 
 		if (empty($note->id)) $edit_header = __('Create a Note');
 		else $edit_header = __('Edit Note');
@@ -41,7 +42,7 @@ class BfoxCboxNotes extends BfoxCbox {
 
 		$content = $note->get_content();
 
-		if (!empty($content)) $table->add_option(__('Note'), '', $note->get_display_content(), '');
+		if (!empty($content) && !empty($note->id)) $table->add_option(__('Note'), '', $note->get_display_content(), '');
 
 		// Note Content
 		$table->add_option(__('Edit'), '', $table->option_textarea(BfoxBible::var_note_content, $content, 15, 50), '');
