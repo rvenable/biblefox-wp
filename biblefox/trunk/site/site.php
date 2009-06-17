@@ -30,6 +30,31 @@ class BiblefoxSite {
 		return $blogs;
 	}
 
+	public static function new_blog_settings($blog_id, $user_id) {
+		global $wpdb;
+
+		switch_to_blog($blog_id);
+
+		// Change the old Wordpress.com link to Biblefox.com
+		$wpdb->query($wpdb->prepare("UPDATE $wpdb->links
+			SET link_url = %s, link_name = %s, link_rss = %s
+			WHERE link_id = 1",
+			'http://biblefox.com/',
+			'Biblefox.com',
+			'http://biblefox.com/feed/'));
+
+		// Change the old Wordpress.org link to Biblefox.com/bible/
+		// TODO3: actually implement bible feeds at /bible/feed/
+		$wpdb->query($wpdb->prepare("UPDATE $wpdb->links
+			SET link_url = %s, link_name = %s, link_rss = %s
+			WHERE link_id = 2",
+			'http://biblefox.com/bible/',
+			'Bible Reader',
+			'http://biblefox.com/bible/feed/'));
+
+		restore_current_blog();
+	}
+
 	/**
 	 * This returns a link for logging in or for logging out
 	 *
@@ -100,6 +125,7 @@ class BiblefoxSite {
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
 		register_sidebar_widget('Bible Pages', array('BiblefoxSite', 'widget_bible_pages'));
+		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
 	}
 }
 add_action('init', 'BiblefoxSite::init');
