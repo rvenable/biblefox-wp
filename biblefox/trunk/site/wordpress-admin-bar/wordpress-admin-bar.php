@@ -45,13 +45,16 @@ class WPAdminBar {
 		// Don't do anything within the media upload iframe
 		if ( 'media-upload.php' == basename( $_SERVER['PHP_SELF'] ) ) return;
 
+		/*
 		// Everything this plugin does is only for logged in users
 		if ( !current_user_can('read') ) return;
+		*/
 
 		// Load up the localization file if we're using WordPress in a different language
 		// Place it in this plugin's folder and name it "wordpress-admin-bar-[value in wp-config].mo"
 		load_plugin_textdomain( 'wordpress-admin-bar', FALSE, '/wordpress-admin-bar' );
 
+		/*
 		// Register the admin settings page hooks
 		add_action( 'admin_menu', array(&$this, 'AddAdminMenu') );
 		//add_filter( 'plugin_action_links', array(&$this, 'AddPluginActionLink'), 10, 2 );
@@ -63,8 +66,9 @@ class WPAdminBar {
 		add_filter( 'wpabar_menuitems', array(&$this, 'AddSingleEditLink') );
 		add_filter( 'wpabar_menuitems', array(&$this, 'CommentsAwaitingModCount') );
 		add_filter( 'wpabar_menuitems', array(&$this, 'PluginsUpdateCount') );
+		*/
 
-		$this->folder = plugins_url('wordpress-admin-bar');
+		$this->folder = BFOX_URL . '/site/wordpress-admin-bar';
 
 		// Create the list of default themes
 		// Theme authors: use wpabar_register_theme() instead of the "wpabar_themes" filter
@@ -120,6 +124,7 @@ class WPAdminBar {
 			'hide'       => array(),
 		) );
 
+		/*
 		// Load the settings
 		global $user_ID;
 		$settings = get_option( 'wordpress-admin-bar' );
@@ -132,6 +137,8 @@ class WPAdminBar {
 			if ( !isset($this->settings[$setting]) && !is_null($this->settings[$setting]) )
 				$this->settings[$setting] = $value;
 		}
+		*/
+		$this->settings = $this->defaults;
 
 		// Make sure a valid theme is requested
 		if ( !array_key_exists( $this->settings['theme'], $this->themes ) )
@@ -152,6 +159,7 @@ class WPAdminBar {
 	}
 
 
+	/*
 	// Register the settings page
 	function AddAdminMenu() {
 		add_submenu_page( 'tools.php', __('WordPress Admin Bar', 'wordpress-admin-bar'), __('Admin Bar', 'wordpress-admin-bar'), 'read', 'wordpress-admin-bar', array(&$this, 'SettingsPage') );
@@ -161,7 +169,7 @@ class WPAdminBar {
 	// Add a link to the settings page to the plugins list
 	function AddPluginActionLink( $links, $file ) {
 		static $this_plugin;
-		
+
 		if( empty($this_plugin) ) $this_plugin = plugin_basename(__FILE__);
 
 		if ( $file == $this_plugin ) {
@@ -257,6 +265,7 @@ class WPAdminBar {
 	</style>
 <?php
 	}
+	*/
 
 
 	// The settings page for this plugin
@@ -366,22 +375,28 @@ class WPAdminBar {
 	<link rel="stylesheet" href="<?php echo $this->themes[$this->settings['theme']]['css']; ?>" type="text/css" />
 	<!--[if lt IE 7]><style type="text/css">#wpabar { position: absolute; } #wpabar .wpabar-menupop li a { width: 100%; }</style><![endif]-->
 <?php
+	/*
 		if ( is_admin() ) {
 			echo '	<style type="text/css">#wpabarlist ul { margin: 5px 0 0 25px; }</style>' . "\n";
 		}
+	*/
 	}
 
 
 	// Generate and output the HTML for the admin menu
 	function OutputMenuBar() {
-		$this->SetupMenu();
+//		$this->SetupMenu();
+
+		list($left_side, $right_side) = BiblefoxSite::admin_bar();
 ?>
 
 <!-- Start WordPress Admin Bar -->
 <div id="wpabar">
 	<div id="wpabar-leftside">
-		<ul>
+		<?php echo $left_side ?>
+	</div>
 <?php
+/*
 
 			$first = TRUE;
 			$switched = FALSE;
@@ -432,16 +447,18 @@ class WPAdminBar {
 					echo "				</ul>\n			</li>\n";
 				}
 			}
+			*/
 
 ?>
-			<li><a href="<?php echo wp_logout_url(); ?>"><?php _e('Log Out'); ?></a></li>
-		</ul>
+	<div id="wpabar-rightside">
+		<?php echo $right_side ?>
 	</div>
 </div>
 
 <?php
 	}
 
+	/*
 	// If viewing a single post or page, filter in a link to edit it
 	function AddSingleEditLink( $menu ) {
 		global $posts;
@@ -475,7 +492,7 @@ class WPAdminBar {
 			array( "(<span title='" . __( 'Number of comments in the moderation queue', 'wordpress-admin-bar' ) . "' class='awaiting-mod count-", '</span></span>)'),
 			$menu['edit-comments.php'][0]['title']
 		);
-		
+
 		return $menu;
 	}
 
@@ -490,9 +507,10 @@ class WPAdminBar {
 			array( "(<span title='" . __( 'Number of plugins needing upgrading', 'wordpress-admin-bar' ) . "' class='update-plugins", '</span></span>)'),
 			$menu['plugins.php'][0]['title']
 		);
-		
+
 		return $menu;
 	}
+	*/
 }
 
 

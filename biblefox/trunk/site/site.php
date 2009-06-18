@@ -187,6 +187,11 @@ class BiblefoxSite {
 		echo $after_widget;
 	}
 
+	public static function wpabar_defaults($defaults) {
+		$defaults['show_admin'] = 1;
+		return $defaults;
+	}
+
 	public static function init() {
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
@@ -197,6 +202,8 @@ class BiblefoxSite {
 	}
 }
 add_action('init', 'BiblefoxSite::init');
+add_filter('wpabar_defaults', 'BiblefoxSite::wpabar_defaults');
+
 
 /**
  * Filter function for changine the email from name to Biblefox
