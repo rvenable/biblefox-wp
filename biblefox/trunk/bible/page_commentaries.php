@@ -25,6 +25,8 @@ class BfoxPageCommentaries extends BfoxPage {
 		// Otherwise if there is no message, but this was still an update, redirect so that refreshing the page won't try to resend the update
 		if (!empty($message)) wp_redirect(add_query_arg(BfoxQuery::var_message, urlencode($message), BfoxQuery::page_url(BfoxQuery::page_commentary)));
 		elseif (!empty($_POST['update'])) wp_redirect(BfoxQuery::page_url(BfoxQuery::page_commentary));
+
+		parent::__construct();
 	}
 
 	protected function message() {
@@ -57,19 +59,24 @@ class BfoxPageCommentaries extends BfoxPage {
 
 		list($post_url, $hiddens) = BfoxUtility::get_post_url(BfoxQuery::page_url(BfoxQuery::page_commentary));
 
+		// TODO3: use BfoxHtmlTable()
+
 		?>
 		<?php if (!empty($coms)): ?>
 		<h3>My Commentaries</h3>
 		<p>These are the commentaries you currently have selected. You can disable them from being shown in the <a href="<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>">Biblefox Bible Viewer</a> or delete them from your commentary list entirely.</p>
 		<form action="<?php echo $post_url ?>" method="post">
 		<?php echo $hiddens ?>
-		<table id="commentaries">
+		<table id="commentaries" class='widefat'>
+			<thead>
 			<tr>
 				<th>Name</th>
 				<th>Site</th>
 				<th>Enabled?</th>
 				<th>Delete?</th>
 			</tr>
+			</thead>
+			<tbody>
 		<?php foreach ($coms as $com): ?>
 			<tr>
 				<td><?php echo $com->name; ?></td>
@@ -79,6 +86,7 @@ class BfoxPageCommentaries extends BfoxPage {
 			</tr>
 
 		<?php endforeach ?>
+			</tbody>
 		</table>
 		<p><input type="submit" value="Update My Commentaries" name="update" class="button-secondary delete" /></p>
 		</form>
