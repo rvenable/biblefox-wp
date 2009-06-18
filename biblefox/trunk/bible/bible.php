@@ -85,7 +85,10 @@ class BfoxBible {
 		// If we have a search string but no ref_str, we should try to extract refs from the search string
 		if ((BfoxQuery::page_search == $q[BfoxQuery::var_page]) && empty($q[BfoxQuery::var_reference])) {
 			list($q[BfoxQuery::var_reference], $q[BfoxQuery::var_search]) = self::extract_refs($q[BfoxQuery::var_search]);
-			if (empty($q[BfoxQuery::var_search])) $redirect = TRUE;
+			if (empty($q[BfoxQuery::var_search])) {
+				unset($q[BfoxQuery::var_page]);
+				$redirect = TRUE;
+			}
 		}
 
 		switch ($q[BfoxQuery::var_page]) {
