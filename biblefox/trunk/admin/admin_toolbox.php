@@ -392,6 +392,30 @@ class BfoxMainToolbox extends BfoxToolBox
 		pre('gmdt: ' . gmdate('Y-M-j g:i a c', $time));
 	}
 
+	private static function version_to_int($ver_str) {
+		$nums = explode('.', $ver_str);
+		return $nums[0] * 256 * 256 + $nums[1] * 256 + $nums[2];
+	}
+
+	public function erase_all_dashboard_widgets() {
+		// The function expires after a certain version
+		$ver_num = self::version_to_int(get_site_option(Biblefox::option_version));
+		if ($ver_num <= self::version_to_int('0.3.3')) {
+
+			$blogs = get_blog_list(0, 'all');
+			foreach ($blogs as $blog_arr) {
+				$blog = (object) $blog_arr;
+				switch_to_blog($blog->blog_id);
+
+				update_option('dashboard_widget_options', array());
+				pre("Erased dashboard settings on blog: $blog->blog_id ($blog->domain$blog->path)");
+
+				restore_current_blog();
+			}
+		}
+		else echo "You shouldn't be running this function!";
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *

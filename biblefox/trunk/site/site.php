@@ -35,6 +35,10 @@ class BiblefoxSite {
 
 		switch_to_blog($blog_id);
 
+		/*
+		 * Blogroll Links
+		 */
+
 		// Change the old Wordpress.com link to Biblefox.com
 		$wpdb->query($wpdb->prepare("UPDATE $wpdb->links
 			SET link_url = %s, link_name = %s, link_rss = %s
@@ -203,6 +207,21 @@ class BiblefoxSite {
 		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
 		wp_deregister_style('login');
 		BfoxUtility::register_style('login', 'site/login.css');
+
+		/*
+		 * Dashboard widgets
+		 */
+
+		// Primary
+		add_filter('dashboard_primary_link', create_function('', 'return "http://biblefox.com/";'));
+		add_filter('dashboard_primary_feed', create_function('', 'return "http://biblefox.com/feed/";'));
+		add_filter('dashboard_primary_title', create_function('', 'return "Biblefox Blog";'));
+
+		// Secondary
+		add_filter('dashboard_secondary_link', create_function('', 'return "http://biblefox.com/category/featured/";'));
+		add_filter('dashboard_secondary_feed', create_function('', 'return "http://biblefox.com/category/featured/feed/";'));
+		add_filter('dashboard_secondary_title', create_function('', 'return "Featured Posts";'));
+
 	}
 }
 add_action('init', 'BiblefoxSite::init');
