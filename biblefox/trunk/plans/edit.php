@@ -376,17 +376,10 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private function find_plans($user_search = '') {
-
-		list($post_url, $hiddens) = BfoxUtility::get_post_url($this->url);
-
+	private function your_blogs() {
 		global $user_ID;
 		$your_blogs = (array) get_blogs_of_user($user_ID);
-
 		?>
-		<h3>Find Reading Plans</h3>
-		<p>You can look up reading plans that others have created so that you can subscribe to them or copy them to use as a start for your own custom reading plan.</p>
-
 		<?php if (!empty($your_blogs)): ?>
 		<h4>Your Blogs</h4>
 		<p>You can also use reading plans from blogs. Begin with your blogs:</p>
@@ -395,8 +388,21 @@ class BfoxPlanEdit
 			<li><a href="<?php echo $this->user_url($blog->userblog_id, BfoxPlans::user_type_blog) ?>"><?php echo $blog->blogname ?></a></li>
 			<?php endforeach ?>
 		</ul>
-		<p>Also check out the reading plans on the main <a href='<?php echo $this->user_url(1, BfoxPlans::user_type_blog) ?>'>Biblefox.com blog</a>.</p>
 		<?php endif ?>
+		<?php
+	}
+
+	private function find_plans($user_search = '') {
+
+		list($post_url, $hiddens) = BfoxUtility::get_post_url($this->url);
+
+		?>
+		<h3>Find Reading Plans</h3>
+		<p>You can look up reading plans that others have created so that you can subscribe to them or copy them to use as a start for your own custom reading plan.</p>
+		<h4><a href='<?php echo $this->user_url(1, BfoxPlans::user_type_blog) ?>'>Pre-made Reading Plans</a></h4>
+		<p>Check out some pre-made reading plans on the main <a href='<?php echo $this->user_url(1, BfoxPlans::user_type_blog) ?>'>Biblefox.com blog</a>. You can subscribe to them or copy them to create new plans.</p>
+
+		<?php //$this->your_blogs() ?>
 
 		<h4>User Search</h4>
 		<p>Type in anyone's username to view their reading plans.</p>

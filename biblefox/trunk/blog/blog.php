@@ -50,8 +50,11 @@ class BfoxBlog {
 		//add_settings_field('bfox_bible_translations', 'Enable Bible Translations', 'BfoxBlog::bible_setting_translations', 'reading', self::settings_section_bible);
 
 		// Add the reading plan page to the Post menu along with the corresponding load action
-		add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', self::user_level_plans, self::page_manage_plan, 'BfoxBlog::plan_editor');
-		add_action('load-' . get_plugin_page_hookname(self::page_manage_plan, 'post-new.php'), 'BfoxBlog::plan_editor_load');
+		// TODO3: Blog reading plans are temporarily disabled for non-site admins
+		if (is_site_admin()) {
+			add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', self::user_level_plans, self::page_manage_plan, 'BfoxBlog::plan_editor');
+			add_action('load-' . get_plugin_page_hookname(self::page_manage_plan, 'post-new.php'), 'BfoxBlog::plan_editor_load');
+		}
 
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
