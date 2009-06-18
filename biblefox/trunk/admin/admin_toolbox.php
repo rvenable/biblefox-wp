@@ -416,6 +416,25 @@ class BfoxMainToolbox extends BfoxToolBox
 		else echo "You shouldn't be running this function!";
 	}
 
+	public function refresh_all_blog_posts() {
+		// The function expires after a certain version
+		$ver_num = self::version_to_int(get_site_option(Biblefox::option_version));
+		if ($ver_num <= self::version_to_int('0.3.3')) {
+
+			$blogs = get_blog_list(0, 'all');
+			foreach ($blogs as $blog_arr) {
+				$blog = (object) $blog_arr;
+				switch_to_blog($blog->blog_id);
+
+				pre("Editing blog: $blog->blog_id");
+				pre(BfoxPosts::refresh_posts());
+
+				restore_current_blog();
+			}
+		}
+		else echo "You shouldn't be running this function!";
+	}
+
 	/**
 	 * A function for dumping temporary functionality to do temporary tasks
 	 *

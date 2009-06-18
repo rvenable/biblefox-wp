@@ -8,7 +8,8 @@ if (FALSE === $old_ver) {
 	BfoxPosts::create_table();
 	$msgs []= "Created posts table";
 
-	foreach ($blogs as $blog) {
+	foreach ($blogs as $blog_arr) {
+		$blog = (object) $blog_arr;
 		switch_to_blog($blog->blog_id);
 
 		$msgs []= "Editing blog: $blog->blog_id";
