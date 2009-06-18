@@ -152,7 +152,7 @@ class BiblefoxSite {
 		}
 
 		$biblefox = new BfoxHtmlList();
-		$biblefox->add("<a href='" . BfoxQuery::url() . "'>Bible</a>");
+		$biblefox->add("<a href='" . BfoxQuery::url() . "'>Bible Reader</a>");
 
 		$right_side->add(self::admin_bar_dropdown(__('Biblefox.com'), 'http://biblefox.com') . $biblefox->content(), $drop_class);
 
