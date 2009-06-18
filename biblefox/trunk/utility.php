@@ -394,8 +394,8 @@ class BfoxHtmlList extends BfoxHtmlElement {
 	private $lis = array();
 	private $sort_vals = array();
 
-	public function add($li, $sort_val = 0) {
-		$this->lis []= $li;
+	public function add($li, $class = '', $sort_val = 0) {
+		$this->lis []= array($li, $class);
 		$this->sort_vals []= $sort_val;
 	}
 
@@ -404,7 +404,7 @@ class BfoxHtmlList extends BfoxHtmlElement {
 
 		$content = "<ul $this->attrs>\n";
 		$count = count($this->lis);
-		for ($i = $page_num * $page_size; ($i < $count) && ($i < (($page_num + 1) * $page_size)); $i++) $content .= "<li>{$this->lis[$i]}</li>\n";
+		for ($i = $page_num * $page_size; ($i < $count) && ($i < (($page_num + 1) * $page_size)); $i++) $content .= "<li {$this->lis[$i][1]}>{$this->lis[$i][0]}</li>\n";
 		$content .= "</ul>\n";
 
 		return $content;

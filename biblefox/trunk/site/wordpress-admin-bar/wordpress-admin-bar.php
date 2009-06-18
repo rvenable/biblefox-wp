@@ -368,73 +368,14 @@ class WPAdminBar {
 	function OutputMenuBar() {
 //		$this->SetupMenu();
 
-		global $current_site, $current_blog, $user_ID;
-		$is_logged_in = is_user_logged_in();
+		list($left_side, $right_side) = BiblefoxSite::admin_bar();
 ?>
 
 <!-- Bfox Start WordPress Admin Bar -->
 <div id="wpabar">
 	<div id="wpabar-leftside">
-		<ul>
-<?php
-	if ($is_logged_in)
-	{
-		global $bfox_specials/*, $bfox_plan*/;
-		$this_study_menu = '';
-		if (is_user_member_of_blog($user_ID))
-		{
-			$this_study_menu .= '<li><a href="' . $current_blog->path . 'wp-admin/">' . __('Manage Bible Study') . '</a></li>';
-		}
-		else
-		{
-			$page = $bfox_specials->pages['join'];
-			if (isset($page))
-				$this_study_menu .= '<li><a href="' . $page['url'] . '">' . $page['title'] . '</a></li>';
-		}
-		$page = $bfox_specials->pages['current_reading'];
-		if (isset($page))
-			$this_study_menu .= '<li><a href="' . $page['url'] . '">' . $page['title'] . '</a></li>';
-		$page = $bfox_specials->pages['my_history'];
-		if (isset($page))
-			$this_study_menu .= '<li><a href="' . $page['url'] . '">' . $page['title'] . '</a></li>';
-
-		echo '<li class="wpabar-menupop" onmouseover="showNav(this)" onmouseout="hideNav(this)">';
-		echo '<a href="http://' . $current_blog->domain . $current_blog->path . '"><span class="wpabar-dropdown">' . get_bloginfo('name') . '</span></a><ul>';
-		echo $this_study_menu;
-		echo '</ul></li>';
-
-		/* TODO2: Figure out what to do with this admin bar
-
-		$plans = $bfox_plan->get_plans();
-		foreach ($plans as $plan)
-		{
-			if (isset($plan->current_reading))
-			{
-				$ref_str = $plan->refs[$plan->current_reading]->get_string();
-				$scripture_menu .= '<li><a href="' . BfoxBlog::reading_plan_url($plan->id, $plan->current_reading) . '">Read ' . $ref_str . '</a></li>';
-				$write_menu .= '<li>' . BfoxBlog::ref_write_link($ref_str, 'Post about ' . $ref_str);
-			}
-		}
-
-		if (isset($scripture_menu))
-		{
-			echo '<li class="wpabar-menupop" onmouseover="showNav(this)" onmouseout="hideNav(this)">';
-			echo '<a href=""><span class="wpabar-dropdown">' . __('Scripture') . '</span></a><ul>';
-			echo $scripture_menu;
-			echo '</ul></li>';
-		}
-
-		if (isset($write_menu))
-		{
-			echo '<li class="wpabar-menupop" onmouseover="showNav(this)" onmouseout="hideNav(this)">';
-			echo '<a href=""><span class="wpabar-dropdown">' . __('Write') . '</span></a><ul>';
-			echo $write_menu;
-			echo '<li><a href="' . $current_blog->path . 'wp-admin/post-new.php">New Post</a></li>';
-			echo '</ul></li>';
-		}*/
-	}
-	?>
-</ul></div>
+		<?php echo $left_side ?>
+	</div>
 <?php
 /*
 $first = TRUE;
@@ -487,29 +428,8 @@ foreach( $this->menu as $topstub => $menu ) {
 }
 */
 ?>
-<div id="wpabar-rightside"><ul>
-<?php
-	if ($is_logged_in)
-	{
-		$blogs = BiblefoxSite::get_bible_study_blogs($user_ID);
-		if (0 < count($blogs))
-		{
-			echo '<li class="wpabar-menupop" onmouseover="showNav(this)" onmouseout="hideNav(this)">';
-			echo '<a href="http://' . $current_site->domain . $current_site->path . '"><span class="wpabar-dropdown">' . __('My Blogs') . '</span></a><ul>';
-
-			foreach ($blogs as $blog) echo '<li><a href="' . $blog->siteurl . '">' . $blog->blogname . '</a></li>';
-			echo '</ul></li>';
-		}
-	}
-	else
-	{
-		echo '<li><a href="http://' . $current_site->domain . $current_site->path . 'wp-signup.php">' . __('Sign Up') . '</a></li>';
-	}
-
-	?>
-
-			<li><?php echo BiblefoxSite::loginout(); ?></li>
-		</ul>
+	<div id="wpabar-rightside">
+		<?php echo $right_side ?>
 	</div>
 </div>
 

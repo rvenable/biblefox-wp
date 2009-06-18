@@ -89,6 +89,72 @@ class BiblefoxSite {
 		return $link;
 	}
 
+	private static function admin_bar_dropdown($title, $url = '') {
+		return "<a href='$url'><span class='wpabar-dropdown'>$title</span></a>";
+	}
+
+	public static function admin_bar() {
+		global $current_site, $current_blog, $current_user, $user_ID;
+
+		$login = BiblefoxSite::loginout();
+
+		$left_side = new BfoxHtmlList();
+		$right_side = new BfoxHtmlList();
+		if (!empty($user_ID)) {
+			$user_list = new BfoxHtmlList();
+			$dashboards = new BfoxHtmlList();
+			$new_posts = new BfoxHtmlList();
+			$blog_options = new BfoxHtmlList();
+
+			$active_blog = get_active_blog_for_user($user_ID);
+			if (is_object($active_blog)) $default_url = $active_blog->siteurl . '/';
+			else $default_url = 'http://' . $current_site->domain . $current_site->path;
+
+			$current_url = 'http://' . $current_blog->domain . $current_blog->path;
+
+			$profile_url = $default_url . 'wp-admin/profile.php';
+			$dashboards_url = $default_url . 'wp-admin/';
+			$new_posts_url = $default_url . 'wp-admin/post-new.php';
+			$my_blogs_url = $default_url. 'wp-admin/blogs.php';
+
+			$blogs = get_blogs_of_user($user_ID);
+			$blog_count = count($blogs);
+			foreach ($blogs as $blog) {
+				$dashboards->add("<a href='$blog->siteurl/wp-admin/'>$blog->blogname</a>");
+				$new_posts->add("<a href='$blog->siteurl/wp-admin/post-new.php'>$blog->blogname</a>");
+			}
+
+			$user_list->add("<a href='$my_blogs_url'>My Blogs</a>");
+			$user_list->add("<a href='$profile_url'>Edit Profile</a>");
+			$user_list->add("<a href='http://biblefox.com'>Biblefox.com</a>");
+			$user_list->add($login);
+
+			$add_url = add_query_arg('add_url', $current_url, BfoxQuery::page_url(BfoxQuery::page_commentary));
+			$blog_options->add("<a href='$add_url'>Subscribe to Bible Feed</a>");
+			// TODO3: Report as spam and mature
+			//$blog_options->add("<a href='$add_url'>Report as spam</a>");
+			//$blog_options->add("<a href='$add_url'>Report as mature</a>");
+
+			$drop_class = "class='wpabar-menupop' onmouseover='showNav(this)' onmouseout='hideNav(this)'";
+			$left_side->add(self::admin_bar_dropdown($current_user->user_login, $profile_url) . $user_list->content(), $drop_class);
+			if (1 < $blog_count) {
+				$left_side->add(self::admin_bar_dropdown(__('My Dashboards'), $dashboards_url) . $dashboards->content(), $drop_class);
+				$left_side->add(self::admin_bar_dropdown(__('New Post'), $new_posts_url) . $new_posts->content(), $drop_class);
+			}
+			elseif (0 < $blog_count) {
+				$left_side->add("<a href='$dashboards_url'>My Dashboard</a>");
+				$left_side->add("<a href='$new_posts_url'>New Post</a>");
+			}
+			$right_side->add(self::admin_bar_dropdown(__('Blog Options')) . $blog_options->content(), $drop_class);
+		}
+		else {
+			$left_side->add($login);
+			$left_side->add("<a href='http://" . $current_site->domain . $current_site->path . "wp-signup.php'>" . __('Sign Up') . "</a>");
+		}
+
+		return array($left_side->content(), $right_side->content());
+	}
+
 	public static function query_vars($qvars) {
 		// Add a query variable for bible references
 		$qvars []= BfoxQuery::var_page;

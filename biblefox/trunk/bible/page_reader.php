@@ -68,7 +68,7 @@ class BfoxPageReader extends BfoxPage {
 					if ($is_unread || ($reading_id >= $plan->current_reading_id)){
 						if (BfoxReadingPlan::reading_id_invalid == $this->reading_id) $this->reading_id = $reading_id;
 
-						$list->add($this->create_reading_row($plan, $reading_id, $is_unread), $plan->date($reading_id));
+						$list->add($this->create_reading_row($plan, $reading_id, $is_unread), '', $plan->date($reading_id));
 					}
 				}
 			}
