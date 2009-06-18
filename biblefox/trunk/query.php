@@ -59,6 +59,7 @@ class BfoxQuery {
 
 			if (!empty($ref_str)) $url .= urlencode($ref_str) . '/';
 		}
+		elseif (empty($args[self::var_page])) $args[self::var_page] = self::page_passage;
 
 		return add_query_arg(array_map('urlencode', array_filter($args)), $url);
 	}

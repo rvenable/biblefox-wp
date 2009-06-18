@@ -97,6 +97,7 @@ class BiblefoxSite {
 		global $current_site, $current_blog, $current_user, $user_ID;
 
 		$login = BiblefoxSite::loginout();
+		$drop_class = "class='wpabar-menupop' onmouseover='showNav(this)' onmouseout='hideNav(this)'";
 
 		$left_side = new BfoxHtmlList();
 		$right_side = new BfoxHtmlList();
@@ -126,7 +127,6 @@ class BiblefoxSite {
 
 			$user_list->add("<a href='$my_blogs_url'>My Blogs</a>");
 			$user_list->add("<a href='$profile_url'>Edit Profile</a>");
-			$user_list->add("<a href='http://biblefox.com'>Biblefox.com</a>");
 			$user_list->add($login);
 
 			$add_url = add_query_arg('add_url', $current_url, BfoxQuery::page_url(BfoxQuery::page_commentary));
@@ -135,7 +135,6 @@ class BiblefoxSite {
 			//$blog_options->add("<a href='$add_url'>Report as spam</a>");
 			//$blog_options->add("<a href='$add_url'>Report as mature</a>");
 
-			$drop_class = "class='wpabar-menupop' onmouseover='showNav(this)' onmouseout='hideNav(this)'";
 			$left_side->add(self::admin_bar_dropdown($current_user->user_login, $profile_url) . $user_list->content(), $drop_class);
 			if (1 < $blog_count) {
 				$left_side->add(self::admin_bar_dropdown(__('My Dashboards'), $dashboards_url) . $dashboards->content(), $drop_class);
@@ -152,7 +151,17 @@ class BiblefoxSite {
 			$left_side->add("<a href='http://" . $current_site->domain . $current_site->path . "wp-signup.php'>" . __('Sign Up') . "</a>");
 		}
 
+		$biblefox = new BfoxHtmlList();
+		$biblefox->add("<a href='" . BfoxQuery::url() . "'>Bible</a>");
+
+		$right_side->add(self::admin_bar_dropdown(__('Biblefox.com'), 'http://biblefox.com') . $biblefox->content(), $drop_class);
+
 		return array($left_side->content(), $right_side->content());
+	}
+
+	public static function wpabar_defaults($defaults) {
+		$defaults['show_admin'] = 1;
+		return $defaults;
 	}
 
 	public static function query_vars($qvars) {
@@ -185,11 +194,6 @@ class BiblefoxSite {
 		$title = "<a href='" . BfoxQuery::page_url(BfoxQuery::page_passage) . "'>Bible Viewer</a>";
 		echo $before_widget . $before_title . $title . $after_title;
 		echo $after_widget;
-	}
-
-	public static function wpabar_defaults($defaults) {
-		$defaults['show_admin'] = 1;
-		return $defaults;
 	}
 
 	public static function init() {
