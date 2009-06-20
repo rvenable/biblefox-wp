@@ -88,9 +88,8 @@ class BfoxBlogQueryData
 		return $new_posts;
 	}
 
-	public static function set_display_refs(BfoxRefs $refs)
-	{
-		self::add_pre_posts(self::create_ref_posts($refs));
+	public static function set_display_refs(BfoxRefs $refs, $title = '') {
+		self::add_pre_posts(self::create_ref_posts($refs, $title));
 	}
 
 	public static function set_reading_plan($plan_id = 0, $reading_id = 0) {
@@ -192,7 +191,7 @@ class BfoxBlogQueryData
 			$new_post['post_type'] = BfoxBlog::var_bible_ref;
 			$new_post['post_date'] = current_time('mysql', false);
 			$new_post['post_date_gmt'] = current_time('mysql', true);
-			$new_post['bfox_permalink'] = Biblefox::ref_url($ref_str, Biblefox::ref_url_bible);
+			$new_post['bfox_permalink'] = Biblefox::ref_url($ref_str);
 			$new_post['bfox_author'] = Biblefox::ref_link('', __('Biblefox'), Biblefox::ref_url_bible);
 
 			// Turn off comments
@@ -259,30 +258,38 @@ function bfox_queryvars($qvars)
 }
 
 // Function to be run after parsing the query
-function bfox_parse_query($wp_query)
-{
+function bfox_parse_query($wp_query) {
 	$showing_refs = FALSE;
 
-	if ($wp_query->is_search)
-	{
-		$refs = new BfoxRefs($wp_query->query_vars['s']);
-		if ($refs->is_valid())
-		{
+	// TODO3: separate out reading_plan stuff into a separate file
+	if ($wp_query->is_tag) {
+		$refs = new BfoxRefs($wp_query->query_vars['tag']);
+		if ($refs->is_valid()) {
+			BfoxBlogQueryData::set_post_ids($refs);
 			BfoxBlogQueryData::set_display_refs($refs);
 			$showing_refs = TRUE;
+			$wp_query->is_tag = FALSE;
+			unset($wp_query->query_vars['tag']);
 		}
 	}
-	elseif (isset($wp_query->query_vars[BfoxBlog::var_plan_id]))
-	{
+	elseif ($wp_query->is_search) {
+		$refs = new BfoxRefs($wp_query->query_vars['s']);
+		if ($refs->is_valid()) {
+			BfoxBlogQueryData::set_post_ids($refs);
+			BfoxBlogQueryData::set_display_refs($refs, 'Bible: ');
+			$showing_refs = TRUE;
+			unset($wp_query->query_vars['s']);
+		}
+	}
+	elseif (isset($wp_query->query_vars[BfoxBlog::var_plan_id])) {
 		BfoxBlogQueryData::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
 		$wp_query->is_home = FALSE;
 		$showing_refs = TRUE;
 	}
-	elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref]))
-	{
+	elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref])) {
+		$wp_query->is_archive = TRUE;
 		$refs = new BfoxRefs($wp_query->query_vars[BfoxBlog::var_bible_ref]);
-		if ($refs->is_valid())
-		{
+		if ($refs->is_valid()) {
 			BfoxBlogQueryData::set_post_ids($refs);
 			BfoxBlogQueryData::set_display_refs($refs);
 			$wp_query->is_home = FALSE;

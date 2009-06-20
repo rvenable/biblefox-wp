@@ -32,6 +32,20 @@ class BfoxRefParser {
 		return $total_refs;
 	}
 
+	/**
+	 * Returns the total bible references if and only if there were no leftovers
+	 *
+	 * @param $str
+	 * @return BfoxRefs or FALSE
+	 */
+	public static function no_leftovers($str) {
+		$total_refs = new BfoxRefs;
+		$data = new BfoxRefParserData($total_refs, 2, TRUE, FALSE, TRUE);
+		self::parse_string($str, $data);
+		if (empty($data->leftovers)) return $total_refs;
+		else return FALSE;
+	}
+
 	public static function with_groups($str) {
 		if (isset(BibleMeta::$book_groups[$str])) return new BibleGroupPassage($str);
 		else return self::simple($str);

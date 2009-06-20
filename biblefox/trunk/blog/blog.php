@@ -12,7 +12,7 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 
 class BfoxBlog {
 
-	const var_bible_ref = 'bfox_bible_ref';
+	const var_bible_ref = 'bfox_ref';
 	const var_plan_id = 'bfox_plan_id';
 	const var_reading_id = 'bfox_reading_id';
 
@@ -38,6 +38,8 @@ class BfoxBlog {
 		add_action('admin_init', 'BfoxBlog::admin_init');
 
 		self::$home_url = get_option('home');
+
+		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
 
 		bfox_query_init();
 		bfox_widgets_init();
@@ -224,6 +226,17 @@ class BfoxBlog {
 		$url = self::$home_url . '/?' . BfoxBlog::var_plan_id . '=' . $plan_id;
 		if (0 <= $reading_id) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
 		return $url;
+	}
+
+	/**
+	 * Filters tags for bible references and changes their slugs to be bible reference friendly
+	 *
+	 * @param $term
+	 * @return object $term
+	 */
+	public static function get_post_tag($term) {
+		if ($refs = BfoxRefParser::no_leftovers($term->name)) $term->slug = urlencode($refs->get_string(BibleMeta::name_short));
+		return $term;
 	}
 
 	/**
