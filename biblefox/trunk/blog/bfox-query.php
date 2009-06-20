@@ -184,30 +184,27 @@ class BfoxBlogQueryData {
 
 // Function to be run after parsing the query
 function bfox_parse_query($wp_query) {
-	$showing_refs = FALSE;
+	$refs_is_valid = FALSE;
 
-	// TODO3: clean
 	if ($wp_query->is_tag) {
 		$refs = new BfoxRefs($wp_query->query_vars['tag']);
-		if ($refs->is_valid()) {
-			BfoxBlogQueryData::set_post_ids($refs);
-			BfoxBlogQueryData::set_display_refs($refs);
-			$showing_refs = TRUE;
+		if ($refs_is_valid = $refs->is_valid()) {
 			$wp_query->is_tag = FALSE;
 			unset($wp_query->query_vars['tag']);
 		}
 	}
 	elseif ($wp_query->is_search) {
 		$refs = new BfoxRefs($wp_query->query_vars['s']);
-		if ($refs->is_valid()) {
-			BfoxBlogQueryData::set_post_ids($refs);
-			BfoxBlogQueryData::set_display_refs($refs, 'Bible: ');
-			$showing_refs = TRUE;
+		if ($refs_is_valid = $refs->is_valid()) {
 			unset($wp_query->query_vars['s']);
 		}
 	}
 
-	if ($showing_refs) BfoxUtility::enqueue_style('bfox_scripture');
+	if ($refs_is_valid) {
+		BfoxBlogQueryData::set_post_ids($refs);
+		BfoxBlogQueryData::set_display_refs($refs, 'Bible: ');
+		BfoxUtility::enqueue_style('bfox_scripture');
+	}
 }
 
 // Function for modifying the query WHERE statement
