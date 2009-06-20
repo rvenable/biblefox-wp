@@ -105,7 +105,7 @@ class BfoxRefParser {
 
 				$str = substr_replace($str, Biblefox::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
 
-				if (!is_null($data->total_refs)) $data->total_refs->add($refs);
+				if (!is_null($data->total_refs)) $data->total_refs->add_refs($refs);
 			}
 		}
 

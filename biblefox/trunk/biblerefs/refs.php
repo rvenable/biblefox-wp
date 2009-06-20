@@ -14,44 +14,49 @@ class BfoxRefs extends BfoxSequenceList {
 	 */
 
 	public function __construct($value = NULL) {
-		if (is_string($value)) $this->add(BfoxRefParser::simple($value));
-		elseif ($value instanceof BfoxRefs) $this->add_seqs($value->get_seqs());
+		if (is_string($value)) $this->add_string($value);
+		elseif ($value instanceof BfoxRefs) $this->add_refs($value);
 	}
 
 	/**
-	 * Returns an instance of BfoxRefs for the refs_input
+	 * Add bible references
 	 *
-	 * @param refs_input $refs_input
-	 * @return BfoxRefs
+	 * @param BfoxRefs $refs
 	 */
-	private static function refs_input($refs_input) {
-		if ($refs_input instanceof BfoxRefs) return $refs_input;
-		else return new BfoxRefs($refs_input);
+	public function add_refs(BfoxRefs $refs) {
+		$this->add_seqs($refs->get_seqs());
 	}
 
 	/**
-	 * Add bible references to this bible reference
+	 * Add bible references from a string
 	 *
-	 * @param refs_input $refs
+	 * @param string $ref_str
 	 */
-	public function add($refs) {
-		$add_refs = self::refs_input($refs);
-		$this->add_seqs($add_refs->get_seqs());
-	}
-
-	/**
-	 * Subtract bible references from this bible reference
-	 *
-	 * @param refs_input $refs
-	 */
-	public function sub($refs) {
-		$sub_refs = self::refs_input($refs);
-		$this->sub_seqs($sub_refs->get_seqs());
+	public function add_string($ref_str) {
+		$this->add_refs(BfoxRefParser::simple($ref_str));
 	}
 
 	public function add_concat($begin_str, $end_str, $delim = ',') {
 		$ends = explode($delim, $end_str);
 		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq($begin, $ends[$idx]);
+	}
+
+	/**
+	 * Subtract bible references
+	 *
+	 * @param BfoxRefs $refs
+	 */
+	public function sub_refs(BfoxRefs $refs) {
+		$this->sub_seqs($refs->get_seqs());
+	}
+
+	/**
+	 * Subtract bible references specified by a string
+	 *
+	 * @param string $ref_str
+	 */
+	public function sub_string($ref_str) {
+		$this->sub_refs(BfoxRefParser::simple($ref_str));
 	}
 
 	/**

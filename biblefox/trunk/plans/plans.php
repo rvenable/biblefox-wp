@@ -139,14 +139,12 @@ class BfoxReadingPlan {
 		foreach ($chunks as $chunk) $this->set_reading($chunk);
 	}
 
-	public function ref_string()
-	{
+	public function ref_string() {
 		$ref_str = '';
 
-		if (!empty($this->readings))
-		{
+		if (!empty($this->readings)) {
 			$refs = new BfoxRefs;
-			foreach ($this->readings as $reading) $refs->add_seqs($reading->get_seqs());
+			foreach ($this->readings as $reading) $refs->add_refs($reading);
 			if ($refs->is_valid()) $ref_str = $refs->get_string();
 		}
 
@@ -295,7 +293,7 @@ class BfoxReadingPlan {
 
 		// Accumulate all the history references since the starting date of this plan
 		$start_time = strtotime($this->history_start_date());
-		foreach ($history_array as $history) if ($history->time >= $start_time) $history_refs->add($history->refs);
+		foreach ($history_array as $history) if ($history->time >= $start_time) $history_refs->add_refs($history->refs);
 
 		if ($history_refs->is_valid()) {
 			$this->history_refs = $history_refs;
@@ -311,7 +309,7 @@ class BfoxReadingPlan {
 
 	public function get_unread(BfoxRefs $reading) {
 		$unread = new BfoxRefs($reading);
-		if ($this->history_refs instanceof BfoxRefs) $unread->sub($this->history_refs);
+		if ($this->history_refs instanceof BfoxRefs) $unread->sub_refs($this->history_refs);
 		return $unread;
 	}
 }

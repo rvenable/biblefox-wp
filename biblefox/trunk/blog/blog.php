@@ -113,7 +113,7 @@ class BfoxBlog {
 			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 			if ($hidden_refs->is_valid()) {
 				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::hidden_ref_tag . "' value='" . $hidden_refs->get_string() . "'/>";
-				$refs->add_seqs($hidden_refs->get_seqs());
+				$refs->add_refs($hidden_refs);
 			}
 		}
 		$is_valid = $refs->is_valid();

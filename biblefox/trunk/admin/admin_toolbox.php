@@ -113,7 +113,7 @@ class BfoxMainToolbox extends BfoxToolBox
 
 		foreach ($subs as $sub) {
 			$sub_refs = new BfoxRefs($sub);
-			$refs->sub($sub_refs);
+			$refs->sub_refs($sub_refs);
 			pre(" - " . $sub_refs->get_string() . " = " . $refs->get_string());
 			//pre($refs);
 		}

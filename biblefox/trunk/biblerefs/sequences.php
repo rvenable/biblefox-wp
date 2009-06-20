@@ -16,11 +16,11 @@ abstract class BfoxSequenceList {
 		return $this->sequences;
 	}
 
-	public function add_seqs($seqs) {
+	protected function add_seqs($seqs) {
 		foreach ($seqs as $seq) $this->add_seq($seq);
 	}
 
-	public function sub_seqs($seqs) {
+	protected function sub_seqs($seqs) {
 		foreach ($seqs as $seq) $this->sub_seq($seq);
 	}
 

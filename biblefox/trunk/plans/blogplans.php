@@ -105,7 +105,7 @@ class BfoxBlogPlans {
 			if (empty($reading_id)) $reading_id = $plan->current_reading_id;
 			else $reading_id--;
 
-			$refs->add($plan->readings[$reading_id]);
+			$refs->add_refs($plan->readings[$reading_id]);
 			$new_posts []= self::create_reading_post($plan, $reading_id);
 		}
 

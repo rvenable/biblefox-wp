@@ -251,19 +251,16 @@ abstract class TxtToBlog
 		return implode("<br/>", $this->warnings);
 	}
 
-	public function add_bible_books($ref_str)
-	{
-		$this->book_refs->add($ref_str);
+	public function add_bible_books($ref_str) {
+		$this->book_refs->add_string($ref_str);
 	}
 
-	public function add_bible_chapters($ref_str)
-	{
-		$this->chapter_refs->add($ref_str);
+	public function add_bible_chapters($ref_str) {
+		$this->chapter_refs->add_string($ref_str);
 	}
 
-	public function add_bible_verses($ref_str)
-	{
-		$this->verse_refs->add($ref_str);
+	public function add_bible_verses($ref_str) {
+		$this->verse_refs->add_string($ref_str);
 	}
 
 	public static function footnote_code($note)

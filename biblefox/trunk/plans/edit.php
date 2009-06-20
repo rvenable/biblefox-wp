@@ -441,7 +441,7 @@ class BfoxPlanEdit
 		$total_refs = new BfoxRefs;
 
 		foreach ($plan->readings as $reading_id => $reading) {
-			$total_refs->add($reading);
+			$total_refs->add_refs($reading);
 
 			// Create the row for this reading
 			if ($reading_id == $plan->current_reading_id) $row = new BfoxHtmlRow("class='current'");

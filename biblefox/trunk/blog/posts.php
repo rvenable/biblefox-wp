@@ -144,7 +144,7 @@ class BfoxPosts {
 			if ($get_input_tag) {
 				$new_tag_refs = new BfoxRefs($_POST[BfoxBlog::hidden_ref_tag]);
 				if ($new_tag_refs->is_valid()) {
-					$tags_refs->add_seqs($new_tag_refs->get_seqs());
+					$tags_refs->add_refs($new_tag_refs);
 					$new_tag = $new_tag_refs->get_string();
 				}
 			}
@@ -155,7 +155,7 @@ class BfoxPosts {
 				$refs = new BfoxRefs($tag);
 				if ($refs->is_valid()) {
 					$tag = $refs->get_string();
-					$tags_refs->add_seqs($refs->get_seqs());
+					$tags_refs->add_refs($refs);
 				}
 
 				if (trim($tag) == $new_tag) $new_tag = '';
