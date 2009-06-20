@@ -123,12 +123,13 @@ class BfoxBlogQueryData {
 	 * @param string $title
 	 * @return array of new_posts
 	 */
-	private static function create_ref_posts(BfoxRefs $refs, $title = '')
-	{
+	private static function create_ref_posts(BfoxRefs $input_refs, $title = '') {
+		// Limit the refs to 5 chapters
+		list($refs) = $input_refs->get_sections(5, 1);
+
 		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
 
-		foreach ($bcvs as $book => $cvs)
-		{
+		foreach ($bcvs as $book => $cvs) {
 			$book_name = BibleMeta::get_book_name($book);
 			$ref_str = BfoxRefs::create_book_string($book, $cvs);
 
@@ -137,8 +138,7 @@ class BfoxBlogQueryData {
 
 			// Get the first and last chapters
 			unset($ch1);
-			foreach ($cvs as $cv)
-			{
+			foreach ($cvs as $cv) {
 				if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
 				list($ch2, $vs2) = $cv->end;
 
@@ -148,14 +148,12 @@ class BfoxBlogQueryData {
 
 			// Create the navigation bar with the prev/write/next links
 			$nav_bar = "<div class='bible_post_nav'>";
-			if ($ch1 > BibleMeta::start_chapter)
-			{
+			if ($ch1 > BibleMeta::start_chapter) {
 				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
 				$nav_bar .= BfoxBlog::ref_link($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
 			}
 			$nav_bar .= BfoxBlog::ref_write_link($ref_str, 'Write about this passage');
-			if ($ch2 < BibleMeta::end_verse_max($book))
-			{
+			if ($ch2 < BibleMeta::end_verse_max($book)) {
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 				$nav_bar .= BfoxBlog::ref_link($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");
 			}
