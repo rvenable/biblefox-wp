@@ -419,7 +419,7 @@ class BfoxMainToolbox extends BfoxToolBox
 	public function refresh_all_blog_posts() {
 		// The function expires after a certain version
 		$ver_num = self::version_to_int(get_site_option(Biblefox::option_version));
-		if ($ver_num <= self::version_to_int('0.4.0')) {
+		if ($ver_num <= self::version_to_int('0.4.1')) {
 
 			$blogs = get_blog_list(0, 'all');
 			foreach ($blogs as $blog_arr) {
