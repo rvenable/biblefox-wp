@@ -119,7 +119,7 @@ class BfoxReadingPlan {
 
 	public function add_verses($reading_id, $verse_start, $verse_end) {
 		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BfoxRefs;
-		$this->readings[$reading_id]->add_seq(BfoxSequence($verse_start, $verse_end));
+		$this->readings[$reading_id]->add_seq(new BfoxSequence($verse_start, $verse_end));
 	}
 
 	public function set_readings_by_strings($strings) {

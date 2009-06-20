@@ -3,7 +3,7 @@
 class BfoxSequence {
 	public $start, $end;
 
-	public function __construct($start, $end) {
+	public function __construct($start = 0, $end = 0) {
 		$this->start = $start;
 		$this->end = $end;
 	}
@@ -41,7 +41,10 @@ abstract class BfoxSequenceList {
 	 * @param integer $start
 	 * @param integer $end
 	 */
-	public function add_seq(BfoxSequence $new_seq) {
+	public function add_seq(BfoxSequence $seq) {
+		// Make a copy of the sequence since it was passed by reference
+		$new_seq = new BfoxSequence($seq->start, $seq->end);
+
 		$new_seqs = array();
 		foreach ($this->sequences as $seq) {
 			if (isset($new_seq)) {
@@ -84,7 +87,10 @@ abstract class BfoxSequenceList {
 	 * @param integer $start
 	 * @param integer $end
 	 */
-	public function sub_seq(BfoxSequence $sub_seq) {
+	public function sub_seq(BfoxSequence $seq) {
+		// Make a copy of the sequence since it was passed by reference
+		$sub_seq = new BfoxSequence($seq->start, $seq->end);
+
 		$new_seqs = array();
 		foreach ($this->sequences as $seq) {
 			if (isset($sub_seq)) {
