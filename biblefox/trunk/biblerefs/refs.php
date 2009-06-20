@@ -38,7 +38,7 @@ class BfoxRefs extends BfoxSequenceList {
 
 	public function add_concat($begin_str, $end_str, $delim = ',') {
 		$ends = explode($delim, $end_str);
-		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq($begin, $ends[$idx]);
+		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq(new BfoxSequence($begin, $ends[$idx]));
 	}
 
 	/**
@@ -143,9 +143,9 @@ class BfoxRefs extends BfoxSequenceList {
 		// Adjust chapter2 to be max_chapter_id if it is greater than or equal to the last chapter of this book
 		if ((BibleVerse::max_verse_id == $verse2) && ($chapter2 >= BibleMeta::end_verse_min($book))) $chapter2 = BibleVerse::max_chapter_id;
 
-		$this->add_seq(
+		$this->add_seq(new BfoxSequence(
 			BibleVerse::calc_unique_id($book, $chapter1, $verse1),
-			BibleVerse::calc_unique_id($book, $chapter2, $verse2));
+			BibleVerse::calc_unique_id($book, $chapter2, $verse2)));
 	}
 
 	/*

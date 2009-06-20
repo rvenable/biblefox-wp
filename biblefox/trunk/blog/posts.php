@@ -88,7 +88,7 @@ class BfoxPosts {
 
 			foreach ($results as $result) {
 				if (!isset($refs[$result->post_id])) $refs[$result->post_id] = new BfoxRefs;
-				$refs[$result->post_id]->add_seq($result->verse_begin, $result->verse_end);
+				$refs[$result->post_id]->add_seq(new BfoxSequence($result->verse_begin, $result->verse_end));
 			}
 		}
 
@@ -114,7 +114,7 @@ class BfoxPosts {
 
 			foreach ($results as $result) {
 				if (!isset($refs[$result->blog_id][$result->post_id][$result->ref_type])) $refs[$result->blog_id][$result->post_id][$result->ref_type] = new BfoxRefs;
-				$refs[$result->blog_id][$result->post_id][$result->ref_type]->add_seq($result->verse_begin, $result->verse_end);
+				$refs[$result->blog_id][$result->post_id][$result->ref_type]->add_seq(new BfoxSequence($result->verse_begin, $result->verse_end));
 			}
 		}
 

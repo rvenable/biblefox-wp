@@ -109,8 +109,7 @@ class BfoxReadingPlan {
 		return wpautop($this->description);
 	}
 
-	public function set_reading(BfoxRefs $refs, $reading_id = -1)
-	{
+	public function set_reading(BfoxRefs $refs, $reading_id = -1) {
 		if ($refs->is_valid()) {
 			// If the reading id is not already there, we should just add it to the end
 			if (!isset($this->readings[$reading_id])) $this->readings []= $refs;
@@ -118,22 +117,19 @@ class BfoxReadingPlan {
 		}
 	}
 
-	public function add_verses($reading_id, $verse_start, $verse_end)
-	{
+	public function add_verses($reading_id, $verse_start, $verse_end) {
 		if (!isset($this->readings[$reading_id])) $this->readings[$reading_id] = new BfoxRefs;
-		$this->readings[$reading_id]->add_seq($verse_start, $verse_end);
+		$this->readings[$reading_id]->add_seq(BfoxSequence($verse_start, $verse_end));
 	}
 
-	public function set_readings_by_strings($strings)
-	{
+	public function set_readings_by_strings($strings) {
 		if (is_string($strings)) $strings = explode("\n", $strings);
 
 		$this->readings = array();
 		foreach ((array) $strings as $str) $this->set_reading(new BfoxRefs($str));
 	}
 
-	public function add_passages($passages, $chunk_size)
-	{
+	public function add_passages($passages, $chunk_size) {
 		$refs = new BfoxRefs($passages);
 		$chunks = $refs->get_sections($chunk_size);
 		foreach ($chunks as $chunk) $this->set_reading($chunk);

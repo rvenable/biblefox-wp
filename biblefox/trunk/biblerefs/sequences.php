@@ -1,5 +1,14 @@
 <?php
 
+class BfoxSequence {
+	public $start, $end;
+
+	public function __construct($start, $end) {
+		$this->start = $start;
+		$this->end = $end;
+	}
+}
+
 abstract class BfoxSequenceList {
 	protected $sequences = array();
 
@@ -25,34 +34,6 @@ abstract class BfoxSequenceList {
 	}
 
 	/**
-	 * Prepares sequence input for adding or subtracting from the list of sequences
-	 *
-	 * @param mixed $start
-	 * @param integer $end
-	 * @return stdObject sequence
-	 */
-	private static function prepare_seq($start, $end = 0) {
-		if (is_array($start)) list($start, $end) = $start;
-		elseif (is_object($start)) {
-			$end = $start->end;
-			$start = $start->start;
-		}
-
-		// If the end is not set, it should equal the start
-		if (empty($end)) $end = $start;
-
-		$seq = (object) array('start' => $start, 'end' => $end);
-
-		// If the end is less than the start, just switch them around
-		if ($end < $start) {
-			$seq->end = $start;
-			$seq->start = $end;
-		}
-
-		return $seq;
-	}
-
-	/**
 	 * Adds a new sequence to the sequence list
 	 *
 	 * This function maintains that there are no overlapping sequences and that they are in order from lowest to highest
@@ -60,9 +41,7 @@ abstract class BfoxSequenceList {
 	 * @param integer $start
 	 * @param integer $end
 	 */
-	public function add_seq($start, $end = 0) {
-		$new_seq = self::prepare_seq($start, $end);
-
+	public function add_seq(BfoxSequence $new_seq) {
 		$new_seqs = array();
 		foreach ($this->sequences as $seq) {
 			if (isset($new_seq)) {
@@ -105,9 +84,7 @@ abstract class BfoxSequenceList {
 	 * @param integer $start
 	 * @param integer $end
 	 */
-	public function sub_seq($start, $end = 0) {
-		$sub_seq = self::prepare_seq($start, $end);
-
+	public function sub_seq(BfoxSequence $sub_seq) {
 		$new_seqs = array();
 		foreach ($this->sequences as $seq) {
 			if (isset($sub_seq)) {
