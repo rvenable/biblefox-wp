@@ -188,7 +188,7 @@ class BfoxBlogQueryData
 			$new_post['ID'] = -1;
 			$new_post['post_title'] = $title . $ref_str;
 			$new_post['bible_ref_str'] = $ref_str;
-			$new_post['post_type'] = BfoxBlog::var_bible_ref;
+			$new_post['post_type'] = BfoxBlog::post_type_bible;
 			$new_post['post_date'] = current_time('mysql', false);
 			$new_post['post_date_gmt'] = current_time('mysql', true);
 			$new_post['bfox_permalink'] = Biblefox::ref_url($ref_str);
@@ -232,7 +232,7 @@ class BfoxBlogQueryData
 		$new_post['ID'] = -1;
 		$new_post['post_title'] = $ref_str;
 		$new_post['bible_ref_str'] = $ref_str;
-		$new_post['post_type'] = BfoxBlog::var_bible_ref;
+		$new_post['post_type'] = BfoxBlog::post_type_bible;
 		$new_post['bfox_permalink'] = BfoxBlog::reading_plan_url($plan->id, $reading_id);
 		$new_post['bfox_author'] = '<a href="' . BfoxBlog::reading_plan_url($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
 
@@ -248,10 +248,7 @@ class BfoxBlogQueryData
 }
 
 // Function for adding query variables for our plugin
-function bfox_queryvars($qvars)
-{
-	// Add a query variable for bible references
-	$qvars[] = BfoxBlog::var_bible_ref;
+function bfox_queryvars($qvars) {
 	$qvars[] = BfoxBlog::var_plan_id;
 	$qvars[] = BfoxBlog::var_reading_id;
 	return $qvars;
@@ -285,16 +282,6 @@ function bfox_parse_query($wp_query) {
 		BfoxBlogQueryData::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
 		$wp_query->is_home = FALSE;
 		$showing_refs = TRUE;
-	}
-	elseif (isset($wp_query->query_vars[BfoxBlog::var_bible_ref])) {
-		$wp_query->is_archive = TRUE;
-		$refs = new BfoxRefs($wp_query->query_vars[BfoxBlog::var_bible_ref]);
-		if ($refs->is_valid()) {
-			BfoxBlogQueryData::set_post_ids($refs);
-			BfoxBlogQueryData::set_display_refs($refs);
-			$wp_query->is_home = FALSE;
-			$showing_refs = TRUE;
-		}
 	}
 
 	if ($showing_refs) BfoxUtility::enqueue_style('bfox_scripture');

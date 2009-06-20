@@ -16,6 +16,10 @@ class BfoxBlog {
 	const var_plan_id = 'bfox_plan_id';
 	const var_reading_id = 'bfox_reading_id';
 
+	const hidden_ref_tag = 'bfox_hidden_ref';
+	const col_bible_refs = 'bfox_col_ref';
+	const post_type_bible = 'bfox_bible';
+
 	const option_reading_plans = 'bfox_reading_plans';
 
 	const page_manage_plan = 'bfox-manage-plan';
@@ -119,7 +123,7 @@ class BfoxBlog {
 				<script type='text/javascript'>
 				//<![CDATA[
 				jQuery(document).ready( function() {
-					jQuery('#newtag').val('<?php echo $hidden_refs->get_string(BibleMeta::name_short) ?>');
+					jQuery('#newtag').val('<?php echo $hidden_refs->get_string() ?>');
 					jQuery('#bfox_hidden_refs').val('');
 					tag_flush_to_text();
 				});
@@ -141,7 +145,7 @@ class BfoxBlog {
 		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
 			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
 			if ($hidden_refs->is_valid()) {
-				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::var_bible_ref . "' value='" . $hidden_refs->get_string(BibleMeta::name_short) . "'/>";
+				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::hidden_ref_tag . "' value='" . $hidden_refs->get_string() . "'/>";
 				$refs->add_seqs($hidden_refs->get_seqs());
 			}
 		}
@@ -188,7 +192,19 @@ class BfoxBlog {
 	}
 
 	public static function ref_url($ref_str) {
-		return self::$home_url . '/?' . self::var_bible_ref . '=' . urlencode($ref_str);
+		$ref_str = urlencode($ref_str);
+
+		// NOTE: This function imitates the WP get_tag_link() function, but instead of getting a tag slug, we use $ref_str
+		global $wp_rewrite;
+		$taglink = $wp_rewrite->get_tag_permastruct();
+
+		if (empty($taglink)) $taglink = get_option('home') . '/?tag=' . $ref_str;
+		else {
+			$taglink = str_replace('%tag%', $ref_str, $taglink);
+			$taglink = self::$home_url . user_trailingslashit($taglink, 'category');
+		}
+
+		return $taglink;
 	}
 
 	public static function ref_link($ref_str, $text = '', $attrs = '') {
@@ -217,7 +233,7 @@ class BfoxBlog {
 
 	public static function ref_edit_posts_link($ref_str, $text = '') {
 		if (empty($text)) $text = $ref_str;
-		$href = self::$home_url . '/wp-admin/edit.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
+		$href = self::$home_url . '/wp-admin/edit.php?tag=' . urlencode($ref_str);
 
 		return "<a href='$href'>$text</a>";
 	}
@@ -235,7 +251,7 @@ class BfoxBlog {
 	 * @return object $term
 	 */
 	public static function get_post_tag($term) {
-		if ($refs = BfoxRefParser::no_leftovers($term->name)) $term->slug = urlencode($refs->get_string(BibleMeta::name_short));
+		if ($refs = BfoxRefParser::no_leftovers($term->name)) $term->slug = urlencode($refs->get_string());
 		return $term;
 	}
 
@@ -289,50 +305,21 @@ class BfoxBlog {
 
 add_action('init', array('BfoxBlog', 'init'));
 
-/* This function can be used if wordpress updates get_tags_to_edit()
-function bfox_tags_to_edit($tags_to_edit)
-{
-	// If we have a bible reference passed as input, try to add it as a tag
-	if (!empty($_REQUEST[BfoxBlog::var_bible_ref]))
-	{
-		$refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
-		if ($refs->is_valid())
-		{
-			// Get the new tag string
-			$new_tag = $refs->get_string(BibleMeta::name_short);
-
-			// Only add the new tag if it hasn't already been added
-			$tags = explode(',', $tags_to_edit);
-			foreach ($tags as $tag) if (trim($tag) == $new_tag) $new_tag = '';
-			if (!empty($new_tag))
-			{
-				$tags []= $new_tag;
-				$tags_to_edit = implode(',', $tags);
-			}
-		}
-	}
-
- 	return $tags_to_edit;
-}
-*/
-
 /**
  * Filter function for adding biblefox columns to the edit posts list
  *
  * @param $columns
  * @return array
  */
-function bfox_manage_posts_columns($columns)
-{
+function bfox_manage_posts_columns($columns) {
 	// Create a new columns array with our new columns, and in the specified order
 	// See wp_manage_posts_columns() for the list of default columns
 	$new_columns = array();
-	foreach ($columns as $key => $column)
-	{
+	foreach ($columns as $key => $column) {
 		$new_columns[$key] = $column;
 
 		// Add the bible verse column right after 'author' column
-		if ('author' == $key) $new_columns[BfoxBlog::var_bible_ref] = __('Bible Verses');
+		if ('author' == $key) $new_columns[BfoxBlog::col_bible_refs] = __('Bible Verses');
 	}
 	return $new_columns;
 }
@@ -346,10 +333,8 @@ add_filter('manage_posts_columns', 'bfox_manage_posts_columns');
  * @param integer $post_id
  * @return none
  */
-function bfox_manage_posts_custom_column($column_name, $post_id)
-{
-	if (BfoxBlog::var_bible_ref == $column_name)
-	{
+function bfox_manage_posts_custom_column($column_name, $post_id) {
+	if (BfoxBlog::col_bible_refs == $column_name) {
 		global $post;
 		if (isset($post->bfox_bible_refs)) echo BfoxBlog::ref_edit_posts_link($post->bfox_bible_refs->get_string(BibleMeta::name_short));
 	}

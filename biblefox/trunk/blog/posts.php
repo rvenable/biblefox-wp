@@ -142,10 +142,10 @@ class BfoxPosts {
 
 			// Try to get a hidden tag from form input
 			if ($get_input_tag) {
-				$new_tag_refs = new BfoxRefs($_POST[BfoxBlog::var_bible_ref]);
+				$new_tag_refs = new BfoxRefs($_POST[BfoxBlog::hidden_ref_tag]);
 				if ($new_tag_refs->is_valid()) {
 					$tags_refs->add_seqs($new_tag_refs->get_seqs());
-					$new_tag = $new_tag_refs->get_string(BibleMeta::name_short);
+					$new_tag = $new_tag_refs->get_string();
 				}
 			}
 
@@ -154,7 +154,7 @@ class BfoxPosts {
 			foreach ($tags as &$tag) {
 				$refs = new BfoxRefs($tag);
 				if ($refs->is_valid()) {
-					$tag = $refs->get_string(BibleMeta::name_short);
+					$tag = $refs->get_string();
 					$tags_refs->add_seqs($refs->get_seqs());
 				}
 

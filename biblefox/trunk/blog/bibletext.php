@@ -19,7 +19,6 @@
 			$content = '';
 			$book_name = BibleMeta::get_book_name($book);
 			$ref_str = BfoxRefs::create_book_string($book, $cvs);
-			$ref_str_short = BfoxRefs::create_book_string($book, $cvs, BibleMeta::name_short);
 
 			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
 			$book_refs = new BfoxRefs;
@@ -35,7 +34,7 @@
 			}
 
 			$bible_viewer_link = "Biblefox Bible Viewer: <a href='" . Biblefox::ref_url($ref_str, Biblefox::ref_url_bible) . "' target='blank'>$ref_str</a>";
-			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(0, this)'>$ref_str_short</a>";
+			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(0, this)'>$ref_str</a>";
 
 			// Create the navigation bar with the prev/write/next links
 			$nav_bar = "<div class='bible_post_nav'>";
