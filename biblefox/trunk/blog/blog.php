@@ -4,29 +4,23 @@ define(BFOX_BLOG_DIR, dirname(__FILE__));
 
 require_once BFOX_BLOG_DIR . '/posts.php';
 require_once('bfox-query.php');
-require_once('bfox-widgets.php');
 require_once('bibletext.php');
 //require_once("bfox-settings.php");
 
-require_once BFOX_PLANS_DIR . '/plans.php';
+// TODO3: get blogplans.php working and included
+//require_once BFOX_PLANS_DIR . '/blogplans.php';
 
 class BfoxBlog {
 
 	const var_bible_ref = 'bfox_ref';
-	const var_plan_id = 'bfox_plan_id';
-	const var_reading_id = 'bfox_reading_id';
 
 	const hidden_ref_tag = 'bfox_hidden_ref';
 	const col_bible_refs = 'bfox_col_ref';
 	const post_type_bible = 'bfox_bible';
 
-	const option_reading_plans = 'bfox_reading_plans';
-
-	const page_manage_plan = 'bfox-manage-plan';
 	const page_bible_settings = 'bfox-bible-settings';
 
 	const user_level_bible_settings = 7;
-	const user_level_plans = 7;
 
 	const settings_section_bible = 'bfox_bible_settings';
 
@@ -46,7 +40,6 @@ class BfoxBlog {
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
 
 		bfox_query_init();
-		bfox_widgets_init();
 	}
 
 	public static function add_menu() {
@@ -55,24 +48,11 @@ class BfoxBlog {
 		//add_settings_section(self::settings_section_bible, 'Bible Settings', 'BfoxBlog::bible_settings', 'reading');
 		//add_settings_field('bfox_bible_translations', 'Enable Bible Translations', 'BfoxBlog::bible_setting_translations', 'reading', self::settings_section_bible);
 
-		// Add the reading plan page to the Post menu along with the corresponding load action
-		// TODO3: Blog reading plans are temporarily disabled for non-site admins
-		if (is_site_admin()) {
-			add_submenu_page('post-new.php', 'Reading Plans', 'Reading Plans', self::user_level_plans, self::page_manage_plan, 'BfoxBlog::plan_editor');
-			add_action('load-' . get_plugin_page_hookname(self::page_manage_plan, 'post-new.php'), 'BfoxBlog::plan_editor_load');
-		}
-
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
 		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
 
 		// Flush the hidden ref tags on the post-new screen
 		add_action('admin_head-post-new.php', 'BfoxBlog::flush_tag_script');
-
-		/*
-		 * This would be the perfect way to add scripture tags for new posts, but wordpress doesn't call
-		 * this tag for new posts (see get_tags_to_edit() which bails out on post_id of 0)
-		 */
-		//add_filter('tags_to_edit', 'bfox_tags_to_edit');
 	}
 
 	public static function admin_init() {
@@ -94,19 +74,6 @@ class BfoxBlog {
 			echo "<input type='checkbox'$checked name='bfox_enable_translations' id='$id' value='$trans->id' /> <label for='$id'>$trans->long_name</label><br/>";
 		}
 	}*/
-
-	public static function plan_editor_load() {
-		global $blog_id, $bfox_plan_editor;
-
-		require_once BFOX_PLANS_DIR . '/edit.php';
-		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, BfoxBlog::admin_url('admin.php?page=' . self::page_manage_plan));
-		$bfox_plan_editor->page_load();
-	}
-
-	public static function plan_editor() {
-		global $bfox_plan_editor;
-		$bfox_plan_editor->content();
-	}
 
 	public static function save_post($post_id = 0, $post) {
 		BfoxPosts::update_post($post, TRUE);
@@ -236,12 +203,6 @@ class BfoxBlog {
 		$href = self::$home_url . '/wp-admin/edit.php?tag=' . urlencode($ref_str);
 
 		return "<a href='$href'>$text</a>";
-	}
-
-	public static function reading_plan_url($plan_id, $reading_id = -1) {
-		$url = self::$home_url . '/?' . BfoxBlog::var_plan_id . '=' . $plan_id;
-		if (0 <= $reading_id) $url .= '&' . BfoxBlog::var_reading_id . '=' . ($reading_id + 1);
-		return $url;
 	}
 
 	/**

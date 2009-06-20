@@ -12,8 +12,8 @@
  * Class for storing static data related to WP_Query for biblefox blogs
  *
  */
-class BfoxBlogQueryData
-{
+class BfoxBlogQueryData {
+
 	/*
 	 Problem:
 	 WP appears to use the WP_Query class as if it were a singleton, even though it is not and is even instantiated more than once.
@@ -92,28 +92,6 @@ class BfoxBlogQueryData
 		self::add_pre_posts(self::create_ref_posts($refs, $title));
 	}
 
-	public static function set_reading_plan($plan_id = 0, $reading_id = 0) {
-		global $blog_id;
-
-		$refs = new BfoxRefs;
-		$new_posts = array();
-
-		$plan = BfoxPlans::get_plan($plan_id);
-		if ($plan->is_current()) {
-
-			// If there is no reading set, use the current reading
-			// If there is a reading set, we need to decrement it to make it zero-based
-			if (empty($reading_id)) $reading_id = $plan->current_reading_id;
-			else $reading_id--;
-
-			$refs->add($plan->readings[$reading_id]);
-			$new_posts []= self::create_reading_post($plan, $reading_id);
-		}
-
-		if ($refs->is_valid()) self::set_post_ids($refs);
-		if (!empty($new_posts)) self::add_pre_posts($new_posts);
-	}
-
 	/**
 	 * Add verse content to a post array
 	 *
@@ -122,8 +100,7 @@ class BfoxBlogQueryData
 	 * @param string $nav_bar
 	 * @return array
 	 */
-	private static function add_verse_post_content($post, BfoxRefs $refs, $nav_bar = '')
-	{
+	public static function add_verse_post_content($post, BfoxRefs $refs, $nav_bar = '') {
 		/*
 		 * Add the verse content as 'bfox_pre_content' so that Wordpress doesn't filter it like regular content.
 		 * But the verse content does contain footnotes, which we can use ShortFoot functionality for.
@@ -146,7 +123,7 @@ class BfoxBlogQueryData
 	 * @param string $title
 	 * @return array of new_posts
 	 */
-	private function create_ref_posts(BfoxRefs $refs, $title = '')
+	private static function create_ref_posts(BfoxRefs $refs, $title = '')
 	{
 		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
 
@@ -203,62 +180,13 @@ class BfoxBlogQueryData
 
 		return $new_posts;
 	}
-
-	/**
-	 * Creates a post with reading content
-	 *
-	 * @param $plan
-	 * @param $reading_id
-	 * @return object new_post
-	 */
-	private function create_reading_post(BfoxReadingPlan $plan, $reading_id) {
-		$refs = $plan->readings[$reading_id];
-		$ref_str = $refs->get_string();
-
-		// Create the navigation bar with the prev/write/next links
-		$nav_bar = "<div class='bible_post_nav'>";
-		if (isset($plan->readings[$reading_id - 1])) {
-			$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
-			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id - 1) . '" class="bible_post_prev">&lt; ' . $plan->readings[$reading_id - 1]->get_string() . '</a>';
-		}
-		$nav_bar .= BfoxBlog::ref_write_link($refs->get_string(), 'Write about this passage');
-		if (isset($plan->readings[$reading_id + 1])) {
-			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
-			$nav_bar .= '<a href="' . BfoxBlog::reading_plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->readings[$reading_id + 1]->get_string() . ' &gt;</a>';
-		}
-		$nav_bar .= "<br/>" . Biblefox::ref_link($ref_str, __('View in advanced Bible reader'), Biblefox::ref_url_bible) . "</div>";
-
-		$new_post = self::add_verse_post_content(array(), $refs, $nav_bar);
-		$new_post['ID'] = -1;
-		$new_post['post_title'] = $ref_str;
-		$new_post['bible_ref_str'] = $ref_str;
-		$new_post['post_type'] = BfoxBlog::post_type_bible;
-		$new_post['bfox_permalink'] = BfoxBlog::reading_plan_url($plan->id, $reading_id);
-		$new_post['bfox_author'] = '<a href="' . BfoxBlog::reading_plan_url($plan->id) . '">' . $plan->name . ' (Reading ' . ($reading_id + 1) . ')</a>';
-
-		// Set the date according to the reading plan if possible, otherwise set it to the current date
-		$new_post['post_date'] = $new_post['post_date_gmt'] = $plan->date($reading_id, 'Y-m-d H:i:s');
-
-		// Turn off comments
-		$new_post['comment_status'] = 'closed';
-		$new_post['ping_status'] = 'closed';
-
-		return (object) $new_post;
-	}
-}
-
-// Function for adding query variables for our plugin
-function bfox_queryvars($qvars) {
-	$qvars[] = BfoxBlog::var_plan_id;
-	$qvars[] = BfoxBlog::var_reading_id;
-	return $qvars;
 }
 
 // Function to be run after parsing the query
 function bfox_parse_query($wp_query) {
 	$showing_refs = FALSE;
 
-	// TODO3: separate out reading_plan stuff into a separate file
+	// TODO3: clean
 	if ($wp_query->is_tag) {
 		$refs = new BfoxRefs($wp_query->query_vars['tag']);
 		if ($refs->is_valid()) {
@@ -277,11 +205,6 @@ function bfox_parse_query($wp_query) {
 			$showing_refs = TRUE;
 			unset($wp_query->query_vars['s']);
 		}
-	}
-	elseif (isset($wp_query->query_vars[BfoxBlog::var_plan_id])) {
-		BfoxBlogQueryData::set_reading_plan($wp_query->query_vars[BfoxBlog::var_plan_id], $wp_query->query_vars[BfoxBlog::var_reading_id]);
-		$wp_query->is_home = FALSE;
-		$showing_refs = TRUE;
 	}
 
 	if ($showing_refs) BfoxUtility::enqueue_style('bfox_scripture');
@@ -388,9 +311,7 @@ function bfox_ref_replace_html($content) {
 	return BfoxRefParser::simple_html($content);
 }
 
-function bfox_query_init()
-{
-	add_filter('query_vars', 'bfox_queryvars' );
+function bfox_query_init() {
 	add_action('parse_query', 'bfox_parse_query');
 	add_filter('posts_where', 'bfox_posts_where');
 	add_filter('posts_results', 'bfox_posts_results');

@@ -101,9 +101,6 @@ class Biblefox {
 
 		// Register all the global scripts and styles
 		BfoxUtility::register_style('bfox_scripture', 'scripture.css');
-
-		bfox_query_init();
-		bfox_widgets_init();
 	}
 
 	public static function set_default_ref_url($ref_url) {
