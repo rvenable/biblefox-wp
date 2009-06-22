@@ -24,10 +24,6 @@ body {
 	text-align: left;
 	}
 
-#header {
-	background: #73a0c5;
-	}
-
 #main {
 	font-size: 1.4em;
 	}
@@ -87,10 +83,6 @@ h1 small {
 	font-size: 0.5em;
 	}
 
-#header .description {
-	font-size: 1.2em;
-	}
-
 h2 {
 	font-size: 1.6em;
 	}
@@ -108,7 +100,7 @@ h3 {
 	font-size: 1.3em;
 	}
 
-h1, h1 a, h1 a:hover, h1 a:visited, #header .description {
+h1, h1 a, h1 a:hover, h1 a:visited {
 	text-decoration: none;
 	color: white;
 	}
@@ -224,18 +216,6 @@ body {
 	padding: 0;
 	}
 
-#header {
-	background-color: #CCC;
-	padding: 0;
-	height: 80px;
-	width: 100%;
-	border-bottom: 1px solid #999;
-	}
-
-#header_content {
-	padding-left: 10px;
-	}
-	
 #sidebar {
 	padding: 5px;
 	float: left;
@@ -684,19 +664,77 @@ div.aligncenter {
 }
 /* End captions */
 
+/* Biblefox Banner */
+#bfox_header {
+	background-color: #CCC;
+	padding: 0;
+	height: 80px;
+	width: 100%;
+	border-bottom: 1px solid #999;
+	}
 
-#header h1 a {
+#bfox_logo {
+	padding-left: 10px;
+	}
+
+#bfox_logo a {
 	background: transparent url(logo-login.png) no-repeat scroll left center;
 	display: block;
 	width: 310px;
 	height: 70px;
-	text-indent: -9999px;
+	float: left;
 	}
 
-#header .description {
-	display: none;
+#bfox_search {
+	font-size: 14px;
+	float: right;
+	width: 600px;
+	height: 20px;
+	background-color: #DDD;
+	padding: 5px;
+	position: relative;
+	margin: 0 0 30px 0;
+	border: 1px solid #A0A0A0;
+	border-top: 0;
+	border-right: 0;
+	-moz-border-radius-bottomleft: 6px;
 	}
 
-/* "Daisy, Daisy, give me your answer do. I'm half crazy all for the love of you.
-	It won't be a stylish marriage, I can't afford a carriage.
-	But you'll look sweet upon the seat of a bicycle built for two." */
+#bfox_search a {
+	color: #333;
+	text-decoration: none;
+	}
+
+#bfox_search form {
+	position: absolute;
+	top: 4px;
+	right: 15px;
+	}
+
+#bfox_search select {
+	width: 200px;
+	}
+
+ul#bfox_nav {
+	float: right;
+	margin: 0 40px 0 0;
+	}
+
+ul#bfox_nav li {
+	font-size: 14px;
+	display: inline;
+	list-style-type: none;
+	margin: 0 1px;
+	padding: 0 14px;
+	height: 20px;
+	}
+
+ul#bfox_nav li.active_page {
+	background-color: #FFF;
+	padding: 3px 14px;
+	border: 1px solid #999;
+	border-bottom: 0;
+	-moz-border-radius-topleft: 6px;
+	-moz-border-radius-topright: 6px;
+	}
+/* End Biblefox Banner */

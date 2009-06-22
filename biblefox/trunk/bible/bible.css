@@ -98,23 +98,6 @@ Bible
 	float: left;
 }
 
-#bible_head {
-	background-color: #DFDFDF;
-	padding: 5px;
-	position: relative;
-
-	-moz-border-radius-bottomleft: 0.5em;
-	-moz-border-radius-bottomright: 0.5em;
-	border: 1px solid #A0A0A0;
-	border-top: 0;
-}
-
-#bible_head_content h2 {
-	font-size: 14px;
-	margin: 0;
-	padding: 0;
-}
-
 #bible_bar div.inside {
 	position: relative;
 	width: 100%;
@@ -127,16 +110,6 @@ ul#bible_page_list {
 ul#bible_page_list li {
 	display: inline;
 	list-style: none;
-}
-
-#bible_search_form {
-	position: absolute;
-	top: 2px;
-	right: 15px;
-}
-
-#bible_search_form select {
-	width: auto;
 }
 
 .page_links {
