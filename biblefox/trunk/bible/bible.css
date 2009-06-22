@@ -324,9 +324,8 @@ Scripture Layout
 }
 
 #bible .ref_seq {
-	margin: 0.5em;
-	margin-top: 0em;
-	border: 1px solid #DDD;
+	margin: 0.5em 0;
+	border: 1px solid #CCC;
 	-moz-border-radius: 0.5em;
 }
 

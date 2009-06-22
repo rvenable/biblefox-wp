@@ -6,16 +6,6 @@ Version: 1.6
 Author: Richard Venable
 Author URI: http://biblefox.com
 Tags: blue, custom header, fixed width, two columns, widgets
-
-	Kubrick v1.5
-	 http://binarybonsai.com/kubrick/
-
-	This theme was designed and built by Michael Heilemann,
-	whose blog you will find at http://binarybonsai.com/
-
-	The CSS, XHTML and design is released under GPL:
-	http://www.opensource.org/licenses/gpl-license.php
-
 */
 
 
@@ -25,7 +15,7 @@ body {
 	font-size: 62.5%; /* Resets 1em to 10px */
 	font-family: 'Lucida Grande', Verdana, Arial, Sans-Serif;
 	background: #d5d6d7;
-	color: #333;
+	color: #444;
 	text-align: center;
 	}
 
@@ -39,7 +29,7 @@ body {
 	}
 
 #main {
-	font-size: 1.2em;
+	font-size: 1.4em;
 	}
 
 .widecolumn .entry p {
@@ -337,11 +327,12 @@ body {
 /*	Begin Headers */
 h1 {
 	margin: 0;
+	padding: 0;
 	}
 
 h2 {
 	margin: 0;
-	padding: 30px 0 0;
+	padding: 0;
 	}
 
 h2.pagetitle {
@@ -356,7 +347,7 @@ h2.pagetitle {
 
 h3 {
 	padding: 0;
-	margin: 30px 0 0;
+	margin: 0;
 	}
 
 h3.comments {
