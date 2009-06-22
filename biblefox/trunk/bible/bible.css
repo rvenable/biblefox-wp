@@ -406,6 +406,16 @@ Scripture Layout
 	margin: 0;
 }
 
+.bible_page_head {
+	background-color: #E4F2FD;
+	height: 30px;
+	margin: 0 0 2px 0;
+	padding: 2px 6px;
+	-moz-border-radius-bottomleft: 6px;
+	-moz-border-radius-bottomright: 6px;
+	border: 1px solid #DDD;
+}
+
 /*
 Blog Commentaries
 */

@@ -256,6 +256,7 @@ class BfoxRefContent {
 
 		?>
 		<div class='ref_content'>
+			<div class='bible_page_head'><?php echo __('Bible Reader - ') . $refs->get_string() ?></div>
 			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BfoxRefs::get_bcvs($refs->get_seqs())) ?>
 			<?php echo self::ref_footnotes($footnotes) ?>
 			<?php echo self::ref_toc($refs); ?>
