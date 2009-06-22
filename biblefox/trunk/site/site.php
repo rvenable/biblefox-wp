@@ -9,11 +9,6 @@ include_once BFOX_SITE_DIR . '/shortfoot.php';
 
 class BiblefoxSite {
 
-	const manage_trans_page = 'bfox-translations';
-	const manage_trans_min_user_level = 10;
-
-	private static $active_page = '';
-
 	public static function new_blog_settings($blog_id, $user_id) {
 		global $wpdb;
 
@@ -165,68 +160,10 @@ class BiblefoxSite {
 			global $current_blog, $current_site;
 
 			// The bible should always be on the main blog, so if it isn't just redirect it
-			if (is_main_blog()) {
-				self::$active_page = 'bible';
-
-				require_once BFOX_DIR . '/bible/bible.php';
-				$bible = new BfoxBible($wp->query_vars[BfoxQuery::var_pretty_query]);
-				$bible->page();
-			}
+			if (is_main_blog()) BiblefoxMainBlog::bible($wp->query_vars[BfoxQuery::var_pretty_query]);
 			else wp_redirect((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path . substr($_SERVER['REQUEST_URI'], strlen($current_blog->path)));
 			exit;
 		}
-	}
-
-	public static function signup_header() {
-		self::$active_page = 'signup';
-	}
-
-	public static function banner() {
-		global $user_ID;
-
-		$home = get_option('home');
-		$bible = BfoxQuery::url();
-
-		$pages = array(
-			'home' => array($home . '/', __('Home')),
-			'bible' => array($bible, __('Bible')),
-			'signup' => array("$home/wp-signup.php", __('Sign Up'))
-		);
-		if (empty(self::$active_page)) self::$active_page = 'home';
-
-		if (!empty($user_ID)) unset($pages['signup']);
-
-		list($post_url, $hiddens) = BfoxUtility::get_post_url(BfoxQuery::page_url(BfoxQuery::page_search));
-
-		//TODO3: fix translation and search_str
-		$translation = new BfoxTrans();
-		//$search_str = $this->get_search_str();
-
-		?>
-		<div id='bfox_header'>
-			<div id='bfox_logo'>
-				<a href='<?php echo $home ?>/' title='Biblefox.com'></a>
-			</div>
-			<div id="bfox_search">
-				<a href='<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>'><?php _e('Bible Reader') ?></a>
-				<form id="bible_search_form" action="<?php echo $post_url ?>" method="get">
-					<?php echo $hiddens ?>
-					<?php BfoxTrans::output_select($translation->id) ?>
-					<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo $search_str ?>" />
-					<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
-				</form>
-			</div>
-			<ul id='bfox_nav'>
-				<?php
-				foreach ($pages as $name => $page) {
-					if ($name == self::$active_page) $class = " class='active_page'";
-					else $class = '';
-					echo "<li$class><a href='$page[0]'>$page[1]</a></li>\n";
-				}
-				?>
-			</ul>
-		</div>
-		<?php
 	}
 
 	/**
@@ -241,6 +178,9 @@ class BiblefoxSite {
 	}
 
 	public static function init() {
+		// Include the main_blog functionality if this is the main blog
+		if (is_main_blog()) require_once BFOX_SITE_DIR . '/main_blog.php';
+
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
 		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
@@ -261,8 +201,6 @@ class BiblefoxSite {
 		add_filter('dashboard_secondary_link', create_function('', 'return "http://biblefox.com/category/featured/";'));
 		add_filter('dashboard_secondary_feed', create_function('', 'return "http://biblefox.com/category/featured/feed/";'));
 		add_filter('dashboard_secondary_title', create_function('', 'return "Featured Posts";'));
-
-		add_action('signup_header', 'BiblefoxSite::signup_header');
 	}
 }
 add_action('init', 'BiblefoxSite::init');

@@ -24,7 +24,7 @@
 <body>
 <div id="page">
 
-<?php BiblefoxSite::banner() ?>
+<?php BiblefoxMainBlog::banner() ?>
 <hr />
 
 <?php get_sidebar(); ?>
