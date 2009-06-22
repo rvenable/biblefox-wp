@@ -90,22 +90,27 @@ class BfoxPagePassage extends BfoxPage {
 	}
 
 	private function tools_tab(BfoxRefs $refs) {
-		$url = BfoxQuery::page_url(BfoxQuery::page_passage);
-		$cboxes = array();
-		$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
-		$cboxes['notes'] = new BfoxCboxNotes($refs, $url, 'notes', 'My Bible Notes');
-
-		ob_start();
-		$cboxes['blogs']->content();
-		$blog_content = ob_get_clean();
-
-		ob_start();
-		$cboxes['notes']->content();
-		$note_content = ob_get_clean();
+		global $user_ID;
 
 		$tool_tabs = new BfoxHtmlTabs("id='tool_tabs' class='tabs'");
-		$tool_tabs->add('blogs', __('Blogs'), $blog_content . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>");
-		$tool_tabs->add('notes', __('Notes'), $note_content);
+
+		if (!empty($user_ID)) {
+			$url = BfoxQuery::page_url(BfoxQuery::page_passage);
+			$cboxes = array();
+			$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
+			$cboxes['notes'] = new BfoxCboxNotes($refs, $url, 'notes', 'My Bible Notes');
+
+			ob_start();
+			$cboxes['blogs']->content();
+			$blog_content = ob_get_clean();
+
+			ob_start();
+			$cboxes['notes']->content();
+			$note_content = ob_get_clean();
+
+			$tool_tabs->add('blogs', __('Blogs'), $blog_content . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>");
+			$tool_tabs->add('notes', __('Notes'), $note_content);
+		}
 		$tool_tabs->add('options', __('Options'), $this->options());
 
 		return $tool_tabs->content();
@@ -167,13 +172,16 @@ class BfoxPagePassage extends BfoxPage {
 	}
 
 	private function content_new() {
+		global $user_ID;
 
 		$passage_tabs = new BfoxHtmlTabs("id='passage_tabs' class='tabs'");
 		$passage_tabs->add('passage', $this->refs->get_string(), $this->ref_content());
-		$passage_tabs->add('plans', __('Readings'), $this->readings());
-		$passage_tabs->add('history', __('History'),
-			__('<p>Here are the passages you have viewed recently. You can mark them as read to keep track of your reading progress.<p>') .
-			BfoxRefContent::history_table($this->history));
+		if (!empty($user_ID)) {
+			$passage_tabs->add('plans', __('Readings'), $this->readings());
+			$passage_tabs->add('history', __('History'),
+				__('<p>Here are the passages you have viewed recently. You can mark them as read to keep track of your reading progress.<p>') .
+				BfoxRefContent::history_table($this->history));
+		}
 
 		?>
 		<?php echo $passage_tabs->content($this->default_tab) ?>

@@ -40,7 +40,7 @@ abstract class BfoxPage {
 			<div id="bible" class="">
 				<div id="bible_head">
 					<div id="bible_head_content">
-						<h2><a href='<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>'>Biblefox Bible Viewer</a></h2>
+						<h2><a href='<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>'><?php _e('Biblefox Bible Reader') ?></a></h2>
 						<form id="bible_search_form" action="<?php echo $post_url ?>" method="get">
 							<?php echo $hiddens ?>
 							<?php BfoxTrans::output_select($this->translation->id) ?>

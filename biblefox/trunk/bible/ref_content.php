@@ -115,7 +115,8 @@ class BfoxRefContent {
 	}
 
 	private static function ref_history(BfoxRefs $refs) {
-		return self::ref_seq(__('Your History for ') . $refs->get_string(), self::history_table(BfoxHistory::get_history(10, 0, $refs)));
+		global $user_ID;
+		if (!empty($user_ID)) return self::ref_seq(__('Your History for ') . $refs->get_string(), self::history_table(BfoxHistory::get_history(10, 0, $refs)));
 	}
 
 	public static function ref_content(BfoxRefs $refs, BfoxTrans $translation) {

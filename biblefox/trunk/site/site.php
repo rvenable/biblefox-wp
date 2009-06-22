@@ -178,12 +178,10 @@ class BiblefoxSite {
 	public static function parse_request(WP $wp) {
 		// We don't need wp_query for the bible viewer, so we can exit at the end of request parsing, before wp_query is called
 		if (isset($wp->query_vars[BfoxQuery::var_page]) || isset($wp->query_vars[BfoxQuery::var_pretty_query])) {
-			global $current_blog, $current_site, $user_ID;
+			global $current_blog, $current_site;
 
 			// The bible should always be on the main blog, so if it isn't just redirect it
 			if (is_main_blog()) {
-				if (empty($user_ID)) auth_redirect();
-
 				require_once BFOX_DIR . '/bible/bible.php';
 				$bible = new BfoxBible($wp->query_vars[BfoxQuery::var_pretty_query]);
 				$bible->page();
