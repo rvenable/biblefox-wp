@@ -53,8 +53,13 @@ class BfoxBible {
 			else list($q[BfoxQuery::var_reference]) = $vars;
 		}
 
+		// If there is no user, we should only allow certain pages
+		if (empty($user_ID)) {
+			$valid_guest_pages = array(BfoxQuery::page_passage => TRUE, BfoxQuery::page_search => TRUE);
+			if (!$valid_guest_pages[$q[BfoxQuery::var_page]]) auth_redirect();
+		}
 		// Perform any user-specific updates
-		if (!empty($user_ID)) {
+		else {
 			// Update the user's timezone from their cookies
 			if (isset($_COOKIE[self::cookie_tz])) update_user_option($user_ID, self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
 			BfoxUtility::set_timezone_offset(get_user_option(self::user_option_tz));
@@ -92,12 +97,6 @@ class BfoxBible {
 				unset($q[BfoxQuery::var_page]);
 				$redirect = TRUE;
 			}
-		}
-
-		// If there is no user, we should only allow certain pages
-		if (empty($user_ID)) {
-			$valid_guest_pages = array(BfoxQuery::page_passage => TRUE, BfoxQuery::page_search => TRUE);
-			if (!$valid_guest_pages[$q[BfoxQuery::var_page]]) $q[BfoxQuery::var_page] = '';
 		}
 
 		switch ($q[BfoxQuery::var_page]) {
