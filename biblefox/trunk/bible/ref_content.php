@@ -22,7 +22,7 @@ class BfoxRefContent {
 		global $user_ID;
 		if (!empty($user_ID)) return self::ref_seq(__('Recent History'),
 			__('<p>Here are the passages you have viewed recently. You can mark them as read to keep track of your reading progress.<p>') .
-			BfoxRefContent::history_table(BfoxHistory::get_history(25)));
+			BfoxRefContent::history_table(BfoxHistory::get_history(15)));
 
 	}
 
@@ -58,45 +58,43 @@ class BfoxRefContent {
 		if (!empty($user_ID)) {
 			$plans = BfoxRefContent::get_plans();
 
-			$table = new BfoxHtmlTable("class='widefat'");
-
-			foreach ($plans as $plan) if ($plan->is_current()) {
-				foreach ($plan->readings as $reading_id => $reading) {
-					$unread = $plan->get_unread($reading);
-					$is_unread = $unread->is_valid();
-
-					// If the passage is unread or current, add it
-					if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
-						$ref_str = $plan->readings[$reading_id]->get_string();
-						$url = Biblefox::ref_url($ref_str);
-
-						if (!$is_unread) $finished = " class='finished'";
-						else $finished = '';
-
-						$row = new BfoxHtmlRow('',
-							BfoxUtility::nice_date($plan->time($reading_id)),
-							"<a href='$url'$finished>$ref_str</a>",
-							"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
-						$row->add_sort_val($plan->date($reading_id));
-						$table->add_row($row);
-					}
-				}
-			}
-
-			"<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>Manage my reading plans</a>";
-
-
 			if (empty($plans)) {
-				$manage = __('manage reading plans');
-				$header = __('<p>You are not subscribed to any reading plans. Biblefox has many reading plans you can subscribe to, or you can create your own. Visit the ') .
-					"<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>$manage</a>" . __(' page to edit your plans</p>');
+				$content = __('<p>You are not subscribed to any reading plans. Biblefox has many reading plans you can subscribe to, or you can create your own.</p>');
 			}
 			else {
-				$manage = __('Manage your reading plans');
-				$header = __('<p>Here are upcoming readings for your reading plans:</p>') . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>$manage</a>";
+				$table = new BfoxHtmlTable("class='widefat'");
+
+				foreach ($plans as $plan) if ($plan->is_current()) {
+					// Show any unread readings before the current reading
+					// And any readings between the current reading and the first unread reading after it
+					foreach ($plan->readings as $reading_id => $reading) {
+						$unread = $plan->get_unread($reading);
+						$is_unread = $unread->is_valid();
+
+						// If the passage is unread or current, add it
+						if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
+							$ref_str = $plan->readings[$reading_id]->get_string();
+							$url = Biblefox::ref_url($ref_str);
+
+							if (!$is_unread) $finished = " class='finished'";
+							else $finished = '';
+
+							$row = new BfoxHtmlRow('',
+								BfoxUtility::nice_date($plan->time($reading_id)),
+								"<a href='$url'$finished>$ref_str</a>",
+								"<a href='" . BfoxQuery::reading_plan_url($plan->id) . "'>$plan->name #" . ($reading_id + 1) . "</a>");
+							$row->add_sort_val($plan->date($reading_id));
+							$table->add_row($row);
+						}
+						// Break after the first unread reading > current_reading
+						if ($is_unread && ($reading_id > $plan->current_reading_id)) break;
+					}
+				}
+
+				$content = $table->content(TRUE);
 			}
 
-			return self::ref_seq(__('Upcoming Readings'), $header . $table->content(TRUE));
+			return self::ref_seq(__('Your Current Readings'), "$content<a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>Manage your reading plans</a>");
 		}
 	}
 
