@@ -99,15 +99,6 @@ class BfoxQuery {
 	public static function add_display_type($type, $url) {
 		return add_query_arg(self::var_display, $type, $url);
 	}
-
-	// TODO3: Are we still using this?
-	public static function sidebar_list() {
-		?>
-		<ul>
-			<li><a href="<?php echo self::page_url(self::page_passage) ?>">Bible Reader</a></li>
-		</ul>
-		<?php
-	}
 }
 
 ?>

@@ -94,7 +94,8 @@ class BfoxUtility {
 	 desired timezone, we have to temporarily change the timezone, get the timestamp from strtotime(), format it using date(),
 	 then finally reset the timezone back to its original state.
 	 */
-	public static function format_local_date($date_str, $format = 'm/d/Y') {
+	// TODO3: remove this function
+	/*public static function format_local_date($date_str, $format = 'm/d/Y') {
 		// Get the current default timezone because we need to set it back when we are done
 		$tz = date_default_timezone_get();
 
@@ -118,7 +119,7 @@ class BfoxUtility {
 		date_default_timezone_set($tz);
 
 		return $date_str;
-	}
+	}*/
 
 	/**
 	 * Returns whether a table exists or not
