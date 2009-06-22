@@ -23,25 +23,20 @@ class BfoxPageSearch extends BfoxPage {
 		if (!empty($ref_str)) $this->search->set_refs(BfoxBible::parse_search_ref_str($ref_str));
 
 		BfoxUtility::enqueue_style('bfox_search');
+
+		BiblefoxMainBlog::set_search_str($this->search->text);
 	}
 
 	private function page_url($page_num) {
 		return add_query_arg(self::var_page_num, $page_num, $this->search->get_url());
 	}
 
-	public function get_title()
-	{
+	public function get_title() {
 		if (!empty($this->search->ref_str)) $ref_str = " in {$this->search->ref_str}";
 		return "Search for '{$this->search->text}'$ref_str";
 	}
 
-	public function get_search_str()
-	{
-		return $this->search->text;
-	}
-
-	public function content()
-	{
+	public function content() {
 		$book_counts = $this->search->boolean_book_counts();
 		$verses = $this->search->search_boolean();
 

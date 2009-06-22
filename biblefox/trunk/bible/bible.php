@@ -11,7 +11,6 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 
 class BfoxBible {
 
-	const cookie_translation = 'bfox_trans_str';
 	const cookie_tz = 'bfox_timezone';
 
 	const user_option_tz = 'bfox_timezone';
@@ -145,16 +144,10 @@ class BfoxBible {
 	}
 
 	public static function get_input_trans($q) {
-		// Cookied Translations:
-		// If we were passed a translation, use it and save the cookie
-		// Otherwise, if we have a cookied translation, use it
-		// Otherwise use the default translation
-		if (!empty($q[BfoxQuery::var_translation])) {
-			$translation = new BfoxTrans($q[BfoxQuery::var_translation]);
-			setcookie(self::cookie_translation, $translation->id, /* 365 days from now: */ time() + 60 * 60 * 24 * 365);
-		}
-		elseif (!empty($_COOKIE[self::cookie_translation])) $translation = new BfoxTrans($_COOKIE[self::cookie_translation]);
-		else $translation = new BfoxTrans();
+		if (!empty($q[BfoxQuery::var_translation])) $translation = new BfoxTrans($q[BfoxQuery::var_translation]);
+		else $translation = new BfoxTrans(BiblefoxMainBlog::get_trans_id());
+
+		BiblefoxMainBlog::set_trans_id($translation->id);
 
 		return $translation;
 	}

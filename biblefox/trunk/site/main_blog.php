@@ -2,7 +2,30 @@
 
 class BiblefoxMainBlog {
 
+	const cookie_translation = 'bfox_trans_str';
+
 	private static $active_page = '';
+	private static $trans_id = 0;
+	private static $search_str = '';
+
+	public static function init() {
+		if (!empty($_COOKIE[self::cookie_translation])) self::$trans_id = $_COOKIE[self::cookie_translation];
+
+		add_action('signup_header', 'BiblefoxMainBlog::signup_header');
+	}
+
+	public static function get_trans_id() {
+		return self::$trans_id;
+	}
+
+	public static function set_trans_id($trans_id) {
+		setcookie(self::cookie_translation, $trans_id, /* 365 days from now: */ time() + 60 * 60 * 24 * 365);
+		self::$trans_id = $trans_id;
+	}
+
+	public static function set_search_str($str) {
+		self::$search_str = $str;
+	}
 
 	public static function bible($query) {
 		self::$active_page = 'bible';
@@ -33,10 +56,6 @@ class BiblefoxMainBlog {
 
 		list($post_url, $hiddens) = BfoxUtility::get_post_url(BfoxQuery::page_url(BfoxQuery::page_search));
 
-		//TODO3: fix translation and search_str
-		$translation = new BfoxTrans();
-		//$search_str = $this->get_search_str();
-
 		?>
 		<div id='bfox_header'>
 			<div id='bfox_logo'>
@@ -46,8 +65,8 @@ class BiblefoxMainBlog {
 				<a href='<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>'><?php _e('Bible Reader') ?></a>
 				<form id="bible_search_form" action="<?php echo $post_url ?>" method="get">
 					<?php echo $hiddens ?>
-					<?php BfoxTrans::output_select($translation->id) ?>
-					<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo $search_str ?>" />
+					<?php BfoxTrans::output_select(self::$trans_id) ?>
+					<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo self::$search_str ?>" />
 					<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
 				</form>
 			</div>
@@ -65,6 +84,6 @@ class BiblefoxMainBlog {
 	}
 }
 
-add_action('signup_header', 'BiblefoxMainBlog::signup_header');
+BiblefoxMainBlog::init();
 
 ?>

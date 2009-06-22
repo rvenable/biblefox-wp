@@ -28,10 +28,6 @@ abstract class BfoxPage {
 		return 'Biblefox Bible Viewer';
 	}
 
-	public function get_search_str() {
-		return '';
-	}
-
 	public function page() {
 		if ($this->display_full) {
 			get_header();
