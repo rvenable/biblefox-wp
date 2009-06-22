@@ -82,6 +82,11 @@ class BiblefoxMainBlog {
 		</div>
 		<?php
 	}
+
+	public static function sidebar() {
+		if ('bible' == self::$active_page) BfoxBible::sidebar();
+		else dynamic_sidebar();
+	}
 }
 
 BiblefoxMainBlog::init();

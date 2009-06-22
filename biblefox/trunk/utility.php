@@ -400,12 +400,17 @@ class BfoxHtmlList extends BfoxHtmlElement {
 		$this->sort_vals []= $sort_val;
 	}
 
-	public function content($sort = FALSE, $page_num = 0, $page_size = 20) {
+	public function content($sort = FALSE, $page_num = 0, $page_size = 0) {
 		if ($sort) array_multisort($this->sort_vals, $this->lis);
 
 		$content = "<ul $this->attrs>\n";
-		$count = count($this->lis);
-		for ($i = $page_num * $page_size; ($i < $count) && ($i < (($page_num + 1) * $page_size)); $i++) $content .= "<li {$this->lis[$i][1]}>{$this->lis[$i][0]}</li>\n";
+		if (empty($page_size)) {
+			foreach ($this->lis as $li) $content .= "<li {$li[1]}>{$li[0]}</li>\n";
+		}
+		else {
+			$count = count($this->lis);
+			for ($i = $page_num * $page_size; ($i < $count) && ($i < (($page_num + 1) * $page_size)); $i++) $content .= "<li {$this->lis[$i][1]}>{$this->lis[$i][0]}</li>\n";
+		}
 		$content .= "</ul>\n";
 
 		return $content;

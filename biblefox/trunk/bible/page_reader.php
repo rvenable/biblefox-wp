@@ -19,7 +19,7 @@ class BfoxPageReader extends BfoxPage {
 	private $page_num = 0;
 
 	public function page_load() {
-		$this->plans = BfoxRefContent::get_plans();
+		$this->plans = BfoxBible::get_plans();
 
 		if (!empty($_REQUEST[self::var_plan_id])) $this->plan_id = $_REQUEST[self::var_plan_id];
 		if (!empty($_REQUEST[self::var_reading_id])) $this->reading_id = $_REQUEST[self::var_reading_id];

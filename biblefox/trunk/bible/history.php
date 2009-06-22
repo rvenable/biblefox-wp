@@ -38,8 +38,8 @@ class BfoxHistoryEvent {
 		return "<a href='" . $this->toggle_url() . "'>$text</a>";
 	}
 
-	public function ref_link() {
-		return Biblefox::ref_link($this->refs->get_string(), '', '', ($this->is_read ? "class='finished'" : ''));
+	public function ref_link($name = '') {
+		return Biblefox::ref_link($this->refs->get_string($name), '', '', ($this->is_read ? "class='finished'" : ''));
 	}
 
 	public function desc() {

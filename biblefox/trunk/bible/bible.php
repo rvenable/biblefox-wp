@@ -210,6 +210,97 @@ class BfoxBible {
 		//return $this->cbox_url(add_query_arg(self::var_note_id, $note_id, $this->url));
 		return add_query_arg(self::var_note_id, $note_id, $url);
 	}
+
+	public static function history() {
+		global $user_ID;
+
+		$history = BfoxHistory::get_history(15);
+		$list = new BfoxHtmlList();
+
+		foreach ($history as $event) $list->add($event->ref_link());
+
+		return $list->content();
+	}
+
+	public static function get_plans() {
+		global $user_ID;
+
+		$plans = array();
+
+		$subs = BfoxPlans::get_user_subs($user_ID, BfoxPlans::user_type_user);
+
+		$plan_ids = array();
+		foreach ($subs as $sub) if ($sub->is_subscribed && !$sub->is_finished) $plan_ids []= $sub->plan_id;
+
+		if (!empty($plan_ids)) $plans = BfoxPlans::get_plans($plan_ids);
+
+		$earliest = '';
+		foreach($plans as $plan) {
+			$start_time = $plan->start_date();
+			if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
+		}
+
+		if (!empty($earliest)) {
+			$history_array = BfoxHistory::get_history(0, $earliest, NULL, TRUE);
+			foreach ($plans as &$plan) $plan->set_history($history_array);
+		}
+
+		return $plans;
+	}
+
+	public static function readings() {
+		global $user_ID;
+
+		if (!empty($user_ID)) {
+			$plans = self::get_plans();
+
+			if (empty($plans)) {
+				$content = __('<p>You are not subscribed to any reading plans. Biblefox has many reading plans you can subscribe to, or you can create your own.</p>');
+			}
+			else {
+				$list = new BfoxHtmlList();
+
+				foreach ($plans as $plan) if ($plan->is_current()) {
+					// Show any unread readings before the current reading
+					// And any readings between the current reading and the first unread reading after it
+					foreach ($plan->readings as $reading_id => $reading) {
+						$unread = $plan->get_unread($reading);
+						$is_unread = $unread->is_valid();
+
+						// If the passage is unread or current, add it
+						if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
+							$ref_str = $plan->readings[$reading_id]->get_string();
+							$url = Biblefox::ref_url($ref_str);
+
+							if (!$is_unread) $finished = " class='finished'";
+							else $finished = '';
+
+							$list->add(BfoxUtility::nice_date($plan->time($reading_id)) . ": <a href='$url'$finished>$ref_str</a>", '', $plan->date($reading_id));
+						}
+						// Break after the first unread reading > current_reading
+						if ($is_unread && ($reading_id > $plan->current_reading_id)) break;
+					}
+				}
+
+				$content = $list->content(TRUE);
+			}
+
+			return $content;
+		}
+	}
+
+	public static function sidebar() {
+		?>
+		<li>
+			<h2><?php _e('Current Readings') ?></h2>
+			<?php echo self::readings() ?>
+		</li>
+		<li>
+			<h2><?php _e('Recent History') ?></h2>
+			<?php echo self::history() ?>
+		</li>
+		<?php
+	}
 }
 
 ?>
