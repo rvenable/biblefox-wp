@@ -30,7 +30,7 @@ class BfoxBible {
 		// Register the bible jquery scripts and styles
 		BfoxUtility::register_script('bfox_jquery', 'bible/jquery/js/jquery-1.3.2.min.js');
 		BfoxUtility::register_script('bfox_jquery_ui', 'bible/jquery/js/jquery-ui-1.7.2.custom.min.js', array('bfox_jquery'));
-		BfoxUtility::register_style('bfox_jquery_ui', 'bible/jquery/css/cupertino/jquery-ui-1.7.2.custom.css');
+		BfoxUtility::register_style('bfox_jquery_ui', 'bible/jquery/css/overcast/jquery-ui-1.7.2.custom.css');
 
 		// Register all the bible scripts and styles
 		BfoxUtility::register_script('jquery_cookie', 'bible/jquery.cookie.js', array('bfox_jquery'));
