@@ -41,10 +41,6 @@ class BfoxBible {
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
-		// Update the user's timezone from their cookies
-		if (isset($_COOKIE[self::cookie_tz])) update_user_option($user_ID, self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
-		BfoxUtility::set_timezone_offset(get_user_option(self::user_option_tz));
-
 		// Create an array of all the query args
 		$q = array();
 		$requests = array(BfoxQuery::var_page, BfoxQuery::var_reference, BfoxQuery::var_search, BfoxQuery::var_translation, BfoxQuery::var_toggle_read);
@@ -57,29 +53,36 @@ class BfoxBible {
 			else list($q[BfoxQuery::var_reference]) = $vars;
 		}
 
-		// If we are toggling is_read, then we should do it now, and redirect without the parameter
-		if (!empty($q[BfoxQuery::var_toggle_read])) {
-			BfoxHistory::toggle_is_read($q[BfoxQuery::var_toggle_read]);
-			unset($q[BfoxQuery::var_toggle_read]);
-			$redirect = TRUE;
-		}
+		// Perform any user-specific updates
+		if (!empty($user_ID)) {
+			// Update the user's timezone from their cookies
+			if (isset($_COOKIE[self::cookie_tz])) update_user_option($user_ID, self::user_option_tz, $_COOKIE[self::cookie_tz], TRUE);
+			BfoxUtility::set_timezone_offset(get_user_option(self::user_option_tz));
 
-		// Save any notes
-		if (isset($_REQUEST[self::var_note_id])) {
-			$note_id = $_REQUEST[self::var_note_id];
-
-			if (isset($_POST[self::var_note_submit])) {
-				$note = BfoxNotes::get_note($note_id);
-				$note->set_content(strip_tags(stripslashes($_POST[self::var_note_content])));
-				BfoxNotes::save_note($note);
-				$note_id = $note->id;
+			// If we are toggling is_read, then we should do it now, and redirect without the parameter
+			if (!empty($q[BfoxQuery::var_toggle_read])) {
+				BfoxHistory::toggle_is_read($q[BfoxQuery::var_toggle_read]);
+				unset($q[BfoxQuery::var_toggle_read]);
+				$redirect = TRUE;
 			}
 
-			// Save the note_id as a user option
-			update_user_option($user_ID, self::user_option_note_id, $note_id, TRUE);
+			// Save any notes
+			if (isset($_REQUEST[self::var_note_id])) {
+				$note_id = $_REQUEST[self::var_note_id];
 
-			// Redirect without the note info
-			$redirect = TRUE;
+				if (isset($_POST[self::var_note_submit])) {
+					$note = BfoxNotes::get_note($note_id);
+					$note->set_content(strip_tags(stripslashes($_POST[self::var_note_content])));
+					BfoxNotes::save_note($note);
+					$note_id = $note->id;
+				}
+
+				// Save the note_id as a user option
+				update_user_option($user_ID, self::user_option_note_id, $note_id, TRUE);
+
+				// Redirect without the note info
+				$redirect = TRUE;
+			}
 		}
 
 		// If we have a search string but no ref_str, we should try to extract refs from the search string
@@ -89,6 +92,12 @@ class BfoxBible {
 				unset($q[BfoxQuery::var_page]);
 				$redirect = TRUE;
 			}
+		}
+
+		// If there is no user, we should only allow certain pages
+		if (empty($user_ID)) {
+			$valid_guest_pages = array(BfoxQuery::page_passage => TRUE, BfoxQuery::page_search => TRUE);
+			if (!$valid_guest_pages[$q[BfoxQuery::var_page]]) $q[BfoxQuery::var_page] = '';
 		}
 
 		switch ($q[BfoxQuery::var_page]) {
