@@ -90,7 +90,10 @@ class BfoxRefContent {
 
 	private static function ref_history(BfoxRefs $refs) {
 		global $user_ID;
-		if (!empty($user_ID)) return self::ref_seq(__('Your History for ') . $refs->get_string(), self::history_table(BfoxHistory::get_history(10, 0, $refs)));
+		if (!empty($user_ID)) {
+			$history = BfoxHistory::get_history(10, 0, $refs);
+			return array(self::ref_seq(__('Your History for ') . $refs->get_string(), self::history_table($history)), $history);
+		}
 	}
 
 	public static function ref_content(BfoxRefs $refs, BfoxTrans $translation) {
@@ -174,13 +177,20 @@ class BfoxRefContent {
 	public static function ref_content_new(BfoxRefs $refs, BfoxTrans $translation) {
 		$footnotes = array();
 
+		list($ref_history_content, $ref_history) = (array) self::ref_history($refs);
+		if (!empty($ref_history)) {
+			$event = array_shift($ref_history);
+			$mark_link = $event->desc() . ' at ' . date('g:i a', $event->time) . ': ' . $event->toggle_link('mark as read', 'mark as unread');
+		}
+		else $mark_link = '';
+
 		?>
 		<div class='ref_content'>
-			<div class='bible_page_head'><?php echo __('Bible Reader - ') . $refs->get_string() ?></div>
+			<div class='bible_page_head'><?php echo __('Bible Reader - ') . $refs->get_string() ?><br/><small><?php echo $mark_link ?></small></div>
 			<?php echo self::ref_content_complex($refs, $translation, $footnotes, BfoxRefs::get_bcvs($refs->get_seqs())) ?>
 			<?php echo self::ref_footnotes($footnotes) ?>
-			<?php echo self::ref_toc($refs); ?>
-			<?php echo self::ref_history($refs) ?>
+			<?php echo self::ref_toc($refs) ?>
+			<?php echo $ref_history_content ?>
 		</div>
 		<?php
 	}
