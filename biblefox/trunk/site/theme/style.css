@@ -670,6 +670,7 @@ div.aligncenter {
 	padding: 0;
 	height: 80px;
 	width: 100%;
+	min-width: 900px;
 	border-bottom: 1px solid #999;
 	}
 
@@ -688,7 +689,7 @@ div.aligncenter {
 #bfox_search {
 	font-size: 14px;
 	float: right;
-	width: 600px;
+	width: 565px;
 	height: 20px;
 	background-color: #DDD;
 	padding: 5px;
