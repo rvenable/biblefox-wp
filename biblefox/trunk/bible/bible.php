@@ -214,12 +214,17 @@ class BfoxBible {
 	public static function history() {
 		global $user_ID;
 
-		$history = BfoxHistory::get_history(15);
-		$list = new BfoxHtmlList();
+		if (empty($user_ID)) $content = "<p>" . BiblefoxSite::loginout() . __(' to track the Bible passages you read.</p>');
+		else {
+			$history = BfoxHistory::get_history(15);
+			$list = new BfoxHtmlList();
 
-		foreach ($history as $event) $list->add($event->ref_link());
+			foreach ($history as $event) $list->add($event->ref_link());
 
-		return $list->content();
+			$content = $list->content();
+		}
+
+		return $content;
 	}
 
 	public static function get_plans() {
@@ -251,12 +256,11 @@ class BfoxBible {
 	public static function readings() {
 		global $user_ID;
 
+		$plans = array();
 		if (!empty($user_ID)) {
 			$plans = self::get_plans();
 
-			if (empty($plans)) {
-				$content = __('<p>You are not subscribed to any reading plans. Biblefox has many reading plans you can subscribe to, or you can create your own.</p>');
-			}
+			if (empty($plans)) $content = __('<p>You are not subscribed to any reading plans.</p>');
 			else {
 				$list = new BfoxHtmlList();
 
@@ -285,14 +289,18 @@ class BfoxBible {
 				$content = $list->content(TRUE);
 			}
 
-			return $content;
+			$content .= "<p><a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>" . __('Edit Reading Plans') . "</a></p>";
 		}
+		else $content = "<p>" . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
+
+
+		return $content;
 	}
 
 	public static function sidebar() {
 		?>
 		<li>
-			<h2><?php _e('Current Readings') ?></h2>
+			<h2><a href='<? echo BfoxQuery::page_url(BfoxQuery::page_plans) ?>'><?php _e('Current Readings') ?></a></h2>
 			<?php echo self::readings() ?>
 		</li>
 		<li>
