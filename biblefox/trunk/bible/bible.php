@@ -52,6 +52,9 @@ class BfoxBible {
 			else list($q[BfoxQuery::var_reference]) = $vars;
 		}
 
+		// Empty pages need to go to the passage page (we need to do this here before we check for valid guest pages)
+		if (empty($q[BfoxQuery::var_page])) $q[BfoxQuery::var_page] = BfoxQuery::page_passage;
+
 		// If there is no user, we should only allow certain pages
 		if (empty($user_ID)) {
 			$valid_guest_pages = array(BfoxQuery::page_passage => TRUE, BfoxQuery::page_search => TRUE);
