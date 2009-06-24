@@ -397,18 +397,22 @@ class BfoxMainToolbox extends BfoxToolBox
 		return $nums[0] * 256 * 256 + $nums[1] * 256 + $nums[2];
 	}
 
+	private static function get_blog_ids() {
+		global $wpdb;
+		return (array) $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
+	}
+
 	public function erase_all_dashboard_widgets() {
 		// The function expires after a certain version
 		$ver_num = self::version_to_int(get_site_option(Biblefox::option_version));
 		if ($ver_num <= self::version_to_int('0.4.0')) {
 
-			$blogs = get_blog_list(0, 'all');
-			foreach ($blogs as $blog_arr) {
-				$blog = (object) $blog_arr;
-				switch_to_blog($blog->blog_id);
+			$blog_ids = self::get_blog_ids();
+			foreach ($blog_ids as $blog_id) {
+				switch_to_blog($blog_id);
 
 				update_option('dashboard_widget_options', array());
-				pre("Erased dashboard settings on blog: $blog->blog_id ($blog->domain$blog->path)");
+				pre("Erased dashboard settings on blog: $blog_id");
 
 				restore_current_blog();
 			}
@@ -419,14 +423,14 @@ class BfoxMainToolbox extends BfoxToolBox
 	public function refresh_all_blog_posts() {
 		// The function expires after a certain version
 		$ver_num = self::version_to_int(get_site_option(Biblefox::option_version));
-		if ($ver_num <= self::version_to_int('0.4.1')) {
+		if ($ver_num <= self::version_to_int('0.4.4')) {
 
-			$blogs = get_blog_list(0, 'all');
-			foreach ($blogs as $blog_arr) {
+			$blog_ids = self::get_blog_ids();
+			foreach ($blog_ids as $blog_id) {
 				$blog = (object) $blog_arr;
-				switch_to_blog($blog->blog_id);
+				switch_to_blog($blog_id);
 
-				pre("Editing blog: $blog->blog_id");
+				pre("Editing blog: $blog_id");
 				pre(BfoxPosts::refresh_posts());
 
 				restore_current_blog();

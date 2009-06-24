@@ -2,6 +2,8 @@
 
 $msgs = array();
 $old_ver = get_site_option(self::option_version);
+
+// TODO3: This function doesn't work like we want it to... use admin_toolbox::get_blog_ids() instead
 $blogs = get_blog_list(0, 'all');
 
 if (FALSE === $old_ver) {

@@ -59,14 +59,16 @@ class BfoxPosts {
 
 		$wpdb->query($wpdb->prepare('DELETE FROM ' . self::table . ' WHERE (blog_id = %d) AND (post_id = %d) AND (ref_type = %d)', $blog_id, $post_id, $ref_type));
 
-		$values = array();
-		foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare('(%d, %d, %d, %d, %d)', $blog_id, $post_id, $ref_type, $seq->start, $seq->end);
+		if ($refs->is_valid()) {
+			$values = array();
+			foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare('(%d, %d, %d, %d, %d)', $blog_id, $post_id, $ref_type, $seq->start, $seq->end);
 
-		if (!empty($values)) {
-			$wpdb->query($wpdb->prepare("
-				INSERT INTO " . self::table . "
-				(blog_id, post_id, ref_type, verse_begin, verse_end)
-				VALUES " . implode(', ', $values)));
+			if (!empty($values)) {
+				$wpdb->query($wpdb->prepare("
+					INSERT INTO " . self::table . "
+					(blog_id, post_id, ref_type, verse_begin, verse_end)
+					VALUES " . implode(', ', $values)));
+			}
 		}
 	}
 
@@ -133,7 +135,7 @@ class BfoxPosts {
 			BfoxRefParser::simple_html($post->post_content, $content_refs);
 
 			// Save these bible references
-			if ($content_refs->is_valid()) self::set_post_refs($post_id, $content_refs, self::ref_type_content);
+			self::set_post_refs($post_id, $content_refs, self::ref_type_content);
 
 			/*
 			 * Post Tag Refs
