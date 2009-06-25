@@ -80,6 +80,7 @@ class BiblefoxSite {
 		global $current_site, $current_blog, $current_user, $user_ID;
 
 		$login = BiblefoxSite::loginout();
+		$signup_url = 'http://' . $current_site->domain . $current_site->path . 'wp-signup.php';
 		$drop_class = "class='wpabar-menupop' onmouseover='showNav(this)' onmouseout='hideNav(this)'";
 
 		$left_side = new BfoxHtmlList();
@@ -110,6 +111,7 @@ class BiblefoxSite {
 
 			$user_list->add("<a href='$my_blogs_url'>My Blogs</a>");
 			$user_list->add("<a href='$profile_url'>Edit Profile</a>");
+			$user_list->add("<a href='$signup_url'>" . __('Create a New Blog') . "</a>");
 			$user_list->add($login);
 
 			$add_url = add_query_arg('add_url', $current_url, BfoxQuery::page_url(BfoxQuery::page_commentary));
@@ -131,7 +133,7 @@ class BiblefoxSite {
 		}
 		else {
 			$left_side->add($login);
-			$left_side->add("<a href='http://" . $current_site->domain . $current_site->path . "wp-signup.php'>" . __('Sign Up') . "</a>");
+			$left_side->add("<a href='$signup_url'>" . __('Sign Up') . "</a>");
 		}
 
 		$biblefox = new BfoxHtmlList();
@@ -172,7 +174,7 @@ class BiblefoxSite {
 	 * @param string $from_name
 	 * @return string
 	 */
-	function wp_mail_from_name($from_name) {
+	public static function wp_mail_from_name($from_name) {
 		if ('WordPress' == $from_name) $from_name = 'Biblefox';
 		return $from_name;
 	}
