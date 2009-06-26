@@ -20,7 +20,7 @@ class BiblefoxMainBlog {
 	}
 
 	public static function set_trans_id($trans_id) {
-		setcookie(self::cookie_translation, $trans_id, /* 365 days from now: */ time() + 60 * 60 * 24 * 365);
+		setcookie(self::cookie_translation, $trans_id, /* 365 days from now: */ time() + 60 * 60 * 24 * 365, '/');
 		self::$trans_id = $trans_id;
 	}
 

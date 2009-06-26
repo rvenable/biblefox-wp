@@ -42,7 +42,7 @@ jQuery(document).ready( function() {
 		var option = jQuery(this);
 		var name = option.attr('name');
 		var checked = option.attr('checked');
-		jQuery.cookie('bfox_view_option_' + name, checked, {expires: 365});
+		jQuery.cookie('bfox_view_option_' + name, checked, {expires: 365, path: '/'});
 		bfox_view_option_set(name, checked);
 	});
 
