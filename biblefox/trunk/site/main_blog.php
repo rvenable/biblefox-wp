@@ -2,7 +2,7 @@
 
 class BiblefoxMainBlog {
 
-	const cookie_translation = 'bfox_trans_str';
+	const cookie_translation = 'bfox_trans_id';
 
 	private static $active_page = '';
 	private static $trans_id = 0;
