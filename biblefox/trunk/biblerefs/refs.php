@@ -18,6 +18,14 @@ class BfoxRefs extends BfoxSequenceList {
 		elseif ($value instanceof BfoxRefs) $this->add_refs($value);
 	}
 
+	public function __toString() {
+		// TODO3: Should we actually return the right string or an error?
+		// We only added this function because we are adding BfoxRefs to post data (see bfox_posts_results()),
+		// and WP sometimes tries to add_magic_quotes() to the BfoxRefs  (see wp_update_post()) which requires them to be
+		// able to convert to a string, but of course we aren't actually using the value of the refs in that instance
+		return 'BfoxRefs Error: Use get_string() instead';
+	}
+
 	/**
 	 * Add bible references
 	 *
