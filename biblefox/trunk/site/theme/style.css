@@ -666,6 +666,7 @@ div.aligncenter {
 
 /* Biblefox Banner */
 #bfox_header {
+	position: relative;
 	background-color: #CCC;
 	padding: 0;
 	height: 80px;
@@ -688,12 +689,13 @@ div.aligncenter {
 
 #bfox_search {
 	font-size: 14px;
-	float: right;
 	width: 565px;
 	height: 20px;
 	background-color: #DDD;
 	padding: 5px;
-	position: relative;
+	position: absolute;
+	top: 0px;
+	right: 0px;
 	margin: 0 0 30px 0;
 	border: 1px solid #A0A0A0;
 	border-top: 0;
@@ -712,29 +714,36 @@ div.aligncenter {
 	right: 15px;
 	}
 
+#bfox_search input[type=text] {
+	width: 150px;
+	}
+
 #bfox_search select {
 	width: 200px;
 	}
 
 ul#bfox_nav {
-	float: right;
-	margin: 0 40px 0 0;
+	position: absolute;
+	bottom: 1px;
+	right: 40px;
+	margin: 0;
+	padding: 0;
 	}
 
 ul#bfox_nav li {
-	font-size: 14px;
 	display: inline;
 	list-style-type: none;
 	margin: 0 1px;
-	padding: 0 14px;
+	padding: 3px 14px;
+	font-size: 14px;
 	height: 20px;
+	line-height: 20px;
 	}
 
 ul#bfox_nav li.active_page {
 	background-color: #FFF;
-	padding: 3px 14px;
 	border: 1px solid #999;
-	border-bottom: 0;
+	border-bottom-color: #FFF;
 	-moz-border-radius-topleft: 6px;
 	-moz-border-radius-topright: 6px;
 	}

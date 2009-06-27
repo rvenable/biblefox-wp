@@ -64,7 +64,7 @@ class BiblefoxMainBlog {
 			</div>
 			<div id="bfox_search">
 				<a href='<?php echo BfoxQuery::page_url(BfoxQuery::page_passage) ?>'><?php _e('Bible Reader') ?></a>
-				<form id="bible_search_form" action="<?php echo $post_url ?>" method="get">
+				<form action="<?php echo $post_url ?>" method="get">
 					<?php echo $hiddens ?>
 					<?php BfoxTrans::output_select(self::$trans_id) ?>
 					<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo self::$search_str ?>" />
