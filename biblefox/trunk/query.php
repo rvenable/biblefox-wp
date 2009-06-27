@@ -69,12 +69,10 @@ class BfoxQuery {
 		return self::url($args);
 	}
 
-	public static function search_page_url($search_text, $ref_str = '', BfoxTrans $display_translation = NULL, $args = array()) {
+	public static function search_url($search_text, $ref_str = '', $args = array()) {
 		$args[self::var_page] = self::page_search;
 		$args[self::var_search] = $search_text;
-
 		if (!empty($ref_str)) $args[self::var_reference] = $ref_str;
-		if (!is_null($display_translation)) $args[self::var_translation] = $display_translation->id;
 
 		return self::url($args);
 	}
@@ -84,11 +82,6 @@ class BfoxQuery {
 		$args[self::var_reference] = $ref_str;
 		if (!empty($trans_str)) $args[self::var_translation] = $trans_str;
 		return self::url($args);
-	}
-
-	public static function passage_page_url($ref_str = '', BfoxTrans $translation = NULL) {
-		if (!is_null($translation)) $trans_str = $translation->id;
-		return self::ref_url($ref_str, $trans_str);
 	}
 
 	public static function reading_plan_url($plan_id, $editor_url = '') {

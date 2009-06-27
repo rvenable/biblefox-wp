@@ -110,7 +110,7 @@ class Biblefox {
 	public static function ref_url($ref_str, $ref_url = '') {
 		if (empty($ref_url)) $ref_url = self::$default_ref_url;
 
-		if (self::ref_url_bible == $ref_url) return BfoxQuery::passage_page_url($ref_str);
+		if (self::ref_url_bible == $ref_url) return BfoxQuery::ref_url($ref_str);
 		else return BfoxBlog::ref_url($ref_str);
 	}
 

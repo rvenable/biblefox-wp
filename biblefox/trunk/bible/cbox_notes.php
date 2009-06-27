@@ -18,7 +18,7 @@ class BfoxCboxNotes extends BfoxCbox {
 			$notes_table->add_row('', 3,
 				$note->get_modified(),
 				$note->get_title() . " (<a href='" . BfoxBible::edit_note_url($note->id, $this->url) . "'>edit</a>)",
-				"<a href='" . BfoxQuery::passage_page_url($ref_str, $this->translation) . "'>$ref_str</a>");
+				"<a href='" . BfoxQuery::ref_url($ref_str) . "'>$ref_str</a>");
 		}
 		$notes_table->add_row('', 1, array("<a href='" . BfoxBible::edit_note_url(0, $this->url) . "'>Add New Note</a>", "colspan='3'"));
 

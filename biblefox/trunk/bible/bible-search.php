@@ -111,7 +111,7 @@ class BibleSearch {
 
 	public function get_url() {
 		// TODO3 (HACK): The strtolower is because bible groups need to be lowercase for some reason
-		return BfoxQuery::search_page_url($this->text, strtolower($this->ref_str), $this->display_translation);
+		return BfoxQuery::search_url($this->text, strtolower($this->ref_str));
 	}
 
 	public function get_num_pages() {
@@ -197,7 +197,7 @@ class BibleSearch {
 				$ref_str = BibleMeta::get_book_name($child);
 
 				$child_content = "<a href='" .
-					BfoxQuery::search_page_url($this->text, $ref_str, $this->display_translation) .
+					BfoxQuery::search_url($this->text, $ref_str) .
 					"' title='Search for \"$this->text\" in $ref_str'>$ref_str<span class='book_count'>$child_count</span></a>";
 			}
 
@@ -212,7 +212,7 @@ class BibleSearch {
 
 		return array($count,
 			"<a href='" .
-			BfoxQuery::search_page_url($this->text, $group, $this->display_translation) .
+			BfoxQuery::search_url($this->text, $group) .
 			"' title='Search for \"$this->text\" in $ref_str'>$ref_str<span class='book_count'>$count</span></a>
 			<ul>
 				$content
@@ -276,7 +276,7 @@ class BibleSearch {
 						$verse->verse = substr_replace($verse->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
 
 				$ref_str = "$chap_name:$verse->verse_id";
-				$chapter_content[$chap_name] .= "<div class='result_verse'><h4><a href='" . BfoxQuery::passage_page_url($ref_str, $this->display_translation) . "'>$ref_str</a></h4>$verse->verse</div>";
+				$chapter_content[$chap_name] .= "<div class='result_verse'><h4><a href='" . BfoxQuery::ref_url($ref_str) . "'>$ref_str</a></h4>$verse->verse</div>";
 			}
 
 			$content = '';
@@ -284,7 +284,7 @@ class BibleSearch {
 			{
 				$content .=
 				"<div class='result_chapter'>
-				<h3><a href='" . BfoxQuery::passage_page_url($chap_name, $this->display_translation) . "'>$chap_name</a></h3>
+				<h3><a href='" . BfoxQuery::ref_url($chap_name) . "'>$chap_name</a></h3>
 				$chap_content
 				</div>
 				";

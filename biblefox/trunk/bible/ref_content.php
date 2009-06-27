@@ -19,7 +19,7 @@ class BfoxRefContent {
 	}
 
 	public static function ref_loader($ref_str) {
-		return "<a href='" . BfoxQuery::add_display_type(BfoxQuery::display_ajax, BfoxQuery::passage_page_url($ref_str)) . "' class='ref_loader'></a>";
+		return "<a href='" . BfoxQuery::add_display_type(BfoxQuery::display_ajax, BfoxQuery::ref_url($ref_str)) . "' class='ref_loader'></a>";
 	}
 
 	public static function passage_row($head, $menu, $content) {
@@ -258,7 +258,7 @@ class BfoxRefContent {
 			$end_chapter = BibleMeta::end_verse_max($book);
 
 			$book_content = "<ul class='flat_toc'>";
-			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++) $book_content .= "<li><a href='" . BfoxQuery::passage_page_url("$book_name $ch") . "'>$ch</a></li>\n";
+			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++) $book_content .= "<li><a href='" . BfoxQuery::ref_url("$book_name $ch") . "'>$ch</a></li>\n";
 			$book_content .= "</ul>";
 			$content .= self::ref_seq("$book_name - Table of Contents", $book_content, '');
 		}
