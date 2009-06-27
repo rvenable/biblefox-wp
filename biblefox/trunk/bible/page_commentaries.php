@@ -104,11 +104,15 @@ class BfoxPageCommentaries extends BfoxPage {
 			<?php endforeach ?>
 		</ul>
 		<?php endif ?>
-		<h4>Suggested Blogs</h4>
+
+		<?php
+		/*<h4>Suggested Blogs</h4>
 		<p>For a complete bible commentary, we recommend:</p>
 		<ul>
 			<li>Matthew Henry's Commentary (Coming Soon)</li>
-		</ul>
+		</ul>*/
+		?>
+
 		<h4>Other Blogs</h4>
 		<p>You can add any biblefox.com blog by entering the blog URL. For example, add blogs that your friends have created to keep updated with what they are learning from the Bible.</p>
 		<form action="<?php echo $post_url ?>" method="post">
