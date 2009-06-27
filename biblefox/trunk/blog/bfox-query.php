@@ -258,19 +258,26 @@ function bfox_the_permalink($permalink, $post)
  * @param string $content
  * @return string
  */
-function bfox_add_special_content($content) {
+function bfox_add_special_content($content, $replace = FALSE) {
 	global $post;
 
-	// If this post have bible references, mention them at the beginning of the post
+	// If this post has bible references, mention them at the beginning of the post
 	//if (isset($post->bfox_bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bfox_bible_refs->get_string()) . '</p>' . $content;
 
 	// If this post has special biblefox pre content, prepend it
 	// This special content is usually something that we don't want to be modified with the standard content,
 	// but we do want it to be displayed with the standard content, so we add it here just before displaying.
 	// Because of this, this function should be called after most the_content() filters have already run.
-	if (isset($post->bfox_pre_content)) $content = $post->bfox_pre_content . $content;
+	if (isset($post->bfox_pre_content)) {
+		if ($replace) $content = '';
+		$content = $post->bfox_pre_content . $content;
+	}
 
 	return $content;
+}
+
+function bfox_replace_content($content) {
+	return bfox_add_special_content($content, TRUE);
 }
 
 function bfox_the_refs($name = '') {
@@ -318,6 +325,8 @@ function bfox_query_init() {
 
 	// Add special content onto posts (this should happen later than most other the_content filters)
 	add_filter('the_content', 'bfox_add_special_content', 20);
+	// TODO3: footnotes are lost for excerpts
+	add_filter('the_excerpt', 'bfox_replace_content', 20);
 
 	add_filter('the_author', 'bfox_the_author');
 	add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
