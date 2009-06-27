@@ -2,8 +2,11 @@
 
 class BfoxCboxBlogs extends BfoxCbox {
 
+	// HACK: this post_count method is pretty hacky
+	public $post_count = 0;
+
 	public function content() {
-		self::output_posts($this->refs);
+		$this->output_posts($this->refs);
 	}
 
 	/**
@@ -12,7 +15,7 @@ class BfoxCboxBlogs extends BfoxCbox {
 	 * @param BfoxRefs $refs
 	 * @param integer $user_id
 	 */
-	public static function output_posts(BfoxRefs $refs, $user_id = NULL) {
+	private function output_posts(BfoxRefs $refs, $user_id = NULL) {
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
@@ -45,6 +48,7 @@ class BfoxCboxBlogs extends BfoxCbox {
 					$post_count = $query->post_count;
 				}
 				else $post_count = 0;
+				$this->post_count += $post_count;
 
 				if (current_user_can('edit_posts')) $add_post = BfoxBlog::ref_write_link($ref_str, 'Add post', "http://$com->blog_url");
 				else $add_post = '';
