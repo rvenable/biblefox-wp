@@ -18,13 +18,21 @@ class BfoxPageSearch extends BfoxPage {
 		$this->translation = $translation;
 
 		$this->search = new BibleSearch(strip_tags($search_str), $this->translation, $_REQUEST[self::var_page_num]);
+		$search_str = $this->search->text;
 
 		// See if we need to filter these search results by a bible reference
-		if (!empty($ref_str)) $this->search->set_refs(BfoxBible::parse_search_ref_str($ref_str));
+		if (!empty($ref_str)) {
+			$refs = BfoxBible::parse_search_ref_str($ref_str);
+			if ($refs->is_valid()) {
+				$this->search->set_refs($refs);
+				// TODO3 (HACK): The strtolower is because bible groups need to be lowercase for some reason
+				$search_str .= ' in:' . strtolower($refs->get_string(BibleMeta::name_short));
+			}
+		}
 
 		BfoxUtility::enqueue_style('bfox_search');
 
-		BiblefoxMainBlog::set_search_str($this->search->text);
+		BiblefoxMainBlog::set_search_str($search_str);
 	}
 
 	private function page_url($page_num) {
