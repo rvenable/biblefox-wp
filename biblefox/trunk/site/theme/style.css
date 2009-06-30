@@ -243,8 +243,8 @@ body {
 
 .widecolumn {
 	padding: 10px 0 20px 0;
-	margin: 5px 0 0 150px;
-	width: 450px;
+	margin: 0 50px;
+	width: auto;
 	}
 
 .post {
