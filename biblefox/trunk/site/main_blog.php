@@ -13,6 +13,7 @@ class BiblefoxMainBlog {
 
 		add_action('signup_header', 'BiblefoxMainBlog::signup_header');
 		add_shortcode('donate', 'BiblefoxMainBlog::donate_shortcode');
+		add_rewrite_rule(BfoxQuery::default_base . "\/(.*)$", 'index.php?' . BfoxQuery::var_pretty_query . '=/$matches[1]', 'top');
 	}
 
 	public static function get_trans_id() {
