@@ -181,7 +181,12 @@ class BiblefoxSite {
 
 	public static function init() {
 		// Include the main_blog functionality if this is the main blog
-		if (is_main_blog()) require_once BFOX_SITE_DIR . '/main_blog.php';
+		// HACK: is_main_blog isn't enough - when a new blog is created, it needs to be activated, which for instance:
+		// The url http://demo.biblefox.com/wp-activate.php would go to blog #1, but the domain is demo.biblefox.com
+		// so, is_main_blog() would return false even though we are using blog #1.
+		// This was leading to main_blog.php not being loaded even though we were loading the main blog theme which needs it.
+		global $blog_id;
+		if (1 == $blog_id/*is_main_blog()*/) require_once BFOX_SITE_DIR . '/main_blog.php';
 
 		add_filter('query_vars', 'BiblefoxSite::query_vars');
 		add_action('parse_request', 'BiblefoxSite::parse_request');
