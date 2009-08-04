@@ -90,9 +90,10 @@ class BfoxBlog {
 				<script type='text/javascript'>
 				//<![CDATA[
 				jQuery(document).ready( function() {
-					jQuery('#newtag').val('<?php echo $hidden_refs->get_string() ?>');
+					jQuery('#new-tag-post_tag').removeClass('form-input-tip').val('<?php echo $hidden_refs->get_string() ?>');
 					jQuery('#bfox_hidden_refs').val('');
-					tag_flush_to_text();
+					tag_flush_to_text('post_tag');
+					jQuery('#new-tag-post_tag').addClass('form-input-tip');
 				});
 				//]]>
 				</script>
