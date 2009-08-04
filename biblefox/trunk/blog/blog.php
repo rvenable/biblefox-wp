@@ -231,11 +231,13 @@ class BfoxBlog {
 	}
 
 	public static function get_verse_content_foot(BfoxRefs $refs, $delete_footnotes = FALSE) {
+		// TODO3: This is pretty hacky, if the shortcode regex ever changes, this regex has to change as well!
+
 		// Get the verse content, and filter it using the <footnote> tags as if they were [footnote] shortcodes
 		// The regex being used here should mirror the regex returned by get_shortcode_regex() and is being used similarly to do_shortcode(),
 		//  the only difference being that we only need to look for <footnote> shortcodes (and using chevrons instead of brackets)
-		if ($delete_footnotes) return preg_replace('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\1>)?/s', '', BfoxBlog::get_verse_content($refs));
-		else $content = preg_replace_callback('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\1>)?/s', 'do_shortcode_tag', BfoxBlog::get_verse_content($refs));
+		if ($delete_footnotes) return preg_replace('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/footnote>)?/s', '', BfoxBlog::get_verse_content($refs));
+		else $content = preg_replace_callback('/(.?)<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\2>)?(.?)/s', 'do_shortcode_tag', BfoxBlog::get_verse_content($refs));
 		return array($content, shortfoot_get_list());
 	}
 
