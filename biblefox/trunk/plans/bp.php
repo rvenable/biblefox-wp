@@ -17,8 +17,8 @@ class BfoxBpPlans {
 		$callback = 'bfox_bp_none';
 
 		/* Add the settings navigation item */
-		bp_core_add_nav_item( __('Reading Plans'), 'plans', false);
-		bp_core_add_nav_default(self::slug, $callback, 'my-plans', false);
+		bp_core_add_nav_item( __('Reading Plans'), 'plans');
+		bp_core_add_nav_default(self::slug, $callback, 'my-plans');
 
 		bp_core_add_subnav_item(self::slug, 'my-plans', __('My Reading Plans'), $plans_link, $callback, false, bp_is_home() );
 		bp_core_add_subnav_item(self::slug, 'find-plans', __('Find a Plan'), $plans_link, $callback, false, bp_is_home() );
