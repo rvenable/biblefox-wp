@@ -2,7 +2,7 @@
 
 define(BFOX_SITE_DIR, dirname(__FILE__));
 
-include_once BFOX_SITE_DIR . '/wordpress-admin-bar/wordpress-admin-bar.php';
+//include_once BFOX_SITE_DIR . '/wordpress-admin-bar/wordpress-admin-bar.php';
 include_once BFOX_SITE_DIR . '/wp-hashcash/wp-hashcash.php';
 include_once BFOX_SITE_DIR . '/marketing.php';
 include_once BFOX_SITE_DIR . '/shortfoot.php';
@@ -212,5 +212,7 @@ class BiblefoxSite {
 }
 add_action('init', 'BiblefoxSite::init');
 add_filter('wpabar_defaults', 'BiblefoxSite::wpabar_defaults');
+
+require_once BFOX_PLANS_DIR . '/bp.php';
 
 ?>

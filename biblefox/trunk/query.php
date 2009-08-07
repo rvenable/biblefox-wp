@@ -84,8 +84,9 @@ class BfoxQuery {
 	}
 
 	public static function reading_plan_url($plan_id, $editor_url = '') {
-		if (empty($editor_url)) $editor_url = self::page_url(self::page_plans);
-		return add_query_arg(self::var_plan_id, $plan_id, $editor_url);
+		global $bp;
+		//return $bp->root_domain . '/' . BfoxBpPlans::slug . '/' . $plan_id . '/';
+		return $bp->loggedin_user->domain . BfoxBpPlans::slug . '/' . $plan_id . '/';
 	}
 
 	public static function add_display_type($type, $url) {

@@ -1,7 +1,9 @@
 <?php
 
-class BfoxPlanEdit
-{
+require_once BFOX_DIR . '/bible/history.php';
+
+class BfoxPlanEdit {
+
 	const var_submit = 'submit';
 
 	const var_plan_id = BfoxQuery::var_plan_id;
@@ -106,7 +108,7 @@ class BfoxPlanEdit
 					$messages []= "Reading Plan ($plan->name) Saved!";
 					$redirect = $this->url;
 					break;
-				case self::action_subscribe:
+/*				case self::action_subscribe:
 					$my_sub->is_subscribed = TRUE;
 					BfoxPlans::save_sub($my_sub);
 					$messages []= "Subscribed to Reading Plan ($plan->name)!";
@@ -118,7 +120,7 @@ class BfoxPlanEdit
 					$messages []= "Unsubscribed to Reading Plan ($plan->name)!";
 					$redirect = $this->url;
 					break;
-				case self::action_mark_finished:
+*/				case self::action_mark_finished:
 					$my_sub->is_finished = TRUE;
 					BfoxPlans::save_sub($my_sub);
 					$messages []= "Marked Reading Plan ($plan->name) as Finished!";
@@ -137,7 +139,7 @@ class BfoxPlanEdit
 		if (!empty($redirect)) wp_redirect(add_query_arg(BfoxQuery::var_message, urlencode($message), $redirect));
 	}
 
-	public function content() {
+/*	public function content() {
 		if (!empty($_GET[BfoxQuery::var_message])) {
 			?>
 			<div id="page_message"><?php echo strip_tags(stripslashes(urldecode($_GET[BfoxQuery::var_message])), '<br/>') ?></div>
@@ -152,9 +154,7 @@ class BfoxPlanEdit
 			if (isset($_GET[self::var_action])) {
 				switch ($_GET[self::var_action]) {
 					case self::action_delete:
-						$confirm = __('Are you sure you want to delete ') . $this->plan_link($plan->id, $plan->name) .
-							__('?<br/><b>This will delete it for all of its other subscribers as well.</b><br/>If you don\'t want to delete it, you can just ') .
-							$this->plan_action_link($plan->id, self::action_unsubscribe, __('unsubscribe')) . __(' from it.');
+						$confirm = __('Are you sure you want to delete ') . $this->plan_link($plan->id, $plan->name) . __('?');
 						break;
 					case self::action_copy:
 						$confirm = __('Are you sure you want to copy ') . $this->plan_link($plan->id, $plan->name) . __('?');
@@ -212,12 +212,12 @@ class BfoxPlanEdit
 			}
 		}
 	}
-
+*/
 	private function plan_url($plan_id) {
 		return BfoxQuery::reading_plan_url($plan_id, $this->url);
 	}
 
-	private function plan_link($plan_id, $str) {
+	public function plan_link($plan_id, $str) {
 		return "<a href='" . $this->plan_url($plan_id) . "'>$str</a>";
 	}
 
@@ -226,10 +226,10 @@ class BfoxPlanEdit
 	}
 
 	private function plan_action_url($plan_id, $action) {
-		return add_query_arg(array(self::var_plan_id => $plan_id, self::var_action => $action), $this->url);
+		return $this->plan_url($plan_id) . $action;
 	}
 
-	private function plan_action_link($plan_id, $action, $str) {
+	public function plan_action_link($plan_id, $action, $str) {
 		return "<a href='" . $this->plan_action_url($plan_id, $action) . "'>$str</a>";
 	}
 
@@ -282,10 +282,10 @@ class BfoxPlanEdit
 			if ($my_sub->is_finished) $options []= $this->plan_action_link($plan->id, self::action_mark_unfinished, __('Mark as Unfinished'));
 			else {
 				$options []= $this->plan_action_link($plan->id, self::action_mark_finished, __('Mark as Finished'));
-				$options []= $this->plan_action_link($plan->id, self::action_unsubscribe, __('Unsubscribe'));
+//				$options []= $this->plan_action_link($plan->id, self::action_unsubscribe, __('Unsubscribe'));
 			}
 		}
-		else $options []= $this->plan_action_link($plan->id, self::action_subscribe, __('Subscribe'));
+//		else $options []= $this->plan_action_link($plan->id, self::action_subscribe, __('Subscribe'));
 
 		// Edit
 		if ($my_sub->is_owned) {
@@ -299,14 +299,13 @@ class BfoxPlanEdit
 		return $options;
 	}
 
-	private function confirm_page($confirm) {
+	public function confirm_page($confirm) {
 		$hiddens = '';
 		if (!empty($_GET[self::var_plan_id])) $hiddens .= BfoxUtility::hidden_input(self::var_plan_id, $_GET[self::var_plan_id]);
 		if (!empty($_GET[self::var_action])) $hiddens .= BfoxUtility::hidden_input(self::var_action, $_GET[self::var_action]);
 
 		?>
-		<h2>Confirm Action</h2>
-		<p><?php echo $this->return_link() ?></p>
+		<h3>Confirm Action</h3>
 		<form action='<?php echo $this->url ?>' method='post'>
 		<p><?php echo $confirm . $hiddens ?></p>
 		<p><input type='submit' name='<?php echo self::var_submit ?>' value='<?php echo __('Confirm') ?>' class='button'/></p>
@@ -315,7 +314,7 @@ class BfoxPlanEdit
 		<?php
 	}
 
-	private function view_user_plans($user_id, $user_type) {
+	public function view_user_plans($user_id, $user_type) {
 
 		$is_user = (($user_id == $this->user_id) && ($user_type == $this->user_type));
 
@@ -358,7 +357,7 @@ class BfoxPlanEdit
 
 		?>
 
-		<p>Reading plans allow you to organize how you read the Bible. You can create your own reading plans, or subscribe to someone else's plans.</p>
+		<p>Reading plans allow you to organize how you read the Bible. You can create your own reading plans from scratch or copy readings plans from your friends.</p>
 
 		<h3>Current Plans</h3>
 		<?php if ($plans_table->row_count()): ?>
@@ -372,7 +371,6 @@ class BfoxPlanEdit
 		<p>These are the plans you have already finished reading.</p>
 		<?php echo $finished_table->content() ?>
 		<?php endif ?>
-		<?php $this->find_plans() ?>
 		<?php
 	}
 
@@ -488,14 +486,14 @@ class BfoxPlanEdit
 		return $table->content();
 	}
 
-	private function view_plan(BfoxReadingPlan $plan) {
+	public function view_plan(BfoxReadingPlan $plan) {
 
 		if (empty($plan->id)) {
 			$is_owned = TRUE;
 
-			echo "<h2>Create Reading Plan</h2>";
+/*			echo "<h2>Create Reading Plan</h2>";
 			echo '<p>' . $this->return_link() . '</p>';
-			echo "<p>Here you can create your own custom reading plan. If you don't really want to create a plan from scratch, try copying some of our plans from the main <a href='" . $this->user_url(1, BfoxPlans::user_type_blog) . "'>Biblefox.com blog</a>.</p>";
+*/			echo "<p>Here you can create your own custom reading plan. If you don't really want to create a plan from scratch, try copying some of our plans from the main <a href='" . $this->user_url(1, BfoxPlans::user_type_blog) . "'>Biblefox.com blog</a>.</p>";
 			echo "<p>Creating a reading plan is easy. You just give it a name and description, then add a bunch of bible passages, and finally add an optional schedule.</p>";
 		}
 		else {
@@ -517,13 +515,13 @@ class BfoxPlanEdit
 			if (isset($my_sub) && $my_sub->is_visible($plan)) {
 				$is_owned = $my_sub->is_owned;
 
-				echo "<h2>View Reading Plan</h2>";
+/*				echo "<h2>View Reading Plan</h2>";
 				echo '<p>' . $this->return_link() . '</p>';
-				echo $this->plan_chart($plan, $my_sub);
-				echo "<h3>Subscribers</h3>\n";
+*/				echo $this->plan_chart($plan, $my_sub);
+/*				echo "<h3>Subscribers</h3>\n";
 				echo "<p>These are the subscribers using this reading plan:</p>";
 				echo $user_table->content();
-			}
+*/			}
 			else echo "<h2>Cannot find reading plan</h2><p>The reading plan you are looking for either does not exist or is set as private.</p>";
 		}
 
