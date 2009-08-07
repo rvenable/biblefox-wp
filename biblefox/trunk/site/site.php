@@ -213,6 +213,6 @@ class BiblefoxSite {
 add_action('init', 'BiblefoxSite::init');
 add_filter('wpabar_defaults', 'BiblefoxSite::wpabar_defaults');
 
-require_once BFOX_PLANS_DIR . '/bp.php';
+require_once BFOX_PLANS_DIR . '/bp-plans.php';
 
 ?>
