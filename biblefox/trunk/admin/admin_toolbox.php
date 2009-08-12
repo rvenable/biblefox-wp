@@ -364,6 +364,7 @@ class BfoxMainToolbox extends BfoxToolBox
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_plans);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_readings);
 		$wpdb->query('DROP TABLE IF EXISTS ' . BfoxPlans::table_subs);*/
+		require_once BFOX_PLANS_DIR . '/plans.php';
 		echo 'Creating tables<br/>';
 		BfoxPlans::create_tables();
 	}
@@ -437,6 +438,12 @@ class BfoxMainToolbox extends BfoxToolBox
 			}
 		}
 		else echo "You shouldn't be running this function!";
+	}
+
+	public function update_new_plans() {
+		require_once BFOX_PLANS_DIR . '/plans.php';
+
+		BfoxPlans::update_from_subs();
 	}
 
 	/**
