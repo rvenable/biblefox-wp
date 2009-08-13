@@ -1,10 +1,8 @@
 <?php
 
-class BfoxMainToolbox extends BfoxToolBox
-{
+class BfoxMainToolbox extends BfoxToolBox {
 
-	function test_html_ref_replace()
-	{
+	function test_html_ref_replace() {
 		$str = "<xml>
 		<p>I like Gen 1.</p>
 		<p>What do you think? <a href=''>john 21</a> Do you prefer<d><d> ex 2 or 1sam 3 - 4 or 1 th 4? gen 3:4-8:2 gen 3ddd:2 fff- 1 1 3 </p>
@@ -444,6 +442,32 @@ class BfoxMainToolbox extends BfoxToolBox
 		require_once BFOX_PLANS_DIR . '/plans.php';
 
 		BfoxPlans::update_from_subs();
+	}
+
+	public function create_posts_table() {
+		BfoxPosts::create_table();
+	}
+
+	public function fill_post_user_ids() {
+		global $wpdb;
+		$results = $wpdb->get_results("SELECT * FROM " . BfoxPosts::table . " WHERE user_id = 0");
+		foreach ($results as $result) $blog_posts[$result->blog_id] []= $result;
+
+		foreach ($blog_posts as $blog_id => $posts) {
+			switch_to_blog($blog_id);
+			pre("Blog: $blog_id");
+			foreach ($posts as $post) {
+				$real_post = get_post($post->post_id);
+				$post->user_id = $real_post->post_author;
+				pre("Updating $real_post->post_title ($post->post_id) with author $post->user_id");
+				$wpdb->query($wpdb->prepare('UPDATE ' . BfoxPosts::table .
+				' SET user_id = %d
+				WHERE blog_id = %d AND post_id = %d and ref_type = %d and verse_begin = %d and verse_end = %d',
+				$post->user_id,
+				$post->blog_id, $post->post_id, $post->ref_type, $post->verse_begin, $post->verse_end));
+			}
+			restore_current_blog();
+		}
 	}
 
 	/**

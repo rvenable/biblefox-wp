@@ -12,6 +12,7 @@ class BfoxPosts {
 		BfoxUtility::create_table(self::table, "
 			blog_id BIGINT(20) NOT NULL,
 			post_id BIGINT(20) UNSIGNED NOT NULL,
+			user_id BIGINT(20) UNSIGNED NOT NULL,
 			ref_type BOOLEAN NOT NULL,
 			verse_begin MEDIUMINT UNSIGNED NOT NULL,
 			verse_end MEDIUMINT UNSIGNED NOT NULL,
@@ -54,19 +55,38 @@ class BfoxPosts {
 		return $post_ids;
 	}
 
-	private static function set_post_refs($post_id, BfoxRefs $refs, $ref_type) {
+	public static function get_post_ids_for_users(BfoxRefs $refs, $user_ids) {
+		$post_ids = array();
+
+		if (!empty($user_ids)) {
+			global $wpdb;
+
+			foreach ($user_ids as &$user_id) $user_id = $wpdb->prepare('%d', $user_id);
+
+			$results = $wpdb->get_results(
+				"SELECT DISTINCT blog_id, post_id
+				FROM " . self::table . "
+				WHERE user_id IN (" . implode(',', $user_ids) . ") AND " . $refs->sql_where2());
+
+			foreach ((array) $results as $result) $post_ids[$result->blog_id] []= $result->post_id;
+		}
+
+		return $post_ids;
+	}
+
+	private static function set_post_refs($post_id, $user_id, BfoxRefs $refs, $ref_type) {
 		global $wpdb, $blog_id;
 
 		$wpdb->query($wpdb->prepare('DELETE FROM ' . self::table . ' WHERE (blog_id = %d) AND (post_id = %d) AND (ref_type = %d)', $blog_id, $post_id, $ref_type));
 
 		if ($refs->is_valid()) {
 			$values = array();
-			foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare('(%d, %d, %d, %d, %d)', $blog_id, $post_id, $ref_type, $seq->start, $seq->end);
+			foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare('(%d, %d, %d, %d, %d, %d)', $blog_id, $post_id, $user_id, $ref_type, $seq->start, $seq->end);
 
 			if (!empty($values)) {
 				$wpdb->query($wpdb->prepare("
 					INSERT INTO " . self::table . "
-					(blog_id, post_id, ref_type, verse_begin, verse_end)
+					(blog_id, post_id, user_id, ref_type, verse_begin, verse_end)
 					VALUES " . implode(', ', $values)));
 			}
 		}
@@ -125,6 +145,8 @@ class BfoxPosts {
 
 	public static function update_post($post, $get_input_tag = FALSE) {
 		$post_id = $post->ID;
+		$user_id = $post->post_author;
+
 		if (!empty($post_id)) {
 			/*
 			 * Post Content Refs
@@ -135,7 +157,7 @@ class BfoxPosts {
 			BfoxRefParser::simple_html($post->post_content, $content_refs);
 
 			// Save these bible references
-			self::set_post_refs($post_id, $content_refs, self::ref_type_content);
+			self::set_post_refs($post_id, $user_id, $content_refs, self::ref_type_content);
 
 			/*
 			 * Post Tag Refs
@@ -166,7 +188,7 @@ class BfoxPosts {
 			if (!empty($new_tag)) $tags []= $new_tag;
 
 			// Save these bible references
-			self::set_post_refs($post_id, $tags_refs, self::ref_type_tag);
+			self::set_post_refs($post_id, $user_id, $tags_refs, self::ref_type_tag);
 			// If we actually found some references, then re-save the tags again to use our modified tags
 			if ($tags_refs->is_valid()) wp_set_post_tags($post_id, $tags);
 		}

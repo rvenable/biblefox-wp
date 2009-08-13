@@ -16,6 +16,13 @@ class BfoxCboxBlogs extends BfoxCbox {
 	 * @param integer $user_id
 	 */
 	private function output_posts(BfoxRefs $refs, $user_id = NULL) {
+
+		require_once BFOX_BIBLE_DIR . '/widgets.php';
+		$widget = new BfoxFriendsPostsWidget();
+		$widget->widget(array('refs' => $refs), array());
+
+		return;
+
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 

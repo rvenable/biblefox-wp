@@ -463,8 +463,8 @@ class BfoxPlans {
 		BfoxUtility::create_table(self::table_plans, "
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			copied_from_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
-			owner_id BIGINT(20) UNSIGNED NULL,
-			owner_type TINYINT(1) NULL,
+			owner_id BIGINT(20) UNSIGNED NOT NULL,
+			owner_type TINYINT(1) NOT NULL,
 			slug TINYTEXT NOT NULL,
 			name TINYTEXT NOT NULL,
 			description TEXT NOT NULL,
