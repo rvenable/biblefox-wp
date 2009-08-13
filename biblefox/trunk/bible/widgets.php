@@ -25,57 +25,83 @@ class BfoxFriendsPostsWidget extends BfoxBibleWidget {
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
+		// If no user, use the current user
+		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
+
+		$friends_url = bp_core_get_user_domain($user_id) . 'friends/my-friends/all-friends';
+
 		?>
 		<div class="cbox_sub">
 			<div class="cbox_head">
-				<span class="box_right"><?php echo $post_count ?> posts</span>
-				<a href="">My Friends' Blog Posts</a>
+				<a href="<?php echo $friends_url ?>">My Friends' Blog Posts</a>
 			</div>
 			<div class='cbox_body'>
 		<?php
 
-		// If no user, use the current user
-		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
-
-		global $wpdb;
-
-		$friend_ids = array(1, 2);
-
 		$total_post_count = 0;
 
-		// Output the posts for each commentary
-		if (!empty($friend_ids)) {
-			$user_post_ids = BfoxPosts::get_post_ids_for_users($refs, $friend_ids);
-			foreach ($user_post_ids as $blog_id => $post_ids) {
-				$posts = array();
+		$friend_ids = array();
+		if (class_exists(BP_Friends_Friendship)) {
+			$friend_ids = BP_Friends_Friendship::get_friend_user_ids($user_id);
 
-				switch_to_blog($blog_id);
+			$mem_dir_url = bp_core_get_root_domain() . '/members/';
 
-				if (!empty($post_ids)) {
-					BfoxBlogQueryData::set_post_ids($post_ids);
-					$query = new WP_Query(1);
-					$post_count = $query->post_count;
-				}
-				else $post_count = 0;
-				$total_post_count += $post_count;
+			if (!empty($friend_ids)) {
+				global $wpdb;
 
-				while(!empty($post_ids) && $query->have_posts()) :?>
-					<?php $query->the_post() ?>
-					<div class="cbox_sub_sub">
-						<div class='cbox_head'><strong><?php the_title(); ?></strong> (<?php echo bfox_the_refs(BibleMeta::name_short) ?>) by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
-						<div class='cbox_body box_inside'>
-							<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
-							<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
-							<div class="post_content">
-								<?php the_content('Read the rest of this entry &raquo;') ?>
-								<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
+				// Add the current user to the friends so that we get his posts as well
+				$friend_ids []= $user_id;
+
+				$user_post_ids = BfoxPosts::get_post_ids_for_users($refs, $friend_ids);
+
+				if (!empty($user_post_ids)) foreach ($user_post_ids as $blog_id => $post_ids) {
+					$posts = array();
+
+					switch_to_blog($blog_id);
+
+					if (!empty($post_ids)) {
+						BfoxBlogQueryData::set_post_ids($post_ids);
+						$query = new WP_Query(1);
+						$post_count = $query->post_count;
+					}
+					else $post_count = 0;
+					$total_post_count += $post_count;
+
+					while(!empty($post_ids) && $query->have_posts()) :?>
+						<?php $query->the_post() ?>
+						<div class="cbox_sub_sub">
+							<div class='cbox_head'><strong><?php the_title(); ?></strong> (<?php echo bfox_the_refs(BibleMeta::name_short) ?>) by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
+							<div class='cbox_body box_inside'>
+								<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
+								<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
+								<div class="post_content">
+									<?php the_content('Read the rest of this entry &raquo;') ?>
+									<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
+								</div>
 							</div>
 						</div>
-					</div>
-				<?php endwhile;
-				restore_current_blog();
+					<?php endwhile;
+					restore_current_blog();
+				}
+				else {
+					printf(__('None of your friends have written any posts about %s.
+					You can %s.
+					You can also find more friends using the %s.'),
+					$refs->get_string(),
+					"<a href='$write_url'>" . __('write your own post') . "</a>",
+					"<a href='$mem_dir_url'>" . __('members directory') . "</a>");
+				}
+			}
+			else {
+				printf(__('This menu shows you any blog posts written by your friends about this passage.
+				You don\'t currently have any friends. That\'s okay, because you can find some friends using our %s.'),
+				"<a href='$mem_dir_url'>" . __("members directory") . "</a>");
 			}
 		}
+		else {
+			_e('This widget requires BuddyPress.');
+		}
+
 		?>
 			</div>
 		</div>

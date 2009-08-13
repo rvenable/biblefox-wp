@@ -100,7 +100,7 @@ class BfoxPagePassage extends BfoxPage {
 			$cboxes['notes']->content();
 			$note_content = ob_get_clean();
 
-			$tool_tabs->add('blogs', __('Blog Posts') . $post_count, $blog_content . "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>");
+			$tool_tabs->add('blogs', __('Blog Posts') /*. $post_count*/, $blog_content /*. "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>"*/);
 			$tool_tabs->add('notes', __('Notes'), $note_content);
 		}
 		$tool_tabs->add('options', __('Options'), $this->options());
