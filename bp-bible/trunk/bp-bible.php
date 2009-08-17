@@ -42,7 +42,7 @@ Site Wide Only: true
 define ( 'BP_BIBLE_IS_INSTALLED', 1 );
 
 /* Define a constant that will hold the current version number of the component */
-define ( 'BP_BIBLE_VERSION', '1.0' );
+define ( 'BP_BIBLE_VERSION', '0.5' );
 
 /* Define a constant that will hold the database version number that can be used for upgrading the DB
  *
@@ -69,18 +69,6 @@ if ( !defined( 'BP_BIBLE_SLUG' ) )
  *		define ( 'BP_BIBLE_CONSTANT', 'some value' // or some value without quotes if integer );
  */
 
-/**
- * You should try hard to support translation in your component. It's actually very easy.
- * Make sure you wrap any rendered text in __() or _e() and it will then be translatable.
- *
- * You must also provide a text domain, so translation files know which bits of text to translate.
- * Throughout this example the text domain used is 'bp-bible', you can use whatever you want.
- * Put the text domain as the second parameter:
- *
- * __( 'This text will be translatable', 'bp-bible' ); // Returns the first parameter value
- * _e( 'This text will be translatable', 'bp-bible' ); // Echos the first parameter value
- */
-
 if ( file_exists( WP_PLUGIN_DIR . '/bp-bible/languages/' . get_locale() . '.mo' ) )
 	load_textdomain( 'bp-bible', WP_PLUGIN_DIR . '/bp-bible/languages/' . get_locale() . '.mo' );
 
@@ -90,25 +78,25 @@ if ( file_exists( WP_PLUGIN_DIR . '/bp-bible/languages/' . get_locale() . '.mo' 
  */
 
 /* The classes file should hold all database access classes and functions */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-classes.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-classes.php' );
 
 /* The ajax file should hold all functions used in AJAX queries */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-ajax.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-ajax.php' );
 
 /* The cssjs file should set up and enqueue all CSS and JS files used by the component */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-cssjs.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-cssjs.php' );
 
 /* The templatetags file should contain classes and functions designed for use in template files */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-templatetags.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-templatetags.php' );
 
 /* The widgets file should contain code to create and register widgets for the component */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-widgets.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-widgets.php' );
 
 /* The notifications file should contain functions to send email notifications on specific user actions */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-notifications.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-notifications.php' );
 
 /* The filters file should create and apply filters to component output functions. */
-require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-filters.php' );
+//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-filters.php' );
 
 /**
  * bp_bible_install()
@@ -149,7 +137,7 @@ function bp_bible_install() {
 	 */
 	// dbDelta($sql);
 
-	update_site_option( 'bp-bible-db-version', BP_BIBLE_DB_VERSION );
+	//update_site_option( 'bp-bible-db-version', BP_BIBLE_DB_VERSION );
 }
 
 /**
@@ -171,6 +159,11 @@ function bp_bible_setup_globals() {
 add_action( 'plugins_loaded', 'bp_bible_setup_globals', 5 );
 add_action( 'admin_menu', 'bp_bible_setup_globals', 1 );
 
+function bp_bible_setup_root_component() {
+	/* Register 'bible' as a root component */
+	bp_core_add_root_component( BP_BIBLE_SLUG );
+}
+add_action( 'plugins_loaded', 'bp_bible_setup_root_component', 1 );
 
 /**
  * bp_bible_check_installed()
@@ -188,7 +181,7 @@ function bp_bible_check_installed() {
 	 * If you call your admin functionality here, it will only be loaded when the user is in the
 	 * wp-admin area, not on every page load.
 	 */
-	require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-admin.php' );
+	//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-admin.php' );
 
 	/* Need to check db tables exist, activate hook no-worky in mu-plugins folder. */
 	if ( get_site_option('bp-bible-db-version') < BP_BIBLE_DB_VERSION )
@@ -213,10 +206,11 @@ function bp_bible_setup_nav() {
 	);
 
 	/* Set a specific sub nav item as the default when the top level item is clicked */
+	//if ( $bp->displayed_user->id )
 	bp_core_add_nav_default(
 		$bp->bible->slug, /* The slug of the parent nav item */
-		'bp_bible_screen_one', /* The function to run when clicked */
-		'screen-one' /* The slug of the sub nav item to make default */
+		'bp_bible_screen_passage', /* The function to run when clicked */
+		'passage' /* The slug of the sub nav item to make default */
 	);
 
 	$bible_link = $bp->loggedin_user->domain . $bp->bible->slug . '/';
@@ -224,10 +218,10 @@ function bp_bible_setup_nav() {
 	/* Create two sub nav items for this component */
 	bp_core_add_subnav_item(
 		$bp->bible->slug, /* The slug of the parent */
-		'screen-one', /* The slug for the sub nav item */
+		'passage', /* The slug for the sub nav item */
 		__( 'Screen One', 'bp-bible' ), /* The display name for the sub nav item */
 		$bible_link, /* The URL of the parent */
-		'bp_bible_screen_one' /* The function to run when clicked */
+		'bp_bible_screen_passage' /* The function to run when clicked */
 	);
 
 	bp_core_add_subnav_item(
@@ -258,7 +252,23 @@ function bp_bible_setup_nav() {
 add_action( 'wp', 'bp_bible_setup_nav', 2 );
 add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
 
+/*function bp_bible_directory_setup() {
+	global $bp;
 
+	if ( $bp->current_component == $bp->bible->slug && empty( $bp->current_action ) ) {
+		$bp->is_directory = true;
+
+		//$bp_bible = new BfoxBible();
+
+		add_action( 'bp_template_content_header', 'bp_bible_passage_header' );
+		add_action( 'bp_template_title', 'bp_bible_passage_title' );
+		add_action( 'bp_template_content', 'bp_bible_passage_content' );
+
+		bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
+	}
+}
+add_action( 'wp', 'bp_bible_directory_setup', 2 );
+*/
 /**
  * The following functions are "Screen" functions. This means that they will be run when their
  * corresponding navigation menu item is clicked, they should therefore pass through to a template
@@ -266,11 +276,11 @@ add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
  */
 
 /**
- * bp_bible_screen_one()
+ * bp_bible_screen_passage()
  *
- * Sets up and displays the screen output for the sub nav item "bible/screen-one"
+ * Sets up and displays the screen output for the sub nav item "bible/passage"
  */
-function bp_bible_screen_one() {
+function bp_bible_screen_passage() {
 	global $bp;
 
 	/**
@@ -280,19 +290,19 @@ function bp_bible_screen_one() {
 	 * $bp->current_component (string)
 	 * This will tell you the current component the user is viewing.
 	 *
-	 * Bible: If the user was on the page http://example.org/members/andy/groups/my-groups
+	 * Example: If the user was on the page http://example.org/members/andy/groups/my-groups
 	 *          $bp->current_component would equal 'groups'.
 	 *
 	 * $bp->current_action (string)
 	 * This will tell you the current action the user is carrying out within a component.
 	 *
-	 * Bible: If the user was on the page: http://example.org/members/andy/groups/leave/34
+	 * Example: If the user was on the page: http://example.org/members/andy/groups/leave/34
 	 *          $bp->current_action would equal 'leave'.
 	 *
 	 * $bp->action_variables (array)
 	 * This will tell you which action variables are set for a specific action
 	 *
-	 * Bible: If the user was on the page: http://example.org/members/andy/groups/join/34
+	 * Example: If the user was on the page: http://example.org/members/andy/groups/join/34
 	 *          $bp->action_variables would equal array( '34' );
 	 */
 
@@ -306,7 +316,7 @@ function bp_bible_screen_one() {
 	 * We need to run a check to see if the current user has clicked on the 'send high five' link.
 	 * If they have, then let's send the five, and redirect back with a nice error/success message.
 	 */
-	if ( $bp->current_component == $bp->bible->slug && 'screen-one' == $bp->current_action && 'send-h5' == $bp->action_variables[0] ) {
+	if ( $bp->current_component == $bp->bible->slug && 'passage' == $bp->current_action && 'send-h5' == $bp->action_variables[0] ) {
 		/* The logged in user has clicked on the 'send high five' link */
 		if ( bp_is_home() ) {
 			/* Don't let users high five themselves */
@@ -318,20 +328,20 @@ function bp_bible_screen_one() {
 				bp_core_add_message( __( 'High-five could not be sent.', 'bp-bible' ), 'error' );
 		}
 
-		bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/screen-one' );
+		bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/passage' );
 	}
 
 	/* Add a do action here, so your component can be extended by others. */
-	do_action( 'bp_bible_screen_one' );
+	do_action( 'bp_bible_screen_passage' );
 
 	/**
 	 * Finally, load the template file. In this example it would load:
-	 *    "wp-content/bp-themes/[active-member-theme]/bible/screen-one.php"
+	 *    "wp-content/bp-themes/[active-member-theme]/bible/passage.php"
 	 *
 	 * The filter gives theme designers the ability to override template names
 	 * and define their own theme filenames and structure
 	 */
-	bp_core_load_template( apply_filters( 'bp_bible_template_screen_one', 'bible/screen-one' ) );
+	bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
 
 	/* ---- OR ----- */
 
@@ -347,9 +357,9 @@ function bp_bible_screen_one() {
 	  * place nav items if needed. The second is the page title, and the third is the body content
 	  * of the page.
 	  */
-	 add_action( 'bp_template_content_header', 'bp_bible_screen_one_header' );
-	 add_action( 'bp_template_title', 'bp_bible_screen_one_title' );
-	 add_action( 'bp_template_content', 'bp_bible_screen_one_content' );
+	 add_action( 'bp_template_content_header', 'bp_bible_screen_passage_header' );
+	 add_action( 'bp_template_title', 'bp_bible_screen_passage_title' );
+	 add_action( 'bp_template_content', 'bp_bible_screen_passage_content' );
 
 	/* Finally load the plugin template file. */
 	bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
@@ -360,15 +370,15 @@ function bp_bible_screen_one() {
 	 * display the corresponding information. The functions are presented below:
 	 */
 
-	function bp_bible_screen_one_header() {
+	function bp_bible_screen_passage_header() {
 		_e( 'Screen One Header', 'bp-bible' );
 	}
 
-	function bp_bible_screen_one_title() {
+	function bp_bible_screen_passage_title() {
 		_e( 'Screen One', 'bp-bible' );
 	}
 
-	function bp_bible_screen_one_content() {
+	function bp_bible_screen_passage_content() {
 		global $bp;
 
 		$high_fives = bp_bible_get_highfives_for_user( $bp->displayed_user->id );
@@ -378,7 +388,7 @@ function bp_bible_screen_one() {
 		 * This will stop naughty people from tricking users into performing actions without their
 		 * knowledge or intent.
 		 */
-		$send_link = wp_nonce_url( $bp->displayed_user->domain . $bp->current_component . '/screen-one/send-h5', 'bp_bible_send_high_five' );
+		$send_link = wp_nonce_url( $bp->displayed_user->domain . $bp->current_component . '/passage/send-h5', 'bp_bible_send_high_five' );
 	?>
 		<?php do_action( 'template_notices' ) // (error/success feedback) ?>
 
@@ -737,7 +747,7 @@ function bp_bible_format_notifications( $action, $item_id, $secondary_item_id, $
 			 * notification is rendered differently.
 			 */
 			if ( (int)$total_items > 1 ) {
-				return apply_filters( 'bp_bible_multiple_new_high_five_notification', '<a href="' . $bp->loggedin_user->domain . $bp->bible->slug . '/screen-one/" title="' . __( 'Multiple high-fives', 'bp-bible' ) . '">' . sprintf( __( '%d new high-fives, multi-five!', 'bp-bible' ), (int)$total_items ) . '</a>', $total_items );
+				return apply_filters( 'bp_bible_multiple_new_high_five_notification', '<a href="' . $bp->loggedin_user->domain . $bp->bible->slug . '/passage/" title="' . __( 'Multiple high-fives', 'bp-bible' ) . '">' . sprintf( __( '%d new high-fives, multi-five!', 'bp-bible' ), (int)$total_items ) . '</a>', $total_items );
 			} else {
 				$user_fullname = bp_core_get_user_displayname( $item_id, false );
 				$user_url = bp_core_get_userurl( $item_id );
@@ -968,7 +978,7 @@ function bp_bible_remove_screen_notifications() {
  	 */
 	bp_core_delete_notifications_for_user_by_type( $bp->loggedin_user->id, $bp->bible->slug, 'new_high_five' );
 }
-add_action( 'bp_bible_screen_one', 'bp_bible_remove_screen_notifications' );
+add_action( 'bp_bible_screen_passage', 'bp_bible_remove_screen_notifications' );
 add_action( 'xprofile_screen_display_profile', 'bp_bible_remove_screen_notifications' );
 
 /**
