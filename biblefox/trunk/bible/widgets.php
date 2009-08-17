@@ -2,12 +2,16 @@
 
 function bfox_bible_get_refs() {
 	global $bible;
-	return $bible->get_refs();
+
+	if (isset($bible)) return $bible->get_refs();
+	return new BfoxRefs();
 }
 
 function bfox_bible_get_books() {
 	global $bible;
-	return $bible->get_books();
+
+	if (isset($bible)) return $bible->get_books();
+	return array();
 }
 
 class BfoxBibleWidget extends WP_Widget {
