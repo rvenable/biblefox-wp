@@ -10,20 +10,20 @@
  * abstracting database access.
  */
 
-class BP_Example_TableName {
+class BP_Bible_TableName {
 	var $id;
 	var $field_1;
 	var $field_2;
 	var $field_3;
 	
 	/**
-	 * bp_example_tablename()
+	 * bp_bible_tablename()
 	 *
 	 * This is the constructor, it is auto run when the class is instantiated.
 	 * It will either create a new empty object if no ID is set, or fill the object
 	 * with a row from the table if an ID is provided.
 	 */
-	function bp_example_tablename( $id = null ) {
+	function bp_bible_tablename( $id = null ) {
 		global $wpdb, $bp;
 		
 		if ( $id ) {
@@ -41,7 +41,7 @@ class BP_Example_TableName {
 	function populate() {
 		global $wpdb, $bp, $creds;
 		
-		if ( $row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$bp->example->table_name} WHERE id = %d", $this->id ) ) ) {
+		if ( $row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$bp->bible->table_name} WHERE id = %d", $this->id ) ) ) {
 			$this->field_1 = $row->field_1;
 			$this->field_2 = $row->field_2;
 			$this->field_3 = $row->field_3;
@@ -62,28 +62,28 @@ class BP_Example_TableName {
 		 * In this save() method, you should add pre-save filters to all the values you are saving to the
 		 * database. This helps with two things -
 		 * 
-		 * 1. Blanket filtering of values by plugins (for example if a plugin wanted to force a specific 
+		 * 1. Blanket filtering of values by plugins (for bible if a plugin wanted to force a specific 
 		 *	  value for all saves)
 		 * 
 		 * 2. Security - attaching a wp_filter_kses() call to all filters, so you are not saving
 		 *	  potentially dangerous values to the database.
 		 *
 		 * It's very important that for number 2 above, you add a call like this for each filter to
-		 * 'bp-example-filters.php'
+		 * 'bp-bible-filters.php'
 		 *
-		 *   add_filter( 'example_data_fieldname1_before_save', 'wp_filter_kses' );
+		 *   add_filter( 'bible_data_fieldname1_before_save', 'wp_filter_kses' );
 		 */	
 		
-		$this->fieldname1 = apply_filters( 'bp_example_data_fieldname1_before_save', $this->fieldname1, $this->id );
-		$this->fieldname2 = apply_filters( 'bp_example_data_fieldname2_before_save', $this->fieldname2, $this->id );
+		$this->fieldname1 = apply_filters( 'bp_bible_data_fieldname1_before_save', $this->fieldname1, $this->id );
+		$this->fieldname2 = apply_filters( 'bp_bible_data_fieldname2_before_save', $this->fieldname2, $this->id );
 		
 		/* Call a before save action here */
-		do_action( 'bp_example_data_before_save', $this );
+		do_action( 'bp_bible_data_before_save', $this );
 						
 		if ( $this->id ) {
 			// Update
 			$result = $wpdb->query( $wpdb->prepare( 
-					"UPDATE {$bp->example->table_name} SET 
+					"UPDATE {$bp->bible->table_name} SET 
 						field_1 = %d,
 						field_2 = %d,
 						field_3 = %d
@@ -96,7 +96,7 @@ class BP_Example_TableName {
 		} else {
 			// Save
 			$result = $wpdb->query( $wpdb->prepare( 
-					"INSERT INTO {$bp->example->table_name} ( 
+					"INSERT INTO {$bp->bible->table_name} ( 
 						field_1,
 						field_2,
 						field_3 
@@ -117,7 +117,7 @@ class BP_Example_TableName {
 		}	
 		
 		/* Add an after save action here */
-		do_action( 'bp_example_data_after_save', $this ); 
+		do_action( 'bp_bible_data_after_save', $this ); 
 		
 		return $result;
 	}
@@ -130,7 +130,7 @@ class BP_Example_TableName {
 	function delete() {
 		global $wpdb, $bp;
 		
-		return $wpdb->query( $wpdb->prepare( "DELETE FROM {$bp->example->table_name} WHERE id = %d", $this->id ) );
+		return $wpdb->query( $wpdb->prepare( "DELETE FROM {$bp->bible->table_name} WHERE id = %d", $this->id ) );
 	}
 
 	/* Static Functions */
@@ -139,7 +139,7 @@ class BP_Example_TableName {
 	 * Static functions can be used to bulk delete items in a table, or do something that
 	 * doesn't necessarily warrant the instantiation of the class.
 	 *
-	 * Look at bp-core-classes.php for examples of mass delete.
+	 * Look at bp-core-classes.php for bibles of mass delete.
 	 */
 
 	function delete_all() {

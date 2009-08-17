@@ -11,13 +11,13 @@
  * By doing this you could output a number of items within a loop, just as you would output a number
  * of blog posts within a standard WordPress loop.
  *
- * The example template class below would allow you do the following in the template file:
+ * The bible template class below would allow you do the following in the template file:
  *
- * 	<?php if ( bp_get_example_has_items() ) : ?>
+ * 	<?php if ( bp_get_bible_has_items() ) : ?>
  *
- *		<?php while ( bp_get_example_items() ) : bp_get_example_the_item(); ?>
+ *		<?php while ( bp_get_bible_items() ) : bp_get_bible_the_item(); ?>
  *
- *			<p><?php bp_get_example_item_name() ?></p>
+ *			<p><?php bp_get_bible_item_name() ?></p>
  *
  *		<?php endwhile; ?>
  *		
@@ -31,7 +31,7 @@
  *
  */
 
-class BP_Example_Template {
+class BP_Bible_Template {
 	var $current_item = -1;
 	var $item_count;
 	var $items;
@@ -43,7 +43,7 @@ class BP_Example_Template {
 	var $pag_num;
 	var $pag_links;
 	
-	function bp_example_template( $user_id, $type, $per_page, $max ) {
+	function bp_bible_template( $user_id, $type, $per_page, $max ) {
 		global $bp;
 		
 		if ( !$user_id )
@@ -65,22 +65,22 @@ class BP_Example_Template {
 		
 		/***
 		 * You can use the "type" variable to fetch different things to output.
-		 * For example on the groups template loop, you can fetch groups by "newest", "active", "alphabetical"
+		 * For bible on the groups template loop, you can fetch groups by "newest", "active", "alphabetical"
 		 * and more. This would be the "type". You can then call different functions to fetch those
 		 * different results.
 		 */
 		
 		// switch ( $type ) {
 		// 	case 'newest':
-		// 		$this->items = bp_example_get_newest( $user_id, $this->pag_num, $this->pag_page );
+		// 		$this->items = bp_bible_get_newest( $user_id, $this->pag_num, $this->pag_page );
 		// 		break;
 		// 
 		// 	case 'popular':
-		// 		$this->items = bp_example_get_popular( $user_id, $this->pag_num, $this->pag_page );				
+		// 		$this->items = bp_bible_get_popular( $user_id, $this->pag_num, $this->pag_page );				
 		// 		break;
 		// 
 		// 	case 'alphabetical':
-		// 		$this->items = bp_example_get_alphabetical( $user_id, $this->pag_num, $this->pag_page );				
+		// 		$this->items = bp_bible_get_alphabetical( $user_id, $this->pag_num, $this->pag_page );				
 		// 		break;
 		// }
 		
@@ -158,7 +158,7 @@ class BP_Example_Template {
 	}
 }
 
-function bp_example_has_items( $args = '' ) {
+function bp_bible_has_items( $args = '' ) {
 	global $bp, $items_template;
 	
 	/***
@@ -167,11 +167,11 @@ function bp_example_has_items( $args = '' ) {
 	 * At a minimum you should accept 'per_page' and 'max' parameters to determine
 	 * the number of items to show per page, and the total number to return.
 	 * 
-	 * e.g. bp_get_example_has_items( 'per_page=10&max=50' );
+	 * e.g. bp_get_bible_has_items( 'per_page=10&max=50' );
 	 */
 	
 	/***
-	 * Set the defaults for the parameters you are accepting via the "bp_get_example_has_items()"
+	 * Set the defaults for the parameters you are accepting via the "bp_get_bible_has_items()"
 	 * function call 
 	 */
 	$defaults = array(
@@ -188,36 +188,36 @@ function bp_example_has_items( $args = '' ) {
 	$r = wp_parse_args( $args, $defaults );
 	extract( $r, EXTR_SKIP );
 
-	$items_template = new BP_Example_Template( $user_id, $type, $per_page, $max );
+	$items_template = new BP_Bible_Template( $user_id, $type, $per_page, $max );
 		
 	return $items_template->has_items();
 }
 
-function bp_example_the_item() {
+function bp_bible_the_item() {
 	global $items_template;
 	return $items_template->the_item();
 }
 
-function bp_example_items() {
+function bp_bible_items() {
 	global $items_template;
 	return $items_template->user_items();
 }
 
-function bp_example_item_name() {
-	echo bp_example_get_item_name();
+function bp_bible_item_name() {
+	echo bp_bible_get_item_name();
 }
 	/* Always provide a "get" function for each template tag, that will return, not echo. */
-	function bp_example_get_item_name() {
+	function bp_bible_get_item_name() {
 		global $items_template;
-		echo apply_filters( 'bp_example_get_item_name', $items_template->item->name ); // Example: $items_template->item->name;
+		echo apply_filters( 'bp_bible_get_item_name', $items_template->item->name ); // Bible: $items_template->item->name;
 	}
 	
-function bp_example_item_pagination() {
-	echo bp_example_get_item_pagination();
+function bp_bible_item_pagination() {
+	echo bp_bible_get_item_pagination();
 }
-	function bp_example_get_item_pagination() {
+	function bp_bible_get_item_pagination() {
 		global $items_template;
-		return apply_filters( 'bp_example_get_item_pagination', $items_template->pag_links );
+		return apply_filters( 'bp_bible_get_item_pagination', $items_template->pag_links );
 	}
 
 ?>

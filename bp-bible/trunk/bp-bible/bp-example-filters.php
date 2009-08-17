@@ -30,14 +30,14 @@
  * The third parameter "1" adds the highest priority to the filter call.
  */
  
- add_filter( 'bp_example_get_item_name', 'wp_filter_kses', 1 );
+ add_filter( 'bp_bible_get_item_name', 'wp_filter_kses', 1 );
 
 /**
- * In your save() method in 'bp-example-classes.php' you will have 'before save' filters on
+ * In your save() method in 'bp-bible-classes.php' you will have 'before save' filters on
  * values. You should use these filters to attach the wp_filter_kses() function to them.
  */
 
- add_filter( 'example_data_fieldname1_before_save', 'wp_filter_kses', 1 );
- add_filter( 'example_data_fieldname2_before_save', 'wp_filter_kses', 1 );
+ add_filter( 'bible_data_fieldname1_before_save', 'wp_filter_kses', 1 );
+ add_filter( 'bible_data_fieldname2_before_save', 'wp_filter_kses', 1 );
 
 ?>
