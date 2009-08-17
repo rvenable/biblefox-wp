@@ -136,16 +136,6 @@ class BfoxBible {
 				require BFOX_BIBLE_DIR . '/page_search.php';
 				$this->page = new BfoxPageSearch($q[BfoxQuery::var_search], $q[BfoxQuery::var_reference], new BfoxTrans(BiblefoxMainBlog::get_trans_id()));
 				break;
-
-			case BfoxQuery::page_commentary:
-				require BFOX_BIBLE_DIR . '/page_commentaries.php';
-				$this->page = new BfoxPageCommentaries();
-				break;
-
-			case BfoxQuery::page_plans:
-				require BFOX_BIBLE_DIR . '/page_plans.php';
-				$this->page = new BfoxPagePlans();
-				break;
 		}
 
 		if ($redirect) wp_redirect(BfoxQuery::url($q));

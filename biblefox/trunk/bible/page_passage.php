@@ -64,56 +64,12 @@ class BfoxPagePassage extends BfoxPage {
 		return $this->refs->get_string();
 	}
 
-	private static function check_option($name, $label) {
-		$id = "option_$name";
-
-		return "<input type='checkbox' name='$name' id='$id' class='view_option'/><label for='$id'>$label</label>";
-	}
-
-	private function options() {
-		$table = new BfoxHtmlList();
-		$table->add($this->check_option('jesus', __('Show Jesus\' words in red')));
-		$table->add($this->check_option('paragraphs', __('Display verses as paragraphs')));
-		$table->add($this->check_option('verse_nums', __('Hide verse numbers')));
-		$table->add($this->check_option('footnotes', __('Hide footnote links')));
-
-		return $table->content();
-	}
-
-	private function tools_tab(BfoxRefs $refs) {
-		global $user_ID;
-
-		$tool_tabs = new BfoxHtmlTabs("id='tool_tabs' class='tabs'");
-
-		if (!empty($user_ID)) {
-			$url = BfoxQuery::page_url(BfoxQuery::page_passage);
-			$cboxes = array();
-			$cboxes['blogs'] = new BfoxCboxBlogs($refs, $url, 'commentaries', 'Blog Posts');
-			$cboxes['notes'] = new BfoxCboxNotes($refs, $url, 'notes', 'My Bible Notes');
-
-			ob_start();
-			$cboxes['blogs']->content();
-			$post_count = ' (' . $cboxes['blogs']->post_count . ')';
-			$blog_content = ob_get_clean();
-
-			ob_start();
-			$cboxes['notes']->content();
-			$note_content = ob_get_clean();
-
-			$tool_tabs->add('blogs', __('Blog Posts') /*. $post_count*/, $blog_content /*. "<a href='" . BfoxQuery::page_url(BfoxQuery::page_commentary) . "'>Manage Blog Commentaries</a>"*/);
-			$tool_tabs->add('notes', __('Notes'), $note_content);
-		}
-		$tool_tabs->add('options', __('Options'), $this->options());
-
-		return $tool_tabs->content();
-	}
-
 	public function content() {
-		?>
-			<?php echo $this->tools_tab($this->refs) ?>
-			<?php BfoxRefContent::ref_content_new($this->refs, $this->translation) ?>
-			<div class="clear"></div>
-		<?php
+		global $page_passage_refs, $page_passage_trans;
+		$page_passage_refs = $this->refs;
+		$page_passage_trans = $this->translation;
+
+		require BFOX_BIBLE_DIR . '/templates/passage.php';
 	}
 }
 

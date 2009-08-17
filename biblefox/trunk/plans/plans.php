@@ -574,8 +574,10 @@ class BfoxPlans {
 		}
 	}
 
-	public static function get_plans($plan_ids, $owner_id = 0, $owner_type = self::user_type_user) {
+	public static function get_plans($plan_ids, $owner_id = 0, $owner_type = self::user_type_user, $args = '') {
 		global $wpdb;
+
+		extract($args);
 
 		$plans = array();
 
@@ -585,6 +587,7 @@ class BfoxPlans {
 		$where = array();
 		if (!empty($ids)) $wheres []= 'id IN (' . implode(',', $ids) . ')';
 		if (!empty($owner_id)) $wheres []= $wpdb->prepare('(owner_id = %d) AND (owner_type = %d)', $owner_id, $owner_type);
+		if (isset($is_finished)) $wheres []= $wpdb->prepare('is_finished = %d', $is_finished);
 
 		if (!empty($wheres)) {
 			// Get the plan info from the DB
