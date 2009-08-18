@@ -36,17 +36,13 @@ define(BFOX_VERSION, '0.4.9');
 
 define(BFOX_FILE, __FILE__);
 define(BFOX_DIR, dirname(__FILE__));
-define(BFOX_URL, WPMU_PLUGIN_URL . '/biblefox');
+define(BFOX_URL, WP_PLUGIN_URL . '/bp-bible');
 
-define(BFOX_ADMIN_FILE, '../wp-content/mu-plugins/biblefox/biblefox.php');
 define(BFOX_DOMAIN, 'biblefox');
 
 define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
-define(BFOX_PLANS_DIR, BFOX_DIR . '/plans');
-
 include_once BFOX_DIR . '/admin/admin-tools.php';
-include_once BFOX_DIR . '/blog/blog.php';
 include_once BFOX_DIR . '/site/site.php';
 
 /**

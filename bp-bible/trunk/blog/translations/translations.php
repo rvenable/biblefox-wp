@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_TRANS_DIR, dirname(__FILE__));
+if (!defined(BFOX_TRANS_DIR)) define(BFOX_TRANS_DIR, dirname(__FILE__));
 
 require_once BFOX_TRANS_DIR . '/formatter.php';
 

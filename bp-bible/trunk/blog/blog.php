@@ -1,15 +1,17 @@
 <?php
 
-define(BFOX_BLOG_DIR, dirname(__FILE__));
+if (!defined(BFOX_BLOG_DIR)) define(BFOX_BLOG_DIR, dirname(__FILE__));
 
 define(BFOX_DATA_DIR, BFOX_BLOG_DIR . '/data');
 define(BFOX_REFS_DIR, BFOX_BLOG_DIR . '/biblerefs');
+define(BFOX_TRANS_DIR, BFOX_BLOG_DIR . '/translations');
 
 require_once BFOX_REFS_DIR . '/refs.php';
+
 require_once BFOX_BLOG_DIR . '/utility.php';
 require_once BFOX_BLOG_DIR . '/query.php';
 
-include_once BFOX_BLOG_DIR . '/translations/translations.php';
+include_once BFOX_TRANS_DIR . '/translations.php';
 
 require_once BFOX_BLOG_DIR . '/posts.php';
 require_once('bfox-query.php');
