@@ -51,7 +51,7 @@
 	<div id="bible" class="">
 		<div id="bible_page">
 		<?php if (bp_bible_has_passages()) : ?>
-			<?php echo bfox_reader_tools_tab(bp_bible_the_refs()) ?>
+			<?php //echo bfox_reader_tools_tab(bp_bible_the_refs()) ?>
 			<div class='ref_content'>
 
 				<!-- Bible Header -->
