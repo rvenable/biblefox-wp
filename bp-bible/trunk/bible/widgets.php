@@ -1,19 +1,5 @@
 <?php
 
-function bfox_bible_get_refs() {
-	global $bible;
-
-	if (isset($bible)) return $bible->get_refs();
-	return new BfoxRefs();
-}
-
-function bfox_bible_get_books() {
-	global $bible;
-
-	if (isset($bible)) return $bible->get_books();
-	return array();
-}
-
 class BfoxBibleWidget extends WP_Widget {
 
 	/**
@@ -135,7 +121,7 @@ class BfoxUserHistoryWidget extends WP_Widget {
 		extract($args);
 
 		if ('passage' == $instance['type']) {
-			$refs = bfox_bible_get_refs();
+			$refs = bp_bible_the_refs();
 			if (empty($instance['title'])) $instance['title'] = __('My History for %s');
 			$instance['title'] = sprintf($instance['title'], $refs->get_string());
 		}
@@ -236,7 +222,7 @@ class BfoxBibleTocWidget extends WP_Widget {
 		extract($args);
 
 		if (empty($instance['title'])) $instance['title'] = __('%s - Table of Contents');
-		$books = bfox_bible_get_books();
+		$books = bp_bible_the_books();
 
 		foreach ($books as $book) {
 			$book_name = BibleMeta::get_book_name($book);

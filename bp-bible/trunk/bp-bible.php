@@ -14,6 +14,7 @@ Site Wide Only: true
 */
 
 define(BP_BIBLE_DIR, dirname(__FILE__));
+define(BP_BIBLE_URL, WP_PLUGIN_URL . '/bp-bible');
 
 define(BFOX_BLOG_DIR, BP_BIBLE_DIR . '/blog');
 define(BFOX_BIBLE_DIR, BP_BIBLE_DIR . '/bible');
@@ -22,6 +23,7 @@ define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/plans');
 require_once BFOX_BLOG_DIR . '/blog.php';
 require_once BFOX_PLANS_DIR . '/bp-plans.php';
 require_once BFOX_BIBLE_DIR . '/widgets.php';
+require_once BFOX_BIBLE_DIR . '/passage.php';
 
 /*************************************************************************************************************
  --- SKELETON COMPONENT V1.2.2 ---
@@ -79,8 +81,8 @@ if ( !defined( 'BP_BIBLE_SLUG' ) )
  *		define ( 'BP_BIBLE_CONSTANT', 'some value' // or some value without quotes if integer );
  */
 
-if ( file_exists( WP_PLUGIN_DIR . '/bp-bible/languages/' . get_locale() . '.mo' ) )
-	load_textdomain( 'bp-bible', WP_PLUGIN_DIR . '/bp-bible/languages/' . get_locale() . '.mo' );
+if ( file_exists( BP_BIBLE_DIR . '/bp-bible/languages/' . get_locale() . '.mo' ) )
+	load_textdomain( 'bp-bible', BP_BIBLE_DIR . '/bp-bible/languages/' . get_locale() . '.mo' );
 
 /**
  * The next step is to include all the files you need for your component.
@@ -88,25 +90,25 @@ if ( file_exists( WP_PLUGIN_DIR . '/bp-bible/languages/' . get_locale() . '.mo' 
  */
 
 /* The classes file should hold all database access classes and functions */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-classes.php' );
+//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-classes.php' );
 
 /* The ajax file should hold all functions used in AJAX queries */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-ajax.php' );
+//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-ajax.php' );
 
 /* The cssjs file should set up and enqueue all CSS and JS files used by the component */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-cssjs.php' );
+require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-cssjs.php' );
 
 /* The templatetags file should contain classes and functions designed for use in template files */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-templatetags.php' );
+require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-templatetags.php' );
 
 /* The widgets file should contain code to create and register widgets for the component */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-widgets.php' );
+//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-widgets.php' );
 
 /* The notifications file should contain functions to send email notifications on specific user actions */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-notifications.php' );
+//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-notifications.php' );
 
 /* The filters file should create and apply filters to component output functions. */
-//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-filters.php' );
+//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-filters.php' );
 
 /**
  * bp_bible_install()
@@ -191,7 +193,7 @@ function bp_bible_check_installed() {
 	 * If you call your admin functionality here, it will only be loaded when the user is in the
 	 * wp-admin area, not on every page load.
 	 */
-	//require ( WP_PLUGIN_DIR . '/bp-bible/bp-bible-admin.php' );
+	//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-admin.php' );
 
 	/* Need to check db tables exist, activate hook no-worky in mu-plugins folder. */
 	if ( get_site_option('bp-bible-db-version') < BP_BIBLE_DB_VERSION )
@@ -216,7 +218,7 @@ function bp_bible_setup_nav() {
 	);
 
 	/* Set a specific sub nav item as the default when the top level item is clicked */
-	//if ( $bp->displayed_user->id )
+	if ( $bp->displayed_user->id )
 	bp_core_add_nav_default(
 		$bp->bible->slug, /* The slug of the parent nav item */
 		'bp_bible_screen_passage', /* The function to run when clicked */
@@ -262,7 +264,7 @@ function bp_bible_setup_nav() {
 add_action( 'wp', 'bp_bible_setup_nav', 2 );
 add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
 
-/*function bp_bible_directory_setup() {
+function bp_bible_directory_setup() {
 	global $bp;
 
 	if ( $bp->current_component == $bp->bible->slug && empty( $bp->current_action ) ) {
@@ -270,15 +272,17 @@ add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
 
 		//$bp_bible = new BfoxBible();
 
-		add_action( 'bp_template_content_header', 'bp_bible_passage_header' );
-		add_action( 'bp_template_title', 'bp_bible_passage_title' );
-		add_action( 'bp_template_content', 'bp_bible_passage_content' );
-
-		bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
+		bp_bible_screen_passage();
 	}
 }
 add_action( 'wp', 'bp_bible_directory_setup', 2 );
-*/
+
+function bp_bible_hack_scripts() {
+	bp_bible_add_js();
+	bp_bible_add_structure_css();
+}
+add_action( 'wp', 'bp_bible_hack_scripts', 20 );
+
 /**
  * The following functions are "Screen" functions. This means that they will be run when their
  * corresponding navigation menu item is clicked, they should therefore pass through to a template
@@ -351,7 +355,7 @@ function bp_bible_screen_passage() {
 	 * The filter gives theme designers the ability to override template names
 	 * and define their own theme filenames and structure
 	 */
-	bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
+	//bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
 
 	/* ---- OR ----- */
 
@@ -370,6 +374,7 @@ function bp_bible_screen_passage() {
 	 add_action( 'bp_template_content_header', 'bp_bible_screen_passage_header' );
 	 add_action( 'bp_template_title', 'bp_bible_screen_passage_title' );
 	 add_action( 'bp_template_content', 'bp_bible_screen_passage_content' );
+	 add_action('wp_head', 'bp_bible_screen_passage_wp_head');
 
 	/* Finally load the plugin template file. */
 	bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
@@ -380,16 +385,35 @@ function bp_bible_screen_passage() {
 	 * display the corresponding information. The functions are presented below:
 	 */
 
-	function bp_bible_screen_passage_header() {
-		_e( 'Screen One Header', 'bp-bible' );
+	function bp_bible_screen_passage_wp_head() {
+		?>
+		<script type="text/javascript">
+		//<![CDATA[
+		jQuery(document).ready( function() {
+			jQuery('#tool_tabs').tabs({
+				collapsible: true,
+				cookie: { expires: 30, name: 'bfox_tool_tabs' }
+			});
+		});
+		//]]>
+		</script>
+		<?php
+	}
+
+function bp_bible_screen_passage_header() {
+		_e( 'The Bible', 'bp-bible' );
 	}
 
 	function bp_bible_screen_passage_title() {
-		_e( 'Screen One', 'bp-bible' );
+		//_e( 'Screen One', 'bp-bible' );
 	}
 
 	function bp_bible_screen_passage_content() {
 		global $bp;
+
+		require_once BFOX_BIBLE_DIR . '/bible.php';
+		$bible = new BfoxBible('gen 2; john 3');
+		$bible->page();
 
 		$high_fives = bp_bible_get_highfives_for_user( $bp->displayed_user->id );
 
@@ -401,6 +425,8 @@ function bp_bible_screen_passage() {
 		$send_link = wp_nonce_url( $bp->displayed_user->domain . $bp->current_component . '/passage/send-h5', 'bp_bible_send_high_five' );
 	?>
 		<?php do_action( 'template_notices' ) // (error/success feedback) ?>
+
+		<?php include BFOX_BIBLE_DIR . '/templates/passage.php' ?>
 
 		<h3><?php _e( 'Welcome to Screen One', 'bp-bible' ) ?></h3>
 		<p><?php printf( __( 'Send %s a <a href="%s" title="Send high-five!">high-five!</a>', 'bp-bible' ), $bp->displayed_user->fullname, $send_link ) ?></p>
@@ -1075,5 +1101,58 @@ add_action( 'plugins_loaded', 'bp_bible_load_buddypress', 11 );
  * If you're still confused, check how it works in other BuddyPress components, or just don't use it,
  * but you should try to if you can (it makes a big difference). :)
  */
+
+function bp_bible_add_bible_nav_item() {
+	?>
+	<li<?php if ( bp_is_page( BP_BIBLE_SLUG ) ) : ?> class="selected"<?php endif; ?>>
+		<a href="<?php echo get_option('home') ?>/<?php echo BP_BIBLE_SLUG ?>" title="<?php _e( 'Bible', 'bp-bible' ) ?>"><?php _e( 'Bible', 'bp-bible' ) ?></a>
+	</li>
+	<?php
+}
+add_action('bp_nav_items', 'bp_bible_add_bible_nav_item');
+
+// The following two functions will force the active member theme for
+// bible pages, even though they are technically under the root "home" blog
+// from a WordPress point of view.
+
+// TODO2: See how BP 1.1 changes this
+
+/*function bp_bible_force_buddypress_theme( $template ) {
+	global $bp;
+
+	if ( $bp->current_component != $bp->bible->slug )
+		return $template;
+
+	$member_theme = get_site_option('active-member-theme');
+
+	if ( empty($member_theme) )
+		$member_theme = 'bpmember';
+
+	add_filter( 'theme_root', 'bp_core_filter_buddypress_theme_root' );
+	add_filter( 'theme_root_uri', 'bp_core_filter_buddypress_theme_root_uri' );
+
+	return $member_theme;
+}
+add_filter( 'template', 'bp_bible_force_buddypress_theme' );
+
+function bp_bible_force_buddypress_stylesheet( $stylesheet ) {
+	global $bp;
+
+	if ( $bp->current_component != $bp->bible->slug )
+		return $stylesheet;
+
+	$member_theme = get_site_option('active-member-theme');
+
+	if ( empty( $member_theme ) )
+		$member_theme = 'bpmember';
+
+	add_filter( 'theme_root', 'bp_core_filter_buddypress_theme_root' );
+	add_filter( 'theme_root_uri', 'bp_core_filter_buddypress_theme_root_uri' );
+
+	return $member_theme;
+}
+add_filter( 'stylesheet', 'bp_bible_force_buddypress_stylesheet', 1, 1 );
+*/
+
 
 ?>

@@ -36,6 +36,7 @@ define(BFOX_VERSION, '0.4.9');
 
 define(BFOX_FILE, __FILE__);
 define(BFOX_DIR, dirname(__FILE__));
+define(BFOX_MU_URL, WPMU_PLUGIN_URL . '/biblefox/');
 define(BFOX_URL, WP_PLUGIN_URL . '/bp-bible');
 
 define(BFOX_DOMAIN, 'biblefox');

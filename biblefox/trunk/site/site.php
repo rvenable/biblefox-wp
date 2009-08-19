@@ -193,7 +193,7 @@ class BiblefoxSite {
 		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
 		add_filter('wp_mail_from_name', 'BiblefoxSite::wp_mail_from_name');
 		wp_deregister_style('login');
-		BfoxUtility::register_style('login', 'site/login.css');
+		wp_register_style('login', BFOX_MU_URL . '/site/login.css');
 
 		/*
 		 * Dashboard widgets

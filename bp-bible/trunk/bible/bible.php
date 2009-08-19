@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_BIBLE_DIR, dirname(__FILE__));
+if (!defined(BFOX_BIBLE_DIR)) define(BFOX_BIBLE_DIR, dirname(__FILE__));
 
 require_once BFOX_BIBLE_DIR . '/commentaries.php';
 require_once BFOX_BIBLE_DIR . '/history.php';
