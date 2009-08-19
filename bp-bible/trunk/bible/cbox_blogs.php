@@ -17,8 +17,7 @@ class BfoxCboxBlogs extends BfoxCbox {
 	 */
 	private function output_posts(BfoxRefs $refs, $user_id = NULL) {
 
-		require_once BFOX_BIBLE_DIR . '/widgets.php';
-		$widget = new BfoxFriendsPostsWidget();
+		$widget = new BP_Bible_FriendsPosts_Widget();
 		$widget->widget(array('refs' => $refs), array());
 
 		return;

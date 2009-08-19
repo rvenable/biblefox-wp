@@ -21,9 +21,10 @@ define(BFOX_BIBLE_DIR, BP_BIBLE_DIR . '/bible');
 define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/plans');
 
 require_once BFOX_BLOG_DIR . '/blog.php';
+require_once BFOX_PLANS_DIR . '/plans.php';
 require_once BFOX_PLANS_DIR . '/bp-plans.php';
-require_once BFOX_BIBLE_DIR . '/widgets.php';
 require_once BFOX_BIBLE_DIR . '/passage.php';
+require_once BFOX_BIBLE_DIR . '/history.php';
 
 /*************************************************************************************************************
  --- SKELETON COMPONENT V1.2.2 ---
@@ -102,7 +103,7 @@ require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-cssjs.php' );
 require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-templatetags.php' );
 
 /* The widgets file should contain code to create and register widgets for the component */
-//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-widgets.php' );
+require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-widgets.php' );
 
 /* The notifications file should contain functions to send email notifications on specific user actions */
 //require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-notifications.php' );

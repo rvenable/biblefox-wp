@@ -87,9 +87,9 @@
 				<?php endif ?>
 
 				<!-- Passage Widgets -->
-				<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage2')): ?>
+				<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-bottom')): ?>
 				<div class="widget-error">
-					<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage"><?php _e('Add Widgets') ?></a>
+					<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-bottom"><?php _e('Add Widgets') ?></a>
 				</div>
 				<?php endif; ?>
 
@@ -102,9 +102,9 @@
 
 	<!-- Passage Sidebar Widgets -->
 	<div id="sidebar">
-		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-sidebar2')): ?>
+		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-side')): ?>
 		<div class="widget-error">
-			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-sidebar"><?php _e('Add Widgets') ?></a>
+			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-side"><?php _e('Add Widgets') ?></a>
 		</div>
 		<?php endif; ?>
 	</div>

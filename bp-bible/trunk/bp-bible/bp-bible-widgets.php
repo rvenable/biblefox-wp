@@ -1,21 +1,6 @@
 <?php
 
-class BfoxBibleWidget extends WP_Widget {
-
-	/**
-	 * @var BfoxRefs
-	 */
-	private $refs;
-
-	public function __construct($id_base = false, $name, $widget_options = array(), $control_options = array()) {
-		$this->refs = new BfoxRefs('genesis 1');
-
-
-		parent::__construct($id_base, $name, $widget_options, $control_options);
-	}
-}
-
-class BfoxFriendsPostsWidget extends BfoxBibleWidget {
+class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 
 	public function __construct() {
 		parent::__construct(false, 'Bible - Friends\' Posts Widget');
@@ -112,7 +97,7 @@ class BfoxFriendsPostsWidget extends BfoxBibleWidget {
 	}
 }
 
-class BfoxUserHistoryWidget extends WP_Widget {
+class BP_Bible_History_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(false, __('User Bible History'));
 	}
@@ -213,7 +198,7 @@ class BfoxUserHistoryWidget extends WP_Widget {
     }
 }
 
-class BfoxBibleTocWidget extends WP_Widget {
+class BP_Bible_Toc_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(false, __('Bible Table of Contents'));
 	}
@@ -258,7 +243,7 @@ class BfoxBibleTocWidget extends WP_Widget {
     }
 }
 
-class BfoxBiblePassageWidget extends WP_Widget {
+class BP_Bible_Passage_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(false, __('Bible Passage'));
 	}
@@ -319,15 +304,121 @@ class BfoxBiblePassageWidget extends WP_Widget {
     }
 }
 
-function bfox_bible_widgets_init() {
-	register_widget('BfoxUserHistoryWidget');
-	register_widget('BfoxBibleTocWidget');
+class BP_Bible_CurrentReadings_Widget extends WP_Widget {
+	public function __construct() {
+		parent::__construct(false, __('Current Bible Readings'));
+	}
+
+	public static function get_plans() {
+		global $user_ID;
+
+		$plans = array();
+
+		$plans = BfoxPlans::get_plans(array(), $user_ID, BfoxPlans::user_type_user, 'is_finished=0');
+
+		$earliest = '';
+		foreach($plans as $plan) {
+			$start_time = $plan->start_date();
+			if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
+		}
+
+		if (!empty($earliest)) {
+			$history_array = BfoxHistory::get_history(0, $earliest, NULL, TRUE);
+			foreach ($plans as &$plan) $plan->set_history($history_array);
+		}
+
+		return $plans;
+	}
+
+	public function widget($args, $instance) {
+		extract($args);
+
+		if (empty($instance['title'])) $instance['title'] = __('My Current Readings');
+
+		echo $before_widget . $before_title . $instance['title'] . $after_title;
+		global $user_ID;
+
+		$plans = array();
+		if (!empty($user_ID)) {
+			$plans = self::get_plans();
+
+			if (empty($plans)) $content = __('<p>You are not subscribed to any reading plans.</p>');
+			else {
+				$list = new BfoxHtmlList();
+
+				foreach ($plans as $plan) if ($plan->is_current()) {
+					// Show any unread readings before the current reading
+					// And any readings between the current reading and the first unread reading after it
+					foreach ($plan->readings as $reading_id => $reading) {
+						$unread = $plan->get_unread($reading);
+						$is_unread = $unread->is_valid();
+
+						// If the passage is unread or current, add it
+						if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
+							$ref_str = $plan->readings[$reading_id]->get_string($instance['ref_name']);
+							$url = Biblefox::ref_url($ref_str);
+
+							if (!$is_unread) $finished = " class='finished'";
+							else $finished = '';
+
+							$list->add(BfoxUtility::nice_date($plan->time($reading_id)) . ": <a href='$url'$finished>$ref_str</a>", '', $plan->date($reading_id));
+						}
+						// Break after the first unread reading > current_reading
+						if ($is_unread && ($reading_id > $plan->current_reading_id)) break;
+					}
+				}
+
+				$content = $list->content(TRUE, 0, $instance['number']);
+			}
+
+			$content .= "<p><a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>" . __('Edit Reading Plans') . "</a></p>";
+		}
+		else $content = "<p>" . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
+
+		echo $content . $after_widget;
+	}
+
+	public function update($new_instance, $old_instance) {
+		$instance = $old_instance;
+		$instance['title'] = strip_tags($new_instance['title']);
+		$instance['number'] = (int) $new_instance['number'];
+		$instance['ref_name'] = $new_instance['ref_name'];
+
+		return $instance;
+	}
+
+	public function form($instance) {
+		$title = esc_attr($instance['title']);
+		if ( !$number = (int) $instance['number'] )
+			$number = 0;
+		?>
+		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+		<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></p>
+
+		<p><label for="<?php echo $this->get_field_id('number'); ?>"><?php _e('Number of readings to show:'); ?></label>
+		<input id="<?php echo $this->get_field_id('number'); ?>" name="<?php echo $this->get_field_name('number'); ?>" type="text" value="<?php echo $number; ?>" size="3" /></p>
+
+		<p>
+			<label for="<?php echo $this->get_field_id('ref_name'); ?>"><?php _e( 'Bible References:' ); ?></label>
+			<select name="<?php echo $this->get_field_name('ref_name'); ?>" id="<?php echo $this->get_field_id('ref_name'); ?>" class="widefat">
+				<option value="<?php echo BibleMeta::name_normal ?>"<?php selected( $instance['ref_name'], BibleMeta::name_normal ); ?>><?php _e('Normal'); ?></option>
+				<option value="<?php echo BibleMeta::name_short ?>"<?php selected( $instance['ref_name'], BibleMeta::name_short ); ?>><?php _e('Short'); ?></option>
+			</select>
+		</p>
+		<?php
+    }
 }
 
-function bfox_bible_register_sidebars() {
+function bp_bible_widgets_init() {
+	register_widget('BP_Bible_History_Widget');
+	register_widget('BP_Bible_Toc_Widget');
+	register_widget('BP_Bible_CurrentReadings_Widget');
+}
+
+function bp_bible_register_sidebars() {
 	register_sidebars(1,
 		array(
-			'name' => 'bible-passage-sidebar',
+			'name' => 'bible-passage-side',
 			'before_widget' => '<div id="%1$s" class="widget %2$s">',
 	        'after_widget' => '</div>',
 	        'before_title' => '<h2 class="widgettitle">',
@@ -336,7 +427,7 @@ function bfox_bible_register_sidebars() {
 	);
 	register_sidebars(1,
 		array(
-			'name' => 'bible-passage',
+			'name' => 'bible-passage-bottom',
 			'before_widget' => '<div id="%1$s" class="widget %2$s">',
 	        'after_widget' => '</div>',
 	        'before_title' => '<h2 class="widgettitle">',
@@ -345,8 +436,8 @@ function bfox_bible_register_sidebars() {
 	);
 }
 
-add_action('widgets_init', 'bfox_bible_widgets_init');
-add_action('init', 'bfox_bible_register_sidebars');
+add_action('widgets_init', 'bp_bible_widgets_init');
+add_action('init', 'bp_bible_register_sidebars');
 
 
 ?>
