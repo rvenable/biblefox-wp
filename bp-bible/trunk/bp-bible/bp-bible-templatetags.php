@@ -67,7 +67,7 @@ class BP_Bible_Template {
 	 */
 	var $event;
 
-	function bp_bible_template( $user_id, $type, $per_page, $max, BfoxRefs $refs, BfoxTrans $translation, BfoxHistoryEvent $event ) {
+	function bp_bible_template( $user_id, $type, $per_page, $max, BfoxBible $bible ) {
 		global $bp;
 
 		if ( !$user_id )
@@ -87,9 +87,9 @@ class BP_Bible_Template {
 		$this->pag_num = isset( $_GET['num'] ) ? intval( $_GET['num'] ) : $per_page;
 		$this->user_id = $user_id;
 
-		$this->refs = $refs;
-		$this->translation = $translation;
-		$this->event = $event;
+		$this->refs = $bible->refs;
+		$this->translation = $bible->translation;
+		$this->event = $bible->history_event;
 
 		/***
 		 * You can use the "type" variable to fetch different things to output.
@@ -229,7 +229,7 @@ class BP_Bible_Template {
 }
 
 function bp_bible_has_passages( $args = '' ) {
-	global $bp, $passages_template, $bp_bible_refs, $bp_bible_trans, $bp_bible_history_event;
+	global $bp, $passages_template, $bp_bible;
 
 	/***
 	 * This function should accept arguments passes as a string, just the same
@@ -258,7 +258,7 @@ function bp_bible_has_passages( $args = '' ) {
 	$r = wp_parse_args( $args, $defaults );
 	extract( $r, EXTR_SKIP );
 
-	$passages_template = new BP_Bible_Template( $user_id, $type, $per_page, $max, $bp_bible_refs, $bp_bible_trans, $bp_bible_history_event );
+	$passages_template = new BP_Bible_Template( $user_id, $type, $per_page, $max, $bp_bible );
 
 	return $passages_template->has_passages();
 }
@@ -334,5 +334,48 @@ function bp_bible_mark_read_link($unread_text = '', $read_text = '') {
 	global $passages_template;
 	return $passages_template->event->toggle_link($unread_text, $read_text);
 }
+
+function bp_bible_url($ref_str = '', $search_str = '') {
+	global $bp;
+	$url = $bp->root_domain . '/' . $bp->bible->slug . '/';
+	if (!empty($ref_str)) $url .= urlencode($ref_str) . '/';
+	$url .= $search_str;
+
+	return $url;
+}
+
+function bp_bible_bible_url(BfoxBible $bible) {
+	return bp_bible_url($bible->refs->get_string(), $bible->search_str);
+}
+
+function bp_bible_translation_select($select_id = NULL, $use_short = FALSE) {
+	// Get the list of enabled translations
+	$translations = BfoxTrans::get_enabled();
+
+	$select = "<select name='" . BfoxQuery::var_translation . "'>";
+	foreach ($translations as $translation) {
+		$name =  ($use_short) ? $translation->short_name : $translation->long_name;
+		$selected = ($translation->id == $select_id) ? ' selected ' : '';
+		$select .= "<option value='$translation->id'$selected>$name</option>";
+	}
+	$select .= "</select>";
+
+	return $select;
+}
+
+function bp_bible_search_form($form) {
+	global $bp_bible;
+	$form = "
+		<div id='bfox_search'>
+			<form action='" . BfoxQuery::ref_url() . "' method='get' id='search-form'>
+				" . bp_bible_translation_select($bp_bible->translation->id) . "
+				<input type='text' id='search-terms' name='search-terms' value='" . $bp_bible->search_query . "' />
+				<input type='submit' name='search-submit' id='search-submit' value='" . __('Search Bible', 'bp-bible') . "' />
+			</form>
+		</div>
+	";
+	return $form;
+}
+add_filter( 'bp_search_form', 'bp_bible_search_form' );
 
 ?>

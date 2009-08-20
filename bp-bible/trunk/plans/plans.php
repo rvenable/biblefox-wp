@@ -574,7 +574,7 @@ class BfoxPlans {
 		}
 	}
 
-	public static function get_plans($plan_ids, $owner_id = 0, $owner_type = self::user_type_user, $args = '') {
+	public static function get_plans($plan_ids, $owner_id = 0, $owner_type = self::user_type_user, $args = array()) {
 		global $wpdb;
 
 		extract($args);

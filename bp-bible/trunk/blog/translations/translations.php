@@ -134,24 +134,6 @@ class BfoxTrans {
 		}
 		return $translations;
 	}
-
-	/**
-	 * Outputs an html select input with a list of translations
-	 *
-	 * @param translation_id $select_id
-	 */
-	public static function output_select($select_id = NULL, $use_short = FALSE) {
-		// Get the list of enabled translations
-		$translations = self::get_enabled();
-
-		?>
-		<select name="<?php echo BfoxQuery::var_translation ?>">
-		<?php foreach ($translations as $translation): ?>
-			<option value="<?php echo $translation->id ?>" <?php if ($translation->id == $select_id) echo 'selected' ?>><?php echo ($use_short) ? $translation->short_name : $translation->long_name; ?></option>
-		<?php endforeach; ?>
-		</select>
-		<?php
-	}
 }
 
 ?>

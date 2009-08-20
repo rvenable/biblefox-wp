@@ -69,11 +69,12 @@ class BfoxQuery {
 	}
 
 	public static function search_url($search_text, $ref_str = '', $args = array()) {
-		$args[self::var_page] = self::page_search;
-		$args[self::var_search] = $search_text;
-		if (!empty($ref_str)) $args[self::var_reference] = $ref_str;
+		global $bp;
+		$url = $bp->root_domain . '/' . $bp->bible->slug . '/';
+		if (!empty($ref_str)) $url .= urlencode($ref_str) . '/';
+		$url .= $search_text;
 
-		return self::url($args);
+		return $url;
 	}
 
 	public static function ref_url($ref_str = '', $trans_str = '', $args = array()) {

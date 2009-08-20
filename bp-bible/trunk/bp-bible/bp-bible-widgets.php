@@ -498,7 +498,7 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 
 		$plans = array();
 
-		$plans = BfoxPlans::get_plans(array(), $user_ID, BfoxPlans::user_type_user, 'is_finished=0');
+		$plans = BfoxPlans::get_plans(array(), $user_ID, BfoxPlans::user_type_user, array('is_finished' => 0));
 
 		$earliest = '';
 		foreach($plans as $plan) {

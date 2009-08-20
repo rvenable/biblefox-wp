@@ -22,7 +22,41 @@ class BfoxBible {
 
 	private $page;
 
-	public function __construct($query_str = '') {
+	public $refs;
+	public $translation;
+	public $search_str;
+	public $history_event;
+	public $search_query;
+
+	public function __construct(BfoxRefs $refs, BfoxTrans $translation, $search_str = '') {
+		$this->refs = $refs;
+		$this->translation = $translation;
+		$this->search_str = $search_str;
+
+		if (empty($search_str)) {
+			// Get the last viewed passage
+			$history = BfoxHistory::get_history(1);
+			$last_viewed = reset($history);
+
+			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
+			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
+				BfoxHistory::view_passage($refs);
+				$history = BfoxHistory::get_history(1);
+				$last_viewed = reset($history);
+			}
+
+			$this->history_event = $last_viewed;
+			$this->search_query = $this->refs->get_string(BibleMeta::name_short);
+		}
+		else {
+			$this->search_query = $search_str;
+
+			// TODO3 (HACK): The strtolower is because bible groups need to be lowercase for some reason
+			if ($this->refs->is_valid()) $this->search_query .= ' in:' . strtolower($this->refs->get_string(BibleMeta::name_short));
+		}
+	}
+
+	public function old__construct($query_str = '') {
 		global $user_ID;
 
 		$redirect = FALSE;

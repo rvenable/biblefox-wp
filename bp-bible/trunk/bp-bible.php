@@ -25,6 +25,7 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 require_once BFOX_PLANS_DIR . '/bp-plans.php';
 require_once BFOX_BIBLE_DIR . '/passage.php';
 require_once BFOX_BIBLE_DIR . '/history.php';
+require_once BFOX_BIBLE_DIR . '/bible.php';
 
 /*************************************************************************************************************
  --- SKELETON COMPONENT V1.2.2 ---
@@ -242,7 +243,7 @@ function bp_bible_setup_nav() {
 		'screen-two',
 		__( 'Screen Two', 'bp-bible' ),
 		$bible_link,
-		'bp_bible_screen_two',
+		'bp_bible_screen_search',
 		false, /* We don't need to set a custom css ID for this sub nav item */
 		bp_is_home() /* We DO want to restrict only the logged in user to this sub nav item */
 	);
@@ -272,49 +273,116 @@ function bp_bible_directory_setup() {
 		$bp->is_directory = true;
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
+		$redirect = FALSE;
 
-		// Get the refs from the current action
-		$input_refs = new BfoxRefs(urldecode($bp->current_action));
-
-		// Get the last viewed passage
-		$history = BfoxHistory::get_history(1);
-		$last_viewed = reset($history);
-
-		// If we are toggling is_read, then we should do it now, and redirect without the parameter
-		if (!empty($_GET[BfoxQuery::var_toggle_read])) {
-			BfoxHistory::toggle_is_read($_GET[BfoxQuery::var_toggle_read]);
-			if ($input_refs->is_valid()) bp_core_redirect(Biblefox::ref_url($input_refs->get_string()));
+		// Get any passed in translations, save them, and redirect without them
+		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
+			BiblefoxMainBlog::set_trans_id($_REQUEST[BfoxQuery::var_translation]);
+			$redirect = TRUE;
 		}
 
-		if ($input_refs->is_valid()) {
-			// Limit the refs to 20 chapters
-			list($refs) = $input_refs->get_sections(20, 1);
-
-			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
-			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
-				BfoxHistory::view_passage($refs);
-				$history = BfoxHistory::get_history(1);
-				$last_viewed = reset($history);
-			}
-
-			global $bp_bible_refs, $bp_bible_trans, $bp_bible_history_event;
-			$bp_bible_refs = $refs;
-			$bp_bible_trans = new BfoxTrans(1);
-			$bp_bible_history_event = $last_viewed;
-
-			bp_bible_screen_passage();
-			//BiblefoxMainBlog::set_search_str($this->refs->get_string(BibleMeta::name_short));
+		// Get the refs and search from the URL
+		if (!empty($_REQUEST['search-terms'])) {
+			$ref_str = $bp->current_action;
+			$search_str = trim($_REQUEST['search-terms']);
+			$redirect = TRUE;
 		}
 		else {
-			// If we don't have a valid bible ref, we should use the history
-			if (!empty($last_viewed)) $refs = $last_viewed->refs;
+			$ref_str = '';
+			$search_str = implode('/', $bp->action_variables);
+			if (empty($search_str)) $search_str = $bp->current_action;
+			else $ref_str = $bp->current_action;
+		}
 
-			if ($refs->is_valid()) bp_core_redirect(Biblefox::ref_url($refs->get_string()));
-			else bp_core_redirect(Biblefox::ref_url('Genesis 1'));
+		$search_str = urldecode($search_str);
+		$ref_str = urldecode($ref_str);
+
+		// If we don't have a ref_str try to get one from the search_str
+		if (empty($ref_str)) {
+			list($ref_str, $search_str) = bp_bible_extract_search_refs($search_str);
+			// If we found a ref_str and search_str, redirect with the correct URL
+			if (!empty($ref_str) && !empty($search_str)) $redirect = TRUE;
+		}
+
+		if (empty($search_str)) {
+			$input_refs = new BfoxRefs($ref_str);
+
+			// If we are toggling is_read, then we should do it now, and redirect without the parameter
+			if (!empty($_GET[BfoxQuery::var_toggle_read])) {
+				BfoxHistory::toggle_is_read($_GET[BfoxQuery::var_toggle_read]);
+				if ($input_refs->is_valid()) $redirect = TRUE;
+			}
+
+			if ($input_refs->is_valid()) {
+				// Limit the refs to 20 chapters
+				list($refs) = $input_refs->get_sections(20, 1);
+			}
+			else {
+				// Get the last viewed passage
+				$history = BfoxHistory::get_history(1);
+				$last_viewed = reset($history);
+
+				// If we don't have a valid bible ref, we should use the history
+				if (!empty($last_viewed)) $refs = $last_viewed->refs;
+				// If we don't have history, use Gen 1
+				if (!$refs->is_valid()) $refs = new BfoxRefs('Gen 1');
+
+				$redirect = TRUE;
+			}
+		}
+		else {
+			$refs = BfoxRefParser::with_groups($ref_str);
+		}
+
+		global $bp_bible;
+		$bp_bible = new BfoxBible($refs, new BfoxTrans(BiblefoxMainBlog::get_trans_id()), $search_str);
+
+		// If we need to redirect, do it
+		// Otherwise, load the appropriate page
+		if ($redirect) bp_core_redirect(bp_bible_bible_url($bp_bible));
+		else {
+			global $user_ID;
+			update_user_option($user_ID, 'bp_bible_last_search', $bible->search_query);
+
+			if (empty($bp_bible->search_str)) bp_bible_screen_passage();
+			else bp_bible_screen_search();
 		}
 	}
 }
 add_action( 'wp', 'bp_bible_directory_setup', 2 );
+
+function bp_bible_extract_search_refs($search_str) {
+
+	// First try to extract refs using the 'in:' keyword
+	list($new_search, $ref_str) = preg_split('/\s*in\s*:\s*/i', $search_str, 2);
+	if (!empty($ref_str)) {
+		$new_search = trim($new_search);
+		$ref_str = trim($ref_str);
+
+		if (empty($new_search)) {
+			$refs = BfoxRefParser::with_groups($ref_str);
+			if ($refs->is_valid()) $ref_str = $refs->get_string();
+		}
+		else $search_str = $new_search;
+	}
+	// If there was no 'in:' keyword...
+	else {
+		// Parse out any references in the string, using level 2, no whole books, and save the leftovers
+		$refs = new BfoxRefs;
+		$data = new BfoxRefParserData($refs, 2, FALSE, FALSE, TRUE);
+		BfoxRefParser::parse_string($search_str, $data);
+
+		// If we found bible references
+		if ($refs->is_valid()) {
+			$ref_str = $refs->get_string();
+
+			// The leftovers become the new search string
+			$search_str = trim($data->leftovers);
+		}
+	}
+
+	return array($ref_str, $search_str);
+}
 
 function bp_bible_hack_scripts() {
 	bp_bible_add_js();
@@ -484,11 +552,11 @@ function bp_bible_screen_passage_header() {
 	}
 
 /**
- * bp_bible_screen_two()
+ * bp_bible_screen_search()
  *
  * Sets up and displays the screen output for the sub nav item "bible/screen-two"
  */
-function bp_bible_screen_two() {
+function bp_bible_screen_search() {
 	global $bp;
 
 	/**
@@ -533,25 +601,29 @@ function bp_bible_screen_two() {
 	 * If the user has not Accepted or Rejected anything, then the code above will not run,
 	 * we can continue and load the template.
 	 */
-	do_action( 'bp_bible_screen_two' );
+	do_action( 'bp_bible_screen_search' );
 
-	add_action( 'bp_template_content_header', 'bp_bible_screen_two_header' );
-	add_action( 'bp_template_title', 'bp_bible_screen_two_title' );
-	add_action( 'bp_template_content', 'bp_bible_screen_two_content' );
+	add_action( 'bp_template_content_header', 'bp_bible_screen_search_header' );
+	add_action( 'bp_template_title', 'bp_bible_screen_search_title' );
+	add_action( 'bp_template_content', 'bp_bible_screen_search_content' );
 
 	/* Finally load the plugin template file. */
 	bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
 }
 
-	function bp_bible_screen_two_header() {
+	function bp_bible_screen_search_header() {
 		_e( 'Screen Two Header', 'bp-bible' );
 	}
 
-	function bp_bible_screen_two_title() {
+	function bp_bible_screen_search_title() {
 		_e( 'Screen Two', 'bp-bible' );
 	}
 
-	function bp_bible_screen_two_content() {
+	function bp_bible_screen_search_content() {
+		include BFOX_BIBLE_DIR . '/templates/search.php';
+	}
+
+	function bp_bible_screen_search_content_old() {
 		global $bp; ?>
 
 		<?php do_action( 'template_notices' ) ?>
@@ -1190,6 +1262,4 @@ function bp_bible_force_buddypress_stylesheet( $stylesheet ) {
 }
 add_filter( 'stylesheet', 'bp_bible_force_buddypress_stylesheet', 1, 1 );
 */
-
-
 ?>
