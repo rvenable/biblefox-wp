@@ -555,7 +555,7 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 				$content = $list->content(TRUE, 0, $instance['number']);
 			}
 
-			$content .= "<p><a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>" . __('Edit Reading Plans') . "</a></p>";
+			$content .= "<p><a href='" . BfoxBpPlans::plan_url() . "'>" . __('Edit Reading Plans') . "</a></p>";
 		}
 		else $content = "<p>" . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
 

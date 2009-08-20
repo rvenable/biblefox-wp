@@ -10,6 +10,7 @@ class BiblefoxMainBlog {
 
 	public static function init() {
 		if (!empty($_COOKIE[self::cookie_translation])) self::$trans_id = $_COOKIE[self::cookie_translation];
+		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
 		add_action('signup_header', 'BiblefoxMainBlog::signup_header');
 		add_shortcode('donate', 'BiblefoxMainBlog::donate_shortcode');

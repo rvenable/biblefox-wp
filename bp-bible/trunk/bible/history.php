@@ -23,7 +23,7 @@ class BfoxHistoryEvent {
 	}
 
 	public function toggle_url() {
-		return add_query_arg(BfoxQuery::var_toggle_read, urlencode($this->db_time), BfoxQuery::page_url(BfoxQuery::page_passage));
+		return add_query_arg(BfoxQuery::var_toggle_read, urlencode($this->db_time), BfoxQuery::ref_url(''));
 	}
 
 	public function toggle_link($unread_text = '', $read_text = '') {
@@ -42,9 +42,11 @@ class BfoxHistoryEvent {
 		return Biblefox::ref_link($this->refs->get_string($name), '', '', ($this->is_read ? "class='finished'" : ''));
 	}
 
-	public function desc() {
-		if ($this->is_read) return __('Read');
-		else return __('Viewed');
+	public function desc($date_str = '') {
+		if (!empty($date_str)) $date_str = date($date_str, $this->time);
+
+		if ($this->is_read) return __('Read') . $date_str;
+		else return __('Viewed') . $date_str;
 	}
 }
 

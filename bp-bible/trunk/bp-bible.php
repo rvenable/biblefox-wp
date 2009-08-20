@@ -268,12 +268,50 @@ add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
 function bp_bible_directory_setup() {
 	global $bp;
 
-	if ( $bp->current_component == $bp->bible->slug && empty( $bp->current_action ) ) {
+	if ( $bp->current_component == $bp->bible->slug /*&& empty( $bp->current_action )*/ ) {
 		$bp->is_directory = true;
 
-		//$bp_bible = new BfoxBible();
+		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
-		bp_bible_screen_passage();
+		// Get the refs from the current action
+		$input_refs = new BfoxRefs(urldecode($bp->current_action));
+
+		// Get the last viewed passage
+		$history = BfoxHistory::get_history(1);
+		$last_viewed = reset($history);
+
+		// If we are toggling is_read, then we should do it now, and redirect without the parameter
+		if (!empty($_GET[BfoxQuery::var_toggle_read])) {
+			BfoxHistory::toggle_is_read($_GET[BfoxQuery::var_toggle_read]);
+			if ($input_refs->is_valid()) bp_core_redirect(Biblefox::ref_url($input_refs->get_string()));
+		}
+
+		if ($input_refs->is_valid()) {
+			// Limit the refs to 20 chapters
+			list($refs) = $input_refs->get_sections(20, 1);
+
+			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
+			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
+				BfoxHistory::view_passage($refs);
+				$history = BfoxHistory::get_history(1);
+				$last_viewed = reset($history);
+			}
+
+			global $bp_bible_refs, $bp_bible_trans, $bp_bible_history_event;
+			$bp_bible_refs = $refs;
+			$bp_bible_trans = new BfoxTrans(1);
+			$bp_bible_history_event = $last_viewed;
+
+			bp_bible_screen_passage();
+			//BiblefoxMainBlog::set_search_str($this->refs->get_string(BibleMeta::name_short));
+		}
+		else {
+			// If we don't have a valid bible ref, we should use the history
+			if (!empty($last_viewed)) $refs = $last_viewed->refs;
+
+			if ($refs->is_valid()) bp_core_redirect(Biblefox::ref_url($refs->get_string()));
+			else bp_core_redirect(Biblefox::ref_url('Genesis 1'));
+		}
 	}
 }
 add_action( 'wp', 'bp_bible_directory_setup', 2 );
@@ -410,11 +448,11 @@ function bp_bible_screen_passage_header() {
 	}
 
 	function bp_bible_screen_passage_content() {
-		global $bp;
+		include BFOX_BIBLE_DIR . '/templates/passage.php';
+	}
 
-		require_once BFOX_BIBLE_DIR . '/bible.php';
-		$bible = new BfoxBible('gen 2; john 3');
-		$bible->page();
+	function bp_bible_screen_passage_content_old() {
+		global $bp;
 
 		$high_fives = bp_bible_get_highfives_for_user( $bp->displayed_user->id );
 
@@ -426,8 +464,6 @@ function bp_bible_screen_passage_header() {
 		$send_link = wp_nonce_url( $bp->displayed_user->domain . $bp->current_component . '/passage/send-h5', 'bp_bible_send_high_five' );
 	?>
 		<?php do_action( 'template_notices' ) // (error/success feedback) ?>
-
-		<?php include BFOX_BIBLE_DIR . '/templates/passage.php' ?>
 
 		<h3><?php _e( 'Welcome to Screen One', 'bp-bible' ) ?></h3>
 		<p><?php printf( __( 'Send %s a <a href="%s" title="Send high-five!">high-five!</a>', 'bp-bible' ), $bp->displayed_user->fullname, $send_link ) ?></p>

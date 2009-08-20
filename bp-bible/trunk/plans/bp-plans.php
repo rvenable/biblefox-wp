@@ -26,8 +26,7 @@ class BfoxBpPlans {
 		bp_core_add_subnav_item(self::slug, 'create-plan', __('Create a Plan'), self::$plans_url, 'bfox_bp_screen_create_plan', false, bp_is_home() );
 
 		if (self::slug == $bp->current_component) {
-			require_once BFOX_PLANS_DIR . '/plans.php';
-			$_REQUEST[BfoxQuery::var_page] = BfoxQuery::page_plans;
+			Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
 			if (self::$plan_id = BfoxPlans::slug_exists($bp->current_action, $bp->displayed_user->id, BfoxPlans::user_type_user)) {
 				$plans_link = self::$plans_url . $bp->current_action . '/';
@@ -59,9 +58,10 @@ class BfoxBpPlans {
 	const page_create_plan = 'create-plan';
 	const page_edit_plan = 'edit-plan';
 
-	public static function plan_url(BfoxReadingPlan $plan, $action = '') {
+	public static function plan_url(BfoxReadingPlan $plan = NULL, $action = '') {
 		global $bp;
-		return bp_core_get_user_domain($plan->owner_id) . self::slug . '/' . $plan->slug . '/' . $action;
+		if (!is_null($plan)) return bp_core_get_user_domain($plan->owner_id) . self::slug . '/' . $plan->slug . '/' . $action;
+		else return $bp->loggedin_user->domain . self::slug . '/' . $action;
 	}
 
 	public static function plan_link(BfoxReadingPlan $plan, $action = '', $title = '') {
@@ -70,7 +70,7 @@ class BfoxBpPlans {
 	}
 
 	public static function create_plan_link() {
-		echo '<a href="' . $bp->loggedin_user->domain . self::slug . '/create-plan">' . __('Create a Reading Plan', 'buddypress') . '</a>';
+		echo '<a href="' . self::plan_url(NULL, self::page_create_plan) . '">' . __('Create a Reading Plan', 'buddypress') . '</a>';
 	}
 
 	public static function plan_chart(BfoxReadingPlan $plan, $max_cols = 3) {

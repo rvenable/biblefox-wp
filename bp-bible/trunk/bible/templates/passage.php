@@ -57,7 +57,7 @@
 				<!-- Bible Header -->
 				<div class='bible_page_head'>
 					<?php _e('Bible Reader') ?> - <?php echo bp_bible_the_ref_str() ?><br/>
-					<small><?php //echo $bible->mark_read_link() ?></small>
+					<small><?php echo bp_bible_history_desc(' \a\t g:i a') ?>: <?php echo bp_bible_mark_read_link() ?></small>
 				</div>
 
 				<!-- Passages -->

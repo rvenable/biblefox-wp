@@ -77,10 +77,11 @@ class BfoxQuery {
 	}
 
 	public static function ref_url($ref_str = '', $trans_str = '', $args = array()) {
-		$args[self::var_page] = self::page_passage;
-		$args[self::var_reference] = $ref_str;
-		if (!empty($trans_str)) $args[self::var_translation] = $trans_str;
-		return self::url($args);
+		global $bp;
+		$url = $bp->root_domain . '/' . $bp->bible->slug . '/' . urlencode($ref_str);
+		if (!empty($trans_str)) $url = add_query_arg('trans', urlencode($trans_str), $url);
+
+		return $url;
 	}
 
 	public static function reading_plan_url($plan_id, $editor_url = '') {

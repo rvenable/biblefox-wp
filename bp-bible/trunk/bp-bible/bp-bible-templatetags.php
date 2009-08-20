@@ -62,7 +62,12 @@ class BP_Bible_Template {
 	private $visible = '';
 	private $footnotes = array();
 
-	function bp_bible_template( $user_id, $type, $per_page, $max, BfoxRefs $refs, BfoxTrans $translation ) {
+	/**
+	 * @var BfoxHistoryEvent
+	 */
+	var $event;
+
+	function bp_bible_template( $user_id, $type, $per_page, $max, BfoxRefs $refs, BfoxTrans $translation, BfoxHistoryEvent $event ) {
 		global $bp;
 
 		if ( !$user_id )
@@ -84,6 +89,7 @@ class BP_Bible_Template {
 
 		$this->refs = $refs;
 		$this->translation = $translation;
+		$this->event = $event;
 
 		/***
 		 * You can use the "type" variable to fetch different things to output.
@@ -204,7 +210,7 @@ class BP_Bible_Template {
 	function ref_nav_link($type = '', $name = '', $title = '', $attrs = '') {
 		if ($this->in_the_loop) $ref_str = $this->passage->nav_ref($type, $name);
 
-		if (!empty($ref_str)) return Biblefox::ref_link($ref_str, $title, '', $attrs);
+		if (!empty($ref_str)) return Biblefox::ref_link($ref_str, $title, '', " class='ref_seq_$type'");
 		else return '';
 	}
 
@@ -223,7 +229,7 @@ class BP_Bible_Template {
 }
 
 function bp_bible_has_passages( $args = '' ) {
-	global $bp, $passages_template, $page_passage_refs, $page_passage_trans;
+	global $bp, $passages_template, $bp_bible_refs, $bp_bible_trans, $bp_bible_history_event;
 
 	/***
 	 * This function should accept arguments passes as a string, just the same
@@ -252,7 +258,7 @@ function bp_bible_has_passages( $args = '' ) {
 	$r = wp_parse_args( $args, $defaults );
 	extract( $r, EXTR_SKIP );
 
-	$passages_template = new BP_Bible_Template( $user_id, $type, $per_page, $max, $page_passage_refs, $page_passage_trans );
+	$passages_template = new BP_Bible_Template( $user_id, $type, $per_page, $max, $bp_bible_refs, $bp_bible_trans, $bp_bible_history_event );
 
 	return $passages_template->has_passages();
 }
@@ -319,5 +325,14 @@ function bp_bible_the_footnotes() {
 	return $passages_template->the_footnotes();
 }
 
+function bp_bible_history_desc($date_str = '') {
+	global $passages_template;
+	return $passages_template->event->desc($date_str);
+}
+
+function bp_bible_mark_read_link($unread_text = '', $read_text = '') {
+	global $passages_template;
+	return $passages_template->event->toggle_link($unread_text, $read_text);
+}
 
 ?>
