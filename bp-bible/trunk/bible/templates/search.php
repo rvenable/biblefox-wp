@@ -58,10 +58,9 @@ if (!empty($page_prev) || !empty($page_next)) $page_links = "Page $page_prev<spa
 
 ?>
 
-<div id="content" class="narrowcolumn">
 
-	<div id="bible" class="">
-		<div id="bible_page">
+<div id="bible" class="">
+	<div id="bible_page">
 		<div id="bible_search">
 			<div id="search_header">
 				<h3>Match All Words - <?php echo $search->description ?></h3>
@@ -91,16 +90,5 @@ if (!empty($page_prev) || !empty($page_next)) $page_links = "Page $page_prev<spa
 			<div id="search_footer">
 			</div>
 		</div>
-		</div>
 	</div>
 </div>
-
-
-	<!-- Passage Sidebar Widgets -->
-	<div id="sidebar">
-		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-search-side')): ?>
-		<div class="widget-error">
-			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-side"><?php _e('Add Widgets') ?></a>
-		</div>
-		<?php endif; ?>
-	</div>
