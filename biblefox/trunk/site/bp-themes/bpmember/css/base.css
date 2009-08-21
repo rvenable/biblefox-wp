@@ -70,15 +70,15 @@ input#submit, p.submit input {
 
 #header {
 	position: relative;
-	padding: 2.2em 1.7em 1.8em 1.7em;
+	padding: 0.5em 1.7em 1.8em 1.7em;
 	background: #fff;
 }
 	#header h1 a {
 		text-indent: -999em;
-		background: url(../images/logo.gif) top left no-repeat;
+		background: url(../../../mu-plugins/biblefox/site/theme/logo-login.png) top left no-repeat;
 		overflow: hidden;
-		width: 214px;
-		height: 35px;
+		width: 310px;
+		height: 70px;
 		display: block;
 	}
 

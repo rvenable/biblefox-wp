@@ -79,21 +79,21 @@ a.selected { color: #555; text-decoration: none; }
 /*** HEADER **********/
 
 #header {
-	padding: 25px 20px;
+	padding: 6px 20px 24px 20px;
 }
 	#header h1 a {
 		text-indent: -999em;
-		background: url(../images/logo.gif) top left no-repeat;
+		background: url(../../../mu-plugins/biblefox/site/theme/logo-login.png) top left no-repeat;
 		overflow: hidden;
-		width: 214px;
-		height: 35px;
+		width: 310px;
+		height: 70px;
 		display: block;
 		float: left;
 	}
 	
 	#header ul {
 		float: right;
-		margin: 7px 0 0 0;
+		margin: 42px 0 0 0;
 	}
 		#header ul li {
 			float: left;
