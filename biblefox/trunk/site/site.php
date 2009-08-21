@@ -208,6 +208,11 @@ class BiblefoxSite {
 		add_filter('dashboard_secondary_link', create_function('', 'return "http://biblefox.com/category/featured/";'));
 		add_filter('dashboard_secondary_feed', create_function('', 'return "http://biblefox.com/category/featured/feed/";'));
 		add_filter('dashboard_secondary_title', create_function('', 'return "Featured Posts";'));
+
+		// Adjust BuddyPres Admin Bar
+		$new_logo = BFOX_MU_URL . 'site/logo-text-admin-bar.png';
+		add_filter('bp_admin_bar_logo_src', create_function('', "return '$new_logo';"));
+		add_filter('bp_admin_bar_logo_alt_text', create_function('', "return 'Biblefox.com';"));
 	}
 }
 add_action('init', 'BiblefoxSite::init');

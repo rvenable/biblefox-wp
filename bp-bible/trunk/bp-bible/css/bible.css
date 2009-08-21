@@ -313,26 +313,39 @@ Scripture Layout
 	display: block;
 }
 
-#bible .ref_seq_prev, #bible .ref_seq_next {
-	font-size: 0.5em;
+#bible-passages .post h3 {
+	text-align: center;
+	padding: 0 0;
+	margin: 0;
+}
+
+.passage-nav {
+	position: relative;
+	top: -10px;
+}
+
+.ref_seq_prev, .ref_seq_next {
+	font-size: 0.8em;
 	margin-top: 1em;
 }
 
-#bible .ref_seq_prev {
-	text-align: left;
-	float: left;
+.ref_seq_prev {
+	position: absolute;
+	top: 0px;
+	left: 0px;
 }
 
-#bible .ref_seq_next {
-	text-align: right;
-	float: right;
+.ref_seq_next {
+	position: absolute;
+	top: 0px;
+	right: 0px;
 }
 
-#bible .ref_seq_prev:before {
+.ref_seq_prev:before {
 	content: "\00AB \0020";
 }
 
-#bible .ref_seq_next:after {
+.ref_seq_next:after {
 	content: "\0020 \00BB";
 }
 
@@ -340,17 +353,27 @@ Scripture Layout
 	padding: 0.5em;
 }
 
-#bible .chapter_head {
+#bible-passages {
+	position: relative;
+}
+
+.passages_info {
+	position: absolute;
+	top: 0;
+	right: 1em;
+	font-size: 0.8em;
+}
+
+.chapter_head {
 	font-size: 1.8em;
 	float: left;
-	margin: 0 0.2em 0 0;
-	padding: 0;
+	margin: 0.2em 0.2em 0 0;
+	padding: 0.2em 0.1em;
 	min-width: 1.5em;
+	height: 1.1em;
 	text-align: center;
 	font-weight: bold;
 	background-color: #EEEEEE;
-	-moz-border-radius: 6px;
-	border: 1px solid #DDD;
 }
 
 #bible .sequence {

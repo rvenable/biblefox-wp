@@ -327,12 +327,12 @@ function bp_bible_the_footnotes() {
 
 function bp_bible_history_desc($date_str = '') {
 	global $passages_template;
-	return $passages_template->event->desc($date_str);
+	if (!empty($passages_template->event)) return $passages_template->event->desc($date_str);
 }
 
 function bp_bible_mark_read_link($unread_text = '', $read_text = '') {
 	global $passages_template;
-	return $passages_template->event->toggle_link($unread_text, $read_text);
+	if (!empty($passages_template->event)) return $passages_template->event->toggle_link($unread_text, $read_text);
 }
 
 function bp_bible_url($ref_str = '', $search_str = '') {
@@ -352,7 +352,7 @@ function bp_bible_translation_select($select_id = NULL, $use_short = FALSE) {
 	// Get the list of enabled translations
 	$translations = BfoxTrans::get_enabled();
 
-	$select = "<select name='" . BfoxQuery::var_translation . "'>";
+	$select = "<select name='" . BfoxQuery::var_translation . "' id='search-which' style='width: auto'>";
 	foreach ($translations as $translation) {
 		$name =  ($use_short) ? $translation->short_name : $translation->long_name;
 		$selected = ($translation->id == $select_id) ? ' selected ' : '';
@@ -365,14 +365,13 @@ function bp_bible_translation_select($select_id = NULL, $use_short = FALSE) {
 
 function bp_bible_search_form($form) {
 	global $bp_bible;
+
 	$form = "
-		<div id='bfox_search'>
-			<form action='" . BfoxQuery::ref_url() . "' method='get' id='search-form'>
-				" . bp_bible_translation_select($bp_bible->translation->id) . "
-				<input type='text' id='search-terms' name='search-terms' value='" . $bp_bible->search_query . "' />
-				<input type='submit' name='search-submit' id='search-submit' value='" . __('Search Bible', 'bp-bible') . "' />
-			</form>
-		</div>
+		<form action='" . BfoxQuery::ref_url() . "' method='get' id='search-form'>
+			" . bp_bible_translation_select($bp_bible->translation->id) . "
+			<input type='text' id='search-terms' name='search-terms' value='" . $bp_bible->search_query . "' />
+			<input type='submit' name='search-submit' id='search-submit' value='" . __('Search Bible', 'bp-bible') . "' />
+		</form>
 	";
 	return $form;
 }

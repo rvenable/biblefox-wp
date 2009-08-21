@@ -15,9 +15,9 @@ function bp_bible_add_js() {
 	global $bp;
 
 	if ( $bp->current_component == $bp->bible->slug ) {
-		wp_enqueue_script( 'bp-bible-jquery', BP_BIBLE_URL . '/bible/jquery/js/jquery-1.3.2.min.js', 'bp-general-js' );
+		//wp_enqueue_script( 'bp-bible-jquery', BP_BIBLE_URL . '/bible/jquery/js/jquery-1.3.2.min.js', 'bp-general-js' );
 		wp_enqueue_script( 'bp-bible-jquery-cookie', BP_BIBLE_URL . '/bible/jquery.cookie.js' );
-		wp_enqueue_script( 'bp-bible-jquery-ui', BP_BIBLE_URL . '/bible/jquery/js/jquery-ui-1.7.2.custom.min.js' );
+		//wp_enqueue_script( 'bp-bible-jquery-ui', BP_BIBLE_URL . '/bible/jquery/js/jquery-ui-1.7.2.custom.min.js' );
 		wp_enqueue_script( 'bp-bible-js', BP_BIBLE_URL . '/bp-bible/js/bible.js' );
 	}
 }
@@ -37,6 +37,7 @@ function bp_bible_add_structure_css() {
 
 	if ( $bp->current_component == $bp->bible->slug ) {
 		wp_enqueue_style( 'bp-bible', BP_BIBLE_URL . '/bp-bible/css/bible.css' );
+		wp_enqueue_style( 'bp-bible-scripture', BP_BIBLE_URL . '/blog/scripture.css' );
 		wp_enqueue_style( 'bp-bible-jquery-ui', BP_BIBLE_URL . '/bible/jquery/css/overcast/jquery-ui-1.7.2.custom.css' );
 		wp_enqueue_style( 'bp-bible-search', BP_BIBLE_URL . '/bp-bible/css/search.css' );
 	}

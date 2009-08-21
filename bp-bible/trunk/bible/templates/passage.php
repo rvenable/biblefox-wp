@@ -48,56 +48,44 @@
 ?>
 <div id="content" class="narrowcolumn">
 
-	<div id="bible" class="">
-		<div id="bible_page">
-		<?php if (bp_bible_has_passages()) : ?>
-			<?php //echo bfox_reader_tools_tab(bp_bible_the_refs()) ?>
-			<div class='ref_content'>
+<?php if (bp_bible_has_passages()) : ?>
+	<div class="widget" id="bible-passages">
+		<h2 class="widgettitle"><?php _e('Bible Passages') ?>: <?php echo bp_bible_the_ref_str() ?></h2>
+		<div class="passages_info"><?php echo bp_bible_history_desc(' \a\t g:i a') ?>: <?php echo bp_bible_mark_read_link() ?></div>
 
-				<!-- Bible Header -->
-				<div class='bible_page_head'>
-					<?php _e('Bible Reader') ?> - <?php echo bp_bible_the_ref_str() ?><br/>
-					<small><?php echo bp_bible_history_desc(' \a\t g:i a') ?>: <?php echo bp_bible_mark_read_link() ?></small>
-				</div>
-
-				<!-- Passages -->
-				<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>
-				<div class='ref_seq'>
-					<div class='ref_seq_head'>
-						<span class='ref_seq_title'><?php echo bp_bible_ref_link('prev') . bp_bible_ref_link('next') . bp_bible_the_ref_str() ?></span>
-					</div>
-					<div class='ref_seq_body'>
-						<?php echo bp_bible_the_passage_content() ?>
-					</div>
-				</div>
-				<?php endwhile; ?>
-
-				<!-- Footnotes -->
-				<?php if ($footnotes = bp_bible_the_footnotes()): ?>
-				<div class='ref_seq'>
-					<div class='ref_seq_head'><?php _e('Footnotes') ?></div>
-					<div class='ref_seq_body'>
-						<ul>
-						<?php foreach ($footnotes as $footnote): ?>
-							<li><?php echo $footnote ?></li>
-						<?php endforeach ?>
-						</ul>
-					</div>
-				</div>
-				<?php endif ?>
-
-				<!-- Passage Widgets -->
-				<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-bottom')): ?>
-				<div class="widget-error">
-					<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-bottom"><?php _e('Add Widgets') ?></a>
-				</div>
-				<?php endif; ?>
-
+		<!-- Passages -->
+		<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>
+		<div class='post'>
+			<div class='passage-nav'><?php echo bp_bible_ref_link('prev') . bp_bible_ref_link('next') ?></div>
+			<h3><?php echo bp_bible_the_ref_str() ?></h3>
+			<div class='entry'>
+				<?php echo bp_bible_the_passage_content() ?>
 			</div>
-			<div class="clear"></div>
-		<?php endif ?>
 		</div>
+		<?php endwhile; ?>
+
+		<!-- Footnotes -->
+		<?php if ($footnotes = bp_bible_the_footnotes()): ?>
+		<div class='post'>
+			<h3><?php _e('Footnotes') ?></h3>
+			<div class='entry'>
+				<ul>
+				<?php foreach ($footnotes as $footnote): ?>
+					<li><?php echo $footnote ?></li>
+				<?php endforeach ?>
+				</ul>
+			</div>
+		</div>
+		<?php endif ?>
+
+		<!-- Passage Widgets -->
+		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-bottom')): ?>
+		<div class="widget-error">
+			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-bottom"><?php _e('Add Widgets') ?></a>
+		</div>
+		<?php endif; ?>
 	</div>
+<?php endif ?>
 </div>
 
 	<!-- Passage Sidebar Widgets -->

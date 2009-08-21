@@ -324,6 +324,8 @@ function bp_bible_directory_setup() {
 
 				// If we don't have a valid bible ref, we should use the history
 				if (!empty($last_viewed)) $refs = $last_viewed->refs;
+				else $refs = new BfoxRefs();
+
 				// If we don't have history, use Gen 1
 				if (!$refs->is_valid()) $refs = new BfoxRefs('Gen 1');
 
@@ -481,7 +483,7 @@ function bp_bible_screen_passage() {
 	 add_action( 'bp_template_content_header', 'bp_bible_screen_passage_header' );
 	 add_action( 'bp_template_title', 'bp_bible_screen_passage_title' );
 	 add_action( 'bp_template_content', 'bp_bible_screen_passage_content' );
-	 add_action('wp_head', 'bp_bible_screen_passage_wp_head');
+	 //add_action('wp_head', 'bp_bible_screen_passage_wp_head');
 
 	/* Finally load the plugin template file. */
 	bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
