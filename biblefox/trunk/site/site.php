@@ -215,6 +215,18 @@ class BiblefoxSite {
 		add_filter('bp_admin_bar_logo_alt_text', create_function('', "return 'Biblefox.com';"));
 	}
 }
+
+function bfox_hide_widgets() {
+	if (!is_main_blog()) {
+		remove_action('plugins_loaded', 'bp_core_register_widgets');
+		remove_action('plugins_loaded', 'bp_blogs_register_widgets');
+		remove_action('plugins_loaded', 'bp_activity_register_widgets');
+		remove_action('plugins_loaded', 'groups_register_widgets');
+		remove_action('widgets_init', 'bp_bible_widgets_init');
+	}
+}
+
+add_action('muplugins_loaded', 'bfox_hide_widgets');
 add_action('init', 'BiblefoxSite::init');
 add_filter('wpabar_defaults', 'BiblefoxSite::wpabar_defaults');
 
