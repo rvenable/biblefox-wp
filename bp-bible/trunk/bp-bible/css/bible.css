@@ -737,3 +737,49 @@ Form Table
 .form-table label {
 	cursor: pointer;
 }
+
+
+/*
+Bible Sidebar
+*/
+	
+.passagecolumn {
+	width: 50%;
+	float: left;
+	margin: 0;
+}
+
+.passagecolumn h2.widgettitle {
+	background: url(../../../../themes/bphome/images/leftcol_header_back.gif) top left no-repeat;
+}
+	
+#bible-sidebar h2.widgettitle {
+	background: url(../../../../themes/bphome/images/rightcol_header_back.gif) top left no-repeat;
+	color: #fff;
+}
+
+#bible-sidebar .widget ul {
+	padding-left: 15px;
+}
+
+#bible-sidebar .widget ul.item-list {
+	padding: 0;
+}
+
+#bible-sidebar .widget li {
+	list-style-type: square;
+	margin-left: 16px;
+	padding-left: 5px;
+	margin-bottom: 5px;
+}
+
+#bible-sidebar .widget ul.item-list li {
+	list-style-type: none;
+	margin: 0;
+	padding: 15px;
+}
+
+#bible-sidebar {
+	margin-left: 55%;
+	margin-right: 10px;
+}

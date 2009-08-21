@@ -46,7 +46,7 @@
 
 //get_header();
 ?>
-<div id="content" class="narrowcolumn">
+<div id="content" class="passagecolumn">
 
 <?php if (bp_bible_has_passages()) : ?>
 	<div class="widget" id="bible-passages">
@@ -89,7 +89,7 @@
 </div>
 
 	<!-- Passage Sidebar Widgets -->
-	<div id="sidebar">
+	<div id="bible-sidebar">
 		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-side')): ?>
 		<div class="widget-error">
 			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-side"><?php _e('Add Widgets') ?></a>
