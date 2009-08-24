@@ -17,6 +17,12 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 		// If no user, use the current user
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
+		if (empty($user_id)) {
+			$content = "<p>" . __('Biblefox is designed to be a <b>study bible written by your friends</b>. ') . BiblefoxSite::loginout() . __(' to read what your friends are writing about the Bible.') . '</p>';// . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
+			echo $content . $after_widget;
+			return;
+		}
+
 		$friends_url = bp_core_get_user_domain($user_id) . 'friends/my-friends/all-friends';
 
 		?>
@@ -305,7 +311,11 @@ class BP_Bible_History_Widget extends WP_Widget {
 
 		global $user_ID;
 
-		if (empty($user_ID)) $content = "<p>" . BiblefoxSite::loginout() . __(' to track the Bible passages you read.</p>');
+		if (empty($user_ID)) {
+			$content = "<p>" . __('Biblefox can keep track of all the Bible passages you read.
+				If you\'re already a member, ') . BiblefoxSite::loginout() . __(' to track this passage and see your recent history.
+				If you\'re not a member, ') . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
+		}
 		else {
 			$history = BfoxHistory::get_history($instance['number'], 0, $refs);
 
@@ -526,9 +536,12 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 		if (!empty($user_ID)) {
 			$plans = self::get_plans();
 
-			if (empty($plans)) $content = __('<p>You are not subscribed to any reading plans.</p>');
-			else {
-				$list = new BfoxHtmlList();
+			$max_readings = $instance['number'];
+			if (1 > $max_readings) $max_readings = 10;
+
+			if (empty($plans)) {
+				$dates = array();
+				$lis = array();
 
 				foreach ($plans as $plan) if ($plan->is_current()) {
 					// Show any unread readings before the current reading
@@ -545,19 +558,29 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 							if (!$is_unread) $finished = " class='finished'";
 							else $finished = '';
 
-							$list->add(BfoxUtility::nice_date($plan->time($reading_id)) . ": <a href='$url'$finished>$ref_str</a>", '', $plan->date($reading_id));
+							$lis []= BfoxUtility::nice_date($plan->time($reading_id)) . ": <a href='$url'$finished>$ref_str</a>";
+							$dates []= $plan->date($reading_id);
 						}
 						// Break after the first unread reading > current_reading
-						if ($is_unread && ($reading_id > $plan->current_reading_id)) break;
+						//if ($is_unread && ($reading_id > $plan->current_reading_id)) break;
 					}
 				}
 
-				$content = $list->content(TRUE, 0, $instance['number']);
+				array_multisort($dates, $lis);
+				$readings = array_slice($lis, 0, $max_readings);
 			}
 
+			if (!empty($readings)) {
+				$content = '<ul>';
+				foreach ($readings as $reading) $content .= "<li>$reading</li>\n";
+				$content .= '</ul>';
+			}
+			else {
+				$content = __('<p>You do not have any current readings.</p>');
+			}
 			$content .= "<p><a href='" . BfoxBpPlans::plan_url() . "'>" . __('Edit Reading Plans') . "</a></p>";
 		}
-		else $content = "<p>" . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
+		else $content = "<p>" . __('With Biblefox, you can create a Bible Reading plan to organize how you read the Bible. ') . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
 
 		echo $content . $after_widget;
 	}
