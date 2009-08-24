@@ -77,10 +77,8 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 				}
 				else {
 					printf(__('None of your friends have written any posts about %s.
-					You can %s.
-					You can also find more friends using the %s.'),
+					You can write your own post. You can also find more friends using the %s.'),
 					$refs->get_string(),
-					"<a href='$write_url'>" . __('write your own post') . "</a>",
 					"<a href='$mem_dir_url'>" . __('members directory') . "</a>");
 				}
 			}
@@ -100,6 +98,102 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 		<?php
 		echo $after_widget;
 	}
+}
+
+class BP_Bible_WritePost_Widget extends WP_Widget {
+	public function __construct() {
+		parent::__construct(false, __('Bible: Write a Post'));
+	}
+
+	public function widget($args, $instance) {
+		extract($args);
+
+		if (empty($instance['title'])) $instance['title'] = __('Share your thoughts about %s');
+
+		$refs = bp_bible_the_refs();
+		$ref_str = $refs->get_string();
+		$instance['title'] = sprintf($instance['title'], $ref_str);
+
+		echo $before_widget . $before_title . $instance['title'] . $after_title;
+
+		global $user_ID, $bp;
+		if (!empty($user_ID)) {
+			$blogs = get_blogs_of_user($user_ID);
+
+			$links = array();
+
+			foreach ($blogs as $blog) {
+				$role = get_blog_role_for_user($user_ID, $blog->userblog_id);
+				if ($role && ('Subscriber' != $role)) {
+					$links []= "<li><a href='" . BfoxBlog::ref_write_url($ref_str, $blog->siteurl) . "'>$blog->blogname</a></li>";
+				}
+			}
+			$create_url = $bp->loggedin_user->domain . $bp->blogs->slug . '/create-a-blog';
+		}
+		else $create_url = bp_signup_page(false);
+
+
+		if (!empty($links)) {
+			$content = "<p>You can write a blog post about $ref_str on these blogs:</p><ul>";
+			foreach ($links as $link) $content .= $link;
+			$content .= '</ul>';
+			$content .= '<p><a href="' . $create_url . '">' . __('Create a new blog') . '</a></p>';
+		}
+		else {
+			$content = '<p>You don\'t belong to any blogs that you can add a post to.
+				That\'s okay because you can easily <a href="' . $create_url . '">' . __('create a new blog') . '</a>.</p>';
+		}
+
+		echo $content . $after_widget;
+	}
+
+	public function update($new_instance, $old_instance) {
+		$instance = $old_instance;
+		$instance['title'] = strip_tags($new_instance['title']);
+		$instance['number'] = (int) $new_instance['number'];
+		$instance['ref_name'] = $new_instance['ref_name'];
+		$instance['style'] = $new_instance['style'];
+		$instance['type'] = $new_instance['type'];
+
+		return $instance;
+	}
+
+	public function form($instance) {
+		$title = esc_attr($instance['title']);
+		if ( !$number = (int) $instance['number'] )
+			$number = 10;
+		?>
+		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+		<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></p>
+
+		<p><label for="<?php echo $this->get_field_id('number'); ?>"><?php _e('Number to show:'); ?></label>
+		<input id="<?php echo $this->get_field_id('number'); ?>" name="<?php echo $this->get_field_name('number'); ?>" type="text" value="<?php echo $number; ?>" size="3" /></p>
+
+		<p>
+			<label for="<?php echo $this->get_field_id('ref_name'); ?>"><?php _e( 'Bible References:' ); ?></label>
+			<select name="<?php echo $this->get_field_name('ref_name'); ?>" id="<?php echo $this->get_field_id('ref_name'); ?>" class="widefat">
+				<option value="<?php echo BibleMeta::name_normal ?>"<?php selected( $instance['ref_name'], BibleMeta::name_normal ); ?>><?php _e('Normal'); ?></option>
+				<option value="<?php echo BibleMeta::name_short ?>"<?php selected( $instance['ref_name'], BibleMeta::name_short ); ?>><?php _e('Short'); ?></option>
+			</select>
+		</p>
+
+		<p>
+			<label for="<?php echo $this->get_field_id('style'); ?>"><?php _e( 'Display Style:' ); ?></label>
+			<select name="<?php echo $this->get_field_name('style'); ?>" id="<?php echo $this->get_field_id('style'); ?>" class="widefat">
+				<option value="list"<?php selected( $instance['style'], 'list' ); ?>><?php _e('List'); ?></option>
+				<option value="table"<?php selected( $instance['style'], 'table' ); ?>><?php _e('Table'); ?></option>
+			</select>
+		</p>
+
+		<p>
+			<label for="<?php echo $this->get_field_id('type'); ?>"><?php _e( 'History Type:' ); ?></label>
+			<select name="<?php echo $this->get_field_name('type'); ?>" id="<?php echo $this->get_field_id('type'); ?>" class="widefat">
+				<option value="all"<?php selected( $instance['type'], 'all' ); ?>><?php _e('All History'); ?></option>
+				<option value="passage"<?php selected( $instance['type'], 'passage' ); ?>><?php _e('Passage History'); ?></option>
+			</select>
+		</p>
+		<?php
+    }
 }
 
 class BP_Bible_Notes_Widget extends WP_Widget {
@@ -724,6 +818,7 @@ function bp_bible_widgets_init() {
 	register_widget('BP_Bible_FriendsPosts_Widget');
 	register_widget('BP_Bible_Notes_Widget');
 	register_widget('BP_Bible_Options_Widget');
+	register_widget('BP_Bible_WritePost_Widget');
 }
 
 function bp_bible_register_sidebars() {
