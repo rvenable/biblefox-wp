@@ -633,7 +633,7 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 			$max_readings = $instance['number'];
 			if (1 > $max_readings) $max_readings = 10;
 
-			if (empty($plans)) {
+			if (!empty($plans)) {
 				$dates = array();
 				$lis = array();
 
