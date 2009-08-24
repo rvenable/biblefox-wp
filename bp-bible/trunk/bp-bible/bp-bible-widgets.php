@@ -399,6 +399,7 @@ class BP_Bible_History_Widget extends WP_Widget {
 			if (empty($instance['title'])) $instance['title'] = __('My Bible History');
 		}
 
+		$max = (int) $instance['number'];
 		if (1 > $max) $max = 10;
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
@@ -411,7 +412,7 @@ class BP_Bible_History_Widget extends WP_Widget {
 				If you\'re not a member, ') . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
 		}
 		else {
-			$history = BfoxHistory::get_history($instance['number'], 0, $refs);
+			$history = BfoxHistory::get_history($max, 0, $refs);
 
 			if ('table' == $instance['style']) {
 				$table = new BfoxHtmlTable("class='widefat'");
@@ -630,8 +631,8 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 		if (!empty($user_ID)) {
 			$plans = self::get_plans();
 
-			$max_readings = $instance['number'];
-			if (1 > $max_readings) $max_readings = 10;
+			$max_readings = (int) $instance['number'];
+			if (1 > $max_readings) $max_readings = 5;
 
 			if (!empty($plans)) {
 				$dates = array();
