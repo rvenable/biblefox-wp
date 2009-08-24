@@ -77,7 +77,7 @@ class Biblefox {
 
 	private static $default_ref_url = '';
 
-	public static function init() {
+/*	public static function init() {
 		global $current_site;
 
 		$old_ver = get_site_option(self::option_version);
@@ -91,7 +91,7 @@ class Biblefox {
 
 		// Register all the global scripts and styles
 		BfoxUtility::register_style('bfox_scripture', 'blog/scripture.css');
-	}
+	}*/
 
 	public static function set_default_ref_url($ref_url) {
 		self::$default_ref_url = $ref_url;
@@ -113,6 +113,6 @@ class Biblefox {
 
 }
 
-add_action('init', 'Biblefox::init');
+//add_action('init', 'Biblefox::init');
 
 ?>

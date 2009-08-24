@@ -188,8 +188,8 @@ class BiblefoxSite {
 		global $blog_id;
 		if (1 == $blog_id/*is_main_blog()*/) require_once BFOX_SITE_DIR . '/main_blog.php';
 
-		add_filter('query_vars', 'BiblefoxSite::query_vars');
-		add_action('parse_request', 'BiblefoxSite::parse_request');
+		//add_filter('query_vars', 'BiblefoxSite::query_vars');
+		//add_action('parse_request', 'BiblefoxSite::parse_request');
 		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
 		add_filter('wp_mail_from_name', 'BiblefoxSite::wp_mail_from_name');
 		wp_deregister_style('login');
