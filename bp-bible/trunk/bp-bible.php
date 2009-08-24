@@ -263,8 +263,8 @@ function bp_bible_setup_nav() {
 		}
 	}
 }
-add_action( 'wp', 'bp_bible_setup_nav', 2 );
-add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
+//add_action( 'wp', 'bp_bible_setup_nav', 2 );
+//add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
 
 function bp_bible_directory_setup() {
 	global $bp;
@@ -751,7 +751,7 @@ function bp_bible_screen_notification_settings() {
 	</table>
 <?php
 }
-add_action( 'bp_notification_settings', 'bp_bible_screen_notification_settings' );
+//add_action( 'bp_notification_settings', 'bp_bible_screen_notification_settings' );
 
 /**
  * bp_bible_record_activity()
