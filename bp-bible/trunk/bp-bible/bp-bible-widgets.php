@@ -25,11 +25,6 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 
 		$friends_url = bp_core_get_user_domain($user_id) . 'friends/my-friends/all-friends';
 
-		?>
-		<div class="cbox_sub">
-			<div class='cbox_body'>
-		<?php
-
 		$total_post_count = 0;
 
 		$friend_ids = array();
@@ -62,11 +57,11 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 					while(!empty($post_ids) && $query->have_posts()) :?>
 						<?php $query->the_post() ?>
 						<div class="cbox_sub_sub">
-							<div class='cbox_head'><strong><?php the_title(); ?></strong> (<?php echo bfox_the_refs(BibleMeta::name_short) ?>) by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
-							<div class='cbox_body box_inside'>
+							<div class='cbox_head'><strong><?php the_title(); ?></strong> (<?php echo bfox_the_refs(BibleMeta::name_short, FALSE) ?>) by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
+							<div class='cbox_body post'>
 								<h3><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h3>
-								<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?></small>
-								<div class="post_content">
+								<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?> (<?php echo bfox_the_refs() ?>)</small>
+								<div class="entry">
 									<?php the_content('Read the rest of this entry &raquo;') ?>
 									<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
 								</div>
@@ -92,10 +87,6 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 			_e('This widget requires BuddyPress.');
 		}
 
-		?>
-			</div>
-		</div>
-		<?php
 		echo $after_widget;
 	}
 }

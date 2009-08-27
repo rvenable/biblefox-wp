@@ -280,9 +280,13 @@ function bfox_replace_content($content) {
 	return bfox_add_special_content($content, TRUE);
 }
 
-function bfox_the_refs($name = '') {
+function bfox_the_refs($name = '', $link = TRUE) {
 	global $post;
-	if (isset($post->bfox_bible_refs)) return Biblefox::ref_link($post->bfox_bible_refs->get_string($name));
+	if (isset($post->bfox_bible_refs)) {
+		$ref_str = $post->bfox_bible_refs->get_string($name);
+		if ($link) return Biblefox::ref_link($ref_str);
+		else return $ref_str;
+	}
 }
 
 function bfox_the_author($author)
