@@ -70,7 +70,8 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 					<?php endwhile;
 					restore_current_blog();
 				}
-				else {
+
+				if (empty($total_post_count)) {
 					printf(__('None of your friends have written any posts about %s.
 					You can write your own post. You can also find more friends using the %s.'),
 					$refs->get_string(),
