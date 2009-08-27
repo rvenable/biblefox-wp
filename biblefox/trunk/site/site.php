@@ -223,6 +223,7 @@ function bfox_hide_widgets() {
 		remove_action('plugins_loaded', 'bp_activity_register_widgets');
 		remove_action('plugins_loaded', 'groups_register_widgets');
 		remove_action('widgets_init', 'bp_bible_widgets_init');
+		remove_action('init', 'bp_bible_register_sidebars');
 	}
 }
 
