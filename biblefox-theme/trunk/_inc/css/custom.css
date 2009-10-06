@@ -1,0 +1,9 @@
+	#bible-sidebar h2.widgettitle {
+		background: url(../images/rightcol_header_back.gif) top left no-repeat;
+		color: #fff;
+	}
+	
+	.passagecolumn h2.widgettitle {
+		background: url(../images/leftcol_header_back.gif) top left no-repeat;
+
+	}

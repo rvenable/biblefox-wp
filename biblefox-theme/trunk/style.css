@@ -24,4 +24,4 @@ Template: bp-sn-parent
 @import url( _inc/css/screen.css );
 
 /* Uncomment the following line and add your custom styles to '_inc/css/custom.css' */
-/* @import url( _inc/css/custom.css ); */
+@import url( _inc/css/custom.css );
