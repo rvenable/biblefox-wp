@@ -1,3 +1,13 @@
+/*
+Bible Layout
+*/
+
+.passagecolumn {
+	width: 50%;
+	float: left;
+	margin: 0;
+}
+
 #bible-passages {
 	position: relative;
 }
@@ -8,6 +18,54 @@
 	margin: 0;
 }
 
+/*
+Bible Sidebar
+*/
+	
+#bible-sidebar {
+	margin-left: 55%;
+	margin-right: 10px;
+}
+
+	#bible-sidebar h2.widgettitle {
+		background: url(../images/rightcol_header_back.gif) top left no-repeat;
+		color: #fff;
+	}
+	
+	.passagecolumn h2.widgettitle {
+		background: url(../images/leftcol_header_back.gif) top left no-repeat;
+
+	}
+
+#bible-sidebar .widget ul {
+	padding-left: 15px;
+}
+
+#bible-sidebar .widget ul.item-list {
+	padding: 0;
+}
+
+#bible-sidebar .widget li {
+	list-style-type: square;
+	margin-left: 16px;
+	padding-left: 5px;
+	margin-bottom: 5px;
+}
+
+#bible-sidebar .widget ul.item-list li {
+	list-style-type: none;
+	margin: 0;
+	padding: 15px;
+}
+
+/*
+Posts Widget
+*/
+
+#bible-sidebar .post {
+	clear: none;
+}
+	
 #bible .post h3 {
 	font-size: 12px;
 	background-color: #EEEEEE;
@@ -15,6 +73,22 @@
 	border-bottom: 1px solid #DFDFDF;
 	padding: 5px;
 }
+
+.cbox_head {
+	font-size: 1em;
+	padding: 0.3em 1.4em;
+	margin: 0;
+	border-top: 0.1em solid #CCC;
+}
+
+.cbox_head:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/*
+Passage Content
+*/
 
 .passage-nav {
 	position: relative;
@@ -65,58 +139,6 @@
 	background-color: #EEEEEE;
 }
 
-
-
-/*
-Bible Sidebar
-*/
-	
-.passagecolumn {
-	width: 50%;
-	float: left;
-	margin: 0;
-}
-
-	#bible-sidebar h2.widgettitle {
-		background: url(../images/rightcol_header_back.gif) top left no-repeat;
-		color: #fff;
-	}
-	
-	.passagecolumn h2.widgettitle {
-		background: url(../images/leftcol_header_back.gif) top left no-repeat;
-
-	}
-
-#bible-sidebar .widget ul {
-	padding-left: 15px;
-}
-
-#bible-sidebar .widget ul.item-list {
-	padding: 0;
-}
-
-#bible-sidebar .widget li {
-	list-style-type: square;
-	margin-left: 16px;
-	padding-left: 5px;
-	margin-bottom: 5px;
-}
-
-#bible-sidebar .widget ul.item-list li {
-	list-style-type: none;
-	margin: 0;
-	padding: 15px;
-}
-
-#bible-sidebar {
-	margin-left: 55%;
-	margin-right: 10px;
-}
-
-#bible-sidebar .post {
-	clear: none;
-}
-	
 /*
 Table
 */
@@ -184,22 +206,3 @@ ul.flat_toc li {
 	padding: 0 0.2em;
 	list-style: none;
 }
-
-
-/*
-Friends Posts
-*/
-	
-.cbox_head {
-	font-size: 1em;
-	padding: 0.3em 1.4em;
-	margin: 0;
-	border-top: 0.1em solid #CCC;
-}
-
-.cbox_head:hover {
-	text-decoration: underline;
-	cursor: pointer;
-}
-
-	
