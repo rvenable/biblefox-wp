@@ -1,3 +1,82 @@
+#bible-passages {
+	position: relative;
+}
+
+#bible-passages .post h4 {
+	text-align: center;
+	padding: 0 0;
+	margin: 0;
+}
+
+#bible .post h3 {
+	font-size: 12px;
+	background-color: #EEEEEE;
+	margin: 0px;
+	border-bottom: 1px solid #DFDFDF;
+	padding: 5px;
+}
+
+.passage-nav {
+	position: relative;
+	top: -10px;
+}
+
+.ref_seq_prev, .ref_seq_next {
+	font-size: 0.8em;
+	margin-top: 1em;
+}
+
+.ref_seq_prev {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+.ref_seq_next {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+}
+
+.ref_seq_prev:before {
+	content: "\00AB \0020";
+}
+
+.ref_seq_next:after {
+	content: "\0020 \00BB";
+}
+
+.passages_info {
+	position: absolute;
+	top: 0;
+	right: 1em;
+	font-size: 0.8em;
+}
+
+.chapter_head {
+	font-size: 1.8em;
+	float: left;
+	margin: 0.2em 0.2em 0 0;
+	padding: 0.2em 0.1em;
+	min-width: 1.5em;
+	height: 1.1em;
+	text-align: center;
+	font-weight: bold;
+	background-color: #EEEEEE;
+}
+
+
+
+/*
+Bible Sidebar
+*/
+	
+.passagecolumn {
+	width: 50%;
+	float: left;
+	margin: 0;
+}
+
 	#bible-sidebar h2.widgettitle {
 		background: url(../images/rightcol_header_back.gif) top left no-repeat;
 		color: #fff;
@@ -7,3 +86,120 @@
 		background: url(../images/leftcol_header_back.gif) top left no-repeat;
 
 	}
+
+#bible-sidebar .widget ul {
+	padding-left: 15px;
+}
+
+#bible-sidebar .widget ul.item-list {
+	padding: 0;
+}
+
+#bible-sidebar .widget li {
+	list-style-type: square;
+	margin-left: 16px;
+	padding-left: 5px;
+	margin-bottom: 5px;
+}
+
+#bible-sidebar .widget ul.item-list li {
+	list-style-type: none;
+	margin: 0;
+	padding: 15px;
+}
+
+#bible-sidebar {
+	margin-left: 55%;
+	margin-right: 10px;
+}
+
+#bible-sidebar .post {
+	clear: none;
+}
+	
+/*
+Table
+*/
+
+.widefat {
+	-moz-border-radius: 0.5em;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-style: solid;
+	border-width: 0.1em;
+	border-color: #CCC;
+	clear: both;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	background-color: #FFF;
+}
+
+.widefat thead tr th, .widefat tfoot tr th {
+	background: #DDD;
+	color: #333;
+}
+
+.widefat td, .widefat th {
+	border-bottom-style: solid;
+	border-bottom-width: 0.1em;
+	border-color: #CCC;
+	font-size: 0.9em;
+	vertical-align: text-top;
+	margin: 0;
+	padding: 0.3em;
+}
+
+.widefat th {
+	text-shadow: 0 0.1em 0 rgba(255, 255, 255, 0.8);
+	line-height: 1.3em;
+	padding: 0.6em 0.3em;
+	text-align: left;
+}
+
+.widefat tr.even_row td {
+	background-color: #F4F4F4;
+}
+
+.widefat p {
+	margin: 0 0 0.5em 0;
+}
+
+td.noborder {
+	border: 0;
+}
+
+td.finished, a.finished {
+	text-decoration: line-through;
+}
+
+ul.flat_toc {
+	padding: 0.5em;
+	margin: 0;
+	text-align: center;
+}
+
+ul.flat_toc li {
+	display: inline;
+	padding: 0 0.2em;
+	list-style: none;
+}
+
+
+/*
+Friends Posts
+*/
+	
+.cbox_head {
+	font-size: 1em;
+	padding: 0.3em 1.4em;
+	margin: 0;
+	border-top: 0.1em solid #CCC;
+}
+
+.cbox_head:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+	

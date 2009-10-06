@@ -44,9 +44,11 @@
 		return $tool_tabs->content();
 	}
 
-//get_header();
+get_header();
+
 ?>
-<div id="content" class="passagecolumn">
+<div id="content">
+<div class="passagecolumn">
 
 <?php if (bp_bible_has_passages()) : ?>
 	<div class="widget" id="bible-passages">
@@ -57,7 +59,7 @@
 		<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>
 		<div class='post'>
 			<div class='passage-nav'><?php echo bp_bible_ref_link('prev') . bp_bible_ref_link('next') ?></div>
-			<h3><?php echo bp_bible_the_ref_str() ?></h3>
+			<h4><?php echo bp_bible_the_ref_str() ?></h4>
 			<div class='entry'>
 				<?php echo bp_bible_the_passage_content() ?>
 			</div>
@@ -67,7 +69,7 @@
 		<!-- Footnotes -->
 		<?php if ($footnotes = bp_bible_the_footnotes()): ?>
 		<div class='post'>
-			<h3><?php _e('Footnotes') ?></h3>
+			<h4><?php _e('Footnotes') ?></h4>
 			<div class='entry'>
 				<ul>
 				<?php foreach ($footnotes as $footnote): ?>
@@ -97,5 +99,7 @@
 		<?php endif; ?>
 	</div>
 
+</div>
 
-<?php //get_footer(); ?>
+
+<?php get_footer(); ?>
