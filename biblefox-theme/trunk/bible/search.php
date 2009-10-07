@@ -56,6 +56,7 @@ if ($max_page > $search->page) {
 }
 if (!empty($page_prev) || !empty($page_next)) $page_links = "Page $page_prev<span class='page_current'>{$search->page}</span>$page_next";
 
+get_header();
 ?>
 
 
@@ -92,3 +93,5 @@ if (!empty($page_prev) || !empty($page_next)) $page_links = "Page $page_prev<spa
 		</div>
 	</div>
 </div>
+
+<?php get_footer(); ?>

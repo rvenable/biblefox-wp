@@ -276,7 +276,7 @@ class BibleSearch {
 						$verse->verse = substr_replace($verse->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
 
 				$ref_str = "$chap_name:$verse->verse_id";
-				$chapter_content[$chap_name] .= "<div class='result_verse'><h4><a href='" . BfoxQuery::ref_url($ref_str) . "'>$ref_str</a></h4>$verse->verse</div>";
+				$chapter_content[$chap_name] .= "<div class='result_verse'><h5><a href='" . BfoxQuery::ref_url($ref_str) . "'>$ref_str</a></h5>$verse->verse</div>";
 			}
 
 			$content = '';
@@ -284,7 +284,7 @@ class BibleSearch {
 			{
 				$content .=
 				"<div class='result_chapter'>
-				<h3><a href='" . BfoxQuery::ref_url($chap_name) . "'>$chap_name</a></h3>
+				<h4><a href='" . BfoxQuery::ref_url($chap_name) . "'>$chap_name</a></h4>
 				$chap_content
 				</div>
 				";

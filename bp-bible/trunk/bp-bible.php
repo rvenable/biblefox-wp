@@ -519,41 +519,9 @@ function bp_bible_screen_search() {
 	 */
 	do_action( 'bp_bible_screen_search' );
 
-	add_action( 'bp_template_content_header', 'bp_bible_screen_search_header' );
-	add_action( 'bp_template_title', 'bp_bible_screen_search_title' );
-	add_action( 'bp_template_content', 'bp_bible_screen_search_content' );
-
 	/* Finally load the plugin template file. */
-	bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'plugin-template' ) );
+	bp_core_load_template( apply_filters( 'bp_bible_template_screen_search', 'bible/search' ) );
 }
-
-	function bp_bible_screen_search_header() {
-		_e( 'Screen Two Header', 'bp-bible' );
-	}
-
-	function bp_bible_screen_search_title() {
-		_e( 'Screen Two', 'bp-bible' );
-	}
-
-	function bp_bible_screen_search_content() {
-		include BFOX_BIBLE_DIR . '/templates/search.php';
-	}
-
-	function bp_bible_screen_search_content_old() {
-		global $bp; ?>
-
-		<?php do_action( 'template_notices' ) ?>
-
-		<h4><?php _e( 'Welcome to Screen Two', 'bp-bible' ) ?></h4>
-
-		<?php
-			$accept_link = '<a href="' . wp_nonce_url( $bp->loggedin_user->domain . $bp->bible->slug . '/screen-two/accept', 'bp_bible_accept_terms' ) . '">' . __( 'Accept', 'bp-bible' ) . '</a>';
-			$reject_link = '<a href="' . wp_nonce_url( $bp->loggedin_user->domain . $bp->bible->slug . '/screen-two/reject', 'bp_bible_reject_terms' ) . '">' . __( 'Reject', 'bp-bible' ) . '</a>';
-		?>
-
-		<p><?php printf( __( 'You must %s or %s the terms of use policy.', 'bp-bible' ), $accept_link, $reject_link ) ?></p>
-	<?php
-	}
 
 function bp_bible_screen_settings_menu() {
 	global $bp, $current_user, $bp_settings_updated, $pass_error;
