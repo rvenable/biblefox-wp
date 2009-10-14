@@ -606,7 +606,7 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 			$instance['max_readings'] = $instance['number'];
 			$content = bp_plan_current_readings($instance, $plans);
 			if (empty($content)) $content = __('<p>You do not have any current readings.</p>');
-			$content .= "<p><a href='" . BfoxBpPlans::plan_url() . "'>" . __('Edit Reading Plans') . "</a></p>";
+			$content .= "<p><a href='" . bp_plans_user_plans_permalink() . "'>" . __('Edit Reading Plans') . "</a></p>";
 		}
 		else $content = "<p>" . __('With Biblefox, you can create a Bible Reading plan to organize how you read the Bible. ') . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
 

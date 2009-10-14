@@ -83,17 +83,6 @@
 							<p><?php bp_word_or_name( __( "You haven't created any reading plans yet.", 'bp-plans' ), __( "%s hasn't created any reading plans yet.", 'bp-plans' ) ) ?></p>
 						</div>
 
-						<?php if ( bp_is_home() ) : //TODO: ?>
-
-							<?php do_action( 'bp_before_random_groups_list' ) ?>
-
-							<h3><?php _e( 'Why not join a few of these groups?', 'buddypress') ?></h3>
-							<?php bp_groups_random_selection() ?>
-
-							<?php do_action( 'bp_after_random_groups_list' ) ?>
-
-						<?php endif; ?>
-
 					<?php else: ?>
 
 						<div id="message" class="error">

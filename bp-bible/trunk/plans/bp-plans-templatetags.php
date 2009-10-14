@@ -481,8 +481,80 @@ function bp_is_plan_view_screen( $slug ) {
 }
 
 function bp_plan_chart(BfoxReadingPlan $plan = NULL) {
-	echo BfoxBpPlans::plan_chart(bp_get_plan($plan), $_GET['cols']);
+	echo bp_get_plan_chart($plan, $_GET['cols']);
 }
+	function bp_get_plan_chart(BfoxReadingPlan $plan = NULL, $max_cols = 0) {
+		if (empty($max_cols)) $max_cols = 3;
+
+		$plan = bp_get_plan($plan);
+
+		// If this plan is scheduled, not finished, and this is a user, not a blog, then use the history information
+		$use_history = FALSE;//($plan->is_scheduled && !$my_sub->is_finished && ($my_sub->user_type == BfoxPlans::user_type_user));
+
+		$unread_readings = array();
+		if ($use_history) {
+			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->history_start_date(), NULL, TRUE));
+			$crossed_out = '<br/>' . __('*Note: Crossed out passages indicate that you have finished reading that passage');
+		}
+
+		$sub_table = new BfoxHtmlTable("class='reading_plan_col'");
+
+		// Create the table header
+		$header = new BfoxHtmlRow();
+		$header->add_header_col('#', '');
+		if ($plan->is_scheduled) $header->add_header_col('Date', '');
+		$header->add_header_col('Passage', '');
+		//if (!empty($unread_readings)) $header->add_header_col('Unread', '');
+		$sub_table->add_header_row($header);
+
+		$total_refs = new BfoxRefs;
+
+		foreach ($plan->readings as $reading_id => $reading) {
+			$total_refs->add_refs($reading);
+
+			// Create the row for this reading
+			if ($reading_id == $plan->current_reading_id) $row = new BfoxHtmlRow("class='current'");
+			else $row = new BfoxHtmlRow();
+
+			// Add the reading index column
+			$row->add_col($reading_id + 1);
+
+			// Add the Date column
+			if ($plan->is_scheduled) $row->add_col($plan->date($reading_id, 'M d'));
+
+			// Add the bible reference column
+			$attrs = '';
+			if ($use_history) {
+				// Calculate how much of this reading is unread
+				$unread = $plan->get_unread($reading);
+
+				// If this reading is 'read', then mark it as such
+				if (!$unread->is_valid()) $attrs = "class='finished'";
+			}
+			$row->add_col(Biblefox::ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
+
+			// Add the History column
+			/*if (!empty($unread_readings)) {
+				if (isset($unread_readings[$reading_id])) $row->add_col(Biblefox::ref_link($unread_readings[$reading_id]->get_string(BibleMeta::name_short)));
+				else $row->add_col();
+			}*/
+
+			// Add the row to the table
+			$sub_table->add_row($row);
+		}
+
+		if ($plan->is_private) $is_private = ' (private)';
+
+		$table = new BfoxHtmlTable("class='reading_plan'",
+			"<b>$plan->name$is_private</b><br/>
+			<small>" . $plan->desc_html() . "<br/>
+			Schedule: " . $plan->schedule_desc() .
+			"$crossed_out</small>");
+		$table->add_row($sub_table->get_split_row($max_cols, 5));
+		$table->add_row('', 1, array("<small>Combined passages covered by this plan: " . $total_refs->get_string(BibleMeta::name_short) . "</small>", "colspan='$max_cols'"));
+
+		return $table->content();
+	}
 
 function bp_plan_current_readings($args = array(), $plans = array()) {
 	global $plans_template;

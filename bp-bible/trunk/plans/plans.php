@@ -250,53 +250,6 @@ class BfoxReadingPlan {
 		return $desc;
 	}
 
-	private function plan_url($plan_id) {
-		return BfoxQuery::reading_plan_url($plan_id);
-	}
-
-	public function plan_link($plan_id, $str) {
-		return "<a href='" . $this->plan_url($plan_id) . "'>$str</a>";
-	}
-
-	private function edit_plan_link($plan_id, $str) {
-		return "<a href='" . $this->plan_url($plan_id) . "#edit'>$str</a>";
-	}
-
-	private function plan_action_url($plan_id, $action) {
-		return $this->plan_url($plan_id) . $action;
-	}
-
-	public function plan_action_link($plan_id, $action, $str) {
-		return "<a href='" . $this->plan_action_url($plan_id, $action) . "'>$str</a>";
-	}
-
-	private function return_link($str = '') {
-		if (empty($str)) $str = __('My Reading Plan List');
-		return "<a href='$this->url'>$str</a>";
-	}
-
-	const var_action = 'plan_action';
-	const action_edit = 'edit';
-	const action_delete = 'delete';
-	const action_subscribe = 'subscribe';
-	const action_unsubscribe = 'unsubscribe';
-	const action_mark_finished = 'mark_finished';
-	const action_mark_unfinished = 'mark_unfinished';
-	const action_copy = 'copy';
-
-	public function get_plan_options() {
-		$options = array();
-
-		if ($this->is_finished) $options []= $this->plan_action_link($this->id, self::action_mark_unfinished, __('Mark as Unfinished'));
-		else $options []= $this->plan_action_link($this->id, self::action_mark_finished, __('Mark as Finished'));
-
-		$options []= $this->edit_plan_link($this->id, __('Edit'));
-		$options []= $this->plan_action_link($this->id, self::action_delete, __('Delete'));
-		$options []= $this->plan_action_link($this->id, self::action_copy, __('Copy'));
-
-		return $options;
-	}
-
 	public function time($index = 0) {
 		return $this->dates[$index];
 	}

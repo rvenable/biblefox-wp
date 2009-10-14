@@ -85,12 +85,6 @@ class BfoxQuery {
 		return $url;
 	}
 
-	public static function reading_plan_url($plan_id, $editor_url = '') {
-		global $bp;
-		//return $bp->root_domain . '/' . BfoxBpPlans::slug . '/' . $plan_id . '/';
-		return $bp->loggedin_user->domain . BfoxBpPlans::slug . '/' . $plan_id . '/';
-	}
-
 	public static function add_display_type($type, $url) {
 		return add_query_arg(self::var_display, $type, $url);
 	}
