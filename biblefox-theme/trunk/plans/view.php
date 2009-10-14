@@ -80,12 +80,14 @@
 						<?php do_action( 'bp_before_plan_readings' ); ?>
 
 						<label for="plan-readings"><?php _e( 'Readings', 'bp-plans' ) ?></label>
+						<p><?php _e('Enter the Bible passages you want to read in the box below. Each line is a reading in the reading plan.') ?></p>
 						<textarea name="plan-readings" id="plan-readings"><?php bp_plan_readings_editable() ?></textarea>
 
-						<label for="plan-chunks"><?php _e( 'Append Chunks of Scripture', 'bp-plans' ) ?></label>
+						<label for="plan-chunks"><?php _e( 'Append Chapters', 'bp-plans' ) ?></label>
+						<p><?php _e('Append additional chapters by typing them in here, then enter how many chapters you want to read per reading.', 'bp-plans') ?></p>
 						<textarea name="plan-chunks" id="plan-chunks"></textarea>
 
-						<label for="plan-chunk-size"><?php _e( 'Chunk size', 'bp-plans' ) ?></label>
+						<label for="plan-chunk-size"><?php _e( 'Chapters per reading', 'bp-plans' ) ?></label>
 						<input type="text" name="plan-chunk-size" id="plan-chunk-size" value="1" />
 						<br/>
 						<br/>

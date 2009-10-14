@@ -64,13 +64,28 @@
 			<?php if ( bp_is_plan_creation_step( 'plan-add-groups' ) ) : ?>
 
 				<?php do_action( 'bp_before_plan_add_groups_creation_step' ); ?>
+					<p><?php _e('Add some scripture by typing in the chapters you want to read, then enter how many chapters you want to read per reading.
+					A reading plan will then automatically be created for you.', 'bp-plans') ?></p>
+					<p><?php _e('You can skip this step if you want to enter the scriptures manually.', 'bp-plans') ?></p>
 
-						<label for="plan-chunks"><?php _e( 'Append Chunks of Scripture', 'bp-plans' ) ?></label>
+						<label for="plan-chunks"><?php _e( 'Add Chapters', 'bp-plans' ) ?></label>
 						<textarea name="plan-chunks" id="plan-chunks"></textarea>
 
-						<label for="plan-chunk-size"><?php _e( 'Chunk size', 'bp-plans' ) ?></label>
+						<label for="plan-chunk-size"><?php _e( 'Chapters per reading', 'bp-plans' ) ?></label>
 						<input type="text" name="plan-chunk-size" id="plan-chunk-size" value="1" />
 						<br/>
+						<br/>
+
+					<p><?php _e('For your reference, here is a list of all the books in the Bible:', 'bp-plans') ?><br/>
+					<?php
+					$names = array();
+					for ($book_id = 1; $book_id <= 66; $book_id++) {
+						$names []= BibleMeta::$books[$book_id][BibleMeta::name_short];
+					}
+					echo implode(', ', $names);
+
+					?></p>
+					<p><?php _e('(You can just copy and paste the books you want to read into the Add Chapters box)', 'bp-plans') ?></p>
 
 				<?php do_action( 'bp_after_plan_add_groups_creation_step' ); ?>
 
@@ -82,6 +97,7 @@
 			<?php if ( bp_is_plan_creation_step( 'plan-edit-readings' ) ) : ?>
 
 				<?php do_action( 'bp_before_plan_edit_readings_creation_step' ); ?>
+					<p><?php _e('Enter the Bible passages you want to read in the box below. Each line is a reading in the reading plan.') ?></p>
 
 						<label for="plan-readings"><?php _e( 'Readings', 'bp-plans' ) ?></label>
 						<textarea name="plan-readings" id="plan-readings"><?php bp_plan_readings_editable() ?></textarea>

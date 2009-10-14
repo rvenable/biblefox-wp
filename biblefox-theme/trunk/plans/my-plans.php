@@ -17,6 +17,7 @@
 		<div class="left-menu">
 			<?php //TODO: bp_plan_search_form() ?>
 
+			<?php _e('Current Readings') ?>:<br/>
 			<?php if ($readings = bp_plan_current_readings(array('max_readings' => 20))): ?>
 				<?php echo $readings ?>
 			<?php else: ?>
