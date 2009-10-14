@@ -20,6 +20,7 @@ define(BFOX_BLOG_DIR, BP_BIBLE_DIR . '/blog');
 define(BFOX_BIBLE_DIR, BP_BIBLE_DIR . '/bible');
 define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/plans');
 
+require_once BP_BIBLE_DIR . '/loop-template.php';
 require_once BFOX_BLOG_DIR . '/blog.php';
 require_once BFOX_PLANS_DIR . '/plans.php';
 require_once BFOX_PLANS_DIR . '/bp-plans.php';
@@ -214,42 +215,46 @@ function bp_bible_setup_nav() {
 	global $bp;
 
 	/* Add 'Bible' to the main navigation */
-	bp_core_add_nav_item(
-		__( 'Bible', 'bp-bible' ), /* The display name */
-		$bp->bible->slug /* The slug */
-	);
-
-	/* Set a specific sub nav item as the default when the top level item is clicked */
-	if ( $bp->displayed_user->id )
-	bp_core_add_nav_default(
-		$bp->bible->slug, /* The slug of the parent nav item */
-		'bp_bible_screen_passage', /* The function to run when clicked */
-		'passage' /* The slug of the sub nav item to make default */
-	);
+	bp_core_new_nav_item( array(
+		'name' => __( 'Bible', 'bp-bible' ),
+		'slug' => $bp->bible->slug,
+		'position' => 80,
+		'screen_function' => 'bp_bible_screen_passage',
+		'default_subnav_slug' => 'passage'
+	) );
 
 	$bible_link = $bp->loggedin_user->domain . $bp->bible->slug . '/';
 
 	/* Create two sub nav items for this component */
-	bp_core_add_subnav_item(
-		$bp->bible->slug, /* The slug of the parent */
-		'passage', /* The slug for the sub nav item */
-		__( 'Screen One', 'bp-bible' ), /* The display name for the sub nav item */
-		$bible_link, /* The URL of the parent */
-		'bp_bible_screen_passage' /* The function to run when clicked */
-	);
+	bp_core_new_subnav_item( array(
+		'name' => __( 'Screen One', 'bp-bible' ),
+		'slug' => 'passage',
+		'parent_slug' => $bp->bible->slug,
+		'parent_url' => $bible_link,
+		'screen_function' => 'bp_bible_screen_passage',
+		'position' => 10
+	) );
 
-	bp_core_add_subnav_item(
-		$bp->bible->slug,
-		'screen-two',
-		__( 'Screen Two', 'bp-bible' ),
-		$bible_link,
-		'bp_bible_screen_search',
-		false, /* We don't need to set a custom css ID for this sub nav item */
-		bp_is_home() /* We DO want to restrict only the logged in user to this sub nav item */
-	);
+	bp_core_new_subnav_item( array(
+		'name' => __( 'Screen Two', 'bp-bible' ),
+		'slug' => 'screen-two',
+		'parent_slug' => $bp->bible->slug,
+		'parent_url' => $bible_link,
+		'screen_function' => 'bp_bible_screen_search',
+		'position' => 20,
+		'user_has_access' => bp_is_home() // Only the logged in user can access this on his/her profile
+	) );
 
 	/* Add a nav item for this component under the settings nav item. See bp_bible_screen_settings_menu() for more info */
-	bp_core_add_subnav_item( 'settings', 'bible-admin', __( 'Bible', 'bp-bible' ), $bp->loggedin_user->domain . 'settings/', 'bp_bible_screen_settings_menu', false, bp_is_home() );
+	bp_core_new_subnav_item( array(
+		'name' => __( 'Bible', 'bp-bible' ),
+		'slug' => 'bible-admin',
+		'parent_slug' => $bp->settings->slug,
+		'parent_url' => $bp->loggedin_user->domain . $bp->settings->slug . '/',
+		'screen_function' => 'bp_bible_screen_settings_menu',
+		'position' => 40,
+		'user_has_access' => bp_is_home() // Only the logged in user can access this on his/her profile
+	) );
 
 	/* Only execute the following code if we are actually viewing this component (e.g. http://example.org/bible) */
 	if ( $bp->current_component == $bp->bible->slug ) {
@@ -258,7 +263,7 @@ function bp_bible_setup_nav() {
 			$bp->bp_options_title = __( 'My Bible', 'bp-bible' );
 		} else {
 			/* If the user is viewing someone elses profile area, set the title to "[user fullname]" */
-			$bp->bp_options_avatar = bp_core_get_avatar( $bp->displayed_user->id, 1 );
+			$bp->bp_options_avatar = bp_core_fetch_avatar( array( 'item_id' => $bp->displayed_user->id, 'type' => 'thumb' ) );
 			$bp->bp_options_title = $bp->displayed_user->fullname;
 		}
 	}

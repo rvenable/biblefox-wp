@@ -25,3 +25,5 @@ Template: bp-sn-parent
 
 /* Uncomment the following line and add your custom styles to '_inc/css/custom.css' */
 @import url( _inc/css/custom.css );
+
+@import url( _inc/css/plans.css );

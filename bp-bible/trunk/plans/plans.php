@@ -78,12 +78,14 @@ class BfoxReadingPlan {
 		$this->set_freq_options($db_data->frequency_options);
 	}
 
-	public function set_as_copy($new_owner_id, $new_owner_type) {
+	public function set_as_copy($new_owner_id, $new_owner_type, $old_link = '') {
 		$this->copied_from_id = $this->id;
 		$this->id = 0;
 		$this->is_finished = FALSE;
 		$this->is_template = FALSE;
-		$this->description .= "\n\nCopied from $this->name";
+		if (!empty($old_link)) $from = "<a href=\"$old_link\">$this->name</a>";
+		else $from = $this->name;
+		$this->description .= "\n\nCopied from $from";
 		$this->name = "Copy of $this->name";
 		$this->owner_id = $new_owner_id;
 		$this->owner_type = $new_owner_type;
@@ -195,8 +197,7 @@ class BfoxReadingPlan {
 		);
 	}
 
-	public function frequency_str($type = self::frequency_array_day)
-	{
+	public function frequency_str($type = self::frequency_array_day) {
 		$strings = self::frequency_array();
 		return $strings[$type][$this->frequency];
 	}
@@ -209,8 +210,7 @@ class BfoxReadingPlan {
 		);
 	}
 
-	public function days_week_str($type = self::days_week_array_short, $default_return = '')
-	{
+	public function days_week_str($type = self::days_week_array_short, $default_return = '') {
 		if (self::frequency_day == $this->frequency) {
 			if (empty($this->frequency_options) || (self::freq_options_default == $this->frequency_options)) return $default_return;
 			else {
@@ -301,15 +301,18 @@ class BfoxReadingPlan {
 		return $this->dates[$index];
 	}
 
-	public function date($index = 0, $format = self::date_format_fixed) {
+	public function date($index = 0, $format = '') {
+		if (empty($format)) $format = self::date_format_fixed;
 		return date($format, $this->dates[$index]);
 	}
 
-	public function start_date($format = self::date_format_fixed) {
+	public function start_date($format = '') {
+		if (empty($format)) $format = self::date_format_fixed;
 		return date($format, $this->start_time);
 	}
 
-	public function end_date($format = self::date_format_fixed) {
+	public function end_date($format = '') {
+		if (empty($format)) $format = self::date_format_fixed;
 		return date($format, $this->end_time);
 	}
 
@@ -457,6 +460,7 @@ class BfoxPlans {
 
 	const user_type_user = 0;
 	const user_type_blog = 1;
+	const user_type_group = 1;
 
 	public static function create_tables() {
 
@@ -494,6 +498,7 @@ class BfoxPlans {
 			PRIMARY KEY  (user_id, user_type, plan_id)");
 */	}
 
+	// TODO: I think this function can be deleted
 	public static function update_from_subs() {
 		global $wpdb;
 
@@ -574,24 +579,76 @@ class BfoxPlans {
 		}
 	}
 
-	public static function get_plans($plan_ids, $owner_id = 0, $owner_type = self::user_type_user, $args = array()) {
+	private static function get_plans_where($args) {
 		global $wpdb;
 
 		extract($args);
 
-		$plans = array();
+		// Allow the user_id shortcut param
+		if (!empty($user_id)) {
+			$owner_id = $user_id;
+			$owner_type = self::user_type_user;
+		}
 
+		$wheres = array();
+
+		// Specific Plan IDs
 		$ids = array();
 		if (!empty($plan_ids)) foreach ($plan_ids as $plan_id) if (!empty($plan_id)) $ids []= $wpdb->prepare('%d', $plan_id);
-
-		$where = array();
 		if (!empty($ids)) $wheres []= 'id IN (' . implode(',', $ids) . ')';
-		if (!empty($owner_id)) $wheres []= $wpdb->prepare('(owner_id = %d) AND (owner_type = %d)', $owner_id, $owner_type);
+
+		// Owner IDs
+		if (!empty($owner_id)) {
+			if (is_array($owner_id)) {
+				$ids = array();
+				foreach ($owner_id as $id) if (!empty($id)) $ids []= $wpdb->prepare('%d', $id);
+				$owner_id_sql = 'owner_id IN (' . implode(',', $ids) . ')';
+
+				// Since there are multiple owners, we should not include private plans
+				$is_private = FALSE;
+			}
+			else $owner_id_sql = $wpdb->prepare('owner_id = %d', $owner_id);
+
+			$wheres []= $wpdb->prepare("($owner_id_sql) AND (owner_type = %d)", $owner_type);
+		}
+
+		// Is Finished?
 		if (isset($is_finished)) $wheres []= $wpdb->prepare('is_finished = %d', $is_finished);
 
-		if (!empty($wheres)) {
+		// Filters
+		if ($filter) {
+			$filter = like_escape($filter) . '%';
+			$wheres []= $wpdb->prepare("(name LIKE %s OR g.description LIKE %s)", $filter, $filter);
+		}
+
+		// Is Private?
+		if (isset($is_private)) $wheres []= $wpdb->prepare("is_private = %d", $is_private);
+
+		return implode(' AND ', $wheres);
+	}
+
+	public static function get_plans($plan_ids, $owner_id = 0, $owner_type = self::user_type_user, $args = array()) {
+		$args['plan_ids'] = $plan_ids;
+		$args['owner_id'] = $owner_id;
+		$args['owner_type'] = $owner_type;
+		return BfoxPlans::get_plans_using_args($args);
+	}
+
+	public static function get_plans_using_args($args = array()) {
+		global $wpdb;
+
+		$plans = array();
+		$where = self::get_plans_where($args);
+
+		if (!empty($where)) {
 			// Get the plan info from the DB
-			$results = $wpdb->get_results('SELECT * FROM ' . self::table_plans . ' WHERE ' . implode(' AND ', $wheres));
+			$sql = 'SELECT * FROM ' . self::table_plans . ' WHERE ' . $where . " ORDER BY start_date DESC";
+
+			$limit = $args['limit'];
+			$page = $args['page'];
+			if ($limit && $page) $sql .= $wpdb->prepare(" LIMIT %d, %d", intval(($page - 1) * $limit), intval($limit));
+
+			$results = $wpdb->get_results($sql);
 
 			// Create each BfoxReadingPlan instance
 			$ids = array();
@@ -642,6 +699,35 @@ class BfoxPlans {
 		while (self::slug_exists($slug, $owner_id, $owner_type)) $slug = $name . '-' . ++$num;
 
 		return $slug;
+	}
+
+	public static function count_plans($args = array()) {
+		global $wpdb;
+		$where = self::get_plans_where($args);
+		if (!empty($where)) return $wpdb->get_var("SELECT DISTINCT count(id) FROM " . self::table_plans . " WHERE $where");
+		return 0;
+	}
+
+	/**
+	 * Adds history information to an array of plans
+	 *
+	 * @param array $plans
+	 * @param array $history_array
+	 * @return none
+	 */
+	public static function add_history_to_plans(&$plans, $history_array = array()) {
+		// If no history array was passed in, get history ourselves
+		if (empty($history_array)) {
+			$earliest = '';
+			foreach($plans as $plan) {
+				$start_time = $plan->start_date();
+				if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
+			}
+
+			if (!empty($earliest)) $history_array = BfoxHistory::get_history(0, $earliest, NULL, TRUE);
+		}
+
+		if (!empty($history_array)) foreach ($plans as &$plan) $plan->set_history($history_array);
 	}
 
 /*	public static function save_sub(BfoxReadingSub &$sub) {

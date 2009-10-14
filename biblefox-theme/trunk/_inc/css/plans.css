@@ -1,9 +1,32 @@
-@CHARSET "UTF-8";
+/* Reuse the blog bullet */
+li a#my-plans {
+	background: url(../images/blog_bullet.gif) 87% 52% no-repeat;
+	padding: 0.55em 3em 0.55em 0 !important;
+	margin-right: 0.85em !important;
+}
+				
+/*
+Form
+*/
+#plan-settings-form #plan-desc {
+	height: 80px;
+}
 
+#plan-settings-form #plan-readings {
+	height: 300px;
+}
+
+#plan-settings-form #plan-chunks {
+	height: 60px;
+}
+
+/*
+Reading Plan Chart table
+*/
 table.reading_plan {
-	margin: 0;
+	margin: 0 2%;
 	padding: 0;
-	width: 100%;
+	width: 96%;
 	background-color: #FFF;
 	border-collapse: separate;
 	border: 0.1em solid #CCC;
@@ -14,7 +37,7 @@ table.reading_plan {
 table.reading_plan caption {
 	margin: 0;
 	padding: 0.3em;
-	width: 100%;
+	width: 96%;
 	background-color: #EEE;
 	border: 0.1em solid #CCC;
 	border-bottom: 0;
