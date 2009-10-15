@@ -363,12 +363,12 @@ function bp_bible_translation_select($select_id = NULL, $use_short = FALSE) {
 	return $select;
 }
 
-function bp_bible_search_form($form) {
+function bp_bible_search_form($form = '') {
 	global $bp_bible;
 
 	$form = "
 		<form action='" . BfoxQuery::ref_url() . "' method='get' id='search-form'>
-			" . bp_bible_translation_select($bp_bible->translation->id) . "
+			" . bp_bible_translation_select(bp_bible_get_trans_id()) . "
 			<input type='text' id='search-terms' name='search-terms' value='" . $bp_bible->search_query . "' />
 			<input type='submit' name='search-submit' id='search-submit' value='" . __('Search Bible', 'bp-bible') . "' />
 		</form>
