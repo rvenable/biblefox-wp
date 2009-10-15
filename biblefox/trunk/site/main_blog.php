@@ -33,7 +33,7 @@ class BiblefoxMainBlog {
 	public static function bible($query) {
 		self::$active_page = 'bible';
 
-		require_once BFOX_DIR . '/bible/bible.php';
+		require_once BFOX_BIBLE_DIR . '/bible.php';
 		$bible = new BfoxBible($query);
 		$bible->page();
 	}
@@ -70,7 +70,7 @@ class BiblefoxMainBlog {
 					<?php echo $hiddens ?>
 					<?php BfoxTrans::output_select(self::$trans_id) ?>
 					<input type="text" name="<?php echo BfoxQuery::var_search ?>" value="<?php echo self::$search_str ?>" />
-					<input type="submit" value="<?php _e('Search Bible', BFOX_DOMAIN); ?>" class="button" />
+					<input type="submit" value="<?php _e('Search Bible', 'bfox-site'); ?>" class="button" />
 				</form>
 			</div>
 			<ul id='bfox_nav'>

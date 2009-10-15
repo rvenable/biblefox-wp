@@ -1,11 +1,14 @@
 <?php
 
-define(BFOX_TABLE_READING_PLANS, BFOX_BASE_TABLE_PREFIX . 'bp_reading_plans');
-define(BFOX_TABLE_READINGS, BFOX_BASE_TABLE_PREFIX . 'bp_readings');
+define(BFOX_TABLE_READING_PLANS, BP_PLANS_BASE_TABLE_PREFIX . 'bp_reading_plans');
+define(BFOX_TABLE_READINGS, BP_PLANS_BASE_TABLE_PREFIX . 'bp_readings');
 
-define(BFOX_TABLE_READING_PLANS_OLD, BFOX_BASE_TABLE_PREFIX . 'reading_plans');
-define(BFOX_TABLE_READING_SUBS, BFOX_BASE_TABLE_PREFIX . 'reading_subs');
-define(BFOX_TABLE_READINGS_OLD, BFOX_BASE_TABLE_PREFIX . 'readings');
+// TODO: delete these
+define(BFOX_TABLE_READING_PLANS_OLD, BP_PLANS_BASE_TABLE_PREFIX . 'reading_plans');
+define(BFOX_TABLE_READINGS_OLD, BP_PLANS_BASE_TABLE_PREFIX . 'readings');
+
+// TODO: delete this too?
+define(BFOX_TABLE_READING_SUBS, BP_PLANS_BASE_TABLE_PREFIX . 'reading_subs');
 
 class BfoxReadingPlan {
 	const date_format_normal = 'M j, Y';

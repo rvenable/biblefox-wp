@@ -1,7 +1,7 @@
 <?php
 
-define(BFOX_TABLE_NOTES, BFOX_BASE_TABLE_PREFIX . 'notes');
-define(BFOX_TABLE_NOTE_REFS, BFOX_BASE_TABLE_PREFIX . 'note_refs');
+define(BFOX_TABLE_NOTES, BP_BIBLE_BASE_TABLE_PREFIX . 'notes');
+define(BFOX_TABLE_NOTE_REFS, BP_BIBLE_BASE_TABLE_PREFIX . 'note_refs');
 
 class BfoxNote {
 

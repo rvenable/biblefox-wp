@@ -35,7 +35,7 @@ class BfoxTrans {
 		list($this->short_name, $this->long_name) = self::$meta[$id];
 
 		// Set the translation table if it exists
-		$this->table = BFOX_BASE_TABLE_PREFIX . "trans_{$this->short_name}_verses";
+		$this->table = BFOX_BLOG_TABLE_PREFIX . "trans_{$this->short_name}_verses";
 		if ($quick) $this->installed = FALSE;
 		else $this->installed = BfoxUtility::does_table_exist($this->table);
 	}

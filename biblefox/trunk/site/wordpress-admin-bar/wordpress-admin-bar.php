@@ -68,7 +68,7 @@ class WPAdminBar {
 		add_filter( 'wpabar_menuitems', array(&$this, 'PluginsUpdateCount') );
 		*/
 
-		$this->folder = BFOX_URL . '/site/wordpress-admin-bar';
+		$this->folder = BFOX_SITE_URL . '/site/wordpress-admin-bar';
 
 		// Create the list of default themes
 		// Theme authors: use wpabar_register_theme() instead of the "wpabar_themes" filter

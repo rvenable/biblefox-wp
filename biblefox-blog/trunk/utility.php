@@ -14,21 +14,21 @@ class BfoxUtility {
 	}
 
 	public static function register_script($handle, $src_file, $deps = array(), $version = BFOX_VERSION) {
-		wp_register_script($handle, BFOX_URL . '/' . $src_file, $deps, $version);
+		wp_register_script($handle, BFOX_BLOG_URL . '/' . $src_file, $deps, $version);
 	}
 
 	public static function register_style($handle, $src_file, $deps = array(), $version = BFOX_VERSION) {
-		wp_register_style($handle, BFOX_URL . '/' . $src_file, $deps, $version);
+		wp_register_style($handle, BFOX_BLOG_URL . '/' . $src_file, $deps, $version);
 	}
 
 	public static function enqueue_script($handle, $src_file = '', $deps = array(), $version = BFOX_VERSION) {
 		if (empty($src_file)) wp_enqueue_script($handle);
-		else wp_enqueue_script($handle, BFOX_URL . '/' . $src_file, $deps, $version);
+		else wp_enqueue_script($handle, BFOX_BLOG_URL . '/' . $src_file, $deps, $version);
 	}
 
 	public static function enqueue_style($handle, $src_file = '', $deps = array(), $version = BFOX_VERSION) {
 		if (empty($src_file)) wp_enqueue_style($handle);
-		else wp_enqueue_style($handle, BFOX_URL . '/' . $src_file, $deps, $version);
+		else wp_enqueue_style($handle, BFOX_BLOG_URL . '/' . $src_file, $deps, $version);
 	}
 
 	public static function divide_into_cols($array, $max_cols, $height_threshold = 0) {

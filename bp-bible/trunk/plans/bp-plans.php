@@ -35,6 +35,8 @@ define ( 'BP_PLANS_DB_VERSION', '1' );
 if ( !defined( 'BP_PLANS_SLUG' ) )
 	define ( 'BP_PLANS_SLUG', 'plans' );
 
+define(BP_PLANS_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
+
 /*
  * If you want the users of your component to be able to change the values of your other custom constants,
  * you can use this code to allow them to add new definitions to the wp-config.php file and set the value there.
@@ -63,6 +65,8 @@ if ( file_exists( WP_PLUGIN_DIR . '/bp-plans/languages/' . get_locale() . '.mo' 
  * The next step is to include all the files you need for your component.
  * You should remove or comment out any files that you don't need.
  */
+
+require_once BFOX_PLANS_DIR . '/plans.php';
 
 /* The classes file should hold all database access classes and functions */
 //require ( BP_BIBLE_DIR . '/bp-plans/bp-plans-classes.php' );

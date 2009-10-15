@@ -1,6 +1,8 @@
 <?php
 
-require_once BFOX_DIR . '/bible/bible.php';
+// TODO: remove this file
+
+//require_once BFOX_DIR . '/bible/bible.php';
 
 $msgs = array();
 $old_ver = get_site_option(self::option_version);

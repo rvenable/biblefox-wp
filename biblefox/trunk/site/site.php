@@ -1,11 +1,11 @@
 <?php
 
-define(BFOX_SITE_DIR, dirname(__FILE__));
+define(BFOX_SITE_SITE_DIR, dirname(__FILE__));
 
-//include_once BFOX_SITE_DIR . '/wordpress-admin-bar/wordpress-admin-bar.php';
-include_once BFOX_SITE_DIR . '/wp-hashcash/wp-hashcash.php';
-include_once BFOX_SITE_DIR . '/marketing.php';
-include_once BFOX_SITE_DIR . '/shortfoot.php';
+//include_once BFOX_SITE_SITE_DIR . '/wordpress-admin-bar/wordpress-admin-bar.php';
+include_once BFOX_SITE_SITE_DIR . '/wp-hashcash/wp-hashcash.php';
+include_once BFOX_SITE_SITE_DIR . '/marketing.php';
+include_once BFOX_SITE_SITE_DIR . '/shortfoot.php';
 
 class BiblefoxSite {
 
@@ -186,14 +186,14 @@ class BiblefoxSite {
 		// so, is_main_blog() would return false even though we are using blog #1.
 		// This was leading to main_blog.php not being loaded even though we were loading the main blog theme which needs it.
 		global $blog_id;
-		if (1 == $blog_id/*is_main_blog()*/) require_once BFOX_SITE_DIR . '/main_blog.php';
+		if (1 == $blog_id/*is_main_blog()*/) require_once BFOX_SITE_SITE_DIR . '/main_blog.php';
 
 		//add_filter('query_vars', 'BiblefoxSite::query_vars');
 		//add_action('parse_request', 'BiblefoxSite::parse_request');
 		add_action('wpmu_new_blog', 'BiblefoxSite::new_blog_settings', 10, 2);
 		add_filter('wp_mail_from_name', 'BiblefoxSite::wp_mail_from_name');
 		wp_deregister_style('login');
-		wp_register_style('login', BFOX_MU_URL . '/site/login.css');
+		wp_register_style('login', BFOX_SITE_URL . '/site/login.css');
 
 		/*
 		 * Dashboard widgets
@@ -210,7 +210,7 @@ class BiblefoxSite {
 		add_filter('dashboard_secondary_title', create_function('', 'return "Featured Posts";'));
 
 		// Adjust BuddyPres Admin Bar
-		$new_logo = BFOX_MU_URL . 'site/logo-text-admin-bar.png';
+		$new_logo = BFOX_SITE_URL . 'site/logo-text-admin-bar.png';
 		add_filter('bp_admin_bar_logo_src', create_function('', "return '$new_logo';"));
 		add_filter('bp_admin_bar_logo_alt_text', create_function('', "return 'Biblefox.com';"));
 	}

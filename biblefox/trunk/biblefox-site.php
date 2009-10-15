@@ -1,12 +1,13 @@
 <?php
 /*************************************************************************
 
-	Plugin Name: Biblefox
+	Plugin Name: Biblefox-Site
 	Plugin URI: http://tools.biblefox.com/
 	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
 	Version: 0.4.9
 	Author: Biblefox
 	Author URI: http://biblefox.com
+Site Wide Only: true
 
 *************************************************************************/
 
@@ -32,19 +33,11 @@
 
 *************************************************************************/
 
-define(BFOX_VERSION, '0.4.9');
+define(BFOX_SITE_VERSION, '0.4.9');
 
-define(BFOX_FILE, __FILE__);
-define(BFOX_DIR, dirname(__FILE__));
-define(BFOX_MU_URL, WPMU_PLUGIN_URL . '/biblefox/');
-define(BFOX_URL, WP_PLUGIN_URL . '/bp-bible');
-
-define(BFOX_DOMAIN, 'biblefox');
-
-define(BFOX_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
-
-include_once BFOX_DIR . '/admin/admin-tools.php';
-include_once BFOX_DIR . '/site/site.php';
+define(BFOX_SITE_FILE, __FILE__);
+define(BFOX_SITE_DIR, dirname(__FILE__));
+define(BFOX_SITE_URL, WP_PLUGIN_URL . '/biblefox-site');
 
 /**
  * Hacky function for showing DB errors. Hacked into the wpdb query filter to make sure that the errors always show.
@@ -68,51 +61,7 @@ add_action('get_footer', 'bfox_pre_deb');
 function bfox_posts_requests($request) { deb("REQUEST: $request"); return $request; }
 //add_filter('posts_request', 'bfox_posts_requests'); // Uncomment this to show the WP_Query SQL request query
 
-class Biblefox {
-
-	const ref_url_blog = 'blog';
-	const ref_url_bible = 'bible';
-
-	const option_version = 'bfox_version';
-
-	private static $default_ref_url = '';
-
-/*	public static function init() {
-		global $current_site;
-
-		$old_ver = get_site_option(self::option_version);
-		if (BFOX_VERSION != $old_ver) {
-			@include_once BFOX_DIR . '/bible/upgrade.php';
-			@include_once BFOX_DIR . '/blog/upgrade.php';
-			update_site_option(self::option_version, BFOX_VERSION);
-		}
-
-		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path, !(TRUE === BFOX_NO_PRETTY_URLS));
-
-		// Register all the global scripts and styles
-		BfoxUtility::register_style('bfox_scripture', 'blog/scripture.css');
-	}*/
-
-	public static function set_default_ref_url($ref_url) {
-		self::$default_ref_url = $ref_url;
-	}
-
-	public static function ref_url($ref_str, $ref_url = '') {
-		if (empty($ref_url)) $ref_url = self::$default_ref_url;
-
-		if (self::ref_url_bible == $ref_url) return BfoxQuery::ref_url($ref_str);
-		else return BfoxBlog::ref_url($ref_str);
-	}
-
-	public static function ref_link($ref_str, $text = '', $ref_url = '', $attrs = '') {
-		if (empty($text)) $text = $ref_str;
-
-		if (!empty($attrs)) $attrs = ' ' . $attrs;
-		return "<a href='" . self::ref_url($ref_str, $ref_url) . "'$attrs>$text</a>";
-	}
-
-}
-
-//add_action('init', 'Biblefox::init');
+include_once BFOX_SITE_DIR . '/admin/admin-tools.php';
+include_once BFOX_SITE_DIR . '/site/site.php';
 
 ?>

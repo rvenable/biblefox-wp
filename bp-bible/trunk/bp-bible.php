@@ -16,13 +16,12 @@ Site Wide Only: true
 define(BP_BIBLE_DIR, dirname(__FILE__));
 define(BP_BIBLE_URL, WP_PLUGIN_URL . '/bp-bible');
 
-define(BFOX_BLOG_DIR, BP_BIBLE_DIR . '/blog');
 define(BFOX_BIBLE_DIR, BP_BIBLE_DIR . '/bible');
 define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/plans');
 
+define(BP_BIBLE_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
+
 require_once BP_BIBLE_DIR . '/loop-template.php';
-require_once BFOX_BLOG_DIR . '/blog.php';
-require_once BFOX_PLANS_DIR . '/plans.php';
 require_once BFOX_PLANS_DIR . '/bp-plans.php';
 require_once BFOX_BIBLE_DIR . '/passage.php';
 require_once BFOX_BIBLE_DIR . '/history.php';

@@ -1,10 +1,46 @@
 <?php
+/*************************************************************************
+
+	Plugin Name: Biblefox-Blog
+	Plugin URI: http://tools.biblefox.com/
+	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
+	Version: 0.4.9
+	Author: Biblefox
+	Author URI: http://biblefox.com
+
+*************************************************************************/
+
+// TODO2: Add the license file, and add copyright notice to all source files (see http://www.fsf.org/licensing/licenses/gpl-howto.html )
+/*************************************************************************
+
+	Copyright 2009 biblefox.com
+
+	This file is part of Biblefox.
+
+	Biblefox is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	Biblefox is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with Biblefox.  If not, see <http://www.gnu.org/licenses/>.
+
+*************************************************************************/
 
 if (!defined(BFOX_BLOG_DIR)) define(BFOX_BLOG_DIR, dirname(__FILE__));
 
 define(BFOX_DATA_DIR, BFOX_BLOG_DIR . '/data');
 define(BFOX_REFS_DIR, BFOX_BLOG_DIR . '/biblerefs');
 define(BFOX_TRANS_DIR, BFOX_BLOG_DIR . '/translations');
+
+define(BFOX_BLOG_URL, WP_PLUGIN_URL . '/biblefox-blog');
+
+define(BFOX_BLOG_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
 
@@ -14,13 +50,59 @@ require_once BFOX_BLOG_DIR . '/query.php';
 include_once BFOX_TRANS_DIR . '/translations.php';
 
 require_once BFOX_BLOG_DIR . '/posts.php';
-require_once('bfox-query.php');
-require_once('bibletext.php');
+require_once BFOX_BLOG_DIR . '/bfox-query.php';
+require_once BFOX_BLOG_DIR . '/bibletext.php';
 //require_once("bfox-settings.php");
 
 // TODO3: get blogplans.php working and included
 //require_once BFOX_PLANS_DIR . '/blogplans.php';
 
+class Biblefox {
+
+	const ref_url_blog = 'blog';
+	const ref_url_bible = 'bible';
+
+	const option_version = 'bfox_version';
+
+	private static $default_ref_url = '';
+
+/*	public static function init() {
+		global $current_site;
+
+		$old_ver = get_site_option(self::option_version);
+		if (BFOX_VERSION != $old_ver) {
+			@include_once BFOX_DIR . '/bible/upgrade.php';
+			@include_once BFOX_DIR . '/blog/upgrade.php';
+			update_site_option(self::option_version, BFOX_VERSION);
+		}
+
+		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path, !(TRUE === BFOX_NO_PRETTY_URLS));
+
+		// Register all the global scripts and styles
+		BfoxUtility::register_style('bfox_scripture', 'blog/scripture.css');
+	}*/
+
+	public static function set_default_ref_url($ref_url) {
+		self::$default_ref_url = $ref_url;
+	}
+
+	public static function ref_url($ref_str, $ref_url = '') {
+		if (empty($ref_url)) $ref_url = self::$default_ref_url;
+
+		if (self::ref_url_bible == $ref_url) return BfoxQuery::ref_url($ref_str);
+		else return BfoxBlog::ref_url($ref_str);
+	}
+
+	public static function ref_link($ref_str, $text = '', $ref_url = '', $attrs = '') {
+		if (empty($text)) $text = $ref_str;
+
+		if (!empty($attrs)) $attrs = ' ' . $attrs;
+		return "<a href='" . self::ref_url($ref_str, $ref_url) . "'$attrs>$text</a>";
+	}
+
+}
+
+//add_action('init', 'Biblefox::init');
 class BfoxBlog {
 
 	const var_bible_ref = 'bfox_ref';

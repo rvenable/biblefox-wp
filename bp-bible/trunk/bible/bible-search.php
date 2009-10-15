@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_TRANSLATION_INDEX_TABLE, BFOX_BASE_TABLE_PREFIX . 'trans_index');
+define(BFOX_TRANSLATION_INDEX_TABLE, BP_BIBLE_BASE_TABLE_PREFIX . 'trans_index');
 
 /*
  * FULLTEXT Indexing Workaround:

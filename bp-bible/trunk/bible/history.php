@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_TABLE_HISTORY, BFOX_BASE_TABLE_PREFIX . 'history');
+define(BFOX_TABLE_HISTORY, BP_BIBLE_BASE_TABLE_PREFIX . 'history');
 
 class BfoxHistoryEvent {
 

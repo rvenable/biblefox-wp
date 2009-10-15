@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_TABLE_POST_REFS, BFOX_BASE_TABLE_PREFIX . 'post_refs');
+define(BFOX_TABLE_POST_REFS, BFOX_BLOG_TABLE_PREFIX . 'post_refs');
 
 class BfoxPosts {
 	const table = BFOX_TABLE_POST_REFS;

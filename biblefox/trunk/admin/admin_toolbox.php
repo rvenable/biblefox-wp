@@ -374,13 +374,13 @@ class BfoxMainToolbox extends BfoxToolBox {
 	}
 
 	public function refresh_search_index() {
-		include BFOX_DIR . '/bible/bible.php';
+		include BFOX_BIBLE_DIR . '/bible.php';
 		include BFOX_BIBLE_DIR . '/bible-search.php';
 		echo BibleSearch::refresh_search_index();
 	}
 
 	public function check_times() {
-		include BFOX_DIR . '/bible/bible.php';
+		include BFOX_BIBLE_DIR . '/bible.php';
 		BfoxUtility::set_timezone_offset(get_user_option(BfoxBible::user_option_tz));
 		pre(get_user_option(BfoxBible::user_option_tz));
 		pre(date('O'));
