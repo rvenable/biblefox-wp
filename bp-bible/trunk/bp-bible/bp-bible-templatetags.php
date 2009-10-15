@@ -339,7 +339,7 @@ function bp_bible_url($ref_str = '', $search_str = '') {
 	global $bp;
 	$url = $bp->root_domain . '/' . $bp->bible->slug . '/';
 	if (!empty($ref_str)) $url .= urlencode($ref_str) . '/';
-	$url .= $search_str;
+	$url .= urlencode($search_str);
 
 	return $url;
 }
