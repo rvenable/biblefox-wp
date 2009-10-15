@@ -239,7 +239,7 @@ class BfoxBible {
 	public static function history() {
 		global $user_ID;
 
-		if (empty($user_ID)) $content = "<p>" . BiblefoxSite::loginout() . __(' to track the Bible passages you read.</p>');
+		if (empty($user_ID)) $content = "<p>" . bp_bible_loginout() . __(' to track the Bible passages you read.</p>');
 		else {
 			$history = BfoxHistory::get_history(15);
 			$list = new BfoxHtmlList();
@@ -316,7 +316,7 @@ class BfoxBible {
 
 			$content .= "<p><a href='" . BfoxQuery::page_url(BfoxQuery::page_plans) . "'>" . __('Edit Reading Plans') . "</a></p>";
 		}
-		else $content = "<p>" . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
+		else $content = "<p>" . bp_bible_loginout() . __(' to see the current readings for your reading plans.</p>');
 
 
 		return $content;

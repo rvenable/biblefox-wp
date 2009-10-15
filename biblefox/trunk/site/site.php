@@ -37,40 +37,6 @@ class BiblefoxSite {
 		restore_current_blog();
 	}
 
-	/**
-	 * This returns a link for logging in or for logging out
-	 *
-	 * It always goes to the login page for the main blog and redirects back to the page from which it was called.
-	 * This gives the whole site a common login place that seamlessly integrates with every blog.
-	 *
-	 * @return unknown
-	 */
-	public static function loginout() {
-		// From auth_redirect()
-		if ( is_ssl() )
-			$proto = 'https://';
-		else
-			$proto = 'http://';
-
-		$old_url = urlencode($proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-
-		// From site_url()
-		$site_url = 'http';
-		if (force_ssl_admin()) $site_url .= 's'; // Use https
-
-		// Always use the main blog for login/out
-		global $current_blog;
-		$site_url .= '://' . $current_blog->domain . $current_blog->path . 'wp-login.php?';
-
-		// From wp_loginout()
-		if (!is_user_logged_in())
-			$link = '<a href="' . $site_url . 'redirect_to=' . $old_url . '">' . __('Log in') . '</a>';
-		else
-			$link = '<a href="' . wp_logout_url($old_url) . '">' . __('Log out') . '</a>';
-
-		return $link;
-	}
-
 	private static function admin_bar_dropdown($title, $url = '') {
 		return "<a href='$url'><span class='wpabar-dropdown'>$title</span></a>";
 	}
@@ -78,7 +44,7 @@ class BiblefoxSite {
 	public static function admin_bar() {
 		global $current_site, $current_blog, $current_user, $user_ID;
 
-		$login = BiblefoxSite::loginout();
+		$login = bp_bible_loginout();
 		$signup_url = 'http://' . $current_site->domain . $current_site->path . 'wp-signup.php';
 		$drop_class = "class='wpabar-menupop' onmouseover='showNav(this)' onmouseout='hideNav(this)'";
 

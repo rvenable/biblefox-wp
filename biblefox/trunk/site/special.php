@@ -44,7 +44,7 @@ CONTENT;
 			}
 			else
 			{
-				$login = strtolower(BiblefoxSite::loginout());
+				$login = strtolower(bp_bible_loginout());
 				$signup = site_url('wp-signup.php');
 				$content = <<<CONTENT
 					<p>In order to join this bible study, you must first $login with your Biblefox account.</p>

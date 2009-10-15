@@ -1174,4 +1174,14 @@ function bp_bible_get_search_str() {
 	return $bp->bible->search_str;
 }
 
+function bp_bible_loginout($redirect = '') {
+	if ( ! is_user_logged_in() )
+		$link = '<a href="' . esc_url( wp_login_url($redirect) ) . '">' . __('Log in') . '</a>';
+	else
+		$link = '<a href="' . esc_url( wp_logout_url($redirect) ) . '">' . __('Log out') . '</a>';
+
+	return apply_filters('bp_bible_loginout', $link);
+}
+
+
 ?>

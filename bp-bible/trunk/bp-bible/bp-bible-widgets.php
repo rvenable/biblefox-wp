@@ -18,7 +18,7 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
 
 		if (empty($user_id)) {
-			$content = "<p>" . __('Biblefox is designed to be a <b>study bible written by your friends</b>. ') . BiblefoxSite::loginout() . __(' to read what your friends are writing about the Bible.') . '</p>';// . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
+			$content = "<p>" . __('Biblefox is designed to be a <b>study bible written by your friends</b>. ') . bp_bible_loginout() . __(' to read what your friends are writing about the Bible.') . '</p>';// . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
 			echo $content . $after_widget;
 			return;
 		}
@@ -212,7 +212,7 @@ class BP_Bible_Notes_Widget extends WP_Widget {
 
 		global $user_ID;
 
-		if (empty($user_ID)) $content = "<p>" . BiblefoxSite::loginout() . __(' to track the Bible passages you read.</p>');
+		if (empty($user_ID)) $content = "<p>" . bp_bible_loginout() . __(' to track the Bible passages you read.</p>');
 		else {
 			$notes = BfoxNotes::get_notes();
 
@@ -400,7 +400,7 @@ class BP_Bible_History_Widget extends WP_Widget {
 
 		if (empty($user_ID)) {
 			$content = "<p>" . __('Biblefox can keep track of all the Bible passages you read.
-				If you\'re already a member, ') . BiblefoxSite::loginout() . __(' to track this passage and see your recent history.
+				If you\'re already a member, ') . bp_bible_loginout() . __(' to track this passage and see your recent history.
 				If you\'re not a member, ') . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
 		}
 		else {
@@ -541,7 +541,7 @@ class BP_Bible_Passage_Widget extends WP_Widget {
 
 		global $user_ID;
 
-		if (empty($user_ID)) $content = "<p>" . BiblefoxSite::loginout() . __(' to track the Bible passages you read.</p>');
+		if (empty($user_ID)) $content = "<p>" . bp_bible_loginout() . __(' to track the Bible passages you read.</p>');
 		else {
 			$history = BfoxHistory::get_history($instance['number']);
 			$list = new BfoxHtmlList();
@@ -608,7 +608,7 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 			if (empty($content)) $content = __('<p>You do not have any current readings.</p>');
 			$content .= "<p><a href='" . bp_plans_user_plans_permalink() . "'>" . __('Edit Reading Plans') . "</a></p>";
 		}
-		else $content = "<p>" . __('With Biblefox, you can create a Bible Reading plan to organize how you read the Bible. ') . BiblefoxSite::loginout() . __(' to see the current readings for your reading plans.</p>');
+		else $content = "<p>" . __('With Biblefox, you can create a Bible Reading plan to organize how you read the Bible. ') . bp_bible_loginout() . __(' to see the current readings for your reading plans.</p>');
 
 		echo $content . $after_widget;
 	}
@@ -668,7 +668,7 @@ class BP_Bible_Tools_Widget extends WP_Widget {
 
 		global $user_ID;
 
-		if (empty($user_ID)) $content = "<p>" . BiblefoxSite::loginout() . __(' to track the Bible passages you read.</p>');
+		if (empty($user_ID)) $content = "<p>" . bp_bible_loginout() . __(' to track the Bible passages you read.</p>');
 		else {
 			$history = BfoxHistory::get_history($instance['number'], 0, $refs);
 
