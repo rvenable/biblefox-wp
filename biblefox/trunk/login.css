@@ -60,7 +60,7 @@ form .submit { float: right; }
 form p { margin-bottom: 24px; }
 
 h1 a {
-	background: url(_inc/images/logo-login.png) no-repeat top center;
+	background: url(logo-login.png) no-repeat top center;
 	width: 326px;
 	height: 67px;
 	text-indent: -9999px;
