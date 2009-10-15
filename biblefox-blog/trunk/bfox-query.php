@@ -53,8 +53,7 @@ class BfoxBlogQueryData {
 	 *
 	 * @param mixed $value Either an array of post ids or a BfoxRefs to get post ids that contain those references
 	 */
-	public static function set_post_ids($value)
-	{
+	public static function set_post_ids($value) {
 		if (is_array($value)) self::$post_ids = $value;
 		elseif ($value instanceof BfoxRefs) self::$post_ids = BfoxPosts::get_post_ids($value);
 
@@ -62,13 +61,11 @@ class BfoxBlogQueryData {
 		self::$use_post_ids = TRUE;
 	}
 
-	public static function use_post_ids()
-	{
+	public static function use_post_ids() {
 		return self::$use_post_ids;
 	}
 
-	public static function get_post_ids()
-	{
+	public static function get_post_ids() {
 		$post_ids = self::$post_ids;
 		self::$post_ids = array();
 		self::$use_post_ids = FALSE;
@@ -76,13 +73,11 @@ class BfoxBlogQueryData {
 		return $post_ids;
 	}
 
-	public static function add_pre_posts($new_posts)
-	{
+	public static function add_pre_posts($new_posts) {
 		self::$pre_posts = array_merge(self::$pre_posts, $new_posts);
 	}
 
-	public static function get_pre_posts()
-	{
+	public static function get_pre_posts() {
 		$new_posts = self::$pre_posts;
 		self::$pre_posts = array();
 		return $new_posts;
@@ -206,11 +201,9 @@ function bfox_parse_query($wp_query) {
 }
 
 // Function for modifying the query WHERE statement
-function bfox_posts_where($where)
-{
+function bfox_posts_where($where) {
 	// Check if we should use our post ids array
-	if (BfoxBlogQueryData::use_post_ids())
-	{
+	if (BfoxBlogQueryData::use_post_ids()) {
 		$post_ids = BfoxBlogQueryData::get_post_ids();
 
 		// If there aren't any post ids, than this query shouldn't return any posts
@@ -221,11 +214,11 @@ function bfox_posts_where($where)
 	return $where;
 }
 
-// Function for modifying the posts array returned from the actual SQL query
-function bfox_posts_results($posts)
-{
-	if (!empty($posts))
-	{
+// Function for adjusting the posts after they have been queried
+function bfox_the_posts($posts) {
+
+	// Add any bible references to the post
+	if (!empty($posts)) {
 		$post_ids = array();
 		foreach ($posts as $post) $post_ids []= $post->ID;
 
@@ -234,20 +227,14 @@ function bfox_posts_results($posts)
 		foreach ($posts as &$post) if (isset($refs[$post->ID]) && $refs[$post->ID]->is_valid()) $post->bfox_bible_refs = $refs[$post->ID];
 	}
 
-	return $posts;
-}
-
-// Function for adjusting the posts after they have been queried
-function bfox_the_posts($posts)
-{
+	// Prepend any pre posts
 	$posts = array_merge(BfoxBlogQueryData::get_pre_posts(), $posts);
 
 	return $posts;
 }
 
 // Function for filtering the output of the_permalink()
-function bfox_the_permalink($permalink, $post)
-{
+function bfox_the_permalink($permalink, $post) {
 	if (isset($post->bfox_permalink))
 		$permalink = $post->bfox_permalink;
 	return $permalink;
@@ -289,16 +276,14 @@ function bfox_the_refs($name = '', $link = TRUE) {
 	}
 }
 
-function bfox_the_author($author)
-{
+function bfox_the_author($author) {
 	global $post;
 	if (isset($post->bfox_author)) $author = $post->bfox_author;
 	return $author;
 }
 
 // Function for updating the edit post link
-function bfox_get_edit_post_link($link)
-{
+function bfox_get_edit_post_link($link) {
 	global $post;
 
 	// If this post is actually scripture then we should change the
@@ -320,7 +305,6 @@ function bfox_ref_replace_html($content) {
 function bfox_query_init() {
 	add_action('parse_query', 'bfox_parse_query');
 	add_filter('posts_where', 'bfox_posts_where');
-	add_filter('posts_results', 'bfox_posts_results');
 	add_filter('the_posts', 'bfox_the_posts');
 	add_filter('post_link', 'bfox_the_permalink', 10, 2);
 

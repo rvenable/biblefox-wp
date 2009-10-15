@@ -52,6 +52,9 @@ include_once BFOX_TRANS_DIR . '/translations.php';
 require_once BFOX_BLOG_DIR . '/posts.php';
 require_once BFOX_BLOG_DIR . '/bfox-query.php';
 require_once BFOX_BLOG_DIR . '/bibletext.php';
+
+require_once BFOX_BLOG_DIR . '/shortfoot.php';
+
 //require_once("bfox-settings.php");
 
 // TODO3: get blogplans.php working and included
