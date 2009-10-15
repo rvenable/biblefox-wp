@@ -1,7 +1,8 @@
 <?php
+// Note: disabled from showing up in plugins menu (notice space in "P lugin Name")
 /*************************************************************************
 
-	Plugin Name: ShortFoot
+	P lugin Name: ShortFoot
 	Plugin URI: http://tools.biblefox.com/
 	Description: Adds simple footnote shortcodes to wordpress. Use 'foot' or 'footnote' shortcodes to add a footnote. Footnotes will be listed automatically at the end of the post content.
 	Version: 0.1
