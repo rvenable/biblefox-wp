@@ -276,4 +276,12 @@ if (!defined('BFOX_TESTBED')) {
 	add_action('admin_footer', 'bfox_add_analytics');
 }
 
+if (defined('BFOX_TESTBED')) {
+	// HACK: Fixes the admin bar visuals by loading global style before bp-admin-bar style
+	function bfox_fix_admin_bar() {
+		wp_enqueue_style('global');
+	}
+	add_action( 'admin_menu', 'bfox_fix_admin_bar' , 1);
+}
+
 ?>
