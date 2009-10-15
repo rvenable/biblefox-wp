@@ -38,7 +38,7 @@ class BfoxPagePassage extends BfoxPage {
 
 		$this->refs = $refs;
 		$this->translation = $translation;
-		BiblefoxMainBlog::set_search_str($this->refs->get_string(BibleMeta::name_short));
+		bp_bible_set_search_str($this->refs->get_string(BibleMeta::name_short));
 
 		parent::__construct($translation);
 	}

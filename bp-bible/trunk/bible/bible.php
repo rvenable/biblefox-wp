@@ -137,7 +137,7 @@ class BfoxBible {
 
 		// Get any passed in translations, save them, and redirect without them
 		if (!empty($q[BfoxQuery::var_translation])) {
-			BiblefoxMainBlog::set_trans_id($q[BfoxQuery::var_translation]);
+			bp_bible_set_trans_id($q[BfoxQuery::var_translation]);
 			unset($q[BfoxQuery::var_translation]);
 			$redirect = TRUE;
 		}
@@ -154,7 +154,7 @@ class BfoxBible {
 
 				if ($refs->is_valid()) {
 					require BFOX_BIBLE_DIR . '/page_passage.php';
-					$this->page = new BfoxPagePassage($refs, new BfoxTrans(BiblefoxMainBlog::get_trans_id()), $last_viewed);
+					$this->page = new BfoxPagePassage($refs, new BfoxTrans(bp_bible_get_trans_id()), $last_viewed);
 				}
 				else {
 					// If we don't have a valid bible ref, we should use the history
@@ -168,7 +168,7 @@ class BfoxBible {
 
 			case BfoxQuery::page_search:
 				require BFOX_BIBLE_DIR . '/page_search.php';
-				$this->page = new BfoxPageSearch($q[BfoxQuery::var_search], $q[BfoxQuery::var_reference], new BfoxTrans(BiblefoxMainBlog::get_trans_id()));
+				$this->page = new BfoxPageSearch($q[BfoxQuery::var_search], $q[BfoxQuery::var_reference], new BfoxTrans(bp_bible_get_trans_id()));
 				break;
 		}
 

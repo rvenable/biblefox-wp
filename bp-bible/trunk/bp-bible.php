@@ -167,6 +167,8 @@ function bp_bible_setup_globals() {
 	$bp->bible->format_activity_function = 'bp_bible_format_activity';
 	$bp->bible->format_notification_function = 'bp_bible_format_notifications';
 	$bp->bible->slug = BP_BIBLE_SLUG;
+	if (!empty($_COOKIE['bfox_trans_id'])) $bp->bible->trans_id = $_COOKIE['bfox_trans_id'];
+	else $bp->bible->trans_id = 0;
 
 	$bp->version_numbers->bible = BP_BIBLE_VERSION;
 }
@@ -281,7 +283,7 @@ function bp_bible_directory_setup() {
 
 		// Get any passed in translations, save them, and redirect without them
 		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
-			BiblefoxMainBlog::set_trans_id($_REQUEST[BfoxQuery::var_translation]);
+			bp_bible_set_trans_id($_REQUEST[BfoxQuery::var_translation]);
 			$redirect = TRUE;
 		}
 
@@ -341,7 +343,7 @@ function bp_bible_directory_setup() {
 		}
 
 		global $bp_bible;
-		$bp_bible = new BfoxBible($refs, new BfoxTrans(BiblefoxMainBlog::get_trans_id()), $search_str);
+		$bp_bible = new BfoxBible($refs, new BfoxTrans(bp_bible_get_trans_id()), $search_str);
 
 		// If we need to redirect, do it
 		// Otherwise, load the appropriate page
@@ -1150,4 +1152,26 @@ function bp_bible_force_buddypress_stylesheet( $stylesheet ) {
 }
 add_filter( 'stylesheet', 'bp_bible_force_buddypress_stylesheet', 1, 1 );
 */
+
+function bp_bible_get_trans_id() {
+	global $bp;
+	return $bp->bible->trans_id;
+}
+
+function bp_bible_set_trans_id($trans_id) {
+	global $bp;
+	setcookie('bfox_trans_id', $trans_id, /* 365 days from now: */ time() + 60 * 60 * 24 * 365, '/');
+	$bp->bible->trans_id = $trans_id;
+}
+
+function bp_bible_set_search_str($str) {
+	global $bp;
+	$bp->bible->search_str = $str;
+}
+
+function bp_bible_get_search_str() {
+	global $bp;
+	return $bp->bible->search_str;
+}
+
 ?>

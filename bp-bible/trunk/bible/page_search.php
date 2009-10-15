@@ -32,7 +32,7 @@ class BfoxPageSearch extends BfoxPage {
 
 		BfoxUtility::enqueue_style('bfox_search');
 
-		BiblefoxMainBlog::set_search_str($search_str);
+		bp_bible_set_search_str($search_str);
 	}
 
 	private function page_url($page_num) {

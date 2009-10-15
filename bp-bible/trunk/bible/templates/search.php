@@ -39,7 +39,7 @@ $search_str = $search->text;
 */
 //BfoxUtility::enqueue_style('bfox_search');
 
-//BiblefoxMainBlog::set_search_str($search_str);
+//bp_bible_set_search_str($search_str);
 
 $book_counts = $search->boolean_book_counts();
 $verses = $search->search_boolean();
