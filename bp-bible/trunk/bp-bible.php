@@ -1175,6 +1175,9 @@ function bp_bible_get_search_str() {
 }
 
 function bp_bible_loginout($redirect = '') {
+	global $bp;
+	if (empty($redirect)) $redirect = $bp->root_domain;
+
 	if ( ! is_user_logged_in() )
 		$link = '<a href="' . esc_url( wp_login_url($redirect) ) . '">' . __('Log in') . '</a>';
 	else
