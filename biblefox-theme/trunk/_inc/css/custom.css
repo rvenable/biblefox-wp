@@ -1,4 +1,19 @@
 /*
+Logo
+*/
+
+#header h1 a {
+	margin-top: -36px;
+	text-indent: -999em;
+	background: url(../images/logo-login.png) top left no-repeat;
+	overflow: hidden;
+	width: 310px;
+	height: 70px;
+	display: block;
+	float: left;
+}
+
+/*
 Bible Layout
 */
 
