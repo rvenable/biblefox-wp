@@ -463,6 +463,8 @@ function bp_bible_screen_passage() {
 	/* Add a do action here, so your component can be extended by others. */
 	do_action( 'bp_bible_screen_passage' );
 
+	wp_enqueue_style('bfox_scripture');
+
 	/**
 	 * Finally, load the template file. In this example it would load:
 	 *    "wp-content/bp-themes/[active-member-theme]/bible/passage.php"
@@ -524,6 +526,8 @@ function bp_bible_screen_search() {
 	 * we can continue and load the template.
 	 */
 	do_action( 'bp_bible_screen_search' );
+
+	wp_enqueue_style('bfox_scripture');
 
 	/* Finally load the plugin template file. */
 	bp_core_load_template( apply_filters( 'bp_bible_template_screen_search', 'bible/search' ) );

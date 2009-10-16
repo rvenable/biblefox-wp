@@ -134,7 +134,7 @@ class BfoxBlog {
 		self::$home_url = get_option('home');
 
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
-		BfoxUtility::register_style('bfox_scripture', 'blog/scripture.css');
+		BfoxUtility::register_style('bfox_scripture', 'scripture.css');
 
 		bfox_query_init();
 	}
