@@ -34,7 +34,9 @@
 		<div id="search-login-bar">
 
 			<?php // CHANGED FROM PARENT: (replaced search form) ?>
-			<?php echo bp_bible_search_form() ?>
+			<?php if (function_exists('bp_bible_search_form')): ?>
+				<?php echo bp_bible_search_form() ?>
+			<?php endif ?>
 			<?php // END CHANGED FROM PARENT ?>
 
 			<?php if ( !is_user_logged_in() ) : ?>
