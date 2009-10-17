@@ -81,10 +81,13 @@ get_header();
 		<?php endif ?>
 
 		<!-- Passage Widgets -->
-		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-bottom')): ?>
-		<div class="widget-error">
-			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-bottom"><?php _e('Add Widgets') ?></a>
-		</div>
+		<?php bp_bible_toc() ?>
+
+		<?php if (is_user_logged_in()): ?>
+			<div id="bible-passage-history" class="widget">
+				<h2 class="widgettitle"><?php _e('My History for ') ?><?php echo bp_bible_the_ref_str() ?></h2>
+				<?php bp_bible_history(array('refs' => bp_bible_the_refs(), 'style' => 'table')) ?>
+			</div>
 		<?php endif; ?>
 	</div>
 <?php endif ?>
@@ -92,11 +95,38 @@ get_header();
 
 	<!-- Passage Sidebar Widgets -->
 	<div id="bible-sidebar">
-		<?php if (!function_exists('dynamic_sidebar') || !dynamic_sidebar('bible-passage-side')): ?>
-		<div class="widget-error">
-			<?php _e('Please log in and add widgets to this column.') ?> <a href="<?php echo get_option('siteurl') ?>/wp-admin/widgets.php?s=&amp;show=&amp;sidebar=bible-passage-side"><?php _e('Add Widgets') ?></a>
+		<?php if (is_user_logged_in()): ?>
+		<div id="bible-friends-posts" class="widget">
+			<h2 class="widgettitle"><?php _e('My Friends\' Blog Posts') ?></h2>
+			<?php bp_bible_friends_posts() ?>
+		</div>
+
+		<div id="bible-write-post" class="widget">
+			<h2 class="widgettitle"><?php _e('Write a post about this passage') ?></h2>
+			<?php bp_bible_post_form() ?>
+		</div>
+
+		<div id="bible-current-readings" class="widget">
+			<h2 class="widgettitle"><?php _e('My Current Readings') ?></h2>
+			<?php bp_bible_current_readings(array('max' => 10)) ?>
+		</div>
+
+		<div id="bible-history" class="widget">
+			<h2 class="widgettitle"><?php _e('My Bible History') ?></h2>
+			<?php bp_bible_history() ?>
+		</div>
+
+		<?php else: ?>
+		<div id="bible-about" class="widget">
+			<h2 class="widgettitle"><?php _e('Share your thoughts with your friends...') ?></h2>
+			<p><?php _e('Biblefox is all about writing blog posts about the Bible and sharing them with your friends. If you log in and find some friends, you can read any blog posts that they write about this scripture.') ?></p>
 		</div>
 		<?php endif; ?>
+
+		<div id="bible-options" class="widget">
+			<h2 class="widgettitle"><?php _e('Bible Options') ?></h2>
+			<?php bp_bible_options() ?>
+		</div>
 	</div>
 
 </div>

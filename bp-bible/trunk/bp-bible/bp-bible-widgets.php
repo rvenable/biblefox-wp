@@ -9,84 +9,10 @@ class BP_Bible_FriendsPosts_Widget extends WP_Widget {
 	public function widget($args, $instance) {
 		extract($args);
 
-		$refs = bp_bible_the_refs();
-
 		if (empty($instance['title'])) $instance['title'] = __('My Friends\' Blog Posts');
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
-		// If no user, use the current user
-		if (empty($user_id)) $user_id = $GLOBALS['user_ID'];
-
-		if (empty($user_id)) {
-			$content = "<p>" . __('Biblefox is designed to be a <b>study bible written by your friends</b>. ') . bp_bible_loginout() . __(' to read what your friends are writing about the Bible.') . '</p>';// . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
-			echo $content . $after_widget;
-			return;
-		}
-
-		$friends_url = bp_core_get_user_domain($user_id) . 'friends/my-friends/all-friends';
-
-		$total_post_count = 0;
-
-		$friend_ids = array();
-		if (class_exists(BP_Friends_Friendship)) {
-			$friend_ids = BP_Friends_Friendship::get_friend_user_ids($user_id);
-
-			$mem_dir_url = bp_core_get_root_domain() . '/members/';
-
-			if (!empty($friend_ids)) {
-				global $wpdb;
-
-				// Add the current user to the friends so that we get his posts as well
-				$friend_ids []= $user_id;
-
-				$user_post_ids = BfoxPosts::get_post_ids_for_users($refs, $friend_ids);
-
-				if (!empty($user_post_ids)) foreach ($user_post_ids as $blog_id => $post_ids) {
-					$posts = array();
-
-					switch_to_blog($blog_id);
-
-					if (!empty($post_ids)) {
-						BfoxBlogQueryData::set_post_ids($post_ids);
-						$query = new WP_Query(1);
-						$post_count = $query->post_count;
-					}
-					else $post_count = 0;
-					$total_post_count += $post_count;
-
-					while(!empty($post_ids) && $query->have_posts()) :?>
-						<?php $query->the_post() ?>
-						<div class="cbox_sub_sub">
-							<div class='cbox_head'><strong><?php the_title(); ?></strong> (<?php echo bfox_the_refs(BibleMeta::name_short, FALSE) ?>) by <?php the_author() ?> (<?php the_time('F jS, Y') ?>)</div>
-							<div class='cbox_body post'>
-								<h4><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h4>
-								<small><?php the_time('F jS, Y') ?>  by <?php the_author() ?> (<?php echo bfox_the_refs() ?>)</small>
-								<div class="entry">
-									<?php the_content('Read the rest of this entry &raquo;') ?>
-									<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
-								</div>
-							</div>
-						</div>
-					<?php endwhile;
-					restore_current_blog();
-				}
-
-				if (empty($total_post_count)) {
-					printf(__('None of your friends have written any posts about %s.
-					You can write your own post. You can also find more friends using the %s.'),
-					$refs->get_string(),
-					"<a href='$mem_dir_url'>" . __('members directory') . "</a>");
-				}
-			}
-			else {
-				printf(__('This menu shows you any blog posts written by your friends about this passage.
-				You don\'t currently have any friends. That\'s okay, because you can find some friends using our %s.'),
-				"<a href='$mem_dir_url'>" . __("members directory") . "</a>");
-			}
-		}
-		else {
-			_e('This widget requires BuddyPress.');
-		}
+		bp_bible_friends_posts();
 
 		echo $after_widget;
 	}
@@ -108,35 +34,9 @@ class BP_Bible_WritePost_Widget extends WP_Widget {
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
-		global $user_ID, $bp;
-		if (!empty($user_ID)) {
-			$blogs = get_blogs_of_user($user_ID);
+		bp_bible_post_form();
 
-			$links = array();
-
-			foreach ($blogs as $blog) {
-				$role = get_blog_role_for_user($user_ID, $blog->userblog_id);
-				if ($role && ('Subscriber' != $role)) {
-					$links []= "<li><a href='" . BfoxBlog::ref_write_url($ref_str, $blog->siteurl) . "'>$blog->blogname</a></li>";
-				}
-			}
-			$create_url = $bp->loggedin_user->domain . $bp->blogs->slug . '/create-a-blog';
-		}
-		else $create_url = bp_signup_page(false);
-
-
-		if (!empty($links)) {
-			$content = "<p>You can write a blog post about $ref_str on these blogs:</p><ul>";
-			foreach ($links as $link) $content .= $link;
-			$content .= '</ul>';
-			$content .= '<p><a href="' . $create_url . '">' . __('Create a new blog') . '</a></p>';
-		}
-		else {
-			$content = '<p>You don\'t belong to any blogs that you can add a post to.
-				That\'s okay because you can easily <a href="' . $create_url . '">' . __('create a new blog') . '</a>.</p>';
-		}
-
-		echo $content . $after_widget;
+		echo $after_widget;
 	}
 
 	public function update($new_instance, $old_instance) {
@@ -315,13 +215,9 @@ class BP_Bible_Options_Widget extends WP_Widget {
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
-		$table = new BfoxHtmlList();
-		$table->add(bfox_reader_check_option('jesus', __('Show Jesus\' words in red')));
-		$table->add(bfox_reader_check_option('paragraphs', __('Display verses as paragraphs')));
-		$table->add(bfox_reader_check_option('verse_nums', __('Hide verse numbers')));
-		$table->add(bfox_reader_check_option('footnotes', __('Hide footnote links')));
+		bp_bible_options();
 
-		echo $table->content() . $after_widget;
+		echo $after_widget;
 	}
 
 	public function update($new_instance, $old_instance) {
@@ -391,43 +287,12 @@ class BP_Bible_History_Widget extends WP_Widget {
 			if (empty($instance['title'])) $instance['title'] = __('My Bible History');
 		}
 
-		$max = (int) $instance['number'];
-		if (1 > $max) $max = 10;
-
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
-		global $user_ID;
+		$instance['max'] = $instance['number'];
+		bp_bible_history($instance);
 
-		if (empty($user_ID)) {
-			$content = "<p>" . __('Biblefox can keep track of all the Bible passages you read.
-				If you\'re already a member, ') . bp_bible_loginout() . __(' to track this passage and see your recent history.
-				If you\'re not a member, ') . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
-		}
-		else {
-			$history = BfoxHistory::get_history($max, 0, $refs);
-
-			if ('table' == $instance['style']) {
-				$table = new BfoxHtmlTable("class='widefat'");
-
-				foreach ($history as $event) $table->add_row('', 5,
-					$event->desc(),
-					$event->ref_link(),
-					BfoxUtility::nice_date($event->time),
-					date('g:i a', $event->time),
-					$event->toggle_link());
-
-				$content = $table->content();
-			}
-			else {
-				$list = new BfoxHtmlList();
-
-				foreach ($history as $event) $list->add($event->ref_link($instance['ref_name']));
-
-				$content = $list->content();
-			}
-		}
-
-		echo $content . $after_widget;
+		echo $after_widget;
 	}
 
 	public function update($new_instance, $old_instance) {
@@ -479,6 +344,7 @@ class BP_Bible_History_Widget extends WP_Widget {
     }
 }
 
+// TODO: Delete
 class BP_Bible_Toc_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(false, __('Bible Table of Contents'));
@@ -488,23 +354,6 @@ class BP_Bible_Toc_Widget extends WP_Widget {
 		extract($args);
 
 		if (empty($instance['title'])) $instance['title'] = __('%s - Table of Contents');
-		$books = bp_bible_the_books();
-
-		foreach ($books as $book) {
-			$book_name = BibleMeta::get_book_name($book);
-			$end_chapter = BibleMeta::end_verse_max($book);
-
-			$title = sprintf($instance['title'], $book_name);
-			echo $before_widget . $before_title . $title . $after_title;
-			?>
-			<ul class='flat_toc'>
-			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
-				<li><a href='<?php echo BfoxQuery::ref_url("$book_name $ch") ?>'><?php echo $ch ?></a></li>
-			<?php endfor ?>
-			</ul>
-			<?php
-			echo $after_widget;
-		}
 
 	}
 
@@ -591,26 +440,16 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 	}
 
 	public function widget($args, $instance) {
-		global $user_ID;
-
 		extract($args);
 
 		if (empty($instance['title'])) $instance['title'] = __('My Current Readings');
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
-		if (!empty($user_ID)) {
-			$plans = BfoxPlans::get_plans_using_args(array('user_id' => $user_ID, 'is_finished' => 0));
-			BfoxPlans::add_history_to_plans($plans);
+		$instance['max'] = $instance['number'];
+		bp_bible_current_readings($instance);
 
-			$instance['max_readings'] = $instance['number'];
-			$content = bp_plan_current_readings($instance, $plans);
-			if (empty($content)) $content = __('<p>You do not have any current readings.</p>');
-			$content .= "<p><a href='" . bp_plans_user_plans_permalink() . "'>" . __('Edit Reading Plans') . "</a></p>";
-		}
-		else $content = "<p>" . __('With Biblefox, you can create a Bible Reading plan to organize how you read the Bible. ') . bp_bible_loginout() . __(' to see the current readings for your reading plans.</p>');
-
-		echo $content . $after_widget;
+		echo $after_widget;
 	}
 
 	public function update($new_instance, $old_instance) {
@@ -755,6 +594,7 @@ function bp_bible_widgets_init() {
 	register_widget('BP_Bible_WritePost_Widget');
 }
 
+// TODO: delete these
 function bp_bible_register_sidebars() {
 	register_sidebars(1,
 		array(

@@ -24,7 +24,7 @@ function bp_plan_search_form() {
 ?>
 	<form action="<?php echo $bp->displayed_user->domain . $bp->plans->slug . '/my-plans/friends/' ?>" id="plan-search-form" method="post">
 		<label for="plan-filter-box" id="plan-filter-box-label"><?php _e('Filter Plans', 'bp-plans') ?></label>
-		<input type="search" name="plan-filter-box" id="plan-filter-box" value="" />
+		<input type="text" name="plan-filter-box" id="plan-filter-box" value="" />
 
 		<?php wp_nonce_field( 'plan-filter-box', '_wpnonce_plan_filter' ) ?>
 	</form>
@@ -560,7 +560,7 @@ function bp_plan_current_readings($args = array(), $plans = array()) {
 	global $plans_template;
 
 	$defaults = array(
-		'max_readings' => 5,
+		'max' => 5,
 		'ref_name' => BibleMeta::name_short
 	);
 
@@ -569,7 +569,7 @@ function bp_plan_current_readings($args = array(), $plans = array()) {
 
 	if (empty($plans)) $plans = $plans_template->items;
 
-	if (1 > $max_readings) $max_readings = 5;
+	if (1 > $max) $max = 5;
 
 	if (!empty($plans)) {
 		$dates = array();
@@ -599,7 +599,7 @@ function bp_plan_current_readings($args = array(), $plans = array()) {
 		}
 
 		array_multisort($dates, $lis);
-		$readings = array_slice($lis, 0, $max_readings);
+		$readings = array_slice($lis, 0, $max);
 	}
 
 	$content = '';
