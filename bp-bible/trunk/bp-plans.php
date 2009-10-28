@@ -78,7 +78,7 @@ require_once BFOX_PLANS_DIR . '/plans.php';
 //require ( BP_BIBLE_DIR . '/bp-plans/bp-plans-cssjs.php' );
 
 /* The templatetags file should contain classes and functions designed for use in template files */
-require ( BP_BIBLE_DIR . '/plans/bp-plans-templatetags.php' );
+require ( BP_BIBLE_DIR . '/bp-plans/bp-plans-templatetags.php' );
 
 /* The widgets file should contain code to create and register widgets for the component */
 //require ( BP_BIBLE_DIR . '/bp-plans/bp-plans-widgets.php' );
