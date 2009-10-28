@@ -7,7 +7,7 @@
  */
 
 function bp_plans_header_tabs() {
-	global $bp, $create_plan_step, $completed_to_step;
+	global $bp;
 ?>
 	<li<?php if ( !isset($bp->action_variables[0]) || 'active' == $bp->action_variables[0] ) : ?> class="current"<?php endif; ?>><a href="<?php echo $bp->displayed_user->domain . $bp->plans->slug ?>/my-plans"><?php _e( 'Active', 'bp-plans' ) ?></a></li>
 	<li<?php if ( 'inactive' == $bp->action_variables[0] ) : ?> class="current"<?php endif; ?>><a href="<?php echo $bp->displayed_user->domain . $bp->plans->slug ?>/my-plans/inactive"><?php _e( 'Inactive', 'bp-plans' ) ?></a></li>
