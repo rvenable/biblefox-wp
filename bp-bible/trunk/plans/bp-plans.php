@@ -33,7 +33,7 @@ define ( 'BP_PLANS_DB_VERSION', '1' );
 
 /* Define a slug constant that will be used to view this components pages (http://example.org/SLUG) */
 if ( !defined( 'BP_PLANS_SLUG' ) )
-	define ( 'BP_PLANS_SLUG', 'plans' );
+	define ( 'BP_PLANS_SLUG', 'bible' );
 
 define(BP_PLANS_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
@@ -140,7 +140,7 @@ function bp_plans_setup_globals() {
 	global $bp, $wpdb;
 
 	/* For internal identification */
-	$bp->plans->id = 'plans';
+	$bp->plans->id = 'bible';
 
 	$bp->plans->table_name = $wpdb->base_prefix . 'bp_plans';
 	$bp->plans->format_notification_function = 'bp_plans_format_notifications';
@@ -199,24 +199,24 @@ function bp_plans_setup_nav() {
 	global $bp;
 
 	/* Add 'Reading Plans' to the main navigation */
-	bp_core_new_nav_item( array(
+/*	bp_core_new_nav_item( array(
 		'name' => __( 'Reading Plans', 'bp-plans' ),
 		'slug' => $bp->plans->slug,
 		'position' => 80,
 		'screen_function' => 'bp_plans_screen_my_plans',
 		'default_subnav_slug' => 'my-plans'
 	) );
-
+*/
 	$plans_link = $bp->loggedin_user->domain . $bp->plans->slug . '/';
 
 	/* Create two sub nav items for this component */
 	bp_core_new_subnav_item( array(
-		'name' => __( 'My Reading Plans', 'bp-plans' ),
+		'name' => __( 'Reading Plans', 'bp-plans' ),
 		'slug' => 'my-plans',
 		'parent_slug' => $bp->plans->slug,
 		'parent_url' => $plans_link,
 		'screen_function' => 'bp_plans_screen_my_plans',
-		'position' => 10,
+		'position' => 110,
 		'item_css_id' => 'my-plans-list'
 	) );
 
@@ -226,7 +226,7 @@ function bp_plans_setup_nav() {
 		'parent_slug' => $bp->plans->slug,
 		'parent_url' => $plans_link,
 		'screen_function' => 'bp_plans_screen_create',
-		'position' => 20,
+		'position' => 120,
 		'user_has_access' => bp_is_home() // Only the logged in user can access this on his/her profile
 	) );
 
@@ -281,7 +281,7 @@ function bp_plans_setup_nav() {
 				'parent_slug' => $bp->plans->slug,
 				'parent_url' => $plans_link,
 				'screen_function' => 'bp_plans_screen_view',
-				'position' => 30
+				'position' => 130
 			) );
 		}
 

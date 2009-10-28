@@ -315,7 +315,8 @@ class BfoxRefs extends BfoxSequenceList {
 			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d) OR (%d BETWEEN $col1 AND $col2) OR (%d BETWEEN $col1 AND $col2)",
 			$seq->start, $seq->end, $seq->start, $seq->end, $seq->start, $seq->end);
 
-		return '(' . implode(' OR ', $wheres) . ')';
+		if (!empty($wheres)) return '(' . implode(' OR ', $wheres) . ')';
+		return "0";
 	}
 
 	/*

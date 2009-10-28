@@ -219,35 +219,45 @@ function bp_bible_setup_nav() {
 	bp_core_new_nav_item( array(
 		'name' => __( 'Bible', 'bp-bible' ),
 		'slug' => $bp->bible->slug,
-		'position' => 80,
-		'screen_function' => 'bp_bible_screen_passage',
-		'default_subnav_slug' => 'passage'
+		'position' => 0,
+		'screen_function' => 'bp_bible_screen_history',
+		'default_subnav_slug' => 'history'
 	) );
 
 	$bible_link = $bp->loggedin_user->domain . $bp->bible->slug . '/';
 
-	/* Create two sub nav items for this component */
-	bp_core_new_subnav_item( array(
-		'name' => __( 'Screen One', 'bp-bible' ),
-		'slug' => 'passage',
+/*	bp_core_new_subnav_item( array(
+		'name' => __( 'Bible Activity', 'bp-bible' ),
+		'slug' => 'bible-discussion',
 		'parent_slug' => $bp->bible->slug,
 		'parent_url' => $bible_link,
-		'screen_function' => 'bp_bible_screen_passage',
+		'screen_function' => 'bp_bible_screen_discussion',
 		'position' => 10
 	) );
+*/
 
+	// History Page
 	bp_core_new_subnav_item( array(
+		'name' => __( 'History', 'bp-bible' ),
+		'slug' => 'history',
+		'parent_slug' => $bp->bible->slug,
+		'parent_url' => $bible_link,
+		'screen_function' => 'bp_bible_screen_history',
+		'position' => 20
+	) );
+
+/*	bp_core_new_subnav_item( array(
 		'name' => __( 'Screen Two', 'bp-bible' ),
 		'slug' => 'screen-two',
 		'parent_slug' => $bp->bible->slug,
 		'parent_url' => $bible_link,
 		'screen_function' => 'bp_bible_screen_search',
-		'position' => 20,
+		'position' => 30,
 		'user_has_access' => bp_is_home() // Only the logged in user can access this on his/her profile
 	) );
-
+*/
 	/* Add a nav item for this component under the settings nav item. See bp_bible_screen_settings_menu() for more info */
-	bp_core_new_subnav_item( array(
+/*	bp_core_new_subnav_item( array(
 		'name' => __( 'Bible', 'bp-bible' ),
 		'slug' => 'bible-admin',
 		'parent_slug' => $bp->settings->slug,
@@ -256,7 +266,7 @@ function bp_bible_setup_nav() {
 		'position' => 40,
 		'user_has_access' => bp_is_home() // Only the logged in user can access this on his/her profile
 	) );
-
+*/
 	/* Only execute the following code if we are actually viewing this component (e.g. http://example.org/bible) */
 	if ( $bp->current_component == $bp->bible->slug ) {
 		if ( bp_is_home() ) {
@@ -269,13 +279,13 @@ function bp_bible_setup_nav() {
 		}
 	}
 }
-//add_action( 'wp', 'bp_bible_setup_nav', 2 );
-//add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
+add_action( 'wp', 'bp_bible_setup_nav', 2 );
+add_action( 'admin_menu', 'bp_bible_setup_nav', 2 );
 
 function bp_bible_directory_setup() {
 	global $bp;
 
-	if ( $bp->current_component == $bp->bible->slug /*&& empty( $bp->current_action )*/ ) {
+	if ( $bp->current_component == $bp->bible->slug && empty( $bp->displayed_user->id ) ) {
 		$bp->is_directory = true;
 
 		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
@@ -1190,5 +1200,33 @@ function bp_bible_loginout($redirect = '') {
 	return apply_filters('bp_bible_loginout', $link);
 }
 
+function bp_bible_screen_discussion() {
+	global $bp;
+
+	$current_filter = $bp->action_variables[0];
+
+	$bp->bible->refs = new BfoxRefs;
+	switch ( $current_filter ) {
+		case 'today': default:
+			$history = BfoxHistory::get_history_using_args(array('days_ago' => 1));
+			break;
+		case 'week':
+			$history = BfoxHistory::get_history_using_args(array('days_ago' => 7));
+			break;
+		case 'month':
+			$history = BfoxHistory::get_history_using_args(array('days_ago' => 30));
+			break;
+	}
+	//pre($history);
+	foreach ($history as $event) $bp->bible->refs->add_refs($event->refs);
+
+	bp_core_load_template( apply_filters( 'bp_bible_template_screen_discussion', 'bible/discussions' ) );
+}
+
+function bp_bible_screen_history() {
+	global $bp;
+
+	bp_core_load_template( apply_filters( 'bp_bible_template_screen_discussion', 'bible/history' ) );
+}
 
 ?>

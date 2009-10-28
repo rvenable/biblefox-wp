@@ -25,7 +25,7 @@
  *
  */
 
-class BP_Loop_Template {
+abstract class BP_Loop_Template {
 	protected $current_item = -1;
 	public $item_count;
 	public $items;
@@ -37,6 +37,9 @@ class BP_Loop_Template {
 	public $pag_num;
 	public $pag_links;
 
+	/*
+	 * Functions to be called by the constructor
+	 */
 	protected function set_user_id($user_id) {
 		global $bp;
 
@@ -82,6 +85,10 @@ class BP_Loop_Template {
 		$this->from_num = intval( ( $this->pag_page - 1 ) * $this->pag_num ) + 1;
 		$this->to_num = ( $this->from_num + ( $this->pag_num - 1 ) > $this->total_item_count ) ? $this->total_item_count : $this->from_num + ( $this->pag_num - 1) ;
 	}
+
+	/*
+	 * Functions to be called by template tags
+	 */
 
 	public function has_items() {
 		if ( $this->item_count )

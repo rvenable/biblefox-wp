@@ -53,6 +53,7 @@ class BfoxHistoryEvent {
 class BfoxHistory {
 
 	const table = BFOX_TABLE_HISTORY;
+	private static $total_history = 0;
 
 	public static function create_table() {
 		// Note: for user_id (aka. owner) see WP's implementation in wp-admin/includes/schema.php
@@ -91,7 +92,20 @@ class BfoxHistory {
 		}
 	}
 
+	// TODO: delete this old get_history()
 	public static function get_history($limit = 0, $time = 0, BfoxRefs $refs = NULL, $is_read = NULL) {
+		$args = array(
+			'limit' => $limit,
+			'time' => $time
+		);
+
+		if (!is_null($is_read)) $args['is_read'] = $is_read;
+		if (!is_null($refs)) $args['refs'] = $refs;
+
+		return self::get_history_using_args($args);
+	}
+
+	public static function get_history_using_args($args = array()) {
 		global $user_ID;
 
 		$history = array();
@@ -99,24 +113,51 @@ class BfoxHistory {
 		if (!empty($user_ID)) {
 			global $wpdb;
 
+			extract($args);
+
 			$wheres = array($wpdb->prepare("user_id = %d", $user_ID));
 
-			if (!empty($time)) {
+			// Time selector
+			if (!empty($days_ago)) $wheres []= $wpdb->prepare("time >= (NOW() - INTERVAL %d DAY)", $days_ago);
+			elseif (!empty($time)) {
 				if (is_array($time)) {
 					list($start, $end) = $time;
 					$wheres []= $wpdb->prepare("(time BETWEEN %d AND %d)", $start, $end);
 				}
 				else $wheres []= $wpdb->prepare("time >= %d", $time);
 			}
-			if (!is_null($is_read)) $wheres []= $wpdb->prepare("is_read = %d", $is_read);
-			if (!is_null($refs)) $wheres []= $refs->sql_where2();
 
-			$results = $wpdb->get_results("SELECT time, is_read, GROUP_CONCAT(verse_begin) as verse_begin, GROUP_CONCAT(verse_end) as verse_end FROM " . self::table . " WHERE " . implode(' AND ', $wheres) . " GROUP BY time, is_read ORDER BY time DESC " . BfoxUtility::limit_str($limit));
+			if (isset($is_read)) $wheres []= $wpdb->prepare("is_read = %d", $is_read);
+			if (isset($refs)) $wheres []= $refs->sql_where2();
+
+			$limit_str = '';
+			$found_rows = '';
+			if (!empty($limit)) {
+				if (!empty($page)) $page -= 1;
+				$limit_str = $wpdb->prepare("LIMIT %d, %d", $limit * $page, $limit);
+				$found_rows = 'SQL_CALC_FOUND_ROWS';
+			}
+
+			$results = $wpdb->get_results("
+				SELECT $found_rows time, is_read, GROUP_CONCAT(verse_begin) as verse_begin, GROUP_CONCAT(verse_end) as verse_end
+				FROM " . self::table . "
+				WHERE " . implode(' AND ', $wheres) . "
+				GROUP BY time, is_read
+				ORDER BY time DESC
+				$limit_str"
+			);
+
+			if (!empty($limit)) self::$total_history = $wpdb->get_var('SELECT FOUND_ROWS()');
+			else self::$total_history = count($results);
 
 			foreach ($results as $result) $history []= new BfoxHistoryEvent($result);
 		}
 
 		return $history;
+	}
+
+	public static function get_total_history() {
+		return self::$total_history;
 	}
 }
 

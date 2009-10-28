@@ -388,7 +388,7 @@ function bp_bible_friends_posts($args = array()) {
 	$args = wp_parse_args( $args, $defaults );
 	extract( $args, EXTR_SKIP );
 
-	$refs = bp_bible_the_refs();
+	if (is_null($refs)) $refs = bp_bible_the_refs();
 
 	$friends_url = bp_core_get_user_domain($user_id) . 'friends/my-friends/all-friends';
 
@@ -505,7 +505,7 @@ function bp_bible_current_readings($args = array()) {
 	echo $content;
 }
 
-function bp_bible_history($args = array()) {
+function bp_bible_history_list($args = array()) {
 	global $bp;
 
 	$user_id = $bp->loggedin_user->id;
@@ -515,10 +515,7 @@ function bp_bible_history($args = array()) {
 			If you\'re not a member, ') . '<a href="' . bp_signup_page(false) . '">' . __('sign up') . '</a>' . __(' for free!') . '</p>';
 	}
 	else {
-		$max = (int) $args['max'];
-		if (1 > $max) $max = 10;
-
-		$history = BfoxHistory::get_history($max, 0, $args['refs']);
+		$history = BfoxHistory::get_history_using_args($args);
 
 		if ('table' == $args['style']) {
 			$table = new BfoxHtmlTable("class='widefat'");
@@ -544,14 +541,24 @@ function bp_bible_history($args = array()) {
 	echo $content;
 }
 
-function bp_bible_options() {
-	$table = new BfoxHtmlList();
-	$table->add(bfox_reader_check_option('jesus', __('Show Jesus\' words in red')));
-	$table->add(bfox_reader_check_option('paragraphs', __('Display verses as paragraphs')));
-	$table->add(bfox_reader_check_option('verse_nums', __('Hide verse numbers')));
-	$table->add(bfox_reader_check_option('footnotes', __('Hide footnote links')));
+function bp_bible_options($options = array()) {
+	if (empty($options)) $options = array(
+		'jesus' => __('Show Jesus\' words in red'),
+		'paragraphs' => __('Display verses as paragraphs'),
+		'verse_nums' => __('Hide verse numbers'),
+		'footnotes' => __('Hide footnote links')
+	);
 
-	echo $table->content();
+	?>
+	<ul>
+		<?php foreach ($options as $name => $label): ?>
+		<li>
+			<input type="checkbox" name="<?php echo $name ?>" id="option_<?php echo $name ?>" class="view_option"/>
+			<label for="option_<?php echo $name ?>"><?php echo $label ?></label>
+		</li>
+		<?php endforeach ?>
+	</ul>
+	<?php
 }
 
 function bp_bible_toc() {
@@ -572,5 +579,199 @@ function bp_bible_toc() {
 		<?php
 	}
 }
+
+/*
+ * Bible Discussions Templates
+ */
+
+function bp_bible_discussions_header_tabs() {
+	global $bp;
+?>
+	<li<?php if ( !isset($bp->action_variables[0]) || 'today' == $bp->action_variables[0] ) : ?> class="current"<?php endif; ?>><a href="<?php echo $bp->displayed_user->domain . $bp->bible->slug ?>/bible-discussion"><?php _e( 'Today', 'bp-plans' ) ?></a></li>
+	<li<?php if ( 'week' == $bp->action_variables[0] ) : ?> class="current"<?php endif; ?>><a href="<?php echo $bp->displayed_user->domain . $bp->bible->slug ?>/bible-discussion/week"><?php _e( 'Last 7 Days', 'bp-plans' ) ?></a></li>
+	<li<?php if ( 'month' == $bp->action_variables[0] ) : ?> class="current"<?php endif; ?>><a href="<?php echo $bp->displayed_user->domain . $bp->bible->slug ?>/bible-discussion/month"><?php _e( 'Last 30 Days', 'bp-plans' ) ?></a></li>
+<?php
+	do_action( 'bp_plans_header_tabs' );
+}
+
+function bp_bible_discussions_filter_title() {
+	global $bp;
+
+	$current_filter = $bp->action_variables[0];
+
+	switch ( $current_filter ) {
+		case 'today': default:
+			_e( 'Scriptures studied today', 'bp-plans' );
+			break;
+		case 'week':
+			_e( 'Scriptures studied the last 7 days', 'bp-plans' );
+			break;
+		case 'month':
+			_e( 'Scriptures studied the last 30 days', 'bp-plans' );
+			break;
+	}
+	do_action( 'bp_plans_filter_title' );
+}
+
+function bp_bible_refs($name = '') {
+	$refs = bp_get_bible_refs();
+	echo $refs->get_string($name);
+}
+
+function bp_get_bible_refs() {
+	global $bp;
+	return $bp->bible->refs;
+}
+
+function bp_bible_add_scriptures_form() {
+	?>
+		<form action='' method='post' id='search-form'>
+			<input type='text' id='search-terms' name='search-terms' value='' />
+			<input type="checkbox" id="add-marked-read" name="mark-read" /><?php _e('Mark as read', 'bp-bible') ?>
+			<input type="submit" name="add" id="add" value="<?php _e('Add', 'bp-bible') ?>" />
+		</form>
+	<?php
+}
+
+class BP_Bible_History_Template extends BP_Loop_Template {
+	public function __construct($args = array()) {
+		global $bp;
+
+		extract($args);
+
+		$this->set_user_id($user_id);
+		$this->set_per_page($per_page);
+
+		$args = array(
+			'user_id' => $this->user_id,
+			'limit' => $this->pag_num,
+			'page' => $this->pag_page
+		);
+
+		$this->items = BfoxHistory::get_history_using_args($args);
+		$this->total_item_count = BfoxHistory::get_total_history();
+
+		$this->item_count = count($this->items);
+		$this->set_max($max);
+		$this->set_page_links();
+	}
+}
+
+function bp_has_bible_history($args = array()) {
+	global $bp, $bible_history_template;
+
+	$defaults = array(
+		'user_id' => false,
+		'per_page' => 40,
+		'max' => false,
+		'type' => 'current'
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+/*	if ( 'my-plans' == $bp->current_action ) {
+		$page = $bp->action_variables[0];
+		if ( 'inactive' == $page )
+			$type = 'finished';
+		else if ( 'friends' == $page )
+			$type = 'friends';
+	}
+	elseif ( $bp->plans->current_plan->slug ) {
+		$type = 'single-plan';
+	}
+*/
+	$bible_history_template = new BP_Bible_History_Template($args);
+
+	return $bible_history_template->has_items();
+}
+
+function bp_bible_history_events() {
+	global $bible_history_template;
+	return $bible_history_template->items();
+}
+
+function bp_the_bible_history_event() {
+	global $bible_history_template;
+	return $bible_history_template->the_item();
+}
+
+/**
+ * Returns the current reading bible_history if $bible_history is NULL
+ *
+ * @param BfoxHistoryEvent $bible_history
+ * @return BfoxHistoryEvent
+ */
+function bp_get_bible_history_event(BfoxHistoryEvent $bible_history = NULL) {
+	if (empty($bible_history)) {
+		global $bp, $bible_history_template;
+		if (!empty($bible_history_template->item)) $bible_history = $bible_history_template->item;
+	}
+
+	return $bible_history;
+}
+
+function bp_bible_history_event_desc() {
+	echo bp_get_bible_history_event_desc();
+}
+	function bp_get_bible_history_event_desc(BfoxHistoryEvent $bible_history = NULL) {
+		$bible_history = bp_get_bible_history_event($bible_history);
+		return apply_filters( 'bp_get_bible_history_event_desc', $bible_history->desc() );
+	}
+
+function bp_bible_history_event_ref_link() {
+	echo bp_get_bible_history_event_ref_link();
+}
+	function bp_get_bible_history_event_ref_link(BfoxHistoryEvent $bible_history = NULL) {
+		$bible_history = bp_get_bible_history_event($bible_history);
+		return apply_filters( 'bp_get_bible_history_event_ref_link', $bible_history->ref_link() );
+	}
+
+function bp_bible_history_event_nice_date() {
+	echo bp_get_bible_history_event_nice_date();
+}
+	function bp_get_bible_history_event_nice_date(BfoxHistoryEvent $bible_history = NULL) {
+		$bible_history = bp_get_bible_history_event($bible_history);
+		return apply_filters( 'bp_get_bible_history_event_nice_date', BfoxUtility::nice_date($bible_history->time) );
+	}
+
+function bp_bible_history_event_date($format = '') {
+	echo bp_get_bible_history_event_date($format);
+}
+	function bp_get_bible_history_event_date($format = '', BfoxHistoryEvent $bible_history = NULL) {
+		if (empty($format)) $format = 'g:i a';
+		$bible_history = bp_get_bible_history_event($bible_history);
+		return apply_filters( 'bp_get_bible_history_event_date', date($format, $bible_history->time) );
+	}
+
+function bp_bible_history_event_toggle_link() {
+	echo bp_get_bible_history_event_toggle_link();
+}
+	function bp_get_bible_history_event_toggle_link(BfoxHistoryEvent $bible_history = NULL) {
+		$bible_history = bp_get_bible_history_event($bible_history);
+		return apply_filters( 'bp_get_bible_history_event_toggle_link', $bible_history->toggle_link() );
+	}
+
+function bp_bible_history_pagination() {
+	echo bp_get_bible_history_pagination();
+}
+	function bp_get_bible_history_pagination() {
+		global $bible_history_template;
+		return apply_filters( 'bp_get_bible_history_pagination', $bible_history_template->pag_links );
+	}
+
+function bp_bible_history_pagination_count() {
+	global $bible_history_template;
+	echo sprintf( __( 'Viewing bible history %d to %d (of %d)', 'bp-bible' ), $bible_history_template->from_num, $bible_history_template->to_num, $bible_history_template->total_item_count ); ?> &nbsp;
+	<span class="ajax-loader"></span><?php
+}
+
+function bp_bible_history_pag_id() {
+	echo bp_get_bible_history_pag_id();
+}
+	function bp_get_bible_history_pag_id() {
+		return apply_filters( 'bp_get_bible_history_pag_id', 'pag' );
+	}
+
+
 
 ?>

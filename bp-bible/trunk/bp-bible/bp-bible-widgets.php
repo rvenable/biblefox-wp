@@ -289,8 +289,8 @@ class BP_Bible_History_Widget extends WP_Widget {
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
-		$instance['max'] = $instance['number'];
-		bp_bible_history($instance);
+		$instance['limit'] = $instance['number'];
+		bp_bible_history_list($instance);
 
 		echo $after_widget;
 	}
