@@ -22,7 +22,7 @@ define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/plans');
 define(BP_BIBLE_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BP_BIBLE_DIR . '/loop-template.php';
-require_once BFOX_PLANS_DIR . '/bp-plans.php';
+require_once BP_BIBLE_DIR . '/bp-plans.php';
 require_once BFOX_BIBLE_DIR . '/passage.php';
 require_once BFOX_BIBLE_DIR . '/history.php';
 require_once BFOX_BIBLE_DIR . '/bible.php';
