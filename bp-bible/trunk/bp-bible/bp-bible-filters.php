@@ -29,15 +29,22 @@
  * then use those filters to automatically add the wp_filter_kses() call.
  * The third parameter "1" adds the highest priority to the filter call.
  */
- 
- add_filter( 'bp_bible_get_item_name', 'wp_filter_kses', 1 );
+
+add_filter( 'bp_get_bible_note_content', 'wp_filter_kses', 1 );
+add_filter( 'bp_get_bible_note_content', 'wptexturize' );
+add_filter( 'bp_get_bible_note_content', 'convert_smilies' );
+add_filter( 'bp_get_bible_note_content', 'convert_chars' );
+add_filter( 'bp_get_bible_note_content', 'wpautop' );
+add_filter( 'bp_get_bible_note_content', 'stripslashes_deep' );
+add_filter( 'bp_get_bible_note_content', 'make_clickable' );
+
+add_filter( 'bp_get_bible_note_ref_tags', 'wp_filter_kses', 1 );
 
 /**
  * In your save() method in 'bp-bible-classes.php' you will have 'before save' filters on
  * values. You should use these filters to attach the wp_filter_kses() function to them.
  */
 
- add_filter( 'bible_data_fieldname1_before_save', 'wp_filter_kses', 1 );
- add_filter( 'bible_data_fieldname2_before_save', 'wp_filter_kses', 1 );
+add_filter( 'bp_bible_note_content_before_save', 'wp_filter_kses', 1 );
 
 ?>

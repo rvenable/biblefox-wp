@@ -92,7 +92,7 @@ if ( file_exists( BP_BIBLE_DIR . '/bp-bible/languages/' . get_locale() . '.mo' )
  */
 
 /* The classes file should hold all database access classes and functions */
-//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-classes.php' );
+require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-classes.php' );
 
 /* The ajax file should hold all functions used in AJAX queries */
 //require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-ajax.php' );
@@ -110,7 +110,7 @@ require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-widgets.php' );
 //require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-notifications.php' );
 
 /* The filters file should create and apply filters to component output functions. */
-//require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-filters.php' );
+require ( BP_BIBLE_DIR . '/bp-bible/bp-bible-filters.php' );
 
 /**
  * bp_bible_install()
@@ -123,23 +123,23 @@ function bp_bible_install() {
 	if ( !empty($wpdb->charset) )
 		$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
 
-	/**
-	 * You'll need to write your table definition below, if you want to
-	 * install database tables for your component. You can define multiple
-	 * tables by adding SQL to the $sql array.
-	 *
-	 * Creating multiple tables:
-	 * $bp->xxx->table_name is defined in bp_bible_setup_globals() below.
-	 *
-	 * You will need to define extra table names in that function to create multiple tables.
-	 */
-	$sql[] = "CREATE TABLE {$bp->bible->table_name} (
-		  		id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-		  		field_1 bigint(20) NOT NULL,
-		  		field_2 bigint(20) NOT NULL,
-		  		field_3 bool DEFAULT 0,
-			    KEY field_1 (field_1),
-			    KEY field_2 (field_2)
+	$sql[] = "CREATE TABLE {$bp->bible->table_name_notes} (
+		  		id BIGINT(20) NOT NULL AUTO_INCREMENT,
+		  		user_id BIGINT(20) NOT NULL,
+				modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				created_time TIMESTAMP NOT NULL,
+				content LONGTEXT NOT NULL,
+			    PRIMARY KEY  (id)
+		 	   ) {$charset_collate};";
+
+	$sql[] = "CREATE TABLE {$bp->bible->table_name_note_refs} (
+		  		note_id BIGINT(20) NOT NULL,
+		  		ref_type BOOLEAN NOT NULL,
+		  		verse_begin MEDIUMINT UNSIGNED NOT NULL,
+				verse_end MEDIUMINT UNSIGNED NOT NULL,
+			    KEY note_id (note_id),
+			    KEY verse_begin (verse_begin),
+			    KEY verse_end (verse_end)
 		 	   ) {$charset_collate};";
 
 	require_once( ABSPATH . 'wp-admin/upgrade-functions.php' );
@@ -149,9 +149,9 @@ function bp_bible_install() {
 	 * Once you define the SQL for your new table, uncomment this line to install
 	 * the table. (Make sure you increment the BP_BIBLE_DB_VERSION constant though).
 	 */
-	// dbDelta($sql);
+	dbDelta($sql);
 
-	//update_site_option( 'bp-bible-db-version', BP_BIBLE_DB_VERSION );
+	update_site_option( 'bp-bible-db-version', BP_BIBLE_DB_VERSION );
 }
 
 /**
@@ -162,7 +162,8 @@ function bp_bible_install() {
 function bp_bible_setup_globals() {
 	global $bp, $wpdb;
 
-	$bp->bible->table_name = $wpdb->base_prefix . 'bp_bible';
+	$bp->bible->table_name_notes = $wpdb->base_prefix . 'bp_bible_notes';
+	$bp->bible->table_name_note_refs = $wpdb->base_prefix . 'bp_bible_note_refs';
 	$bp->bible->image_base = WP_PLUGIN_URL . '/bp-bible/images';
 	$bp->bible->format_activity_function = 'bp_bible_format_activity';
 	$bp->bible->format_notification_function = 'bp_bible_format_notifications';
@@ -220,8 +221,8 @@ function bp_bible_setup_nav() {
 		'name' => __( 'Bible', 'bp-bible' ),
 		'slug' => $bp->bible->slug,
 		'position' => 0,
-		'screen_function' => 'bp_bible_screen_history',
-		'default_subnav_slug' => 'history'
+		'screen_function' => 'bp_bible_screen_notes',
+		'default_subnav_slug' => 'notes'
 	) );
 
 	$bible_link = $bp->loggedin_user->domain . $bp->bible->slug . '/';
@@ -235,6 +236,16 @@ function bp_bible_setup_nav() {
 		'position' => 10
 	) );
 */
+
+	// Notes Page
+	bp_core_new_subnav_item( array(
+		'name' => __( 'My Notes', 'bp-bible' ),
+		'slug' => 'notes',
+		'parent_slug' => $bp->bible->slug,
+		'parent_url' => $bible_link,
+		'screen_function' => 'bp_bible_screen_notes',
+		'position' => 10
+	) );
 
 	// History Page
 	bp_core_new_subnav_item( array(
@@ -1228,5 +1239,62 @@ function bp_bible_screen_history() {
 
 	bp_core_load_template( apply_filters( 'bp_bible_template_screen_discussion', 'bible/history' ) );
 }
+
+function bp_bible_screen_notes() {
+	global $bp;
+
+	bp_core_load_template( apply_filters( 'bp_bible_template_screen_discussion', 'bible/notes' ) );
+}
+
+function bp_bible_edit_note($note_id, $content, $tag_ref_str = '') {
+	global $bp;
+
+	if (empty($content))
+		return false;
+
+	$note = new BP_Bible_Note($note_id);
+
+	if (!$note->user_id) $note->user_id = $bp->loggedin_user->id;
+	if ($note->user_id != $bp->loggedin_user->id)
+		return FALSE;
+
+	$note->set_content($content);
+	$note->tag_refs = new BfoxRefs($tag_ref_str);
+
+	if ( !$note->save() )
+		return false;
+
+	do_action( 'bp_bible_edit_note', &$note );
+
+	return $note;
+}
+
+function bp_bible_action_edited_note() {
+	global $bp;
+
+	if ( $bp->current_component != $bp->bible->slug )
+		return false;
+
+	if ( 'save-note' != $bp->action_variables[0] )
+		return false;
+
+	/* Check the nonce */
+	if ( !check_admin_referer( 'bp_bible_note_form' ) )
+		return false;
+
+	if ( !$note = bp_bible_edit_note( $_POST['bible-note-id'], $_POST['bible-note-textarea'] ) ) {
+		bp_core_add_message( __( 'Bible note could not be posted. Please try again.', 'bp-bible' ), 'error' );
+	} else {
+		bp_core_add_message( __( 'Bible note successfully posted.', 'bp-bible' ) );
+		do_action( 'bp_bible_edited_note', &$note );
+	}
+
+	if ( !strpos( wp_get_referer(), $bp->bible->slug ) ) {
+		bp_core_redirect( $bp->displayed_user->domain );
+	} else {
+		bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' );
+	}
+}
+add_action( 'wp', 'bp_bible_action_edited_note', 3 );
 
 ?>

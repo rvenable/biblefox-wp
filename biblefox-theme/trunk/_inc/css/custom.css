@@ -220,3 +220,68 @@ ul.flat_toc li {
 	padding: 0 0.2em;
 	list-style: none;
 }
+
+/**** BIBLE NOTES ***********************/
+
+#bible-note-list li, #bible-note-new {
+	background: url(../images/message_thread_back.gif) top left repeat-x;
+}
+
+	.bible-note-metadata, #bible-note-new-metadata {
+		color: #888;
+		font-size: 0.9em;
+	}
+	
+	.bible-note-content {
+		margin-left: 68px;
+	}
+
+#bible-note-new:hover {
+	position: relative;
+	background: url(../images/message_thread_unread_back.gif) top left repeat-x;
+}
+
+#bible-note-new textarea {
+	font: normal 1em "Lucida Grande", "Lucida Sans Unicode", Arial, Tahoma, sans-serif;
+}
+
+form#bible-note-new-form {
+	padding: 10px;
+	position: relative;
+}
+
+div#bible-note-new {
+	margin-top: 15px;
+}
+	p#wire-email-notify {
+		float: right;
+		margin: 0;
+	}
+
+	div#bible-note-new-avatar { 
+		float: left;
+	}
+	
+	div#bible-note-new-metadata {
+		position: absolute;
+		bottom: 11px;
+		right: 10px;
+	}
+		span#bible-note-by-text {
+			display: none;
+		}
+	
+	div#bible-note-new-input {
+		margin-left: 70px;
+	}
+		div#bible-note-new-input textarea {
+			height: 45px;
+			width: 98%;
+			margin: 5px 0 0 0;
+		}
+		
+		input#bible-note-submit { 
+			margin-top: 10px;
+		}
+
+
