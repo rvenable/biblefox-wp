@@ -99,8 +99,8 @@ class BP_Bible_Note {
 	var $display_content;
 	private $content;
 
-	var $tag_refs;
-	var $content_refs;
+	var $tag_refs = NULL;
+	var $content_refs = NULL;
 
 	public static $found_rows;
 
@@ -119,37 +119,35 @@ class BP_Bible_Note {
 
 		if ( $id ) {
 			$this->id = $id;
-			$this->populate( $this->id );
+			$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$bp->bible->table_name_notes} WHERE id = %d", $this->id ) );
 		}
+		$this->populate_with_row($row);
 	}
 
 	/**
-	 * populate()
+	 * populate_with_row()
 	 *
 	 * This method will populate the object with a row from the database, based on the
 	 * ID passed to the constructor.
 	 */
-	function populate() {
-		global $wpdb, $bp;
-
-		if ( $row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$bp->bible->table_name_notes} WHERE id = %d", $this->id ) ) ) {
-			$this->populate_with_row($row);
-		}
-	}
-
 	function populate_with_row($row) {
 		global $bp;
 
 		$this->id = $row->id;
-		$this->user_id = $row->user_id;
-		$this->modified_time = $row->modified_time;
-		$this->created_time = $row->created_time;
 
-		// If row doesn't have the tag refs, get them from the note refs table
-		if (isset($row->tag_refs)) $this->tag_refs = $row->tag_refs;
-		else $this->tag_refs = BfoxRefTable::get_refs($bp->bible->table_name_note_refs, array('note_id' => $this->id, 'ref_type' => self::ref_type_tag));
+		if ($this->id) {
+			$this->user_id = $row->user_id;
+			$this->modified_time = $row->modified_time;
+			$this->created_time = $row->created_time;
 
-		$this->set_content($row->content);
+			// If row doesn't have the tag refs, get them from the note refs table
+			if (isset($row->tag_refs)) $this->tag_refs = $row->tag_refs;
+			else $this->tag_refs = BfoxRefTable::get_refs($bp->bible->table_name_note_refs, array('note_id' => $this->id, 'ref_type' => self::ref_type_tag));
+
+			$this->set_content($row->content);
+		}
+		if (is_null($this->tag_refs)) $this->tag_refs = new BfoxRefs;
+		if (is_null($this->content_refs)) $this->content_refs = new BfoxRefs;
 	}
 
 	function set_content($content) {
@@ -158,6 +156,10 @@ class BP_Bible_Note {
 		// We don't need to query the DB for the content refs, because we can just parse the content
 		$this->content_refs = new BfoxRefs;
 		$this->display_content = BfoxRefParser::simple_html($this->content, $this->content_refs);
+	}
+
+	function get_editable_content() {
+		return $this->content;
 	}
 
 	/**
@@ -231,7 +233,7 @@ class BP_Bible_Note {
 		/* Add an after save action here */
 		do_action( 'bp_bible_note_after_save', $this );
 
-		return $result;
+		return ($result !== false);
 	}
 
 	/**

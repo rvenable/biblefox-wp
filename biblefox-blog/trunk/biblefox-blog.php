@@ -100,7 +100,7 @@ class Biblefox {
 		if (empty($text)) $text = $ref_str;
 
 		if (!empty($attrs)) $attrs = ' ' . $attrs;
-		return "<a href='" . self::ref_url($ref_str, $ref_url) . "'$attrs>$text</a>";
+		if (!empty($ref_str)) return "<a href='" . self::ref_url($ref_str, $ref_url) . "'$attrs>$text</a>";
 	}
 
 }

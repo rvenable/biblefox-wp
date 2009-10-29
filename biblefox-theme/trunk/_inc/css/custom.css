@@ -275,13 +275,18 @@ div#bible-note-new {
 		margin-left: 70px;
 	}
 		div#bible-note-new-input textarea {
-			height: 45px;
+			height: 90px;
 			width: 98%;
 			margin: 5px 0 0 0;
 		}
 		
 		input#bible-note-submit { 
 			margin-top: 10px;
+		}
+		
+		input#bible-note-ref-tags {
+			margin-top: 5px;
+			width: 98%;
 		}
 
 

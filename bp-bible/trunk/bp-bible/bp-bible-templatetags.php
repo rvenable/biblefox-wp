@@ -6,6 +6,22 @@
  * just by calling the function name.
  */
 
+function bp_bible_ref_avatar($args = array()) {
+	echo bp_get_bible_ref_avatar($args);
+}
+	function bp_get_bible_ref_avatar($args = array()) {
+		extract($args);
+		if (!$type) $type = 'full';
+		if (!$ref_str) $book = 'bible';
+
+		$dimensions = array('full' => 150, 'thumb' => 50);
+		$dimension = $dimensions[$type];
+
+		$src = BP_BIBLE_URL . "/images/$book-$type.jpg";
+
+		return apply_filters('bp_get_bible_ref_avatar', "<img class='avatar' width='$dimension' height='$dimension' alt='Bible Avatar Image' src='$src' />");
+	}
+
 /**
  * If you want to go a step further, you can create your own custom WordPress loop for your component.
  * By doing this you could output a number of items within a loop, just as you would output a number
@@ -853,10 +869,20 @@ function bp_get_bible_note(BP_Bible_Note $note = NULL) {
 	if (empty($note)) {
 		global $bp, $bible_notes_template;
 		if (!empty($bible_notes_template->item)) $note = $bible_notes_template->item;
+		elseif (!empty($bp->bible->current_note)) $note = $bp->bible->current_note;
+		else $note = new BP_Bible_Note();
 	}
 
 	return $note;
 }
+
+function bp_bible_note_id() {
+	echo bp_get_bible_note_id();
+}
+	function bp_get_bible_note_id(BP_Bible_Note $note = NULL) {
+		$note = bp_get_bible_note($note);
+		return apply_filters( 'bp_get_bible_note_id', $note->id );
+	}
 
 function bp_bible_note_content() {
 	echo bp_get_bible_note_content();
@@ -864,6 +890,22 @@ function bp_bible_note_content() {
 	function bp_get_bible_note_content(BP_Bible_Note $note = NULL) {
 		$note = bp_get_bible_note($note);
 		return apply_filters( 'bp_get_bible_note_content', $note->display_content );
+	}
+
+function bp_bible_note_editable_content() {
+	echo bp_get_bible_note_editable_content();
+}
+	function bp_get_bible_note_editable_content(BP_Bible_Note $note = NULL) {
+		$note = bp_get_bible_note($note);
+		return apply_filters( 'bp_get_bible_note_editable_content', $note->get_editable_content() );
+	}
+
+function bp_bible_note_ref_tag_links($ref_name = '') {
+	echo bp_get_bible_note_ref_tag_links($ref_name = '');
+}
+	function bp_get_bible_note_ref_tag_links($ref_name = '', BP_Bible_Note $note = NULL) {
+		$note = bp_get_bible_note($note);
+		return apply_filters( 'bp_get_bible_note_ref_tag_links', Biblefox::ref_link($note->tag_refs->get_string($ref_name)) );
 	}
 
 function bp_bible_note_ref_tags($ref_name = '') {
@@ -900,12 +942,13 @@ function bp_bible_note_author_link() {
 		return apply_filters( 'bp_get_bible_note_author_link', bp_core_get_userlink( $note->user_id ) );
 	}
 
-function bp_bible_note_author_avatar() {
-	echo bp_get_bible_note_author_avatar();
+function bp_bible_note_avatar($args = array()) {
+	echo bp_get_bible_note_avatar();
 }
-	function bp_get_bible_note_author_avatar(BP_Bible_Note $note = NULL) {
+	function bp_get_bible_note_avatar($args = array(), BP_Bible_Note $note = NULL) {
 		$note = bp_get_bible_note($note);
-		return apply_filters( 'bp_get_bible_note_author_avatar', bp_core_fetch_avatar( array( 'item_id' => $note->user_id, 'type' => 'thumb' ) ) );
+		if (empty($args['type'])) $args['type'] = 'thumb';
+		return apply_filters( 'bp_get_bible_note_avatar', bp_get_bible_ref_avatar($args) );
 	}
 
 function bp_bible_notes_pagination() {
@@ -951,17 +994,15 @@ function bp_bible_note_form_action() {
 function bp_bible_note_action_buttons() {
 	echo bp_get_bible_note_action_buttons();
 }
-	function bp_get_bible_note_action_buttons() {
-		global $wire_posts_template, $bp;
-
-		if ( empty( $bp->current_item ) )
-			$uri = $bp->current_action;
-		else
-			$uri = $bp->current_item;
-
+	function bp_get_bible_note_action_buttons(BP_Bible_Note $note = NULL) {
+		global $bp;
+		$note = bp_get_bible_note($note);
 		$notes_url = $bp->loggedin_user->domain . $bp->bible->slug . '/notes';
-		return apply_filters( 'bp_get_bible_note_action_buttons', '<a class="item-button delete-post confirm" href="' . wp_nonce_url( site_url( $bp->{$bp->current_component}->slug . '/' . $uri . '/wire/delete/' . $wire_posts_template->wire_post->id ), 'bp_wire_delete_link' ) . '">' . __('Delete', 'buddypress') . '</a>' );
-		return apply_filters( 'bp_get_bible_note_action_buttons', '<a class="item-button delete-post confirm" href="' . wp_nonce_url( $notes_url . '/delete/' . $note->id, 'bp_bible_note_delete_link' ) . '">' . __('Delete', 'bp-bible') . '</a>' );
+		$class = 'class="item-button delete-post confirm"';
+		$buttons = '';
+		$buttons .= "<a class=\"item-button\" href=\"$notes_url/edit/$note->id\">" . __('Edit', 'bp-bible') . '</a>';
+		//$buttons .= "<a $class href=\"" . wp_nonce_url( $notes_url . '/delete/' . $note->id, 'bp_bible_note_delete_link' ) . '">' . __('Delete', 'bp-bible') . '</a>';
+		return apply_filters( 'bp_get_bible_note_action_buttons', $buttons );
 	}
 
 

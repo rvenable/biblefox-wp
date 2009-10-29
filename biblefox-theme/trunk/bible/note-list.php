@@ -21,10 +21,10 @@
 				<?php do_action( 'bp_before_bible_note_list_metadata' ) ?>
 
 				<div class="bible-note-metadata">
-					<?php bp_bible_note_author_avatar() ?>
-					<?php _e('Date: ', 'bp-bible') ?><?php bp_bible_note_modified_time() ?><br/>
-					<?php if ($ref_str = bp_get_bible_note_ref_tags()) echo __('Scriptures: ', 'bp-bible') . $ref_str ?>
-					<?php //bp_wire_delete_link() ?>
+					<?php bp_bible_note_avatar() ?>
+					<?php _e('Last Edited: ', 'bp-bible') ?><?php bp_bible_note_modified_time() ?><br/>
+					<?php if ($ref_str = bp_get_bible_note_ref_tag_links()) echo __('Scriptures: ', 'bp-bible') . $ref_str ?>
+					<?php bp_bible_note_action_buttons() ?>
 
 					<?php do_action( 'bp_bible_note_list_metadata' ) ?>
 				</div>

@@ -280,6 +280,11 @@ function bp_bible_setup_nav() {
 */
 	/* Only execute the following code if we are actually viewing this component (e.g. http://example.org/bible) */
 	if ( $bp->current_component == $bp->bible->slug ) {
+		if ('notes' == $bp->current_action && 'edit' == $bp->action_variables[0]) {
+			$note = new BP_Bible_Note($bp->action_variables[1]);
+			if ($bp->loggedin_user->id == $note->user_id) $bp->bible->current_note = $note;
+		}
+
 		if ( bp_is_home() ) {
 			/* If the user is viewing their own profile area set the title to "My Bible" */
 			$bp->bp_options_title = __( 'My Bible', 'bp-bible' );
@@ -1256,7 +1261,7 @@ function bp_bible_edit_note($note_id, $content, $tag_ref_str = '') {
 
 	if (!$note->user_id) $note->user_id = $bp->loggedin_user->id;
 	if ($note->user_id != $bp->loggedin_user->id)
-		return FALSE;
+		return false;
 
 	$note->set_content($content);
 	$note->tag_refs = new BfoxRefs($tag_ref_str);
@@ -1282,18 +1287,18 @@ function bp_bible_action_edited_note() {
 	if ( !check_admin_referer( 'bp_bible_note_form' ) )
 		return false;
 
-	if ( !$note = bp_bible_edit_note( $_POST['bible-note-id'], $_POST['bible-note-textarea'] ) ) {
-		bp_core_add_message( __( 'Bible note could not be posted. Please try again.', 'bp-bible' ), 'error' );
+	$note_id = $_POST['bible-note-id'];
+	if ( !$note = bp_bible_edit_note( $note_id, $_POST['bible-note-textarea'], $_POST['bible-note-ref-tags'] ) ) {
+		bp_core_add_message( __( 'Bible note could not be saved. Please try again.', 'bp-bible' ), 'error' );
 	} else {
-		bp_core_add_message( __( 'Bible note successfully posted.', 'bp-bible' ) );
+		bp_core_add_message( __( 'Bible note successfully saved.', 'bp-bible' ) );
 		do_action( 'bp_bible_edited_note', &$note );
 	}
 
-	if ( !strpos( wp_get_referer(), $bp->bible->slug ) ) {
-		bp_core_redirect( $bp->displayed_user->domain );
-	} else {
-		bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' );
-	}
+	if ($note_id) $edit = 'edit/' . $note_id;
+	else $edit = '';
+
+	bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' . $edit );
 }
 add_action( 'wp', 'bp_bible_action_edited_note', 3 );
 
