@@ -633,11 +633,11 @@ function bp_bible_refs($name = '') {
 	$refs = bp_get_bible_refs();
 	echo $refs->get_string($name);
 }
-
-function bp_get_bible_refs() {
-	global $bp;
-	return $bp->bible->refs;
-}
+	function bp_get_bible_refs() {
+		global $bp;
+		if ($bp->bible->refs) return $bp->bible->refs;
+		return new BfoxRefs;
+	}
 
 function bp_bible_add_scriptures_form() {
 	?>
@@ -806,6 +806,10 @@ class BP_Bible_Notes_Template extends BP_Loop_Template {
 		$this->set_per_page($per_page);
 
 		if (!$filter && $_REQUEST['nt-filter']) $filter = stripslashes(strip_tags($_REQUEST['nt-filter']));
+		if (!$filter) {
+			$_refs = bp_get_bible_refs();
+			if ($_refs) $filter = $_refs->get_string();
+		}
 
 		$this->filter_str = $filter;
 		if (!$refs && $filter) {
@@ -914,6 +918,7 @@ function bp_bible_note_ref_tag_links($ref_name = '') {
 }
 	function bp_get_bible_note_ref_tag_links($ref_name = '', BP_Bible_Note $note = NULL) {
 		$note = bp_get_bible_note($note);
+
 		return apply_filters( 'bp_get_bible_note_ref_tag_links', Biblefox::ref_link($note->tag_refs->get_string($ref_name)) );
 	}
 
@@ -922,7 +927,12 @@ function bp_bible_note_ref_tags($ref_name = '') {
 }
 	function bp_get_bible_note_ref_tags($ref_name = '', BP_Bible_Note $note = NULL) {
 		$note = bp_get_bible_note($note);
-		return apply_filters( 'bp_get_bible_note_ref_tags', $note->tag_refs->get_string($ref_name) );
+
+		// If this is a blank note, try to get some global bible refs
+		if ($note->id) $refs = $note->tag_refs;
+		else $refs = bp_get_bible_refs();
+
+		return apply_filters( 'bp_get_bible_note_ref_tags', $refs->get_string($ref_name) );
 	}
 
 function bp_bible_note_modified_time($format = '') {
@@ -982,8 +992,8 @@ function bp_bible_notes_pagination_count() {
 	else $from_num = 0;
 	echo sprintf( __( 'Viewing bible notes %d to %d (of %d)', 'bp-bible' ),
 		$from_num, $bible_notes_template->to_num, $bible_notes_template->total_item_count );
-	$filter_str = bp_get_bible_notes_filter_str();
-	if (!empty($filter_str)) echo __(', filtered by ', 'bp-bible') . "'$filter_str'";
+/*	$filter_str = bp_get_bible_notes_filter_str();
+	if (!empty($filter_str)) echo __(', filtered by ', 'bp-bible') . "'$filter_str'";*/
 }
 
 function bp_bible_notes_pag_id() {

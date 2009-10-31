@@ -370,6 +370,7 @@ function bp_bible_directory_setup() {
 
 		global $bp_bible;
 		$bp_bible = new BfoxBible($refs, new BfoxTrans(bp_bible_get_trans_id()), $search_str);
+		$bp->bible->refs = $bp_bible->refs;
 
 		// If we need to redirect, do it
 		// Otherwise, load the appropriate page

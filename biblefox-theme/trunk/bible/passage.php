@@ -9,7 +9,7 @@
 		<!-- Passages -->
 		<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>
 		<div class="cbox_sub_sub">
-			<div class='cbox_head'><strong><?php echo bp_bible_the_ref_str() ?></strong> last read ..</div>
+			<div class='cbox_head'><strong><?php echo bp_bible_the_ref_str() ?></strong></div>
 			<div class="passages_info"><?php echo bp_bible_history_desc(' \a\t g:i a') ?>: <?php echo bp_bible_mark_read_link() ?></div>
 			<div class='cbox_body'>
 				<div class="post">
@@ -48,16 +48,36 @@
 
 	</div>
 <?php endif ?>
-</div>
-
-	<!-- Passage Sidebar Widgets -->
-	<div id="bible-sidebar">
 		<?php if (is_user_logged_in()): ?>
 		<div id="bible-friends-posts" class="widget">
 			<h2 class="widgettitle"><?php _e('My Friends\' Blog Posts') ?></h2>
 			<?php bp_bible_friends_posts() ?>
 		</div>
 
+		<div class="widget">
+			<h2 class="widgettitle"><?php _e('Add a Bible Note', 'bp-bible') ?></h2>
+			<?php bp_bible_notes_form() ?>
+		</div>
+
+		<div class="widget">
+			<h2 class="widgettitle"><?php _e('My Bible Notes', 'bp-bible') ?></h2>
+			<div id="bible-note-list-content">
+				<?php bp_bible_notes_list() ?>
+			</div>
+		</div>
+
+		<?php else: ?>
+		<div id="bible-about" class="widget">
+			<h2 class="widgettitle"><?php _e('Share your thoughts with your friends...') ?></h2>
+			<p><?php _e('Biblefox is all about writing blog posts about the Bible and sharing them with your friends. If you log in and find some friends, you can read any blog posts that they write about this scripture.') ?></p>
+		</div>
+		<?php endif; ?>
+
+</div>
+
+	<!-- Passage Sidebar Widgets -->
+	<div id="bible-sidebar">
+		<?php if (is_user_logged_in()): ?>
 		<div id="bible-write-post" class="widget">
 			<h2 class="widgettitle"><?php _e('Write a post about this passage') ?></h2>
 			<?php bp_bible_post_form() ?>
@@ -75,8 +95,8 @@
 
 		<?php else: ?>
 		<div id="bible-about" class="widget">
-			<h2 class="widgettitle"><?php _e('Share your thoughts with your friends...') ?></h2>
-			<p><?php _e('Biblefox is all about writing blog posts about the Bible and sharing them with your friends. If you log in and find some friends, you can read any blog posts that they write about this scripture.') ?></p>
+			<h2 class="widgettitle"><?php _e('Plan your Bible reading...') ?></h2>
+			<p><?php _e('With Biblefox, you can create a reading plan and track your progress as you read through the Bible.') ?></p>
 		</div>
 		<?php endif; ?>
 

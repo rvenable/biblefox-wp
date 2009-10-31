@@ -1,22 +1,22 @@
 	<?php $has_notes = bp_has_bible_notes() ?>
 
-				<form id="bible-note-list-filter-form" action="" method="get">
-					<input type="text" name="nt-filter" id="bible-note-list-filter" value="<?php bp_bible_notes_filter_str() ?>" />
-					<input type="submit" id="bible-note-list-filter-submit" value="<?php _e( 'Filter', 'bp-bible' ) ?>" />
-				</form>
+	<form id="bible-note-list-filter-form" action="" method="get">
+		<input type="text" name="nt-filter" id="bible-note-list-filter" value="<?php bp_bible_notes_filter_str() ?>" />
+		<input type="submit" id="bible-note-list-filter-submit" value="<?php _e( 'Filter', 'bp-bible' ) ?>" />
+	</form>
 
-			<div id="bible-note-pagination" class="pagination">
+	<div id="bible-note-pagination" class="pagination">
 
-				<div class="pag-count">
-					<?php bp_bible_notes_pagination_count() ?> &nbsp;
-					<span class="ajax-loader"></span>
-				</div>
+		<div class="pag-count">
+			<?php bp_bible_notes_pagination_count() ?> &nbsp;
+			<span class="ajax-loader"></span>
+		</div>
 
-				<div class="pagination-links" id="<?php bp_bible_notes_pag_id() ?>">
-					<?php bp_bible_notes_pagination() ?>
-				</div>
+		<div class="pagination-links" id="<?php bp_bible_notes_pag_id() ?>">
+			<?php bp_bible_notes_pagination() ?>
+		</div>
 
-			</div>
+	</div>
 
 	<?php if ( $has_notes ) : ?>
 

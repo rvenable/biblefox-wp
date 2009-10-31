@@ -18,7 +18,7 @@ Bible Layout
 */
 
 .passagecolumn {
-	width: 50%;
+	width: 70%;
 	float: left;
 	margin: 0;
 }
@@ -38,7 +38,7 @@ Bible Sidebar
 */
 	
 #bible-sidebar {
-	margin-left: 55%;
+	margin-left: 75%;
 	margin-right: 10px;
 }
 
@@ -51,27 +51,6 @@ Bible Sidebar
 		background: url(../images/leftcol_header_back.gif) top left no-repeat;
 
 	}
-
-#bible-sidebar .widget ul {
-	padding-left: 15px;
-}
-
-#bible-sidebar .widget ul.item-list {
-	padding: 0;
-}
-
-#bible-sidebar .widget li {
-	list-style-type: square;
-	margin-left: 16px;
-	padding-left: 5px;
-	margin-bottom: 5px;
-}
-
-#bible-sidebar .widget ul.item-list li {
-	list-style-type: none;
-	margin: 0;
-	padding: 15px;
-}
 
 /*
 Posts Widget
@@ -151,7 +130,6 @@ Passage Content
 	height: 1.1em;
 	text-align: center;
 	font-weight: bold;
-	background-color: #EEEEEE;
 }
 
 /*
@@ -225,6 +203,7 @@ ul.flat_toc li {
 
 #bible-note-list li, #bible-note-new {
 	background: url(../images/message_thread_back.gif) top left repeat-x;
+	padding: 5px;
 }
 
 	.bible-note-metadata, #bible-note-new-metadata {
@@ -235,6 +214,10 @@ ul.flat_toc li {
 	.bible-note-content {
 		margin-left: 68px;
 	}
+
+		.bible-note-content p {
+			margin-bottom: 8px;
+		}
 
 #bible-note-new:hover {
 	position: relative;
@@ -277,8 +260,9 @@ div.bible-note-edit-form-header {
 
 .bible-note-open-edit-form {
 	float: right;
+	margin-bottom: 0px;
 }
-	
+
 form.bible-note-edit-form textarea {
 	height: 90px;
 	width: 98%;
@@ -295,15 +279,11 @@ input.bible-note-submit {
 }
 
 form#bible-note-list-filter-form {
-	position: absolute;
-	right: 10px;
-	top: 35px;
+	text-align: right;
+	position: relative;
+	top: -10px;
 }
 
 div.bible-note-edit-form-result div, div.bible-note-edit-form-result div p {
 	margin: 5px 0 0 0 !important;
-}
-
-div#bible-note-list-content {
-	margin-top: 30px;
 }
