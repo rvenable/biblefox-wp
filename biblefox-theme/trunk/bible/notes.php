@@ -13,23 +13,18 @@
 
 		<?php do_action( 'bp_before_bible_notes_latest_content' ) ?>
 
-		<div class="left-menu">
-			<!-- Profile Menu (Avatar, Add Friend, Send Message buttons etc) -->
-			<?php locate_template( array( 'profile/profile-menu.php' ), true ) ?>
-		</div>
-
-		<div class="main-column">
-			<!-- Profile Header (Name & Status) -->
-			<?php //locate_template( array( 'profile/profile-header.php' ), true ) ?>
-
 			<?php do_action( 'bp_before_bible_note_list_content' ) ?>
 
 			<div class="bp-widget">
-				<h4><?php _e('Bible Notes', 'bp-bible') ?> <span><a href="<?php bp_wire_see_all_link() ?>"><?php _e( "See All", "buddypress" ) ?> &rarr;</a></span></h4>
+				<h4><?php _e('Add a Bible Note', 'bp-bible') ?></h4>
 
 				<?php do_action( 'bp_before_bible_note_list_form' ) ?>
 
 					<?php bp_bible_notes_form() ?>
+
+			</div>
+			<div class="bp-widget">
+				<h4><?php _e('My Bible Notes', 'bp-bible') ?></h4>
 
 				<div id="bible-note-list-content">
 
@@ -43,7 +38,6 @@
 			</div>
 
 			<?php do_action( 'bp_after_bible_note_list_content' ) ?>
-		</div>
 
 		<?php do_action( 'bp_after_bible_notes_latest_content' ) ?>
 

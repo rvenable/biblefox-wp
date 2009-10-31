@@ -805,11 +805,20 @@ class BP_Bible_Notes_Template extends BP_Loop_Template {
 		$this->set_user_id($user_id);
 		$this->set_per_page($per_page);
 
+		if (!$filter && $_REQUEST['nt-filter']) $filter = stripslashes(strip_tags($_REQUEST['nt-filter']));
+
+		$this->filter_str = $filter;
+		if (!$refs && $filter) {
+			list($ref_str, $filter) = bp_bible_extract_search_refs($filter);
+			$refs = new BfoxRefs($ref_str);
+		}
+
 		$args = array(
 			'user_id' => $this->user_id,
 			'limit' => $this->pag_num,
 			'page' => $this->pag_page,
 			'refs' => $refs,
+			'filter' => $filter,
 		);
 
 		$this->items = BP_Bible_Note::get_notes($args);
@@ -951,6 +960,14 @@ function bp_bible_note_avatar($args = array()) {
 		return apply_filters( 'bp_get_bible_note_avatar', bp_get_bible_ref_avatar($args) );
 	}
 
+function bp_bible_notes_filter_str() {
+	echo bp_get_bible_notes_filter_str();
+}
+	function bp_get_bible_notes_filter_str() {
+		global $bible_notes_template;
+		return apply_filters( 'bp_get_bible_notes_filter_str', $bible_notes_template->filter_str );
+	}
+
 function bp_bible_notes_pagination() {
 	echo bp_get_bible_notes_pagination();
 }
@@ -961,8 +978,12 @@ function bp_bible_notes_pagination() {
 
 function bp_bible_notes_pagination_count() {
 	global $bible_notes_template;
-	echo sprintf( __( 'Viewing bible notes %d to %d (of %d)', 'bp-bible' ), $bible_notes_template->from_num, $bible_notes_template->to_num, $bible_notes_template->total_item_count ); ?> &nbsp;
-	<span class="ajax-loader"></span><?php
+	if ($bible_notes_template->total_item_count) $from_num = $bible_notes_template->from_num;
+	else $from_num = 0;
+	echo sprintf( __( 'Viewing bible notes %d to %d (of %d)', 'bp-bible' ),
+		$from_num, $bible_notes_template->to_num, $bible_notes_template->total_item_count );
+	$filter_str = bp_get_bible_notes_filter_str();
+	if (!empty($filter_str)) echo __(', filtered by ', 'bp-bible') . "'$filter_str'";
 }
 
 function bp_bible_notes_pag_id() {
@@ -977,18 +998,15 @@ function bp_bible_notes_list() {
 }
 
 function bp_bible_notes_form() {
-	global $wire_posts_template;
-
-	//if ( is_user_logged_in() && $wire_posts_template->can_post )
-		locate_template( array( '/bible/note-form.php' ), true );
+	locate_template( array( '/bible/note-form.php' ), true );
 }
 
-function bp_bible_note_form_action() {
-	echo bp_get_bible_note_form_action();
+function bp_bible_note_edit_form_action() {
+	echo bp_get_bible_note_edit_form_action();
 }
-	function bp_get_bible_note_form_action() {
+	function bp_get_bible_note_edit_form_action() {
 		global $bp;
-		return apply_filters( 'bp_get_bible_note_form_action', $bp->displayed_user->domain . $bp->bible->slug . '/notes/save-note' );
+		return apply_filters( 'bp_get_bible_note_edit_form_action', $bp->displayed_user->domain . $bp->bible->slug . '/notes/save-note' );
 	}
 
 function bp_bible_note_action_buttons() {
@@ -1000,8 +1018,8 @@ function bp_bible_note_action_buttons() {
 		$notes_url = $bp->loggedin_user->domain . $bp->bible->slug . '/notes';
 		$class = 'class="item-button delete-post confirm"';
 		$buttons = '';
-		$buttons .= "<a class=\"item-button\" href=\"$notes_url/edit/$note->id\">" . __('Edit', 'bp-bible') . '</a>';
-		//$buttons .= "<a $class href=\"" . wp_nonce_url( $notes_url . '/delete/' . $note->id, 'bp_bible_note_delete_link' ) . '">' . __('Delete', 'bp-bible') . '</a>';
+		//$buttons .= "<a class=\"item-button\" href=\"$notes_url/edit/$note->id\">" . __('Edit', 'bp-bible') . '</a>';
+		$buttons .= "<a $class href=\"" . wp_nonce_url( $notes_url . '/delete/' . $note->id, 'bp_bible_note_delete_link' ) . '">' . __('Delete', 'bp-bible') . '</a>';
 		return apply_filters( 'bp_get_bible_note_action_buttons', $buttons );
 	}
 

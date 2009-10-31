@@ -276,6 +276,12 @@ class BP_Bible_Note {
 		// Add a where for note_id
 		if ($note_ids) $wheres []= 'id IN (' . implode(', ', $wpdb->escape($note_ids)) . ')';
 
+		// Filters
+		if ($filter) {
+			$filters = str_word_count(like_escape($wpdb->escape( $filter )), 1);
+			foreach ($filters as $filter) $wheres []= "(content LIKE '%{$filter}%')";
+		}
+
 		// Handle Limits
 		$found_rows = '';
 		if ($limit) {

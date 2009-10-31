@@ -280,10 +280,10 @@ function bp_bible_setup_nav() {
 */
 	/* Only execute the following code if we are actually viewing this component (e.g. http://example.org/bible) */
 	if ( $bp->current_component == $bp->bible->slug ) {
-		if ('notes' == $bp->current_action && 'edit' == $bp->action_variables[0]) {
+		/*if ('notes' == $bp->current_action && 'edit' == $bp->action_variables[0]) {
 			$note = new BP_Bible_Note($bp->action_variables[1]);
 			if ($bp->loggedin_user->id == $note->user_id) $bp->bible->current_note = $note;
-		}
+		}*/
 
 		if ( bp_is_home() ) {
 			/* If the user is viewing their own profile area set the title to "My Bible" */
@@ -1284,22 +1284,55 @@ function bp_bible_action_edited_note() {
 		return false;
 
 	/* Check the nonce */
-	if ( !check_admin_referer( 'bp_bible_note_form' ) )
+	if ( !check_admin_referer( 'bp_bible_note_edit_form' ) )
 		return false;
 
-	$note_id = $_POST['bible-note-id'];
-	if ( !$note = bp_bible_edit_note( $note_id, $_POST['bible-note-textarea'], $_POST['bible-note-ref-tags'] ) ) {
-		bp_core_add_message( __( 'Bible note could not be saved. Please try again.', 'bp-bible' ), 'error' );
-	} else {
-		bp_core_add_message( __( 'Bible note successfully saved.', 'bp-bible' ) );
-		do_action( 'bp_bible_edited_note', &$note );
+	if ($_POST['bible-note-submit'] && !$_POST['bible-note-cancel']) {
+		$note_id = $_POST['bible-note-id'];
+		if ( !$note = bp_bible_edit_note( $note_id, $_POST['bible-note-textarea'], $_POST['bible-note-ref-tags'] ) ) {
+			bp_core_add_message( __( 'Bible note could not be saved. Please try again.', 'bp-bible' ), 'error' );
+		} else {
+			bp_core_add_message( __( 'Bible note successfully saved.', 'bp-bible' ) );
+			do_action( 'bp_bible_edited_note', &$note );
+		}
 	}
 
-	if ($note_id) $edit = 'edit/' . $note_id;
-	else $edit = '';
-
-	bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' . $edit );
+	bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' );
 }
 add_action( 'wp', 'bp_bible_action_edited_note', 3 );
+
+function bp_bible_delete_note($note_id) {
+	global $bp;
+
+	$note = new BP_Bible_Note($note_id);
+
+	if ($note->user_id != $bp->loggedin_user->id)
+		return false;
+
+	return $note->delete();
+}
+
+function bp_bible_action_deleted_note() {
+	global $bp;
+
+	if ( $bp->current_component != $bp->bible->slug )
+		return false;
+
+	if ( 'delete' != $bp->action_variables[0] )
+		return false;
+
+	/* Check the nonce */
+	if ( !check_admin_referer( 'bp_bible_note_delete_link' ) )
+		return false;
+
+	if ( !bp_bible_delete_note( $bp->action_variables[1] ) ) {
+		bp_core_add_message( __( 'Bible note could not be deleted. Please try again.', 'bp-bible' ), 'error' );
+	} else {
+		bp_core_add_message( __( 'Bible note deleted.', 'bp-bible' ) );
+	}
+
+	bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' );
+}
+add_action( 'wp', 'bp_bible_action_deleted_note', 3 );
 
 ?>
