@@ -97,6 +97,7 @@ class BP_Bible_Note {
 	var $modified_time;
 	var $created_time;
 	var $display_content;
+	var $privacy;
 	private $content;
 
 	var $tag_refs = NULL;
@@ -139,6 +140,7 @@ class BP_Bible_Note {
 			$this->user_id = $row->user_id;
 			$this->modified_time = $row->modified_time;
 			$this->created_time = $row->created_time;
+			$this->privacy = $row->privacy;
 
 			// If row doesn't have the tag refs, get them from the note refs table
 			if (isset($row->tag_refs)) $this->tag_refs = $row->tag_refs;
@@ -197,9 +199,11 @@ class BP_Bible_Note {
 			// Update
 			$result = $wpdb->query( $wpdb->prepare(
 					"UPDATE {$bp->bible->table_name_notes} SET
-						content = %s
+						content = %s,
+						privacy = %d
 					WHERE id = %d",
 						$this->content,
+						$this->privacy,
 						$this->id
 					) );
 		} else {
@@ -208,12 +212,14 @@ class BP_Bible_Note {
 					"INSERT INTO {$bp->bible->table_name_notes} (
 						user_id,
 						created_time,
-						content
+						content,
+						privacy
 					) VALUES (
-						%d, NOW(), %s
+						%d, NOW(), %s, %d
 					)",
 						$this->user_id,
-						$this->content
+						$this->content,
+						$this->privacy
 					) );
 		}
 
@@ -263,7 +269,10 @@ class BP_Bible_Note {
 
 		$join = '';
 		$wheres = array();
-		$wheres []= $wpdb->prepare('user_id = %d', $bp->loggedin_user->id);
+
+		$user_where = $wpdb->prepare('user_id = %d', $bp->loggedin_user->id);
+		if ($friend_ids) $user_where .= ' OR (privacy > 0 AND user_id IN (' . implode(', ', $wpdb->escape($friend_ids)) . '))';
+		$wheres []= $user_where;
 
 		// If we are looking for refs, we should query the note_refs table first to get note_ids
 		if ($refs && $refs->is_valid()) {

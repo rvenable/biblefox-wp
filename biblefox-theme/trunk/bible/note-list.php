@@ -1,6 +1,8 @@
 	<?php $has_notes = bp_has_bible_notes() ?>
 
 	<form id="bible-note-list-filter-form" action="" method="get">
+		<label for="bible-note-list-filter-privacy"><?php _e( 'Include friends', 'bp-bible' ); ?></label>
+		<input type="checkbox" id="bible-note-list-filter-privacy" name="nt-privacy"<?php bp_bible_notes_filter_privacy_setting(1) ?> />
 		<input type="text" name="nt-filter" id="bible-note-list-filter" value="<?php bp_bible_notes_filter_str() ?>" />
 		<input type="submit" id="bible-note-list-filter-submit" value="<?php _e( 'Filter', 'bp-bible' ) ?>" />
 	</form>
@@ -30,7 +32,9 @@
 
 				<div class="bible-note-metadata">
 					<?php bp_bible_note_avatar() ?>
-					<?php _e('Last saved: ', 'bp-bible') ?><?php bp_bible_note_modified_time() ?><br/>
+					<?php _e('Last saved: ', 'bp-bible') ?><?php bp_bible_note_modified_time() ?>
+					<?php _e(' by ', 'bp-bible') ?><?php bp_bible_note_author_link() ?>
+					<?php if (!bp_get_bible_note_privacy()) echo '(' . bp_get_bible_note_privacy_str() . ')' ?><br/>
 					<?php if ($ref_str = bp_get_bible_note_ref_tag_links()) echo __('Scriptures: ', 'bp-bible') . $ref_str ?>
 					<?php bp_bible_note_action_buttons() ?>
 
@@ -45,6 +49,7 @@
 
 					<?php do_action( 'bp_bible_note_list_item' ) ?>
 
+					<?php if (bp_is_bible_note_editable()): ?>
 					<div class="generic-button bible-note-open-edit-form"><a href=""><?php _e('Edit', 'bp-bible') ?></a></div>
 
 					<form action="<?php bp_bible_note_edit_form_action() ?>" class="bible-note-edit-form" method="post">
@@ -58,12 +63,18 @@
 
 						<input type="hidden" name="bible-note-id" class="bible-note-id" value="<?php bp_bible_note_id() ?>" />
 						<input type="submit" name="bible-note-submit" class="bible-note-submit" value="<?php _e( 'Save &raquo;', 'bp-bible' ) ?>" />
-						<span class="ajax-loader"></span>
+						<div class="bible-note-privacy-setting">
+							<?php _e( 'Privacy: ', 'bp-bible' ); ?>
+							<input type="radio" id="bible-note-privacy-private" name="bible-note-privacy" value="0"<?php bp_bible_note_privacy_setting(0) ?> />&nbsp;<label for="bible-note-privacy-private"><?php _e( 'Private', 'bp-bible' ); ?></label>
+							<input type="radio" id="bible-note-privacy-friends" name="bible-note-privacy" value="1"<?php bp_bible_note_privacy_setting(1) ?> />&nbsp;<label for="bible-note-privacy-friends"><?php _e( 'Friends only', 'bp-bible' ); ?></label>
+							<span class="ajax-loader"></span>
+						</div>
 
 						<?php wp_nonce_field( 'bp_bible_note_edit_form' ) ?>
 
 						<div class="bible-note-edit-form-result"></div>
 					</form>
+					<?php endif ?>
 
 				</div>
 

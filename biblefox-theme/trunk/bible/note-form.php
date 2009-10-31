@@ -28,6 +28,12 @@
 
 			<input type="hidden" name="bible-note-id" id="bible-note-id" value="0" />
 			<input type="submit" name="bible-note-submit" class="bible-note-submit" value="<?php _e( 'Save &raquo;', 'bp-bible' ) ?>" />
+			<div class="bible-note-privacy-setting">
+				<?php _e( 'Privacy: ', 'bp-bible' ); ?>
+				<input type="radio" id="bible-note-privacy-private" name="bible-note-privacy" value="0"<?php bp_bible_note_privacy_setting(0) ?> />&nbsp;<label for="bible-note-privacy-private"><?php _e( 'Private', 'bp-bible' ); ?></label>
+				<input type="radio" id="bible-note-privacy-friends" name="bible-note-privacy" value="1"<?php bp_bible_note_privacy_setting(1) ?> />&nbsp;<label for="bible-note-privacy-friends"><?php _e( 'Friends only', 'bp-bible' ); ?></label>
+				<span class="ajax-loader"></span>
+			</div>
 
 			<?php wp_nonce_field( 'bp_bible_note_edit_form' ) ?>
 

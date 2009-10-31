@@ -274,8 +274,13 @@ input.bible-note-ref-tags {
 	width: 98%;
 }
 
+div.bible-note-privacy-setting {
+	margin-top: 10px;
+}
+
 input.bible-note-submit { 
 	margin-top: 10px;
+	float: right;
 }
 
 form#bible-note-list-filter-form {

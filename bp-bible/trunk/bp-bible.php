@@ -68,7 +68,7 @@ define ( 'BP_BIBLE_VERSION', '0.5' );
  * BP_BIBLE_DB_VERSION was written to the wp_usermeta table and the install function will not be
  * triggered again unless you increment the version to a number higher than stored in the meta data.
  */
-define ( 'BP_BIBLE_DB_VERSION', '1' );
+define ( 'BP_BIBLE_DB_VERSION', '2' );
 
 /* Define a slug constant that will be used to view this components pages (http://example.org/SLUG) */
 if ( !defined( 'BP_BIBLE_SLUG' ) )
@@ -128,7 +128,8 @@ function bp_bible_install() {
 		  		user_id BIGINT(20) NOT NULL,
 				modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 				created_time TIMESTAMP NOT NULL,
-				content LONGTEXT NOT NULL,
+				content TEXT NOT NULL,
+				privacy BOOLEAN NOT NULL DEFAULT 0,
 			    PRIMARY KEY  (id)
 		 	   ) {$charset_collate};";
 
@@ -286,6 +287,8 @@ function bp_bible_setup_nav() {
 			$note = new BP_Bible_Note($bp->action_variables[1]);
 			if ($bp->loggedin_user->id == $note->user_id) $bp->bible->current_note = $note;
 		}*/
+
+		bp_bible_notes_list_prepare();
 
 		if ( bp_is_home() ) {
 			/* If the user is viewing their own profile area set the title to "My Bible" */
@@ -1254,7 +1257,7 @@ function bp_bible_screen_notes() {
 	bp_core_load_template( apply_filters( 'bp_bible_template_screen_discussion', 'bible/notes' ) );
 }
 
-function bp_bible_edit_note($note_id, $content, $tag_ref_str = '') {
+function bp_bible_edit_note($note_id, $content, $privacy, $tag_ref_str = '') {
 	global $bp;
 
 	if (empty($content) || $content == bp_get_bible_note_content_help_text())
@@ -1268,6 +1271,7 @@ function bp_bible_edit_note($note_id, $content, $tag_ref_str = '') {
 
 	$note->set_content($content);
 	$note->tag_refs = new BfoxRefs($tag_ref_str);
+	$note->privacy = $privacy;
 
 	if ( !$note->save() )
 		return false;
@@ -1275,6 +1279,13 @@ function bp_bible_edit_note($note_id, $content, $tag_ref_str = '') {
 	do_action( 'bp_bible_edit_note', &$note );
 
 	return $note;
+}
+
+function bp_bible_edit_note_with_input() {
+	// If this is a new note, save the privacy to use as default for subsequent notes
+	if (!$_POST['bible-note-id']) setcookie('bible_notes_default_privacy', $_POST['bible-note-privacy'], /* 365 days from now: */ time() + 60 * 60 * 24 * 365, '/');
+
+	return bp_bible_edit_note( $_POST['bible-note-id'], $_POST['bible-note-textarea'], $_POST['bible-note-privacy'], $_POST['bible-note-ref-tags'] );
 }
 
 function bp_bible_action_edited_note() {
@@ -1291,8 +1302,7 @@ function bp_bible_action_edited_note() {
 		return false;
 
 	if ($_POST['bible-note-submit'] && !$_POST['bible-note-cancel']) {
-		$note_id = $_POST['bible-note-id'];
-		if ( !$note = bp_bible_edit_note( $note_id, $_POST['bible-note-textarea'], $_POST['bible-note-ref-tags'] ) ) {
+		if ( !$note = bp_bible_edit_note_with_input() ) {
 			bp_core_add_message( __( 'Bible note could not be saved. Please try again.', 'bp-bible' ), 'error' );
 		} else {
 			bp_core_add_message( __( 'Bible note successfully saved.', 'bp-bible' ) );
@@ -1337,6 +1347,11 @@ function bp_bible_action_deleted_note() {
 	bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' );
 }
 add_action( 'wp', 'bp_bible_action_deleted_note', 3 );
+
+function bp_bible_notes_list_prepare() {
+	// If there is a note filter request, save its privacy option as a cookie
+	if (isset($_REQUEST['nt-filter'])) setcookie('bible_notes_filter_privacy', !!$_REQUEST['nt-privacy'], /* 30 days from now: */ time() + 60 * 60 * 24 * 30, '/');
+}
 
 /*
  * Fix for bp_core_confirmation_js() to use livequery instead

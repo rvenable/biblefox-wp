@@ -3,16 +3,17 @@
 function bfox_theme_ajax_load_bible_notes(bp_page) {
 	var j = jQuery;
 
-	j('.ajax-loader').toggle();
+	j('.ajax-loader').show();
 
 	j.post( ajaxurl, {
 		action: 'get_bible_notes_list',
 		'cookie': encodeURIComponent(document.cookie),
 		'bp_page': bp_page,
-		'nt-filter': j("input#bible-note-list-filter").val()
+		'nt-filter': j("input#bible-note-list-filter").val(),
+		'nt-privacy': ('on' == j("input#bible-note-list-filter-privacy:checked").val()) ? 1 : 0
 	},
 	function(response) {	
-		j('.ajax-loader').toggle();
+		j('.ajax-loader').hide();
 	
 		response = response.substr(0, response.length-1);
 
@@ -49,19 +50,22 @@ jQuery(document).ready( function() {
 
 	// Bible Note list pages
 	j("form.bible-note-edit-form").livequery('submit', function() {
-		j('.ajax-loader').toggle();
+		j('.ajax-loader').show();
 
 		var children = j(this).children();
 		var note_id = children.filter('.bible-note-id').val();
+		if (undefined == note_id) note_id = '0';
+
 		j.post( ajaxurl, {
 			action: 'save_bible_note',
 			'cookie': encodeURIComponent(document.cookie),
 			'bible-note-id': note_id,
 			'bible-note-textarea': children.filter('.bible-note-textarea').val(),
-			'bible-note-ref-tags': children.filter('.bible-note-ref-tags').val()
+			'bible-note-ref-tags': children.filter('.bible-note-ref-tags').val(),
+			'bible-note-privacy': children.filter('.bible-note-privacy-setting').children('input:radio:checked').val()
 		},
 		function(response) {	
-			j('.ajax-loader').toggle();
+			j('.ajax-loader').hide();
 		
 			response = response.substr(0, response.length-1);
 
@@ -73,7 +77,7 @@ jQuery(document).ready( function() {
 				// If the save was successful, we should reload all the bible notes
 				if (result.children('#message').hasClass('updated')) {
 					// For a new note, blank out the new note content to get ready for the user to type another note
-					if ('0' == note_id || undefined == note_id) children.filter('.bible-note-textarea').val('').blur();
+					if ('0' == note_id) children.filter('.bible-note-textarea').val('').blur();
 					
 					// Reload the bible notes
 					bfox_theme_ajax_load_bible_notes(1);

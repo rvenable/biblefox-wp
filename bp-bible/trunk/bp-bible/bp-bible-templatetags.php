@@ -802,6 +802,7 @@ class BP_Bible_Notes_Template extends BP_Loop_Template {
 
 		extract($args);
 
+		if (empty($user_id)) $user_id = $bp->loggedin_user->id;
 		$this->set_user_id($user_id);
 		$this->set_per_page($per_page);
 
@@ -817,8 +818,19 @@ class BP_Bible_Notes_Template extends BP_Loop_Template {
 			$refs = new BfoxRefs($ref_str);
 		}
 
+		if (!isset($privacy)) {
+			// If we have a filter from input, use its privacy setting
+			// Otherwise use the setting from the last time we had filter input (saved in a cookie by bp_bible_notes_list_prepare())
+			if (isset($_REQUEST['nt-filter'])) $privacy = !!$_REQUEST['nt-privacy'];
+			else $privacy = !!$_COOKIE['bible_notes_filter_privacy'];
+		}
+
+		$this->privacy_setting = $privacy;
+		if ($this->privacy_setting) $friend_ids = friends_get_friend_user_ids($this->user_id);
+		else $friend_ids = false;
+
 		$args = array(
-			'user_id' => $this->user_id,
+			'friend_ids' => $friend_ids,
 			'limit' => $this->pag_num,
 			'page' => $this->pag_page,
 			'refs' => $refs,
@@ -881,9 +893,19 @@ function bp_the_bible_note() {
 function bp_get_bible_note(BP_Bible_Note $note = NULL) {
 	if (empty($note)) {
 		global $bp, $bible_notes_template;
+
+		// Try to get the note from the template loop, and then from the current note
 		if (!empty($bible_notes_template->item)) $note = $bible_notes_template->item;
-		elseif (!empty($bp->bible->current_note)) $note = $bp->bible->current_note;
-		else $note = new BP_Bible_Note();
+		else {
+			// If there isn't a current note, create a new note
+			if (empty($bp->bible->current_note)) {
+				$bp->bible->current_note = new BP_Bible_Note();
+				// Use the cookied default privacy
+				$bp->bible->current_note->privacy = $_COOKIE['bible_notes_default_privacy'];
+				$bp->bible->current_note->user_id = $bp->loggedin_user->id;
+			}
+			$note = $bp->bible->current_note;
+		}
 	}
 
 	return $note;
@@ -935,6 +957,22 @@ function bp_bible_note_ref_tags($ref_name = '') {
 		return apply_filters( 'bp_get_bible_note_ref_tags', $refs->get_string($ref_name) );
 	}
 
+function bp_bible_note_privacy_str() {
+	echo bp_get_bible_note_privacy_str();
+}
+	function bp_get_bible_note_privacy_str(BP_Bible_Note $note = NULL) {
+		$note = bp_get_bible_note($note);
+		$privacy_strs = array(
+			__('Private', 'bp-bible'),
+			__('Friends only', 'bp-bible'),
+		);
+		return apply_filters( 'bp_get_bible_note_privacy_str', $privacy_strs[bp_get_bible_note_privacy($note)] );
+	}
+	function bp_get_bible_note_privacy(BP_Bible_Note $note = NULL) {
+		$note = bp_get_bible_note($note);
+		return apply_filters( 'bp_get_bible_note_privacy', $note->privacy );
+	}
+
 function bp_bible_note_modified_time($format = '') {
 	echo bp_get_bible_note_modified_time($format);
 }
@@ -961,14 +999,24 @@ function bp_bible_note_author_link() {
 		return apply_filters( 'bp_get_bible_note_author_link', bp_core_get_userlink( $note->user_id ) );
 	}
 
-function bp_bible_note_avatar($args = array()) {
+function bp_bible_note_avatar() {
 	echo bp_get_bible_note_avatar();
 }
-	function bp_get_bible_note_avatar($args = array(), BP_Bible_Note $note = NULL) {
+	function bp_get_bible_note_avatar(BP_Bible_Note $note = NULL) {
 		$note = bp_get_bible_note($note);
-		if (empty($args['type'])) $args['type'] = 'thumb';
-		return apply_filters( 'bp_get_bible_note_avatar', bp_get_bible_ref_avatar($args) );
+		return apply_filters( 'bp_get_bible_note_avatar', bp_core_fetch_avatar( array( 'item_id' => $note->user_id, 'type' => 'thumb' ) ) );
 	}
+
+function bp_bible_note_privacy_setting($privacy, BP_Bible_Note $note = NULL) {
+	$note = bp_get_bible_note($note);
+	if ($privacy == $note->privacy) echo ' checked="checked"';
+}
+
+function bp_is_bible_note_editable(BP_Bible_Note $note = NULL) {
+	global $bp;
+	$note = bp_get_bible_note($note);
+	return apply_filters( 'bp_is_bible_note_editable', ($bp->loggedin_user->id == $note->user_id) );
+}
 
 function bp_bible_note_content_help_text() {
 	echo bp_get_bible_note_content_help_text();
@@ -976,6 +1024,14 @@ function bp_bible_note_content_help_text() {
 	function bp_get_bible_note_content_help_text() {
 		global $bp;
 		return apply_filters( 'bp_get_bible_note_content_help_text', $bp->bible->note_content_help_text );
+	}
+
+function bp_bible_notes_filter_privacy_setting($privacy) {
+	if ($privacy == bp_get_bible_notes_filter_privacy_setting()) echo ' checked="checked"';
+}
+	function bp_get_bible_notes_filter_privacy_setting() {
+		global $bible_notes_template;
+		return apply_filters( 'bp_get_bible_notes_filter_privacy_setting', $bible_notes_template->privacy_setting );
 	}
 
 function bp_bible_notes_filter_str() {
