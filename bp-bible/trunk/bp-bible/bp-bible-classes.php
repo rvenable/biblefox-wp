@@ -272,7 +272,7 @@ class BP_Bible_Note {
 
 		$user_where = $wpdb->prepare('user_id = %d', $bp->loggedin_user->id);
 		if ($friend_ids) $user_where .= ' OR (privacy > 0 AND user_id IN (' . implode(', ', $wpdb->escape($friend_ids)) . '))';
-		$wheres []= $user_where;
+		$wheres []= '(' . $user_where . ')';
 
 		// If we are looking for refs, we should query the note_refs table first to get note_ids
 		if ($refs && $refs->is_valid()) {
