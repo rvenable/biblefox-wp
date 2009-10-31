@@ -970,6 +970,14 @@ function bp_bible_note_avatar($args = array()) {
 		return apply_filters( 'bp_get_bible_note_avatar', bp_get_bible_ref_avatar($args) );
 	}
 
+function bp_bible_note_content_help_text() {
+	echo bp_get_bible_note_content_help_text();
+}
+	function bp_get_bible_note_content_help_text() {
+		global $bp;
+		return apply_filters( 'bp_get_bible_note_content_help_text', $bp->bible->note_content_help_text );
+	}
+
 function bp_bible_notes_filter_str() {
 	echo bp_get_bible_notes_filter_str();
 }

@@ -16,7 +16,7 @@
 		<form action="<?php bp_bible_note_edit_form_action() ?>" id="bible-note-new-edit-form" class="bible-note-edit-form" method="post">
 			<?php do_action( 'bp_before_note_edit_form' ) ?>
 
-			<?php $note_msg = __( 'Start writing a quick note...', 'bp-bible' ) ?>
+			<?php $note_msg = bp_get_bible_note_content_help_text() ?>
 			<?php $note_content = bp_get_bible_note_editable_content() ?>
 			<textarea name="bible-note-textarea" class="bible-note-textarea" onfocus="if (this.value == '<?php echo $note_msg ?>') {this.value = '';}" onblur="if (this.value == '') {this.value = '<?php echo $note_msg ?>';}"><?php echo ($note_content) ? $note_content : $note_msg ?></textarea>
 

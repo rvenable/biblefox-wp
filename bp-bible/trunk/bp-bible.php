@@ -171,6 +171,8 @@ function bp_bible_setup_globals() {
 	if (!empty($_COOKIE['bfox_trans_id'])) $bp->bible->trans_id = $_COOKIE['bfox_trans_id'];
 	else $bp->bible->trans_id = 0;
 
+	$bp->bible->note_content_help_text = __( 'Start writing a quick note', 'bp-bible' );
+
 	$bp->version_numbers->bible = BP_BIBLE_VERSION;
 }
 add_action( 'plugins_loaded', 'bp_bible_setup_globals', 5 );
@@ -1255,7 +1257,7 @@ function bp_bible_screen_notes() {
 function bp_bible_edit_note($note_id, $content, $tag_ref_str = '') {
 	global $bp;
 
-	if (empty($content))
+	if (empty($content) || $content == bp_get_bible_note_content_help_text())
 		return false;
 
 	$note = new BP_Bible_Note($note_id);
@@ -1335,5 +1337,18 @@ function bp_bible_action_deleted_note() {
 	bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/notes/' );
 }
 add_action( 'wp', 'bp_bible_action_deleted_note', 3 );
+
+/*
+ * Fix for bp_core_confirmation_js() to use livequery instead
+ * (fixes our delete buttons when they are loaded via ajax, such as in the notes list)
+ */
+function bp_core_confirmation_js_bible_fix() {
+?>
+	<script type="text/javascript"> jQuery(document).ready( function() { jQuery("a.confirm").livequery('click', function() { if ( confirm( '<?php _e( 'Are you sure?', 'buddypress' ) ?>' ) ) return true; else return false; }); });</script>
+<?php
+}
+add_action( 'wp_head', 'bp_core_confirmation_js_bible_fix', 100 );
+	function remove_bp_core_confirmation_js() { remove_action( 'wp_head', 'bp_core_confirmation_js' ); }
+	add_action( 'plugins_loaded', 'remove_bp_core_confirmation_js' );
 
 ?>
