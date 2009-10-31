@@ -251,7 +251,7 @@ function bp_bible_setup_nav() {
 	) );
 
 	// History Page
-	bp_core_new_subnav_item( array(
+/*	bp_core_new_subnav_item( array(
 		'name' => __( 'History', 'bp-bible' ),
 		'slug' => 'history',
 		'parent_slug' => $bp->bible->slug,
@@ -259,7 +259,7 @@ function bp_bible_setup_nav() {
 		'screen_function' => 'bp_bible_screen_history',
 		'position' => 20
 	) );
-
+*/
 /*	bp_core_new_subnav_item( array(
 		'name' => __( 'Screen Two', 'bp-bible' ),
 		'slug' => 'screen-two',
