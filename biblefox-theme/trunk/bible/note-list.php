@@ -36,7 +36,7 @@
 					<?php _e(' by ', 'bp-bible') ?><?php bp_bible_note_author_link() ?>
 					<?php if (!bp_get_bible_note_privacy()) echo '(' . bp_get_bible_note_privacy_str() . ')' ?><br/>
 					<?php if ($ref_str = bp_get_bible_note_ref_tag_links()) echo __('Scriptures: ', 'bp-bible') . $ref_str ?>
-					<?php bp_bible_note_action_buttons() ?>
+					<?php if (bp_is_bible_note_editable()) bp_bible_note_action_buttons() ?>
 
 					<?php do_action( 'bp_bible_note_list_metadata' ) ?>
 				</div>
