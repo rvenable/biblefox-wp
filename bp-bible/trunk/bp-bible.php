@@ -1285,7 +1285,12 @@ function bp_bible_edit_note_with_input() {
 	// If this is a new note, save the privacy to use as default for subsequent notes
 	if (!$_POST['bible-note-id']) setcookie('bible_notes_default_privacy', $_POST['bible-note-privacy'], /* 365 days from now: */ time() + 60 * 60 * 24 * 365, '/');
 
-	return bp_bible_edit_note( $_POST['bible-note-id'], $_POST['bible-note-textarea'], $_POST['bible-note-privacy'], $_POST['bible-note-ref-tags'] );
+	return bp_bible_edit_note(
+		$_POST['bible-note-id'],
+		stripslashes($_POST['bible-note-textarea']),
+		$_POST['bible-note-privacy'],
+		$_POST['bible-note-ref-tags']
+	);
 }
 
 function bp_bible_action_edited_note() {

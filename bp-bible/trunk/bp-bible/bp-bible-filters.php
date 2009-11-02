@@ -30,12 +30,11 @@
  * The third parameter "1" adds the highest priority to the filter call.
  */
 
-add_filter( 'bp_get_bible_note_content', 'wp_filter_kses', 1 );
+add_filter( 'bp_get_bible_note_content', 'bp_bible_note_filter_kses', 1 );
 add_filter( 'bp_get_bible_note_content', 'wptexturize' );
 add_filter( 'bp_get_bible_note_content', 'convert_smilies' );
 add_filter( 'bp_get_bible_note_content', 'convert_chars' );
 add_filter( 'bp_get_bible_note_content', 'wpautop' );
-add_filter( 'bp_get_bible_note_content', 'stripslashes_deep' );
 add_filter( 'bp_get_bible_note_content', 'make_clickable' );
 
 add_filter( 'bp_get_bible_note_ref_tags', 'wp_filter_kses', 1 );
@@ -45,6 +44,11 @@ add_filter( 'bp_get_bible_note_ref_tags', 'wp_filter_kses', 1 );
  * values. You should use these filters to attach the wp_filter_kses() function to them.
  */
 
-add_filter( 'bp_bible_note_content_before_save', 'wp_filter_kses', 1 );
+add_filter( 'bp_bible_note_content_before_save', 'bp_bible_note_filter_kses', 1 );
+
+function bp_bible_note_filter_kses($data) {
+	global $allowedtags;
+	return wp_kses($data, $allowedtags);
+}
 
 ?>
