@@ -175,6 +175,9 @@ function bp_bible_setup_globals() {
 	$bp->bible->note_content_help_text = __( 'Start writing a quick note', 'bp-bible' );
 
 	$bp->version_numbers->bible = BP_BIBLE_VERSION;
+
+	// Set the base bible url for the Biblefox-Blog plugin to the local bible
+	if (class_exists(BfoxBlog)) BfoxBlog::$bible_url = $bp->root_domain . '/' . $bp->bible->slug . '/';
 }
 add_action( 'plugins_loaded', 'bp_bible_setup_globals', 5 );
 add_action( 'admin_menu', 'bp_bible_setup_globals', 1 );
@@ -184,6 +187,17 @@ function bp_bible_setup_root_component() {
 	bp_core_add_root_component( BP_BIBLE_SLUG );
 }
 add_action( 'plugins_loaded', 'bp_bible_setup_root_component', 1 );
+
+/**
+ * Checks if we want to display the Bible Print Page, displays it and exits
+ */
+function bp_bible_check_for_bible_print_page() {
+	if (!empty($_REQUEST['bible_print_ref'])) {
+		locate_template(array('bible/print.php'), TRUE);
+		exit;
+	}
+}
+add_action('init', 'bp_bible_check_for_bible_print_page', 1000); // Add after other things have finished init
 
 /**
  * bp_bible_check_installed()
