@@ -531,11 +531,11 @@ function bp_plan_chart(BfoxReadingPlan $plan = NULL) {
 				// If this reading is 'read', then mark it as such
 				if (!$unread->is_valid()) $attrs = "class='finished'";
 			}
-			$row->add_col(Biblefox::ref_link($reading->get_string(BibleMeta::name_short)), $attrs);
+			$row->add_col(bp_bible_ref_link(array('refs' => $reading, 'name' => BibleMeta::name_short)), $attrs);
 
 			// Add the History column
 			/*if (!empty($unread_readings)) {
-				if (isset($unread_readings[$reading_id])) $row->add_col(Biblefox::ref_link($unread_readings[$reading_id]->get_string(BibleMeta::name_short)));
+				if (isset($unread_readings[$reading_id])) $row->add_col(bp_bible_ref_link(array('refs' => $unread_readings[$reading_id], 'name' => BibleMeta::name_short)));
 				else $row->add_col();
 			}*/
 
@@ -585,7 +585,7 @@ function bp_plan_current_readings($args = array(), $plans = array()) {
 				// If the passage is unread or current, add it
 				if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
 					$ref_str = $plan->readings[$reading_id]->get_string($ref_name);
-					$url = Biblefox::ref_url($ref_str);
+					$url = bp_bible_ref_url($ref_str);
 
 					if (!$is_unread) $finished = " class='finished'";
 					else $finished = '';

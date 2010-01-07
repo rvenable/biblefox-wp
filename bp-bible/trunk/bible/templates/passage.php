@@ -56,7 +56,7 @@
 		<!-- Passages -->
 		<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>
 		<div class='post'>
-			<div class='passage-nav'><?php echo bp_bible_ref_link('prev') . bp_bible_ref_link('next') ?></div>
+			<div class='passage-nav'><?php echo bp_bible_passage_ref_link('prev') . bp_bible_passage_ref_link('next') ?></div>
 			<h3><?php echo bp_bible_the_ref_str() ?></h3>
 			<div class='entry'>
 				<?php echo bp_bible_the_passage_content() ?>

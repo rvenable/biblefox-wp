@@ -126,7 +126,7 @@ class BP_Bible_Notes_Widget extends WP_Widget {
 					$notes_table->add_row('', 3,
 						$note->get_modified(),
 						$note->get_title() . " (<a href='" . BfoxBible::edit_note_url($note->id, $this->url) . "'>edit</a>)",
-						"<a href='" . BfoxQuery::ref_url($note_ref_str) . "'>$note_ref_str</a>");
+						bp_bible_ref_link(array('ref_str' => $note_ref_str)));
 				}
 				$notes_table->add_row('', 1, array("<a href='" . BfoxBible::edit_note_url(0, $this->url) . "'>Add New Note</a>", "colspan='3'"));
 

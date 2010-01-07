@@ -110,7 +110,7 @@ class BfoxBible {
 	public function ref_nav_link($type = '', $title = '', $attrs = '') {
 		if (!is_null($this->passage)) $ref_str = $this->passage->nav_ref($type);
 
-		if (!empty($ref_str)) return Biblefox::ref_link($ref_str, $title, '', $attrs);
+		if (!empty($ref_str)) return '';
 		else return '';
 	}
 

@@ -124,12 +124,12 @@ class BfoxRefContent {
 
 	private static function prev_link($book, $ch, $book_name = '', $title = '', $attrs = '') {
 		if (empty($book_name)) $book_name = BibleMeta::get_book_name($book);
-		if (BibleMeta::start_chapter <= --$ch) return Biblefox::ref_link("$book_name $ch", $title, '', $attrs);
+		if (BibleMeta::start_chapter <= --$ch) return '';
 	}
 
 	private static function next_link($book, $ch, $book_name = '', $title = '', $attrs = '') {
 		if (empty($book_name)) $book_name = BibleMeta::get_book_name($book);
-		if (BibleMeta::end_verse_max($book) >= ++$ch) return Biblefox::ref_link("$book_name $ch", $title, '', $attrs);
+		if (BibleMeta::end_verse_max($book) >= ++$ch) return '';
 	}
 
 	private static function prev_page_bar($bcvs) {

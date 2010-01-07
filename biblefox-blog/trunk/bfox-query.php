@@ -145,14 +145,12 @@ class BfoxBlogQueryData {
 			$nav_bar = "<div class='bible_post_nav'>";
 			if ($ch1 > BibleMeta::start_chapter) {
 				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
-				$nav_bar .= BfoxBlog::ref_link($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
 			}
 			$nav_bar .= BfoxBlog::ref_write_link($ref_str, 'Write about this passage');
 			if ($ch2 < BibleMeta::end_verse_max($book)) {
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
-				$nav_bar .= BfoxBlog::ref_link($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");
 			}
-			$nav_bar .= "<br/>" . Biblefox::ref_link($ref_str, __('View in advanced Bible reader'), Biblefox::ref_url_bible) . "</div>";
+			$nav_bar .= "</div>";
 
 			$new_post = self::add_verse_post_content(array(), $book_refs, $nav_bar);
 			$new_post['ID'] = -1;
@@ -161,8 +159,8 @@ class BfoxBlogQueryData {
 			$new_post['post_type'] = BfoxBlog::post_type_bible;
 			$new_post['post_date'] = current_time('mysql', false);
 			$new_post['post_date_gmt'] = current_time('mysql', true);
-			$new_post['bfox_permalink'] = Biblefox::ref_url($ref_str);
-			$new_post['bfox_author'] = Biblefox::ref_link('', __('Biblefox'), Biblefox::ref_url_bible);
+			$new_post['bfox_permalink'] = BfoxBlog::ref_archive_url($ref_str);
+			$new_post['bfox_author'] = '';
 
 			// Turn off comments
 			$new_post['comment_status'] = 'closed';
@@ -248,9 +246,6 @@ function bfox_the_permalink($permalink, $post) {
 function bfox_add_special_content($content, $replace = FALSE) {
 	global $post;
 
-	// If this post has bible references, mention them at the beginning of the post
-	//if (isset($post->bfox_bible_refs)) $content = '<p>Scriptures Referenced: ' . BfoxBlog::ref_link($post->bfox_bible_refs->get_string()) . '</p>' . $content;
-
 	// If this post has special biblefox pre content, prepend it
 	// This special content is usually something that we don't want to be modified with the standard content,
 	// but we do want it to be displayed with the standard content, so we add it here just before displaying.
@@ -271,7 +266,7 @@ function bfox_the_refs($name = '', $link = TRUE) {
 	global $post;
 	if (isset($post->bfox_bible_refs)) {
 		$ref_str = $post->bfox_bible_refs->get_string($name);
-		if ($link) return Biblefox::ref_link($ref_str);
+		if ($link) return BfoxBlog::ref_archive_link(array('ref_str' => $ref_str));
 		else return $ref_str;
 	}
 }

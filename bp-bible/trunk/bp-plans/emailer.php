@@ -31,7 +31,7 @@ class BfoxBibleEmailer {
 			// Create the email message
 
 			$blog = 'Share your thoughts about this reading: ' . BfoxBlog::ref_write_link($refs->get_string(), 'Add a blog entry');
-			$instructions = "If you would not like to receive reading plan emails, go to your " . BfoxBlog::admin_link('profile.php#bfox_email_readings', 'profile page') . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
+			$instructions = "If you would not like to receive reading plan emails, go to your " . 'profile page' . ", uncheck the 'Email Readings' option and click 'Update Profile'.";
 
 			$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
 			$message .= "<h2><a href='" . BfoxBlogPlans::plan_url($plan->id, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";

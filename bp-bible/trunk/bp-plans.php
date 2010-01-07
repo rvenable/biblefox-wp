@@ -245,7 +245,6 @@ function bp_plans_setup_nav() {
 
 	/* Only execute the following code if we are actually viewing this component (e.g. http://example.org/plans) */
 	if ( $bp->current_component == $bp->plans->slug ) {
-			Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 
 		if ($plan_id = BfoxPlans::slug_exists($bp->current_action, $bp->displayed_user->id, BfoxPlans::user_type_user)) {
 			/* This is a single group page. */

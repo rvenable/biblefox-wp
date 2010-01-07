@@ -28,7 +28,7 @@ class BfoxBlogPlans {
 		global $blog_id, $bfox_plan_editor;
 
 		require_once BFOX_PLANS_DIR . '/edit.php';
-		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, BfoxBlog::admin_url('admin.php?page=' . self::page_manage_plan));
+		$bfox_plan_editor = new BfoxPlanEdit($blog_id, BfoxPlans::user_type_blog, '');
 		$bfox_plan_editor->page_load();
 	}
 
@@ -135,7 +135,7 @@ class BfoxBlogPlans {
 			$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 			$nav_bar .= '<a href="' . self::plan_url($plan->id, $reading_id + 1) . '" class="bible_post_next">' . $plan->readings[$reading_id + 1]->get_string() . ' &gt;</a>';
 		}
-		$nav_bar .= "<br/>" . Biblefox::ref_link($ref_str, __('View in advanced Bible reader'), Biblefox::ref_url_bible) . "</div>";
+		$nav_bar .= "</div>";
 
 		$new_post = BfoxBlogQueryData::add_verse_post_content(array(), $refs, $nav_bar);
 		$new_post['ID'] = -1;

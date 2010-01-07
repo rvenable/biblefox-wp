@@ -33,7 +33,6 @@
 				$book_refs->add_bcv($book, $cv);
 			}
 
-			$bible_viewer_link = "Biblefox Bible Viewer: <a href='" . Biblefox::ref_url($ref_str, Biblefox::ref_url_bible) . "' target='blank'>$ref_str</a>";
 			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(\"post_tag\", this)'>$ref_str</a>";
 
 			// Create the navigation bar with the prev/write/next links
@@ -42,7 +41,6 @@
 				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
 				$nav_bar .= BfoxBlog::ref_link_ajax($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
 			}
-			$nav_bar .= $bible_viewer_link;
 			if ($ch2 < BibleMeta::end_verse_max($book)) {
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 				$nav_bar .= BfoxBlog::ref_link_ajax($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");

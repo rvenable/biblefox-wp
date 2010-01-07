@@ -175,9 +175,6 @@ function bp_bible_setup_globals() {
 	$bp->bible->note_content_help_text = __( 'Start writing a quick note', 'bp-bible' );
 
 	$bp->version_numbers->bible = BP_BIBLE_VERSION;
-
-	// Set the base bible url for the Biblefox-Blog plugin to the local bible
-	if (class_exists(BfoxBlog)) BfoxBlog::$bible_url = $bp->root_domain . '/' . $bp->bible->slug . '/';
 }
 add_action( 'plugins_loaded', 'bp_bible_setup_globals', 5 );
 add_action( 'admin_menu', 'bp_bible_setup_globals', 1 );
@@ -323,12 +320,11 @@ function bp_bible_directory_setup() {
 	if ( $bp->current_component == $bp->bible->slug && empty( $bp->displayed_user->id ) ) {
 		$bp->is_directory = true;
 
-		Biblefox::set_default_ref_url(Biblefox::ref_url_bible);
 		$redirect = FALSE;
 
 		// Get any passed in translations, save them, and redirect without them
-		if (!empty($_REQUEST[BfoxQuery::var_translation])) {
-			bp_bible_set_trans_id($_REQUEST[BfoxQuery::var_translation]);
+		if (!empty($_REQUEST['trans_id'])) {
+			bp_bible_set_trans_id($_REQUEST['trans_id']);
 			$redirect = TRUE;
 		}
 
@@ -359,8 +355,8 @@ function bp_bible_directory_setup() {
 			$input_refs = new BfoxRefs($ref_str);
 
 			// If we are toggling is_read, then we should do it now, and redirect without the parameter
-			if (!empty($_GET[BfoxQuery::var_toggle_read])) {
-				BfoxHistory::toggle_is_read($_GET[BfoxQuery::var_toggle_read]);
+			if (!empty($_GET['bible_read'])) {
+				BfoxHistory::toggle_is_read($_GET['bible_read']);
 				if ($input_refs->is_valid()) $redirect = TRUE;
 			}
 
@@ -1384,5 +1380,61 @@ function bp_core_confirmation_js_bible_fix() {
 add_action( 'wp_head', 'bp_core_confirmation_js_bible_fix', 100 );
 	function remove_bp_core_confirmation_js() { remove_action( 'wp_head', 'bp_core_confirmation_js' ); }
 	add_action( 'plugins_loaded', 'remove_bp_core_confirmation_js' );
+
+/**
+ * Filter function for overriding the URLs created by BfoxBlog::ref_bible_url so that they point to the local bp-bible
+ * @param string $template
+ * @return string
+ */
+function bp_bible_url_template($template) {
+	global $bp;
+	return $bp->root_domain . '/' . $bp->bible->slug . '/%ref%';
+}
+add_filter('bfox_blog_bible_url_template', 'bp_bible_url_template');
+
+/**
+ * Returns the URL for the Bible page for the given Bible Ref
+ *
+ * This should be used for most Bible URLs in BP-Bible.
+ * It should produce the same result as BfoxBlog::ref_bible_url.
+ *
+ * @param string $ref_str
+ * @return string
+ */
+function bp_bible_ref_url($ref_str = '') {
+	global $bp;
+	return $bp->root_domain . '/' . $bp->bible->slug . '/' . urlencode($ref_str);
+}
+
+function bp_bible_link_add_ref_tooltip($link, $ref_str) {
+	return BfoxBlog::link_add_ref_tooltip($link, $ref_str);
+}
+
+/**
+ * Returns a link to the Bible page for the given Bible Ref
+ *
+ * This should be used for most Bible links in BP-Bible.
+ * It should produce the same result as BfoxBlog::ref_bible_link, except using bp_bible tooltips
+ *
+ * @param array $options
+ * @return string
+ */
+function bp_bible_ref_link($options = array()) {
+	BfoxBlog::fix_ref_link_options($options);
+
+	// If there is no href, get it from the bp_bible_ref_url() function
+	if (!isset($options['attrs']['href'])) $options['attrs']['href'] = bp_bible_ref_url($options['ref_str']);
+
+	// If we aren't specifically using the blog tooltip, set 'disable_tooltip' to TRUE
+	// (Default behavior for bp-bible is to not use the blog tooltip)
+	if (!$options['use_blog_tooltip']) $options['disable_tooltip'] = TRUE;
+
+	$link = BfoxBlog::ref_link_from_options($options);
+
+	// If we aren't using the blog tooltip, use the bp_bible_tooltip
+	if (!$options['use_blog_tooltip']) $link = bp_bible_link_add_ref_tooltip($link, $options['ref_str']);
+
+	return $link;
+}
 
 ?>

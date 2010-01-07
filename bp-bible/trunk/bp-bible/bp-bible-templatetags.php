@@ -226,7 +226,12 @@ class BP_Bible_Template {
 	function ref_nav_link($type = '', $name = '', $title = '', $attrs = '') {
 		if ($this->in_the_loop) $ref_str = $this->passage->nav_ref($type, $name);
 
-		if (!empty($ref_str)) return Biblefox::ref_link($ref_str, $title, '', " class='ref_seq_$type'");
+		if (!empty($ref_str))
+			return bp_bible_ref_link(array(
+				'ref_str' => $ref_str,
+				'title' => $title,
+				'attrs' => array('class' => "ref_seq_$type")
+			));
 		else return '';
 	}
 
@@ -326,7 +331,7 @@ function bp_bible_the_books() {
 	return array_keys($passages_template->the_bcvs());
 }
 
-function bp_bible_ref_link($type = '', $name = '', $title = '', $attrs = '') {
+function bp_bible_passage_ref_link($type = '', $name = '', $title = '', $attrs = '') {
 	global $passages_template;
 	return $passages_template->ref_nav_link($type, $name, $title, $attrs);
 }
@@ -368,7 +373,7 @@ function bp_bible_translation_select($select_id = NULL, $use_short = FALSE) {
 	// Get the list of enabled translations
 	$translations = BfoxTrans::get_enabled();
 
-	$select = "<select name='" . BfoxQuery::var_translation . "' id='search-which' style='width: auto'>";
+	$select = "<select name='trans_id' id='search-which' style='width: auto'>";
 	foreach ($translations as $translation) {
 		$name =  ($use_short) ? $translation->short_name : $translation->long_name;
 		$selected = ($translation->id == $select_id) ? ' selected ' : '';
@@ -383,7 +388,7 @@ function bp_bible_search_form($form = '') {
 	global $bp_bible;
 
 	$form = "
-		<form action='" . BfoxQuery::ref_url() . "' method='get' id='search-form'>
+		<form action='" . bp_bible_ref_url() . "' method='get' id='search-form'>
 			" . bp_bible_translation_select(bp_bible_get_trans_id()) . "
 			<input type='text' id='search-terms' name='search-terms' value='" . $bp_bible->search_query . "' />
 			<input type='submit' name='search-submit' id='search-submit' value='" . __('Search Bible', 'bp-bible') . "' />
@@ -588,7 +593,7 @@ function bp_bible_toc() {
 			<h2 class="widgettitle"><?php echo $book_name . __(' - Table of Contents') ?></h2>
 			<ul class='flat_toc'>
 			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
-				<li><a href='<?php echo BfoxQuery::ref_url("$book_name $ch") ?>'><?php echo $ch ?></a></li>
+				<li><?php echo bp_bible_ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch)) ?></li>
 			<?php endfor ?>
 			</ul>
 		</div>
@@ -941,7 +946,10 @@ function bp_bible_note_ref_tag_links($ref_name = '') {
 	function bp_get_bible_note_ref_tag_links($ref_name = '', BP_Bible_Note $note = NULL) {
 		$note = bp_get_bible_note($note);
 
-		return apply_filters( 'bp_get_bible_note_ref_tag_links', Biblefox::ref_link($note->tag_refs->get_string($ref_name)) );
+		return apply_filters('bp_get_bible_note_ref_tag_links', bp_bible_ref_link(array(
+			'refs' => $note->tag_refs,
+			'name' => $ref_name
+		)));
 	}
 
 function bp_bible_note_ref_tags($ref_name = '') {

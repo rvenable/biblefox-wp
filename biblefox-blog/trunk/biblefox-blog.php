@@ -45,7 +45,6 @@ define(BFOX_BLOG_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 require_once BFOX_REFS_DIR . '/refs.php';
 
 require_once BFOX_BLOG_DIR . '/utility.php';
-require_once BFOX_BLOG_DIR . '/query.php';
 
 include_once BFOX_TRANS_DIR . '/translations.php';
 
@@ -62,50 +61,9 @@ require_once BFOX_BLOG_DIR . '/shortfoot.php';
 
 class Biblefox {
 
-	const ref_url_blog = 'blog';
-	const ref_url_bible = 'bible';
-
 	const option_version = 'bfox_version';
-
-	private static $default_ref_url = '';
-
-/*	public static function init() {
-		global $current_site;
-
-		$old_ver = get_site_option(self::option_version);
-		if (BFOX_VERSION != $old_ver) {
-			@include_once BFOX_DIR . '/bible/upgrade.php';
-			@include_once BFOX_DIR . '/blog/upgrade.php';
-			update_site_option(self::option_version, BFOX_VERSION);
-		}
-
-		BfoxQuery::set_url((is_ssl() ? 'https://' : 'http://') . $current_site->domain . $current_site->path, !(TRUE === BFOX_NO_PRETTY_URLS));
-
-		// Register all the global scripts and styles
-		BfoxUtility::register_style('bfox_scripture', 'blog/scripture.css');
-	}*/
-
-	public static function set_default_ref_url($ref_url) {
-		self::$default_ref_url = $ref_url;
-	}
-
-	public static function ref_url($ref_str, $ref_url = '') {
-		if (empty($ref_url)) $ref_url = self::$default_ref_url;
-
-		if (self::ref_url_bible == $ref_url) return BfoxQuery::ref_url($ref_str);
-		else return BfoxBlog::ref_url($ref_str);
-	}
-
-	public static function ref_link($ref_str, $text = '', $ref_url = '', $attrs = '') {
-		if (empty($text)) $text = $ref_str;
-
-		if (!empty($attrs)) $attrs = ' ' . $attrs;
-		if (!empty($ref_str)) return "<a href='" . self::ref_url($ref_str, $ref_url) . "'$attrs>$text</a>";
-	}
-
 }
 
-//add_action('init', 'Biblefox::init');
 class BfoxBlog {
 
 	const var_bible_ref = 'bfox_ref';
@@ -239,24 +197,94 @@ class BfoxBlog {
 		<?php
 	}
 
-	public static function admin_url($page) {
-		return self::$home_url . '/wp-admin/' . $page;
+	public static function link_add_ref_tooltip($link, $ref_str) {
+		return $link . '<span class="bible-tooltip-url">' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '</span>';
 	}
 
 	/**
-	 * Returns a link to an admin page
+	 * Fixes a bible ref link options array so that it has a ref_str if it doesn't already
 	 *
-	 * @param string $page The admin page (and any parameters)
-	 * @param string $text The text to use in the link
-	 * @return string
+	 * @param $options
 	 */
-	public static function admin_link($page, $text = '') {
-		if (empty($text)) $text = $page;
-
-		return "<a href='" . self::admin_url($page) . "'>$text</a>";
+	public static function fix_ref_link_options(&$options) {
+		// If there is no ref_str, try to get it from $refs->get_string($name)
+		if (empty($options['ref_str']) && isset($options['refs']) && is_a($options['refs'], BfoxRefs) && $options['refs']->is_valid())
+			$options['ref_str'] = $options['refs']->get_string($options['name']);
 	}
 
-	public static function ref_url($ref_str) {
+	/**
+	 * Creates a link from an array specifying bible ref link options
+	 *
+	 * Used to create links by BfoxBlog::ref_bible_link() and BfoxBlog::ref_archive_link()
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function ref_link_from_options($options = array()) {
+		extract($options);
+		$link = '';
+
+		// Only create a link if we actually have a ref_str
+		if (!empty($ref_str)) {
+			// If there is no text, use the ref_str
+			if (empty($text)) $text = $ref_str;
+
+			// If there is no href, get it from the ref_bible_url function
+			if (!isset($attrs['href'])) self::ref_bible_url($ref_str);
+
+			// Add the bible-ref class
+			if (!empty($attrs['class'])) $attrs['class'] .= ' ';
+			$attrs['class'] .= 'bible-ref';
+
+			$attr_str = '';
+			foreach ($attrs as $attr => $value) $attr_str .= " $attr='$value'";
+
+			$link = "<a$attr_str>$text</a>";
+
+			if (!isset($disable_tooltip)) $link = self::link_add_ref_tooltip($link, $ref_str);
+		}
+
+		return $link;
+	}
+
+	/**
+	 * Returns a URL to the external Bible reader of choice for a given Bible Ref
+	 *
+	 * Should be used whenever we want to link to the Bible page, as opposed to the Bible archive
+	 *
+	 * @param string $ref_str
+	 * @return string
+	 */
+	public static function ref_bible_url($ref_str) {
+		return str_replace('%ref%', urlencode($ref_str), apply_filters('bfox_blog_bible_url_template', 'http://biblefox.com/bible/%ref%'));
+	}
+
+	/**
+	 * Returns a link to the external Bible reader of choice for a given Bible Ref
+	 *
+	 * Should be used whenever we want to link to the Bible page, as opposed to the Bible archive
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function ref_bible_link($options) {
+		BfoxBlog::fix_ref_link_options($options);
+
+		// If there is no href, get it from the bp_bible_ref_url() function
+		if (!isset($options['attrs']['href'])) $options['attrs']['href'] = self::ref_bible_url($options['ref_str']);
+
+		return BfoxBlog::ref_link_from_options($options);
+	}
+
+	/**
+	 * Returns a url for the tag archive page using a Bible Reference as the tag filter
+	 *
+	 * Should be used whenever we want to link to the Bible archive, as opposed to the Bible reader
+	 *
+	 * @param string $ref_str
+	 * @return string
+	 */
+	public static function ref_archive_url($ref_str) {
 		$ref_str = urlencode($ref_str);
 
 		// NOTE: This function imitates the WP get_tag_link() function, but instead of getting a tag slug, we use $ref_str
@@ -272,10 +300,21 @@ class BfoxBlog {
 		return $taglink;
 	}
 
-	public static function ref_link($ref_str, $text = '', $attrs = '') {
-		if (empty($text)) $text = $ref_str;
+	/**
+	 * Returns a link for the tag archive page using a Bible Reference as the tag filter
+	 *
+	 * Should be used whenever we want to link to the Bible archive, as opposed to the Bible reader
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function ref_archive_link($options) {
+		BfoxBlog::fix_ref_link_options($options);
 
-		return "<a href='" . self::ref_url($ref_str) . "' $attrs>$text</a>";
+		// If there is no href, get it from the self::ref_archive_url() function
+		if (!isset($options['attrs']['href'])) $options['attrs']['href'] = self::ref_archive_url($options['ref_str']);
+
+		return BfoxBlog::ref_link_from_options($options);
 	}
 
 	public static function ref_link_ajax($ref_str, $text = '', $attrs = '') {
@@ -361,6 +400,11 @@ class BfoxBlog {
 		);
 
 		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
+	}
+
+	public static function query_for_refs(BfoxRefs $refs) {
+		BfoxBlogQueryData::set_post_ids(BfoxPosts::get_post_ids($refs));
+		return new WP_Query(1);
 	}
 }
 

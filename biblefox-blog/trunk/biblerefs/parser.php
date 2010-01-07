@@ -103,7 +103,12 @@ class BfoxRefParser {
 			if ($is_valid) {
 				if ($data->save_refs_array) $refs_array []= $refs;
 
-				$str = substr_replace($str, Biblefox::ref_link($refs->get_string(), substr($str, $substr->offset, $substr->length)), $substr->offset, $substr->length);
+				// TODO: the ref_link function needs to be passed in
+				$link = BfoxBlog::ref_bible_link(array(
+					'refs' => $refs,
+					'text' => substr($str, $substr->offset, $substr->length)
+				));
+				$str = substr_replace($str, $link, $substr->offset, $substr->length);
 
 				if (!is_null($data->total_refs)) $data->total_refs->add_refs($refs);
 			}

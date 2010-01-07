@@ -23,7 +23,7 @@ class BfoxHistoryEvent {
 	}
 
 	public function toggle_url() {
-		return add_query_arg(BfoxQuery::var_toggle_read, urlencode($this->db_time), BfoxQuery::ref_url(''));
+		return add_query_arg('bible_read', urlencode($this->db_time), bp_bible_ref_url());
 	}
 
 	public function toggle_link($unread_text = '', $read_text = '') {
@@ -39,7 +39,11 @@ class BfoxHistoryEvent {
 	}
 
 	public function ref_link($name = '') {
-		return Biblefox::ref_link($this->refs->get_string($name), '', '', ($this->is_read ? "class='finished'" : ''));
+		return bp_bible_ref_link(array(
+			'refs' => $this->refs,
+			'name' => $name,
+			'attrs' => array('class' => ($this->is_read ? 'finished' : ''))
+		));
 	}
 
 	public function desc($date_str = '') {
