@@ -297,6 +297,25 @@ function bfox_ref_replace_html($content) {
 	return BfoxRefParser::simple_html($content);
 }
 
+/**
+ * Finds any bible references in an array of tag links and adds tooltips to them
+ *
+ * Should be used to filter 'term_links-post_tag', called in get_the_term_list()
+ *
+ * @param array $tag_links
+ * @return array
+ */
+function bfox_add_tag_ref_tooltips($tag_links) {
+	if (!empty($tag_links)) foreach ($tag_links as &$tag_link) if (preg_match('/<a.*>(.*)<\/a>/', $tag_link, $matches)) {
+		$tag = $matches[1];
+		$refs = BfoxBlog::tag_to_refs($tag);
+		if ($refs->is_valid()) {
+			$tag_link = BfoxBlog::link_add_ref_tooltip($tag_link, $refs->get_string());
+		}
+	}
+	return $tag_links;
+}
+
 function bfox_query_init() {
 	add_action('parse_query', 'bfox_parse_query');
 	add_filter('posts_where', 'bfox_posts_where');
@@ -313,6 +332,9 @@ function bfox_query_init() {
 
 	add_filter('the_author', 'bfox_the_author');
 	add_filter('get_edit_post_link', 'bfox_get_edit_post_link');
+
+	// Add tooltips to Bible Ref tag links
+	add_filter('term_links-post_tag', 'bfox_add_tag_ref_tooltips');
 }
 
 ?>

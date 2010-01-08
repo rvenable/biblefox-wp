@@ -176,7 +176,7 @@ class BfoxPosts {
 			// Get the bible references from the post tags
 			$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
 			foreach ($tags as &$tag) {
-				$refs = new BfoxRefs($tag);
+				$refs = BfoxBlog::tag_to_refs($tag);
 				if ($refs->is_valid()) {
 					$tag = $refs->get_string();
 					$tags_refs->add_refs($refs);

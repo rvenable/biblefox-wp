@@ -4,7 +4,7 @@
 	Plugin Name: Biblefox-Blog
 	Plugin URI: http://tools.biblefox.com/
 	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
-	Version: 0.4.9
+	Version: 0.5
 	Author: Biblefox
 	Author URI: http://biblefox.com
 
@@ -31,6 +31,8 @@
 	along with Biblefox.  If not, see <http://www.gnu.org/licenses/>.
 
 *************************************************************************/
+
+define(BFOX_BIBLE_VERSION, '0.5');
 
 if (!defined(BFOX_BLOG_DIR)) define(BFOX_BLOG_DIR, dirname(__FILE__));
 
@@ -92,9 +94,28 @@ class BfoxBlog {
 		self::$home_url = get_option('home');
 
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
+
+		// Styles
 		BfoxUtility::register_style('bfox_scripture', 'scripture.css');
+		wp_enqueue_style('bfox-blog', BFOX_BLOG_URL . '/includes/css/biblefox-blog.css', array(), BFOX_BIBLE_VERSION);
+
+		// Scripts
+		wp_register_script('bfox-tooltip', BFOX_BLOG_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_BIBLE_VERSION);
+		wp_enqueue_script('bfox-blog', BFOX_BLOG_URL . '/includes/js/biblefox-blog.js', array('jquery', 'bfox-tooltip'), BFOX_BIBLE_VERSION);
 
 		bfox_query_init();
+	}
+
+	/**
+	 * Checks to see if we are requesting tooltip content (ie. by an AJAX call), returns the content, and exits
+	 */
+	public static function check_for_tooltip() {
+		if (isset($_REQUEST['bfox-tooltip-ref'])) {
+			global $tooltip_refs;
+			$tooltip_refs = new BfoxRefs($_REQUEST['bfox-tooltip-ref']);
+			require BFOX_BLOG_DIR . '/tooltip.php';
+			exit;
+		}
 	}
 
 	public static function add_menu() {
@@ -197,8 +218,15 @@ class BfoxBlog {
 		<?php
 	}
 
+	/**
+	 * Wraps some bible ref tooltip content around a bible link
+	 *
+	 * @param string $link
+	 * @param string $ref_str
+	 * @return string
+	 */
 	public static function link_add_ref_tooltip($link, $ref_str) {
-		return $link . '<span class="bible-tooltip-url">' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '</span>';
+		return '<span class="bible-tooltip">' . $link . '<span class="bible-tooltip-url">' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '</span></span>';
 	}
 
 	/**
@@ -402,13 +430,30 @@ class BfoxBlog {
 		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
 	}
 
+	/**
+	 * Returns a WP_Query object with the posts that contain the given BfoxRefs
+	 *
+	 * @param BfoxRefs $refs
+	 * @return WP_Query
+	 */
 	public static function query_for_refs(BfoxRefs $refs) {
 		BfoxBlogQueryData::set_post_ids(BfoxPosts::get_post_ids($refs));
 		return new WP_Query(1);
 	}
+
+	/**
+	 * Returns a BfoxRefs for the given tag string
+	 *
+	 * @param string $tag
+	 * @return BfoxRefs
+	 */
+	public static function tag_to_refs($tag) {
+		return new BfoxRefs($tag);
+	}
 }
 
-add_action('init', array('BfoxBlog', 'init'));
+add_action('init', 'BfoxBlog::init');
+add_action('init', 'BfoxBlog::check_for_tooltip', 1000);
 
 /**
  * Filter function for adding biblefox columns to the edit posts list
