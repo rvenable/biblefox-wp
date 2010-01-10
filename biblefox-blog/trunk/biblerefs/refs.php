@@ -250,13 +250,13 @@ class BfoxRefs extends BfoxSequenceList {
 	 *
 	 * @return string
 	 */
-	public function get_string($name = '')
-	{
+	public function get_string($name = '') {
+		return self::bcv_string(self::get_bcvs($this->sequences), $name);
+	}
+
+	public static function bcv_string($bcvs, $name = '') {
 		$books = array();
-
-		$bcvs = self::get_bcvs($this->sequences);
-		foreach ($bcvs as $book => $cvs) $books[$book] = self::create_book_string($book, $cvs, $name);
-
+		foreach ($bcvs as $book => $cvs) $books []= self::create_book_string($book, $cvs, $name);
 		return implode('; ', $books);
 	}
 

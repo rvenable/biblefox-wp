@@ -175,6 +175,10 @@ function bp_bible_setup_globals() {
 	$bp->bible->note_content_help_text = __( 'Start writing a quick note', 'bp-bible' );
 
 	$bp->version_numbers->bible = BP_BIBLE_VERSION;
+
+	// Update the BfoxIframe default translation site to point to this site
+	BfoxIframe::$sites['biblefox']['name'] = get_site_option('site_name');
+	BfoxIframe::$sites['biblefox']['site'] = $bp->root_domain;
 }
 add_action( 'plugins_loaded', 'bp_bible_setup_globals', 5 );
 add_action( 'admin_menu', 'bp_bible_setup_globals', 1 );
@@ -1425,14 +1429,16 @@ function bp_bible_ref_link($options = array()) {
 	// If there is no href, get it from the bp_bible_ref_url() function
 	if (!isset($options['attrs']['href'])) $options['attrs']['href'] = bp_bible_ref_url($options['ref_str']);
 
-	// If we aren't specifically using the blog tooltip, set 'disable_tooltip' to TRUE
-	// (Default behavior for bp-bible is to not use the blog tooltip)
-	if (!$options['use_blog_tooltip']) $options['disable_tooltip'] = TRUE;
+	// If we are not using the blog tooltip and we didn't disable tooltips, then add the BP-Bible tooltip
+	$add_bp_bible_tooltip = (!$options['use_blog_tooltip'] && !$options['disable_tooltip']);
+
+	// If we are use the BP-Bible tooltip, set 'disable_tooltip' to TRUE so that we don't use the blog tooltip
+	if ($add_bp_bible_tooltip) $options['disable_tooltip'] = TRUE;
 
 	$link = BfoxBlog::ref_link_from_options($options);
 
-	// If we aren't using the blog tooltip, use the bp_bible_tooltip
-	if (!$options['use_blog_tooltip']) $link = bp_bible_link_add_ref_tooltip($link, $options['ref_str']);
+	// Add the BP-Bible tooltip
+	if ($add_bp_bible_tooltip) $link = bp_bible_link_add_ref_tooltip($link, $options['ref_str']);
 
 	return $link;
 }

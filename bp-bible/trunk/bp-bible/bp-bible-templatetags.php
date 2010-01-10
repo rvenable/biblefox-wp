@@ -230,7 +230,8 @@ class BP_Bible_Template {
 			return bp_bible_ref_link(array(
 				'ref_str' => $ref_str,
 				'title' => $title,
-				'attrs' => array('class' => "ref_seq_$type")
+				'attrs' => array('class' => "ref_seq_$type"),
+				'disable_tooltip' => TRUE
 			));
 		else return '';
 	}
@@ -593,7 +594,7 @@ function bp_bible_toc() {
 			<h2 class="widgettitle"><?php echo $book_name . __(' - Table of Contents') ?></h2>
 			<ul class='flat_toc'>
 			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
-				<li><?php echo bp_bible_ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch)) ?></li>
+				<li><?php echo bp_bible_ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch, 'disable_tooltip' => TRUE)) ?></li>
 			<?php endfor ?>
 			</ul>
 		</div>

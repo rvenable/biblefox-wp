@@ -56,6 +56,8 @@ require_once BFOX_BLOG_DIR . '/bibletext.php';
 
 require_once BFOX_BLOG_DIR . '/shortfoot.php';
 
+require_once BFOX_BLOG_DIR . '/iframe.php';
+
 //require_once("bfox-settings.php");
 
 // TODO3: get blogplans.php working and included

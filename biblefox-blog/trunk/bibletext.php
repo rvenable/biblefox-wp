@@ -47,9 +47,11 @@
 			}
 			$nav_bar .= "<br/>$tag_link</div>";
 
-			// Disable footnotes temporarily (until there is a good way to make them not copy to the post)
-			$verse_content = BfoxBlog::get_verse_content_foot($book_refs, TRUE);
-			$content = $nav_bar . $verse_content . $nav_bar;
+			$iframe = new BfoxIframe($book_refs);
+			$verse_content = '<select class="bfox-iframe-select">' . $iframe->select_options() . '</select>';
+			$verse_content .= '<iframe class="bfox-iframe bfox-tooltip-iframe" src="' . $iframe->url() . '"></iframe>';
+
+			$content = $nav_bar . $verse_content;
 			$content .= '<hr/>';
 
 			// Add the Table of Contents to the end of the output

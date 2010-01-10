@@ -23,13 +23,10 @@ div.bfox-tooltip-posts {
 div.bfox-tooltip-bible {
 	margin-left: 135px;
 	width: 478px;
+	text-align: center;
 }
 
-/*
-Iframes
-*/
-
-iframe.bfox-bible-frame {
+iframe.bfox-tooltip-iframe {
 	border: 3px solid #EEE;
 	width: 100%;
 	height: 350px;

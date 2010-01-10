@@ -28,14 +28,10 @@ $count = 0;
 	</ul>
 </div>
 
-<?php
-
-global $bp;
-$url = $bp->root_domain . '/?bible_print_ref=' . $ref_str;
-//$url = "http://www.biblegateway.com/passage/index.php?search=$ref_str&version=NIV&interface=print";
-
-?>
-
 <div class="bfox-tooltip-bible">
-	<iframe class="bfox-bible-frame" src="<?php echo $url ?>"></iframe>
+	<?php $iframe = new BfoxIframe($tooltip_refs) ?>
+	<select class="bfox-iframe-select">
+		<?php echo $iframe->select_options() ?>
+	</select>
+	<iframe class="bfox-iframe bfox-tooltip-iframe" src="<?php echo $iframe->url() ?>"></iframe>
 </div>
