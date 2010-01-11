@@ -21,7 +21,7 @@
 			$book_name = BibleMeta::get_book_name($book);
 			$ref_str = BfoxRefs::create_book_string($book, $cvs);
 
-			// Create a new bible refs for just this book (so we can later pass it into BfoxBlog::get_verse_content())
+			// Create a new bible refs for just this book (so we can later pass it into the BfoxIframe)
 			$book_refs = new BfoxRefs;
 
 			unset($ch1);

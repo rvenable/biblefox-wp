@@ -36,9 +36,7 @@ define(BFOX_BIBLE_VERSION, '0.5');
 
 if (!defined(BFOX_BLOG_DIR)) define(BFOX_BLOG_DIR, dirname(__FILE__));
 
-define(BFOX_DATA_DIR, BFOX_BLOG_DIR . '/data');
 define(BFOX_REFS_DIR, BFOX_BLOG_DIR . '/biblerefs');
-define(BFOX_TRANS_DIR, BFOX_BLOG_DIR . '/translations');
 
 define(BFOX_BLOG_URL, WP_PLUGIN_URL . '/biblefox-blog');
 
@@ -137,21 +135,6 @@ class BfoxBlog {
 		BfoxUtility::enqueue_style('bfox_admin', 'blog/admin.css', array('bfox_scripture'));
 		BfoxUtility::enqueue_script('bfox_admin', 'blog/admin.js', array('sack'));
 	}
-
-	/*public static function bible_settings() {
-	}
-
-	public static function bible_setting_translations() {
-		$installed = BfoxTrans::get_installed();
-		$enabled = BfoxTrans::get_enabled();
-
-		foreach ($installed as $trans) {
-			if (isset($enabled[$trans->short_name])) $checked = ' checked="checked"';
-			else $checked = '';
-			$id = "bfox_trans_$trans->id";
-			echo "<input type='checkbox'$checked name='bfox_enable_translations' id='$id' value='$trans->id' /> <label for='$id'>$trans->long_name</label><br/>";
-		}
-	}*/
 
 	public static function save_post($post_id = 0, $post) {
 		BfoxPosts::update_post($post, TRUE);
@@ -381,55 +364,6 @@ class BfoxBlog {
 	public static function get_post_tag($term) {
 		if ($refs = BfoxRefParser::no_leftovers($term->name)) $term->slug = urlencode($refs->get_string());
 		return $term;
-	}
-
-	/**
-	 * Return verse content for the given bible refs with minimum formatting
-	 *
-	 * @param BfoxRefs $refs
-	 * @param BfoxTrans $trans
-	 * @return string
-	 */
-	public static function get_verse_content(BfoxRefs $refs) {
-		// Get the verse data from the bible translation
-		$translation = new BfoxTrans();
-		$formatter = new BfoxVerseFormatter();
-		return $translation->get_verses($refs->sql_where(), $formatter);
-	}
-
-	public static function get_verse_content_foot(BfoxRefs $refs, $delete_footnotes = FALSE) {
-		// TODO3: This is pretty hacky, if the shortcode regex ever changes, this regex has to change as well!
-
-		// Get the verse content, and filter it using the <footnote> tags as if they were [footnote] shortcodes
-		// The regex being used here should mirror the regex returned by get_shortcode_regex() and is being used similarly to do_shortcode(),
-		//  the only difference being that we only need to look for <footnote> shortcodes (and using chevrons instead of brackets)
-		if ($delete_footnotes) return preg_replace('/<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/footnote>)?/s', '', BfoxBlog::get_verse_content($refs));
-		else $content = preg_replace_callback('/(.?)<(footnote)\b(.*?)(?:(\/))?>(?:(.+?)<\/\2>)?(.?)/s', 'do_shortcode_tag', BfoxBlog::get_verse_content($refs));
-		return array($content, shortfoot_get_list());
-	}
-
-	/**
-	 * Return verse content for the given bible refs formatted for email output
-	 *
-	 * @param BfoxRefs $refs
-	 * @param BfoxTrans $trans
-	 * @return string
-	 */
-	public static function get_verse_content_email(BfoxRefs $refs, BfoxTrans $trans = NULL) {
-		// Pre formatting is for when we can't use CSS (ie. in an email)
-		// We just replace the tags which would have been formatted by css with tags that don't need formatting
-		// We also need to run the shortcode function to correctly output footnotes
-
-		$mods = array(
-			'<span class="bible_poetry_indent_2"></span>' => '<span style="margin-left: 20px"></span>',
-			'<span class="bible_poetry_indent_1"></span>' => '',
-			'<span class="bible_end_poetry"></span>' => "<br/>\n",
-			'<span class="bible_end_p"></span>' => "<br/><br/>\n",
-			'</footnote>' => '[/foot]',
-			'<footnote>' => '[foot]'
-		);
-
-		return do_shortcode(str_replace(array_keys($mods), array_values($mods), self::get_verse_content($refs, $trans)));
 	}
 
 	/**

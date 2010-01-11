@@ -18,6 +18,8 @@ define(BP_BIBLE_URL, WP_PLUGIN_URL . '/bp-bible');
 
 define(BFOX_BIBLE_DIR, BP_BIBLE_DIR . '/bible');
 define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/bp-plans');
+define(BFOX_DATA_DIR, BP_BIBLE_DIR . '/data');
+define(BFOX_TRANS_DIR, BP_BIBLE_DIR . '/translations');
 
 define(BP_BIBLE_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 

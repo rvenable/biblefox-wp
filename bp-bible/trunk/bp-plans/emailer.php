@@ -35,7 +35,8 @@ class BfoxBibleEmailer {
 
 			$message = "<p>The following email contains today's scripture reading for the '$plan->name' reading plan.<br/>$instructions</p>";
 			$message .= "<h2><a href='" . BfoxBlogPlans::plan_url($plan->id, $plan->todays_reading) . "'>$subject</a></h2><p>$blog</p><hr/>";
-			$message .= BfoxBlog::get_verse_content_email($refs);
+			$trans = new BfoxTrans;
+			$message .= $trans->get_verse_content_email($refs);
 			$message .= "<hr/><p>$blog</p>";
 
 			// If this isn't the first reading, we should show any blog activity since the previous reading

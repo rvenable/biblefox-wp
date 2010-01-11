@@ -1,8 +1,9 @@
 <?php
 
 $refs = new BfoxRefs($_REQUEST['bible_print_ref']);
-// TODO: use translation from REQUEST
-//$trans = new BfoxTrans($_REQUEST['trans_id']);
+$trans_ids = BfoxTrans::get_ids_by_short_name();
+$trans = new BfoxTrans($trans_ids[$_REQUEST['trans']]);
+
 $show_options = !!$_REQUEST['show_options'];
 $allow_tooltips = !!$_REQUEST['allow_tooltips'];
 
@@ -26,7 +27,7 @@ wp_enqueue_style('bfox_scripture');
 
 	<body>
 		<?php if ($refs->is_valid()) {
-			list($content, $footnotes) = BfoxBlog::get_verse_content_foot($refs);
+			list($content, $footnotes) = $trans->get_verse_content_foot($refs);
 			echo $content . $footnotes;
 		} ?>
 	</body>
