@@ -352,11 +352,6 @@ function bp_bible_history_desc($date_str = '') {
 	if (!empty($passages_template->event)) return $passages_template->event->desc($date_str);
 }
 
-function bp_bible_mark_read_link($unread_text = '', $read_text = '') {
-	global $passages_template;
-	if (!empty($passages_template->event)) return $passages_template->event->toggle_link($unread_text, $read_text);
-}
-
 function bp_bible_url($ref_str = '', $search_str = '') {
 	global $bp;
 	$url = $bp->root_domain . '/' . $bp->bible->slug . '/';
@@ -370,6 +365,7 @@ function bp_bible_bible_url(BfoxBible $bible) {
 	return bp_bible_url($bible->refs->get_string(), $bible->search_str);
 }
 
+// TODO: delete this function
 function bp_bible_translation_select($select_id = NULL, $use_short = FALSE) {
 	// Get the list of enabled translations
 	$translations = BfoxTrans::get_enabled();
@@ -502,7 +498,6 @@ function bp_bible_current_readings($args = array()) {
 	$user_id = $bp->loggedin_user->id;
 	if (!empty($user_id)) {
 		$plans = BfoxPlans::get_plans_using_args(array('user_id' => $user_id, 'is_finished' => 0));
-		BfoxPlans::add_history_to_plans($plans);
 
 		$content = bp_plan_current_readings($args, $plans);
 		if (empty($content)) $content = __('<p>You do not have any current readings.</p>');
@@ -528,12 +523,11 @@ function bp_bible_history_list($args = array()) {
 		if ('table' == $args['style']) {
 			$table = new BfoxHtmlTable("class='widefat'");
 
-			foreach ($history as $event) $table->add_row('', 5,
+			foreach ($history as $event) $table->add_row('', 4,
 				$event->desc(),
 				$event->ref_link(),
 				BfoxUtility::nice_date($event->time),
-				date('g:i a', $event->time),
-				$event->toggle_link());
+				date('g:i a', $event->time));
 
 			$content = $table->content();
 		}
@@ -631,6 +625,7 @@ function bp_bible_refs($name = '') {
 		return new BfoxRefs;
 	}
 
+// TODO: this should be deleted
 function bp_bible_add_scriptures_form() {
 	?>
 		<form action='' method='post' id='search-form'>
@@ -753,14 +748,6 @@ function bp_bible_history_event_date($format = '') {
 		if (empty($format)) $format = 'g:i a';
 		$bible_history = bp_get_bible_history_event($bible_history);
 		return apply_filters( 'bp_get_bible_history_event_date', date($format, $bible_history->time) );
-	}
-
-function bp_bible_history_event_toggle_link() {
-	echo bp_get_bible_history_event_toggle_link();
-}
-	function bp_get_bible_history_event_toggle_link(BfoxHistoryEvent $bible_history = NULL) {
-		$bible_history = bp_get_bible_history_event($bible_history);
-		return apply_filters( 'bp_get_bible_history_event_toggle_link', $bible_history->toggle_link() );
 	}
 
 function bp_bible_history_pagination() {

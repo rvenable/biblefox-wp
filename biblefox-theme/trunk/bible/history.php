@@ -52,7 +52,6 @@
 							<td><?php bp_bible_history_event_ref_link() ?></td>
 							<td><?php bp_bible_history_event_nice_date() ?></td>
 							<td><?php bp_bible_history_event_date() ?></td>
-							<td><?php bp_bible_history_event_toggle_link() ?></td>
 						</tr>
 						<?php endwhile; ?>
 					</table>

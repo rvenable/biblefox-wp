@@ -52,8 +52,6 @@ class BfoxReadingPlan {
 	private $dates = array();
 	public $current_reading_id = self::reading_id_invalid;
 
-	private $history_refs = NULL;
-
 	public function __construct($values = NULL) {
 		if (is_object($values)) $this->set_from_db($values);
 		if (empty($this->start_time)) $this->set_start_date();
@@ -120,6 +118,12 @@ class BfoxReadingPlan {
 			if ($reading_count == $this->current_reading_id) $this->current_reading_id = self::reading_id_invalid;
 		}
 		else $this->current_reading_id = self::reading_id_invalid;
+	}
+
+	public function is_reading_finished($reading_id) {
+		if (!$this->is_current()) return true;
+		if ($this->is_scheduled) return ($reading_id < $this->current_reading_id);
+		return false;
 	}
 
 	public function is_current() {
@@ -272,12 +276,6 @@ class BfoxReadingPlan {
 		return date($format, $this->end_time);
 	}
 
-	public function history_start_date($format = self::date_format_fixed) {
-		// We start tracking history from one week before the start of the plan
-		// NOTE: if we change to be the exact date, there will be time zone issues (right now there are issues, but they're obfuscated by the week buffer time)
-		return date($format, strtotime('-1 week', $this->start_time));
-	}
-
 	private function get_dates($count) {
 
 		if (self::frequency_day == $this->frequency) {
@@ -312,37 +310,6 @@ class BfoxReadingPlan {
 
 		if (isset($current)) return $current;
 		else return -1;
-	}
-
-	/*
-	 * History related
-	 */
-
-	public function set_history($history_array) {
-
-		// Create the history refs
-		$history_refs = new BfoxRefs;
-
-		// Accumulate all the history references since the starting date of this plan
-		$start_time = strtotime($this->history_start_date());
-		foreach ($history_array as $history) if ($history->time >= $start_time) $history_refs->add_refs($history->refs);
-
-		if ($history_refs->is_valid()) {
-			$this->history_refs = $history_refs;
-			return TRUE;
-		}
-		return FALSE;
-	}
-
-	public function get_history_refs() {
-		if ($this->history_refs instanceof BfoxRefs) return $this->history_refs;
-		return new BfoxRefs;
-	}
-
-	public function get_unread(BfoxRefs $reading) {
-		$unread = new BfoxRefs($reading);
-		if ($this->history_refs instanceof BfoxRefs) $unread->sub_refs($this->history_refs);
-		return $unread;
 	}
 }
 
@@ -662,28 +629,6 @@ class BfoxPlans {
 		$where = self::get_plans_where($args);
 		if (!empty($where)) return $wpdb->get_var("SELECT DISTINCT count(id) FROM " . self::table_plans . " WHERE $where");
 		return 0;
-	}
-
-	/**
-	 * Adds history information to an array of plans
-	 *
-	 * @param array $plans
-	 * @param array $history_array
-	 * @return none
-	 */
-	public static function add_history_to_plans(&$plans, $history_array = array()) {
-		// If no history array was passed in, get history ourselves
-		if (empty($history_array)) {
-			$earliest = '';
-			foreach($plans as $plan) {
-				$start_time = $plan->start_date();
-				if (empty($earliest) || ($start_time < $earliest)) $earliest = $start_time;
-			}
-
-			if (!empty($earliest)) $history_array = BfoxHistory::get_history(0, $earliest, NULL, TRUE);
-		}
-
-		if (!empty($history_array)) foreach ($plans as &$plan) $plan->set_history($history_array);
 	}
 
 /*	public static function save_sub(BfoxReadingSub &$sub) {

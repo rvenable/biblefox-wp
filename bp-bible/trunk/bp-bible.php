@@ -347,12 +347,6 @@ function bp_bible_directory_setup() {
 			$redirect = FALSE;
 			$input_refs = new BfoxRefs($ref_str);
 
-			// If we are toggling is_read, then we should do it now, and redirect without the parameter
-			if (!empty($_GET['bible_read'])) {
-				BfoxHistory::toggle_is_read($_GET['bible_read']);
-				if ($input_refs->is_valid()) $redirect = TRUE;
-			}
-
 			if ($input_refs->is_valid()) {
 				// Limit the refs to 20 chapters
 				list($refs) = $input_refs->get_sections(20, 1);

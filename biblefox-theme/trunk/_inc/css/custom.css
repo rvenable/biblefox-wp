@@ -183,10 +183,6 @@ td.noborder {
 	border: 0;
 }
 
-td.finished, a.finished {
-	text-decoration: line-through;
-}
-
 ul.flat_toc {
 	padding: 0.5em;
 	margin: 0;

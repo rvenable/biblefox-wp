@@ -112,8 +112,6 @@ class BP_Plans_Template extends BP_Loop_Template {
 			$this->total_item_count = BfoxPlans::count_plans($args);
 		}
 
-		BfoxPlans::add_history_to_plans($this->items);
-
 		$this->item_count = count($this->items);
 		$this->set_max($max);
 		$this->set_page_links();
@@ -488,15 +486,6 @@ function bp_plan_chart(BfoxReadingPlan $plan = NULL) {
 
 		$plan = bp_get_plan($plan);
 
-		// If this plan is scheduled, not finished, and this is a user, not a blog, then use the history information
-		$use_history = FALSE;//($plan->is_scheduled && !$my_sub->is_finished && ($my_sub->user_type == BfoxPlans::user_type_user));
-
-		$unread_readings = array();
-		if ($use_history) {
-			$use_history = $plan->set_history(BfoxHistory::get_history(0, $plan->history_start_date(), NULL, TRUE));
-			$crossed_out = '<br/>' . __('*Note: Crossed out passages indicate that you have finished reading that passage');
-		}
-
 		$sub_table = new BfoxHtmlTable("class='reading_plan_col'");
 
 		// Create the table header
@@ -504,7 +493,6 @@ function bp_plan_chart(BfoxReadingPlan $plan = NULL) {
 		$header->add_header_col('#', '');
 		if ($plan->is_scheduled) $header->add_header_col('Date', '');
 		$header->add_header_col('Passage', '');
-		//if (!empty($unread_readings)) $header->add_header_col('Unread', '');
 		$sub_table->add_header_row($header);
 
 		$total_refs = new BfoxRefs;
@@ -520,24 +508,12 @@ function bp_plan_chart(BfoxReadingPlan $plan = NULL) {
 			$row->add_col($reading_id + 1);
 
 			// Add the Date column
-			if ($plan->is_scheduled) $row->add_col($plan->date($reading_id, 'M d'));
+			$attrs = '';
+			if ($plan->is_reading_finished($reading_id)) $attrs = "class='bfox-reading-finished'";
+			if ($plan->is_scheduled) $row->add_col($plan->date($reading_id, 'M d'), $attrs);
 
 			// Add the bible reference column
-			$attrs = '';
-			if ($use_history) {
-				// Calculate how much of this reading is unread
-				$unread = $plan->get_unread($reading);
-
-				// If this reading is 'read', then mark it as such
-				if (!$unread->is_valid()) $attrs = "class='finished'";
-			}
-			$row->add_col(bp_bible_ref_link(array('refs' => $reading, 'name' => BibleMeta::name_short)), $attrs);
-
-			// Add the History column
-			/*if (!empty($unread_readings)) {
-				if (isset($unread_readings[$reading_id])) $row->add_col(bp_bible_ref_link(array('refs' => $unread_readings[$reading_id], 'name' => BibleMeta::name_short)));
-				else $row->add_col();
-			}*/
+			$row->add_col(bp_bible_ref_link(array('refs' => $reading, 'name' => BibleMeta::name_short)));
 
 			// Add the row to the table
 			$sub_table->add_row($row);
@@ -571,42 +547,32 @@ function bp_plan_current_readings($args = array(), $plans = array()) {
 
 	if (1 > $max) $max = 5;
 
-	if (!empty($plans)) {
-		$dates = array();
-		$lis = array();
-
-		foreach ($plans as $plan) if ($plan->is_current()) {
-			// Show any unread readings before the current reading
-			// And any readings between the current reading and the first unread reading after it
-			foreach ($plan->readings as $reading_id => $reading) {
-				$unread = $plan->get_unread($reading);
-				$is_unread = $unread->is_valid();
-
-				// If the passage is unread or current, add it
-				if ($is_unread || ($reading_id >= $plan->current_reading_id)) {
-					$ref_str = $plan->readings[$reading_id]->get_string($ref_name);
-					$url = bp_bible_ref_url($ref_str);
-
-					if (!$is_unread) $finished = " class='finished'";
-					else $finished = '';
-
-					$lis []= BfoxUtility::nice_date($plan->time($reading_id)) . ": <a href='$url'$finished>$ref_str</a>";
-					$dates []= $plan->date($reading_id);
-				}
-				// Break after the first unread reading > current_reading
-				//if ($is_unread && ($reading_id > $plan->current_reading_id)) break;
-			}
-		}
-
-		array_multisort($dates, $lis);
-		$readings = array_slice($lis, 0, $max);
-	}
-
 	$content = '';
-	if (!empty($readings)) {
-		$content = '<ul>';
-		foreach ($readings as $reading) $content .= "<li>$reading</li>\n";
-		$content .= '</ul>';
+	if (!empty($plans)) {
+		foreach ($plans as $plan) if ($plan->is_scheduled && $plan->is_current()) {
+			$count = count($plan->readings);
+
+			// Calculate the start and end reading indexes of the readings to display
+			// Try to show half finished readings and half unfinished readings
+			$start = $plan->current_reading_id - ceil($max / 2) + 1;
+			if ($start < 0) $start = 0;
+			$end = $start + $max - 1;
+			if ($end >= $count) {
+				$end = $count - 1;
+				$start = $end - $max + 1;
+				if ($start < 0) $start = 0;
+			}
+
+			$content .= '<div><a href="' . bp_get_plan_permalink($plan) . '">' . $plan->name . '</a></div><ul>';
+			for ($reading_id = $start; $reading_id <= $end; $reading_id++) {
+				$ref_str = $plan->readings[$reading_id]->get_string($ref_name);
+				$class = ($plan->is_reading_finished($reading_id)) ? 'bfox-reading-finished' : '';
+				$content .= '<li>'.//(($plan->is_reading_finished($reading_id)) ? '<li class="bfox-reading-finished">' : '<li>') .
+					"<span class='$class'>" . BfoxUtility::nice_date($plan->time($reading_id)) . '</span>: ' .
+					bp_bible_ref_link(array('ref_str' => $ref_str, 'disable_tooltip' => true, 'attrs' => array('class' => ''))) . '</li>';
+			}
+			$content .= '</ul>';
+		}
 	}
 	return $content;
 }

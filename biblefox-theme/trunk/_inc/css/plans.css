@@ -4,7 +4,14 @@ li a#my-plans {
 	padding: 0.55em 3em 0.55em 0 !important;
 	margin-right: 0.85em !important;
 }
-				
+
+/*
+Finished Readings
+*/
+.bfox-reading-finished {
+	text-decoration: line-through;
+}
+
 /*
 Form
 */

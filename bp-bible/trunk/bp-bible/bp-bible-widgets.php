@@ -442,7 +442,7 @@ class BP_Bible_CurrentReadings_Widget extends WP_Widget {
 	public function widget($args, $instance) {
 		extract($args);
 
-		if (empty($instance['title'])) $instance['title'] = __('My Current Readings');
+		if (empty($instance['title'])) $instance['title'] = __('My Recent Readings');
 
 		echo $before_widget . $before_title . $instance['title'] . $after_title;
 
@@ -514,12 +514,11 @@ class BP_Bible_Tools_Widget extends WP_Widget {
 			if ('table' == $instance['style']) {
 				$table = new BfoxHtmlTable("class='widefat'");
 
-				foreach ($history as $event) $table->add_row('', 5,
+				foreach ($history as $event) $table->add_row('', 4,
 					$event->desc(),
 					$event->ref_link(),
 					BfoxUtility::nice_date($event->time),
-					date('g:i a', $event->time),
-					$event->toggle_link());
+					date('g:i a', $event->time));
 
 				$content = $table->content();
 			}

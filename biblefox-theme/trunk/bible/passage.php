@@ -5,7 +5,6 @@
 <?php if (bp_bible_has_passages()) : ?>
 	<div class="widget" id="bible-passages">
 		<h2 class="widgettitle"><?php _e('Bible Passages') ?>: <?php echo bp_bible_the_ref_str() ?></h2>
-		<div class="passages_info"><?php echo bp_bible_history_desc(' \a\t g:i a') ?>: <?php echo bp_bible_mark_read_link() ?></div>
 
 		<!-- Passages -->
 	<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>

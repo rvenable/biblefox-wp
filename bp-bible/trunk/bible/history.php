@@ -22,35 +22,17 @@ class BfoxHistoryEvent {
 		$this->refs->add_concat($db_data->verse_begin, $db_data->verse_end);
 	}
 
-	public function toggle_url() {
-		return add_query_arg('bible_read', urlencode($this->db_time), bp_bible_ref_url());
-	}
-
-	public function toggle_link($unread_text = '', $read_text = '') {
-		if ($this->is_read) {
-			if (empty($read_text)) $text = __('Mark as unread');
-			else $text = $read_text;
-		}
-		else {
-			if (empty($unread_text)) $text = __('Mark as read');
-			else $text = $unread_text;
-		}
-		return "<a href='" . $this->toggle_url() . "'>$text</a>";
-	}
-
 	public function ref_link($name = '') {
 		return bp_bible_ref_link(array(
 			'refs' => $this->refs,
-			'name' => $name,
-			'attrs' => array('class' => ($this->is_read ? 'finished' : ''))
+			'name' => $name
 		));
 	}
 
 	public function desc($date_str = '') {
 		if (!empty($date_str)) $date_str = date($date_str, $this->time);
 
-		if ($this->is_read) return __('Read') . $date_str;
-		else return __('Viewed') . $date_str;
+		return __('Viewed', 'bp-bible') . $date_str;
 	}
 }
 
