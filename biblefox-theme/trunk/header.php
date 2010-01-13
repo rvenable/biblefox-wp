@@ -14,11 +14,13 @@
 
 		<link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" media="screen" />
 
+		<?php // CHANGED FROM PARENT: (rearranged RSS links so that the Blog feed comes first, and is therefore the default feed) ?>
 		<link rel="alternate" type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php _e( 'Blog Posts RSS Feed', 'buddypress' ) ?>" href="<?php bloginfo('rss2_url'); ?>" />
 		<link rel="alternate" type="application/atom+xml" title="<?php bloginfo('name'); ?> <?php _e( 'Blog Posts Atom Feed', 'buddypress' ) ?>" href="<?php bloginfo('atom_url'); ?>" />
 		<?php if ( function_exists( 'bp_sitewide_activity_feed_link' ) ) : ?>
 		<link rel="alternate" type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php _e('Site Wide Activity RSS Feed', 'buddypress' ) ?>" href="<?php bp_sitewide_activity_feed_link() ?>" />
 		<?php endif; ?>
+		<?php // END CHANGED FROM PARENT ?>
 
 		<link rel="pingback" href="<?php bloginfo('pingback_url'); ?>" />
 
@@ -32,11 +34,13 @@
 
 		<div id="search-login-bar">
 
-			<?php // CHANGED FROM PARENT: (replaced search form) ?>
-			<?php if (function_exists('bp_bible_search_form')): ?>
-				<?php echo bp_bible_search_form() ?>
-			<?php endif ?>
-			<?php // END CHANGED FROM PARENT ?>
+			<form action="<?php echo bp_search_form_action() ?>" method="post" id="search-form">
+				<input type="text" id="search-terms" name="search-terms" value="" />
+				<?php echo bp_search_form_type_select() ?>
+
+				<input type="submit" name="search-submit" id="search-submit" value="<?php _e( 'Search', 'buddypress' ) ?>" />
+				<?php wp_nonce_field( 'bp_search_form' ) ?>
+			</form>
 
 			<?php if ( !is_user_logged_in() ) : ?>
 

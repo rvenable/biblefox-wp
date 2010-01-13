@@ -7,7 +7,7 @@
 	<div id="content">
 
 		<h2><?php _e( "My Bible Notes", 'bp-bible' ) ?></h2>
-		<p><?php _e('These are private notes that only you can see. You can use them to jot down quick thoughts about the Bible, then turn them into blog posts later.')?></p>
+		<p><?php _e('These are private notes that only you can see. You can use them to jot down quick thoughts about the Bible, then turn them into blog posts later.', 'bp-bible')?></p>
 
 		<?php do_action( 'template_notices' ) // (error/success feedback) ?>
 

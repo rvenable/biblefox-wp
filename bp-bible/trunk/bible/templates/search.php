@@ -4,7 +4,7 @@
 require_once BFOX_BIBLE_DIR . '/bible-search.php';
 
 class BfoxPageSearch /*extends BfoxPage */{
-	const var_page_num = 'results_page';
+	const var_page_num = 'page';
 
 /*	private function page_url($page_num) {
 		return add_query_arg(self::var_page_num, $page_num, $search->get_url());

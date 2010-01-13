@@ -68,17 +68,23 @@ class BibleSearch {
 	 */
 	private $display_translation;
 
-	public function __construct($text, BfoxTrans $translation, $page = 0) {
-		if (empty($page)) $page = 1;
-
+	public function __construct($text, $ref_str = '', $page = 0, $trans = '', $group = '') {
 		$this->set_text($text);
-		$this->display_translation = $translation;
+
+		if (!empty($trans)) bp_bible_set_trans_id($trans);
+		$trans_ids = BfoxTrans::get_ids_by_short_name();
+		$this->display_translation = new BfoxTrans($trans_ids[bp_bible_get_trans_id()]);
+
+		if (empty($page)) $page = 1;
 		$this->page = $page;
 		$this->set_limit(self::results_per_page, self::results_per_page * ($page - 1));
+
+		if (!empty($group)) $this->set_refs(new BibleGroupPassage($group));
+		if (!empty($ref_str)) $this->set_refs(new BfoxRefs($ref_str));
 	}
 
-	public function set_text($text)
-	{
+	public function set_text($text) {
+		$text = strip_tags(trim($text));
 		$this->text = $text;
 		$this->description = "\"$text\"";
 
@@ -87,23 +93,19 @@ class BibleSearch {
 		$this->index_words = self::get_index_words($text);
 	}
 
-	public function set_search_translation_id($trans_id)
-	{
+	public function set_search_translation_id($trans_id) {
 		$this->trans_where =  $wpdb->prepare('AND trans_id = %d', $trans_id);
 	}
 
-	public function set_refs(BfoxRefs $refs)
-	{
-		if ($refs->is_valid())
-		{
+	public function set_refs(BfoxRefs $refs) {
+		if ($refs->is_valid()) {
 			$this->ref_str = $refs->get_string();
 			$this->ref_where = 'AND ' . $refs->sql_where();
 			$this->description .= ' in ' . $this->ref_str;
 		}
 	}
 
-	public function set_limit($limit = self::results_per_page, $offset = 0)
-	{
+	public function set_limit($limit = self::results_per_page, $offset = 0) {
 		global $wpdb;
 		$this->limit = $limit;
 		$this->limit_str = $wpdb->prepare('LIMIT %d, %d', $offset, $limit);
@@ -111,7 +113,18 @@ class BibleSearch {
 
 	public function get_url() {
 		// TODO3 (HACK): The strtolower is because bible groups need to be lowercase for some reason
-		return BfoxQuery::search_url($this->text, strtolower($this->ref_str));
+		return self::search_url($this->text, strtolower($this->ref_str));
+	}
+
+	public static function search_url($search_text, $ref_str = '', $group_str = '') {
+		global $bp;
+
+		$url = $bp->root_domain . '/' . $bp->bible->slug . '/';
+		if (!empty($search_text)) $url = add_query_arg('s', urlencode($search_text), $url);
+		if (!empty($ref_str)) $url = add_query_arg('ref', urlencode($ref_str), $url);
+		if (!empty($group_str)) $url = add_query_arg('group', urlencode($group_str), $url);
+
+		return $url;
 	}
 
 	public function get_num_pages() {
@@ -144,6 +157,8 @@ class BibleSearch {
 
 		$verses = array();
 		foreach ($verse_ids as $verse) $verses[$verse->unique_id] = $verse->match_val;
+
+		$this->set_page_links();
 
 		return $verses;
 	}
@@ -197,7 +212,7 @@ class BibleSearch {
 				$ref_str = BibleMeta::get_book_name($child);
 
 				$child_content = "<a href='" .
-					BfoxQuery::search_url($this->text, $ref_str) .
+					self::search_url($this->text, $ref_str) .
 					"' title='Search for \"$this->text\" in $ref_str'>$ref_str<span class='book_count'>$child_count</span></a>";
 			}
 
@@ -212,7 +227,7 @@ class BibleSearch {
 
 		return array($count,
 			"<a href='" .
-			BfoxQuery::search_url($this->text, $group) .
+			self::search_url($this->text, '', $group) .
 			"' title='Search for \"$this->text\" in $ref_str'>$ref_str<span class='book_count'>$count</span></a>
 			<ul>
 				$content
@@ -226,6 +241,40 @@ class BibleSearch {
 		echo $map;
 	}
 
+	private function set_page_links() {
+		$this->pag_links = paginate_links( array(
+			'base' => $this->get_url() . '%_%',
+			'format' => '&page=%#%',
+			'total' => ceil( (int) $this->found_rows / self::results_per_page ),
+			'current' => $this->page,
+			'prev_text' => '&laquo;',
+			'next_text' => '&raquo;',
+			'mid_size' => 1
+		));
+
+		$this->from_num = intval( ( $this->page - 1 ) * self::results_per_page ) + 1;
+		$this->to_num = ( $this->from_num + ( self::results_per_page - 1 ) > $this->found_rows ) ? $this->found_rows : $this->from_num + ( self::results_per_page - 1);
+	}
+
+	public function page_links() {
+		return $this->pag_links;
+	}
+
+	public function output_page_num_description() {
+		echo sprintf( __( 'Viewing verse %d to %d (of %d)', 'bp-bible' ), $this->from_num, $this->to_num, $this->found_rows );
+	}
+
+	public function trans_select_options() {
+		$content = '';
+		$curr_value = $this->display_translation->short_name;
+		foreach (BfoxIframe::$translations['biblefox'] as $translation) {
+			list($value, $label) = $translation;
+			$selected = ($value == $curr_value) ? ' selected' : '';
+			$content .= "<option value='$value'$selected>$label</option>";
+		}
+		return $content;
+	}
+
 	/**
 	 * Creates an output string with a table row for each verse in the $verses data
 	 *
@@ -233,7 +282,7 @@ class BibleSearch {
 	 * @param array $words the list of words to highlight as having been used in the search
 	 * @return string
 	 */
-	function output_verses($verses)
+	function chapter_content($verses)
 	{
 		$count = count($verses);
 		if (0 < $count)
@@ -262,6 +311,7 @@ class BibleSearch {
 
 					$book_name = BibleMeta::get_book_name($book);
 					$chap_name = "$book_name $chapter";
+					$chapter_content[$chap_name] = array();
 				}
 
 				// TODO3: Find a good way to display footnotes in search (until then, just get rid of them)
@@ -276,23 +326,11 @@ class BibleSearch {
 						$verse->verse = substr_replace($verse->verse, "<strong>$verse_word</strong>", $pos, strlen($verse_word));
 
 				$ref_str = "$chap_name:$verse->verse_id";
-				$chapter_content[$chap_name] .= "<div class='result_verse'><h5><a href='" . BfoxQuery::ref_url($ref_str) . "'>$ref_str</a></h5>$verse->verse</div>";
-			}
-
-			$content = '';
-			foreach ($chapter_content as $chap_name => $chap_content)
-			{
-				$content .=
-				"<div class='result_chapter'>
-				<h4><a href='" . BfoxQuery::ref_url($chap_name) . "'>$chap_name</a></h4>
-				$chap_content
-				</div>
-				";
+				$chapter_content[$chap_name][$ref_str] = $verse->verse;
 			}
 		}
-		else $content = '<div class="box_inside">No verses match your search</div>';
 
-		return $content;
+		return $chapter_content;
 	}
 
 	/*
@@ -395,6 +433,10 @@ class BibleSearch {
 		$msg .= 'Finished<br/>';
 		return $status;
 	}
+}
+
+function bp_bible_search_list() {
+	locate_template( array( '/bible/search-list.php' ), true );
 }
 
 ?>

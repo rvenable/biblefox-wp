@@ -3,7 +3,7 @@
 require_once BFOX_BIBLE_DIR . '/bible-search.php';
 
 class BfoxPageSearch extends BfoxPage {
-	const var_page_num = 'results_page';
+	const var_page_num = 'page';
 
 	/**
 	 * Instance of BibleSearch for all the search functionality

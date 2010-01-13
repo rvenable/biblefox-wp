@@ -11,17 +11,13 @@ function bfox_blog_iframe_select_change() {
 	jQuery(this).next('iframe.bfox-iframe').attr('src', option.val()).get(0).reload();
 }
 
-jQuery(document).ready(function() {
-	// Iframes
-	jQuery('select.bfox-iframe-select').change(bfox_blog_iframe_select_change);
-
+function bfox_blog_add_tooltips(elements) {
 	// Prevent bible ref links from going anywhere because we are showing a tooltip on a click
-	jQuery('span.bible-tooltip a').click(function(event) {
+	elements.click(function(event) {
 		event.preventDefault();
 	});
 	
-	// Add tooltips to bible ref links
-	jQuery('span.bible-tooltip a').each(function() {
+	elements.each(function() {
 		jQuery(this).qtip({
 			content: {
 				url: jQuery(this).next('span.bible-tooltip-url').text(),
@@ -61,4 +57,12 @@ jQuery(document).ready(function() {
 			}
 		});
 	});
+}
+
+jQuery(document).ready(function() {
+	// Iframes
+	jQuery('select.bfox-iframe-select').change(bfox_blog_iframe_select_change);
+
+	// Add tooltips to bible ref links
+	bfox_blog_add_tooltips(jQuery('span.bible-tooltip a'));
 });

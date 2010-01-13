@@ -326,38 +326,25 @@ function bp_bible_directory_setup() {
 	if ( $bp->current_component == $bp->bible->slug && empty( $bp->displayed_user->id ) ) {
 		$bp->is_directory = true;
 
-		$redirect = FALSE;
+		if (!empty($_REQUEST['s'])) {
+			// Search page
+			require_once BFOX_BIBLE_DIR . '/bible-search.php';
 
-		// Get any passed in translations, save them, and redirect without them
-		if (!empty($_REQUEST['trans_id'])) {
-			bp_bible_set_trans_id($_REQUEST['trans_id']);
-			$redirect = TRUE;
-		}
+			global $bp_bible_search;
+			$bp_bible_search = new BibleSearch(urldecode($_REQUEST['s']), $_REQUEST['ref'], $_REQUEST['page'], $_REQUEST['trans'], $_REQUEST['group']);
 
-		// Get the refs and search from the URL
-		if (!empty($_REQUEST['search-terms'])) {
-			$ref_str = $bp->current_action;
-			$search_str = trim($_REQUEST['search-terms']);
-			$redirect = TRUE;
+			do_action( 'bp_bible_screen_search' );
+
+			wp_enqueue_style('bfox_scripture');
+
+			/* Finally load the plugin template file. */
+			bp_core_load_template( apply_filters( 'bp_bible_template_screen_search', 'bible/search' ) );
 		}
 		else {
-			$ref_str = '';
-			$search_str = implode('/', $bp->action_variables);
-			if (empty($search_str)) $search_str = $bp->current_action;
-			else $ref_str = $bp->current_action;
-		}
+			// Passage page
+			$ref_str = urldecode($bp->current_action);
 
-		$search_str = urldecode($search_str);
-		$ref_str = urldecode($ref_str);
-
-		// If we don't have a ref_str try to get one from the search_str
-		if (empty($ref_str)) {
-			list($ref_str, $search_str) = bp_bible_extract_search_refs($search_str);
-			// If we found a ref_str and search_str, redirect with the correct URL
-			if (!empty($ref_str) && !empty($search_str)) $redirect = TRUE;
-		}
-
-		if (empty($search_str)) {
+			$redirect = FALSE;
 			$input_refs = new BfoxRefs($ref_str);
 
 			// If we are toggling is_read, then we should do it now, and redirect without the parameter
@@ -384,24 +371,18 @@ function bp_bible_directory_setup() {
 
 				$redirect = TRUE;
 			}
-		}
-		else {
-			$refs = BfoxRefParser::with_groups($ref_str);
-		}
 
-		global $bp_bible;
-		$bp_bible = new BfoxBible($refs, new BfoxTrans(bp_bible_get_trans_id()), $search_str);
-		$bp->bible->refs = $bp_bible->refs;
+			global $bp_bible;
+			$bp_bible = new BfoxBible($refs, new BfoxTrans(bp_bible_get_trans_id()), $search_str);
+			$bp->bible->refs = $bp_bible->refs;
 
-		// If we need to redirect, do it
-		// Otherwise, load the appropriate page
-		if ($redirect) bp_core_redirect(bp_bible_bible_url($bp_bible));
-		else {
 			global $user_ID;
 			update_user_option($user_ID, 'bp_bible_last_search', $bible->search_query);
 
-			if (empty($bp_bible->search_str)) bp_bible_screen_passage();
-			else bp_bible_screen_search();
+			// If we need to redirect, do it
+			// Otherwise, load the appropriate page
+			if ($redirect) bp_core_redirect(bp_bible_bible_url($bp_bible));
+			else bp_bible_screen_passage();
 		}
 	}
 }
@@ -521,64 +502,6 @@ function bp_bible_screen_passage() {
 	 * and define their own theme filenames and structure
 	 */
 	bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
-}
-
-/**
- * bp_bible_screen_search()
- *
- * Sets up and displays the screen output for the sub nav item "bible/screen-two"
- */
-function bp_bible_screen_search() {
-	global $bp;
-
-	/**
-	 * On the output for this second screen, as an example, there are terms and conditions with an
-	 * "Accept" link (directs to http://example.org/members/andy/bible/screen-two/accept)
-	 * and a "Reject" link (directs to http://example.org/members/andy/bible/screen-two/reject)
-	 */
-
-	if ( $bp->current_component == $bp->bible->slug && 'screen-two' == $bp->current_action && 'accept' == $bp->action_variables[0] ) {
-		if ( bp_bible_accept_terms() ) {
-			/* Add a success message, that will be displayed in the template on the next page load */
-			bp_core_add_message( __( 'Terms were accepted!', 'bp-bible' ) );
-		} else {
-			/* Add a failure message if there was a problem */
-			bp_core_add_message( __( 'Terms could not be accepted.', 'bp-bible' ), 'error' );
-		}
-
-		/**
-		 * Now redirect back to the page without any actions set, so the user can't carry out actions multiple times
-		 * just by refreshing the browser.
-		 */
-		bp_core_redirect( $bp->loggedin_user->domain . $bp->current_component );
-	}
-
-	if ( $bp->current_component == $bp->bible->slug && 'screen-two' == $bp->current_action && 'reject' == $bp->action_variables[0] ) {
-		if ( bp_bible_reject_terms() ) {
-			/* Add a success message, that will be displayed in the template on the next page load */
-			bp_core_add_message( __( 'Terms were rejected!', 'bp-bible' ) );
-		} else {
-			/* Add a failure message if there was a problem */
-			bp_core_add_message( __( 'Terms could not be rejected.', 'bp-bible' ), 'error' );
-		}
-
-		/**
-		 * Now redirect back to the page without any actions set, so the user can't carry out actions multiple times
-		 * just by refreshing the browser.
-		 */
-		bp_core_redirect( $bp->loggedin_user->domain . $bp->current_component );
-	}
-
-	/**
-	 * If the user has not Accepted or Rejected anything, then the code above will not run,
-	 * we can continue and load the template.
-	 */
-	do_action( 'bp_bible_screen_search' );
-
-	wp_enqueue_style('bfox_scripture');
-
-	/* Finally load the plugin template file. */
-	bp_core_load_template( apply_filters( 'bp_bible_template_screen_search', 'bible/search' ) );
 }
 
 function bp_bible_screen_settings_menu() {
@@ -1444,5 +1367,46 @@ function bp_bible_ref_link($options = array()) {
 
 	return $link;
 }
+
+/**
+ * Adds 'bible' to the list of search options in the Buddypress header
+ * @param $select
+ * @return unknown_type
+ */
+function bp_bible_search_form_type_select($select) {
+	return preg_replace('/(<select.*?>)/', '$1<option value="bible">' . __( 'Bible', 'bp-bible' ) . '</option>', $select);
+}
+add_filter('bp_search_form_type_select', 'bp_bible_search_form_type_select');
+
+/**
+ * Similar to bp_core_action_search_site() but handles the 'bible' search action
+ * @param $slug
+ */
+function bp_bible_action_search_site( $slug = false ) {
+	global $bp;
+
+	if ( $bp->current_component == BP_SEARCH_SLUG ) {
+		$search_terms = $_POST['search-terms'];
+		$search_which = $_POST['search-which'];
+		if ('bible' == $search_which) {
+			// This is a search that needs to get redirected to either the search page or the passage page
+
+			// Get the search text and ref_str from s-combined
+			$search_terms = trim($search_terms);
+			list($ref_str, $search_terms) = bp_bible_extract_search_refs($search_terms);
+
+			// If we don't have search text anymore, redirect to the passage page
+			// Otherwise redirect to the search page
+			if (empty($search_terms)) bp_core_redirect(bp_bible_ref_url($ref_str));
+			else {
+				require_once BFOX_BIBLE_DIR . '/bible-search.php';
+				$search = new BibleSearch($search_terms, $ref_str);
+				bp_core_redirect($search->get_url());
+			}
+		}
+	}
+}
+// This has to get run before bp_core_action_search_site()
+add_action( 'init', 'bp_bible_action_search_site', 4 );
 
 ?>

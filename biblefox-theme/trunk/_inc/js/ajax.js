@@ -31,6 +31,55 @@ function bfox_theme_ajax_load_bible_notes(bp_page) {
 	return false;
 }
 
+function bfox_theme_ajax_load_bible_search(href) {
+	var j = jQuery;
+	
+	var search = new String(href.match(/s=[^&]*/i));
+	search = search.substr(2, search.length - 2);
+	var ref = new String(href.match(/ref=[^&]*/i));
+	ref = ref.substr(4, ref.length - 4);
+	var group = new String(href.match(/group=[^&]*/i));
+	group = group.substr(6, group.length - 6);
+	var page = new String(href.match(/page=[^&]*/i));
+	page = page.substr(5, page.length - 5);
+	var trans = new String(href.match(/trans=[^&]*/i));
+	trans = trans.substr(6, trans.length - 6);
+	
+	j('.ajax-loader').show();
+
+	j.post( ajaxurl, {
+		action: 'get_bible_search_list',
+		's': search,
+		'ref': ref,
+		'group': group,
+		'page': page,
+		'trans': trans,
+		'cookie': encodeURIComponent(document.cookie)
+	},
+	function(response) {	
+		j('.ajax-loader').hide();
+	
+		response = response.substr(0, response.length-1);
+
+		j("#bible-search-list-content").fadeTo(200, 0.1, 
+			function() {
+				j("#bible-search-list-content").html(response);
+				
+				bfox_blog_add_tooltips(jQuery('#bible-search-list-content span.bible-tooltip a'));
+				j("#bible-search-list-content select.bible-search-trans-select").change(function() {
+					return bfox_theme_ajax_load_bible_search(j(this).parent('form').attr('action')+'&trans='+j(this).val());
+				});
+				
+				j("#bible-search-list-content").fadeTo(200, 1);
+			}
+		);
+
+		return false;
+	});
+
+	return false;
+}
+
 jQuery(document).ready( function() {
 	var j = jQuery;
 
@@ -102,5 +151,13 @@ jQuery(document).ready( function() {
 	j('.bible-note-open-edit-form').livequery('click', function() {
 		j(this).toggleClass('reject').next('form.bible-note-edit-form').toggle();
 		return false;
+	});
+	
+	// Search page AJAX
+	j("div.bible-search-results-pagination a, div#verse_map_list a").livequery('click', function() {
+		return bfox_theme_ajax_load_bible_search(j(this).attr('href'));
+	});
+	j("select.bible-search-trans-select").change(function() {
+		return bfox_theme_ajax_load_bible_search(j(this).parent('form').attr('action')+'&trans='+j(this).val());
 	});
 });
