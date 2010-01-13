@@ -20,6 +20,7 @@ function bfox_blog_add_tooltips(elements) {
 	elements.each(function() {
 		jQuery(this).qtip({
 			content: {
+				text: 'Loading...',
 				url: jQuery(this).next('span.bible-tooltip-url').text(),
 				title: {
 					text: '<a href="' + jQuery(this).attr('href') + '">' + jQuery(this).text() + '</a>', // Give the tooltip a title using each elements text
@@ -53,6 +54,16 @@ function bfox_blog_add_tooltips(elements) {
 				onContentUpdate: function() {
 					// When the content is updated, make sure that any iframe selects can update properly
 					this.elements.content.find('select.bfox-iframe-select').change(bfox_blog_iframe_select_change);
+				},
+				onHide: function() {
+					// HACK: Firefox has a bug that causes flickering when the iframe scroll position is not 0
+					// See: http://craigsworks.com/projects/qtip/forum/topic/314/qtip-flicker-in-firefox/
+					// Fix it by disabling scrolling on the iframes when we hide them
+					this.elements.content.find('iframe').attr('scrolling', 'no');
+				},
+				onShow: function() {
+					// Re-enable scrolling on the iframes
+					this.elements.content.find('iframe').attr('scrolling', 'yes');
 				}
 			}
 		});
