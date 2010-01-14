@@ -21,7 +21,7 @@ function bfox_blog_add_tooltips(elements) {
 		jQuery(this).qtip({
 			content: {
 				text: 'Loading...',
-				url: jQuery(this).next('span.bible-tooltip-url').text(),
+				url: jQuery(this).next('a.bible-tooltip-url').attr('href'),
 				title: {
 					text: '<a href="' + jQuery(this).attr('href') + '">' + jQuery(this).text() + '</a>', // Give the tooltip a title using each elements text
 					button: 'Close' // Show a close link in the title

@@ -211,7 +211,7 @@ class BfoxBlog {
 	 * @return string
 	 */
 	public static function link_add_ref_tooltip($link, $ref_str) {
-		return '<span class="bible-tooltip">' . $link . '<span class="bible-tooltip-url">' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '</span></span>';
+		return '<span class="bible-tooltip">' . $link . '<a class="bible-tooltip-url" href="' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '"></a></span>';
 	}
 
 	/**
