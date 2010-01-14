@@ -1,0 +1,61 @@
+/* Font styles */
+@import url( ../bp-sn-parent/_inc/css/fonts/14px.css );
+
+@import url( _inc/css/screen-print.css );
+
+ul.footnotes {
+	list-style-type: none;
+	margin: 0 0 0 1em;
+}
+
+.bfox-view-options {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	font-size: 10px;
+	text-align: right;
+}
+
+.bfox-view-options p {
+	text-decoration: underline;
+	margin: 0;
+}
+
+.bfox-view-options ul {
+	display: none;
+	border: 1px solid #CCC;
+	list-style-type: none;
+	background-color: #FFF;
+	text-decoration: none;
+	padding: 5px;
+	margin: 0;
+}
+
+.bfox-view-options ul li {
+	text-decoration: none;
+	text-align: left;
+}
+
+.bfox-view-options ul li label {
+	cursor: pointer;
+}
+
+.bfox-view-options:hover ul {
+	display: block;
+}
+
+.ref_foot_link_hidden {
+	display: none;
+}
+
+.chapter_head {
+	font-size: 1.8em;
+	float: left;
+	margin: 0.2em 0.2em 0 0;
+	padding: 0.2em 0.1em;
+	min-width: 1.5em;
+	height: 1.1em;
+	text-align: center;
+	font-weight: bold;
+}
+
