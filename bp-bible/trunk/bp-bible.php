@@ -22,6 +22,7 @@ define(BFOX_TRANS_DIR, BP_BIBLE_DIR . '/translations');
 
 define(BP_BIBLE_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
+include_once BFOX_TRANS_DIR . '/translations.php';
 require_once BP_BIBLE_DIR . '/loop-template.php';
 require_once BP_BIBLE_DIR . '/bp-plans.php';
 require_once BP_BIBLE_DIR . '/bp-bible/passage.php';

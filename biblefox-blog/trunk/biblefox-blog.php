@@ -46,8 +46,6 @@ require_once BFOX_REFS_DIR . '/refs.php';
 
 require_once BFOX_BLOG_DIR . '/utility.php';
 
-include_once BFOX_TRANS_DIR . '/translations.php';
-
 require_once BFOX_BLOG_DIR . '/posts.php';
 require_once BFOX_BLOG_DIR . '/bfox-query.php';
 require_once BFOX_BLOG_DIR . '/bibletext.php';
