@@ -4,7 +4,7 @@
 	Plugin Name: Biblefox-Blog
 	Plugin URI: http://tools.biblefox.com/
 	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
-	Version: 0.5
+	Version: 0.6
 	Author: Biblefox
 	Author URI: http://biblefox.com
 
@@ -32,7 +32,7 @@
 
 *************************************************************************/
 
-define(BFOX_BIBLE_VERSION, '0.5');
+define(BFOX_BIBLE_VERSION, '0.6');
 
 if (!defined(BFOX_BLOG_DIR)) define(BFOX_BLOG_DIR, dirname(__FILE__));
 

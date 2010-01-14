@@ -3,7 +3,7 @@
 Plugin Name: BuddyPress Bible
 Plugin URI: http://tools.biblefox.com/bp-bible/
 Description: A BuddyPress component to add the Bible to BuddyPress.
-Version: 0.5
+Version: 0.6
 Revision Date: Aug 17, 2009
 Requires at least: WPMU 2.8, BuddyPress 1.0.3
 Tested up to: WPMU 2.8, BuddyPress 1.0.3
@@ -56,7 +56,7 @@ require_once BP_BIBLE_DIR . '/bp-bible/history.php';
 define ( 'BP_BIBLE_IS_INSTALLED', 1 );
 
 /* Define a constant that will hold the current version number of the component */
-define ( 'BP_BIBLE_VERSION', '0.5' );
+define ( 'BP_BIBLE_VERSION', '0.6' );
 
 /* Define a constant that will hold the database version number that can be used for upgrading the DB
  *
