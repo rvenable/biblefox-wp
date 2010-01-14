@@ -1,16 +1,25 @@
+<?php $refs = bp_get_bible_refs() ?>
 <?php get_header() ?>
 <div id="content">
 <div class="passagecolumn">
 
-<?php if (bp_bible_has_passages()) : ?>
+<?php if ($refs->is_valid()) : ?>
 	<div class="widget" id="bible-passages">
-		<h2 class="widgettitle"><?php _e('Bible Passages') ?>: <?php echo bp_bible_the_ref_str() ?></h2>
+		<h2 class="widgettitle"><?php _e('Bible Passages') ?>: <?php echo $refs->get_string() ?></h2>
 
 		<!-- Passages -->
-	<?php while (bp_bible_passages()) : bp_bible_the_passage(); ?>
+	<?php foreach (BfoxRefs::get_bcvs($refs->get_seqs()) as $book => $cvs): ?>
+		<?php $passage_refs = new BfoxRefs(BfoxRefs::create_book_string($book, $cvs)) ?>
+		<?php
+		$prev_ref_str = $passage_refs->prev_chapter_string();
+		$next_ref_str = $passage_refs->next_chapter_string();
+		$links = '';
+		if (!empty($prev_ref_str)) $links .= bp_bible_ref_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
+		if (!empty($next_ref_str)) $links .= bp_bible_ref_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
+		?>
 		<div class="post">
-			<div class='passage-nav'><?php echo bp_bible_passage_ref_link('prev') . bp_bible_passage_ref_link('next') ?></div>
-			<?php $iframe = new BfoxIframe(bp_bible_the_refs()) ?>
+			<div class='passage-nav'><?php echo $links ?></div>
+			<?php $iframe = new BfoxIframe($passage_refs) ?>
 			<div class="bfox-iframe-wrap bfox-passage-iframe-wrap">
 				<select class="bfox-iframe-select bfox-passage-iframe-select">
 					<?php echo $iframe->select_options() ?>
@@ -19,15 +28,27 @@
 			</div>
 		</div>
 		<!-- Passage Widgets -->
-		<?php bp_bible_toc() ?>
+		<?php
+		$book_name = BibleMeta::get_book_name($book);
+		$end_chapter = BibleMeta::end_verse_max($book);
+		?>
+		<div class="widget">
+			<h2 class="widgettitle"><?php echo $book_name . __(' - Table of Contents', 'bp-bible') ?></h2>
+			<ul class='flat_toc'>
+			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
+				<li><?php echo bp_bible_ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch, 'disable_tooltip' => TRUE)) ?></li>
+			<?php endfor ?>
+			</ul>
+		</div>
+
 
 		<?php if (is_user_logged_in()): ?>
 			<div id="bible-passage-history" class="widget">
-				<h2 class="widgettitle"><?php _e('My History for ') ?><?php echo bp_bible_the_ref_str() ?></h2>
-				<?php bp_bible_history_list(array('refs' => bp_bible_the_refs(), 'style' => 'table', 'limit' => 10)) ?>
+				<h2 class="widgettitle"><?php _e('My History for ') ?><?php echo $passage_refs->get_string() ?></h2>
+				<?php bp_bible_history_list(array('refs' => $passage_refs, 'style' => 'table', 'limit' => 10)) ?>
 			</div>
-		<?php endif; ?>
-	<?php endwhile; ?>
+		<?php endif ?>
+	<?php endforeach ?>
 
 
 	</div>

@@ -16,7 +16,6 @@ Site Wide Only: true
 define(BP_BIBLE_DIR, dirname(__FILE__));
 define(BP_BIBLE_URL, WP_PLUGIN_URL . '/bp-bible');
 
-define(BFOX_BIBLE_DIR, BP_BIBLE_DIR . '/bible');
 define(BFOX_PLANS_DIR, BP_BIBLE_DIR . '/bp-plans');
 define(BFOX_DATA_DIR, BP_BIBLE_DIR . '/data');
 define(BFOX_TRANS_DIR, BP_BIBLE_DIR . '/translations');
@@ -25,9 +24,8 @@ define(BP_BIBLE_BASE_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BP_BIBLE_DIR . '/loop-template.php';
 require_once BP_BIBLE_DIR . '/bp-plans.php';
-require_once BFOX_BIBLE_DIR . '/passage.php';
-require_once BFOX_BIBLE_DIR . '/history.php';
-require_once BFOX_BIBLE_DIR . '/bible.php';
+require_once BP_BIBLE_DIR . '/bp-bible/passage.php';
+require_once BP_BIBLE_DIR . '/bp-bible/history.php';
 
 /*************************************************************************************************************
  --- SKELETON COMPONENT V1.2.2 ---
@@ -328,55 +326,40 @@ function bp_bible_directory_setup() {
 
 		if (!empty($_REQUEST['s'])) {
 			// Search page
-			require_once BFOX_BIBLE_DIR . '/bible-search.php';
+			require_once BP_BIBLE_DIR . '/bp-bible/bible-search.php';
 
 			global $bp_bible_search;
 			$bp_bible_search = new BibleSearch(urldecode($_REQUEST['s']), $_REQUEST['ref'], $_REQUEST['page'], $_REQUEST['trans'], $_REQUEST['group']);
 
-			do_action( 'bp_bible_screen_search' );
-
+			do_action('bp_bible_screen_search');
 			wp_enqueue_style('bfox_scripture');
-
-			/* Finally load the plugin template file. */
 			bp_core_load_template( apply_filters( 'bp_bible_template_screen_search', 'bible/search' ) );
 		}
 		else {
-			// Passage page
-			$ref_str = urldecode($bp->current_action);
+			$refs = new BfoxRefs(urldecode($bp->current_action));
 
-			$redirect = FALSE;
-			$input_refs = new BfoxRefs($ref_str);
+			// Get the last viewed passage
+			$history = BfoxHistory::get_history(1);
+			$last_viewed = reset($history);
 
-			if ($input_refs->is_valid()) {
-				// Limit the refs to 20 chapters
-				list($refs) = $input_refs->get_sections(20, 1);
-			}
-			else {
-				// Get the last viewed passage
-				$history = BfoxHistory::get_history(1);
-				$last_viewed = reset($history);
-
+			if (!$refs->is_valid()) {
 				// If we don't have a valid bible ref, we should use the history
-				if (!empty($last_viewed)) $refs = $last_viewed->refs;
-				else $refs = new BfoxRefs();
-
 				// If we don't have history, use Gen 1
-				if (!$refs->is_valid()) $refs = new BfoxRefs('Gen 1');
-
-				$redirect = TRUE;
+				if (!empty($last_viewed) && $last_viewed->refs->is_valid()) $refs = $last_viewed->refs;
+				else $refs = new BfoxRefs('Gen 1');
+				bp_core_redirect(bp_bible_ref_url($refs->get_string()));
 			}
 
-			global $bp_bible;
-			$bp_bible = new BfoxBible($refs, new BfoxTrans(bp_bible_get_trans_id()), $search_str);
-			$bp->bible->refs = $bp_bible->refs;
+			// If this isn't the same scripture we last viewed, update the read history to show that we viewed these scriptures
+			if (empty($last_viewed) || ($refs->get_string() != $last_viewed->refs->get_string())) {
+				BfoxHistory::view_passage($refs);
+			}
 
-			global $user_ID;
-			update_user_option($user_ID, 'bp_bible_last_search', $bible->search_query);
+			$bp->bible->refs = $refs;
 
-			// If we need to redirect, do it
-			// Otherwise, load the appropriate page
-			if ($redirect) bp_core_redirect(bp_bible_bible_url($bp_bible));
-			else bp_bible_screen_passage();
+			do_action('bp_bible_screen_passage');
+			wp_enqueue_style('bfox_scripture');
+			bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
 		}
 	}
 }
@@ -426,77 +409,6 @@ add_action( 'wp', 'bp_bible_hack_scripts', 20 );
  * corresponding navigation menu item is clicked, they should therefore pass through to a template
  * file to display output to the user.
  */
-
-/**
- * bp_bible_screen_passage()
- *
- * Sets up and displays the screen output for the sub nav item "bible/passage"
- */
-function bp_bible_screen_passage() {
-	global $bp;
-
-	/**
-	 * There are three global variables that you should know about and you will
-	 * find yourself using often.
-	 *
-	 * $bp->current_component (string)
-	 * This will tell you the current component the user is viewing.
-	 *
-	 * Example: If the user was on the page http://example.org/members/andy/groups/my-groups
-	 *          $bp->current_component would equal 'groups'.
-	 *
-	 * $bp->current_action (string)
-	 * This will tell you the current action the user is carrying out within a component.
-	 *
-	 * Example: If the user was on the page: http://example.org/members/andy/groups/leave/34
-	 *          $bp->current_action would equal 'leave'.
-	 *
-	 * $bp->action_variables (array)
-	 * This will tell you which action variables are set for a specific action
-	 *
-	 * Example: If the user was on the page: http://example.org/members/andy/groups/join/34
-	 *          $bp->action_variables would equal array( '34' );
-	 */
-
-	/**
-	 * On this screen, as a quick example, users can send you a "High Five", by clicking a link.
-	 * When a user sends you a high five, you receive a new notification in your
-	 * notifications menu, and you will also be notified via email.
-	 */
-
-	/**
-	 * We need to run a check to see if the current user has clicked on the 'send high five' link.
-	 * If they have, then let's send the five, and redirect back with a nice error/success message.
-	 */
-	if ( $bp->current_component == $bp->bible->slug && 'passage' == $bp->current_action && 'send-h5' == $bp->action_variables[0] ) {
-		/* The logged in user has clicked on the 'send high five' link */
-		if ( bp_is_home() ) {
-			/* Don't let users high five themselves */
-			bp_core_add_message( __( 'No self-fives! :)', 'bp-bible' ), 'error' );
-		} else {
-			if ( bp_bible_send_highfive( $bp->displayed_user->id, $bp->loggedin_user->id ) )
-				bp_core_add_message( __( 'High-five sent!', 'bp-bible' ) );
-			else
-				bp_core_add_message( __( 'High-five could not be sent.', 'bp-bible' ), 'error' );
-		}
-
-		bp_core_redirect( $bp->displayed_user->domain . $bp->bible->slug . '/passage' );
-	}
-
-	/* Add a do action here, so your component can be extended by others. */
-	do_action( 'bp_bible_screen_passage' );
-
-	wp_enqueue_style('bfox_scripture');
-
-	/**
-	 * Finally, load the template file. In this example it would load:
-	 *    "wp-content/bp-themes/[active-member-theme]/bible/passage.php"
-	 *
-	 * The filter gives theme designers the ability to override template names
-	 * and define their own theme filenames and structure
-	 */
-	bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
-}
 
 function bp_bible_screen_settings_menu() {
 	global $bp, $current_user, $bp_settings_updated, $pass_error;
@@ -1393,7 +1305,7 @@ function bp_bible_action_search_site( $slug = false ) {
 			// Otherwise redirect to the search page
 			if (empty($search_terms)) bp_core_redirect(bp_bible_ref_url($ref_str));
 			else {
-				require_once BFOX_BIBLE_DIR . '/bible-search.php';
+				require_once BP_BIBLE_DIR . '/bp-bible/bible-search.php';
 				$search = new BibleSearch($search_terms, $ref_str);
 				bp_core_redirect($search->get_url());
 			}

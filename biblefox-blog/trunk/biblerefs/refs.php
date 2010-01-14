@@ -493,6 +493,44 @@ class BfoxRefs extends BfoxSequenceList {
 
 		return $sections;
 	}
+
+	public function first_verse() {
+		return BibleVerse::calc_ref($this->start());
+	}
+
+	public function last_verse() {
+		return BibleVerse::calc_ref($this->end());
+	}
+
+	public function prev_chapter_string($name = '') {
+		list($book, $ch, $vs) = $this->first_verse();
+
+		$ch--;
+		if (BibleMeta::start_chapter > $ch) {
+			if ($book > BibleMeta::start_book) {
+				$book--;
+				$ch = BibleMeta::end_verse_max($book);
+			}
+			else return '';
+		}
+
+		return BibleMeta::get_book_name($book, $name) . ' ' . $ch;
+	}
+
+	public function next_chapter_string($name = '') {
+		list($book, $ch, $vs) = $this->last_verse();
+
+		$ch++;
+		if (BibleMeta::end_verse_max($book) < $ch) {
+			if ($book < BibleMeta::end_book) {
+				$book++;
+				$ch = BibleMeta::start_chapter;
+			}
+			else return '';
+		}
+
+		return BibleMeta::get_book_name($book, $name) . ' ' . $ch;
+	}
 }
 
 class BibleGroupPassage extends BfoxRefs {

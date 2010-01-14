@@ -33,6 +33,17 @@ abstract class BfoxSequenceList {
 		foreach ($seqs as $seq) $this->sub_seq($seq);
 	}
 
+	public function start() {
+		if (!empty($this->sequences)) return $this->sequences[0]->start;
+		return 0;
+	}
+
+	public function end() {
+		$index = count($this->sequences) - 1;
+		if (0 <= $index) return $this->sequences[$index]->end;
+		return 0;
+	}
+
 	/**
 	 * Adds a new sequence to the sequence list
 	 *

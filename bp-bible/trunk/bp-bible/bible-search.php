@@ -391,7 +391,7 @@ class BibleSearch {
 		 * Remember to rebuild the translation indexes if modifying this value.
 		 */
 		global $bfox_ft_stopwords;
-		if (empty($bfox_ft_stopwords)) include_once BFOX_BIBLE_DIR . '/stopwords.php';
+		if (empty($bfox_ft_stopwords)) include_once BP_BIBLE_DIR . '/bp-bible/stopwords.php';
 
 		// Strip out HTML tags, lowercase it, and parse into words
 		$words = str_word_count(strtolower(strip_tags($text)), 1);

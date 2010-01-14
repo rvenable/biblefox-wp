@@ -799,6 +799,9 @@ class BibleMeta
 	'bel' => TRUE
 	);
 
+	const start_book = 1; // Genesis
+	const end_book = 66; // Revelation
+
 	const start_chapter = 1;
 	const start_verse = 1;
 

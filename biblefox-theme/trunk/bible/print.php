@@ -1,6 +1,9 @@
 <?php
 
-$refs = new BfoxRefs($_REQUEST['bible_print_ref']);
+// Limit the refs to 10 chapters
+$input_refs = new BfoxRefs($_REQUEST['bible_print_ref']);
+list($refs) = $input_refs->get_sections(10, 1);
+
 $trans_ids = BfoxTrans::get_ids_by_short_name();
 $trans = new BfoxTrans($trans_ids[$_REQUEST['trans']]);
 
