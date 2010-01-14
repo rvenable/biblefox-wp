@@ -183,8 +183,14 @@ td.noborder {
 	border: 0;
 }
 
+div.flat_toc_header {
+	padding: 0.5em 0 0 0;
+	text-align: center;
+}
+
 ul.flat_toc {
 	padding: 0.5em;
+	padding-top: 0;
 	margin: 0;
 	text-align: center;
 }

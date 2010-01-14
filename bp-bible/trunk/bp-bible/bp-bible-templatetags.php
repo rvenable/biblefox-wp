@@ -206,26 +206,6 @@ function bp_bible_history_list($args = array()) {
 	echo $content;
 }
 
-function bp_bible_options($options = array()) {
-	if (empty($options)) $options = array(
-		'jesus' => __('Show Jesus\' words in red'),
-		'paragraphs' => __('Display verses as paragraphs'),
-		'verse_nums' => __('Hide verse numbers'),
-		'footnotes' => __('Hide footnote links')
-	);
-
-	?>
-	<ul>
-		<?php foreach ($options as $name => $label): ?>
-		<li>
-			<input type="checkbox" name="<?php echo $name ?>" id="option_<?php echo $name ?>" class="view_option"/>
-			<label for="option_<?php echo $name ?>"><?php echo $label ?></label>
-		</li>
-		<?php endforeach ?>
-	</ul>
-	<?php
-}
-
 /*
  * Bible Discussions Templates
  */

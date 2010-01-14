@@ -26,29 +26,26 @@
 				</select>
 				<iframe class="bfox-iframe bfox-passage-iframe" src="<?php echo $iframe->url() ?>"></iframe>
 			</div>
-		</div>
-		<!-- Passage Widgets -->
-		<?php
-		$book_name = BibleMeta::get_book_name($book);
-		$end_chapter = BibleMeta::end_verse_max($book);
-		?>
-		<div class="widget">
-			<h2 class="widgettitle"><?php echo $book_name . __(' - Table of Contents', 'bp-bible') ?></h2>
-			<ul class='flat_toc'>
+
+			<?php
+			$book_name = BibleMeta::get_book_name($book);
+			$end_chapter = BibleMeta::end_verse_max($book);
+			?>
+			<div class="flat_toc_header"><?php echo $book_name . __(' - Table of Contents', 'bp-bible') ?></div>
+			<ul class="flat_toc">
 			<?php for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++): ?>
 				<li><?php echo bp_bible_ref_link(array('ref_str' => "$book_name $ch", 'text' => $ch, 'disable_tooltip' => TRUE)) ?></li>
 			<?php endfor ?>
 			</ul>
 		</div>
-
-
-		<?php if (is_user_logged_in()): ?>
-			<div id="bible-passage-history" class="widget">
-				<h2 class="widgettitle"><?php _e('My History for ') ?><?php echo $passage_refs->get_string() ?></h2>
-				<?php bp_bible_history_list(array('refs' => $passage_refs, 'style' => 'table', 'limit' => 10)) ?>
-			</div>
-		<?php endif ?>
 	<?php endforeach ?>
+
+	<?php if (is_user_logged_in()): ?>
+		<div id="bible-passage-history" class="widget">
+			<h2 class="widgettitle"><?php _e('My History for ') ?><?php echo $refs->get_string() ?></h2>
+			<?php bp_bible_history_list(array('refs' => $refs, 'style' => 'table', 'limit' => 10)) ?>
+		</div>
+	<?php endif ?>
 
 
 	</div>
@@ -104,11 +101,6 @@
 			<p><?php _e('With Biblefox, you can create a reading plan and track your progress as you read through the Bible.') ?></p>
 		</div>
 		<?php endif; ?>
-
-		<div id="bible-options" class="widget">
-			<h2 class="widgettitle"><?php _e('Bible Options') ?></h2>
-			<?php bp_bible_options() ?>
-		</div>
 	</div>
 
 </div>

@@ -78,10 +78,6 @@ h4 {
 Scripture Text
 */
 
-.red_words {
-	color: #960000;
-}
-
 #bible .hidden_verses, #bible .hidden_verses .bible_jesus,
 #bible .hidden_chapter, #bible .hidden_chapter .bible_jesus {
 	color: #777;

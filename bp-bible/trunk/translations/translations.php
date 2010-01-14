@@ -65,6 +65,20 @@ class BfoxTrans {
 		return $verses;
 	}
 
+	public function get_verses_in_books($ref_where, BfoxVerseFormatter $formatter = NULL) {
+		$books = array();
+
+		// We can only grab verses if the verse data exists
+		if ($this->installed) {
+			global $wpdb;
+			$verses = $wpdb->get_results("SELECT unique_id, book_id, chapter_id, verse_id, verse FROM $this->table WHERE $ref_where");
+
+			foreach ($verses as $verse) if ($verse->chapter_id) $books[$verse->book_id][$verse->chapter_id] []= $verse;
+		}
+
+		return $books;
+	}
+
 	/**
 	 * Get the verse content for a sequence of chapters
 	 *
