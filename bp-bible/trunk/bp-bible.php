@@ -181,7 +181,8 @@ function bp_bible_setup_globals() {
 	BfoxIframe::$sites['biblefox']['name'] = get_site_option('site_name');
 	BfoxIframe::$sites['biblefox']['site'] = $bp->root_domain;
 }
-add_action( 'plugins_loaded', 'bp_bible_setup_globals', 5 );
+// Make sure that this is called after bp_core_setup_globals()
+add_action( 'plugins_loaded', 'bp_bible_setup_globals', 6 );
 add_action( 'admin_menu', 'bp_bible_setup_globals', 1 );
 
 function bp_bible_setup_root_component() {
