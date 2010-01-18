@@ -20,7 +20,7 @@ class BfoxIframe {
 		'blueletter' => array(
 			'name' => 'Blue Letter Bible',
 			'site' => 'http://www.blueletterbible.org',
-			'template' => '%site%/tools/printerFriendly.cfm?b=%book%&c=%chapter%&v=%verse%&t=%trans%p',
+			'template' => '%site%/tools/printerFriendly.cfm?b=%book%&c=%chapter%&v=%verse%&t=%trans%',
 		),
 	);
 
