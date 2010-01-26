@@ -402,38 +402,4 @@ class BP_Bible_Tools_Widget extends WP_Widget {
     }
 }
 
-function bp_bible_widgets_init() {
-	register_widget('BP_Bible_History_Widget');
-	register_widget('BP_Bible_Toc_Widget');
-	register_widget('BP_Bible_CurrentReadings_Widget');
-	register_widget('BP_Bible_FriendsPosts_Widget');
-	register_widget('BP_Bible_WritePost_Widget');
-}
-
-// TODO: delete these
-function bp_bible_register_sidebars() {
-	register_sidebars(1,
-		array(
-			'name' => 'bible-passage-side',
-			'before_widget' => '<div id="%1$s" class="widget %2$s">',
-	        'after_widget' => '</div>',
-	        'before_title' => '<h2 class="widgettitle">',
-	        'after_title' => '</h2>'
-		)
-	);
-	register_sidebars(1,
-		array(
-			'name' => 'bible-passage-bottom',
-			'before_widget' => '<div id="%1$s" class="widget %2$s">',
-	        'after_widget' => '</div>',
-	        'before_title' => '<h2 class="widgettitle">',
-	        'after_title' => '</h2>'
-		)
-	);
-}
-
-add_action('widgets_init', 'bp_bible_widgets_init');
-add_action('init', 'bp_bible_register_sidebars');
-
-
 ?>
