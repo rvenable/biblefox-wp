@@ -48,13 +48,7 @@ function bp_bible_hack_detectAppleMobile() {
 }
 add_action( 'wp_head', 'bp_bible_hack_detectAppleMobile', 100 );
 
-function bp_bible_widgets_init() {
-	register_widget('BP_Bible_History_Widget');
-	register_widget('BP_Bible_Toc_Widget');
-	register_widget('BP_Bible_CurrentReadings_Widget');
-	register_widget('BP_Bible_FriendsPosts_Widget');
-	register_widget('BP_Bible_WritePost_Widget');
-}
-add_action('widgets_init', 'bp_bible_widgets_init');
+// Add the bp-bible widgets if they exist
+if (function_exists('bp_bible_widgets_init')) add_action('widgets_init', 'bp_bible_widgets_init');
 
 ?>
