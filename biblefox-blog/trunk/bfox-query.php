@@ -5,7 +5,7 @@
  * 		http://codex.wordpress.org/Custom_Queries
  * 		http://codex.wordpress.org/Query_Overview
  *
- * @package BiblefoxBlog
+ * @package Biblefox
  */
 
 /**

@@ -1,7 +1,7 @@
 <?php
 /*************************************************************************
 
-	Plugin Name: Biblefox-Blog
+	Plugin Name: Biblefox for WordPress
 	Plugin URI: http://tools.biblefox.com/
 	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
 	Version: 0.6
@@ -32,37 +32,24 @@
 
 *************************************************************************/
 
-define(BFOX_BIBLE_VERSION, '0.6');
-
-if (!defined(BFOX_BLOG_DIR)) define(BFOX_BLOG_DIR, dirname(__FILE__));
-
-define(BFOX_REFS_DIR, BFOX_BLOG_DIR . '/biblerefs');
-
-define(BFOX_BLOG_URL, WP_PLUGIN_URL . '/biblefox-blog');
-
-define(BFOX_BLOG_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
+define(BFOX_VERSION, '0.6');
+define(BFOX_DIR, dirname(__FILE__));
+define(BFOX_REFS_DIR, BFOX_DIR . '/biblerefs');
+define(BFOX_URL, WP_PLUGIN_URL . '/biblefox');
+define(BFOX_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
-
-require_once BFOX_BLOG_DIR . '/utility.php';
-
-require_once BFOX_BLOG_DIR . '/posts.php';
-require_once BFOX_BLOG_DIR . '/bfox-query.php';
-require_once BFOX_BLOG_DIR . '/bibletext.php';
-
-require_once BFOX_BLOG_DIR . '/shortfoot.php';
-
-require_once BFOX_BLOG_DIR . '/iframe.php';
+require_once BFOX_DIR . '/utility.php';
+require_once BFOX_DIR . '/posts.php';
+require_once BFOX_DIR . '/bfox-query.php';
+require_once BFOX_DIR . '/bibletext.php';
+require_once BFOX_DIR . '/shortfoot.php';
+require_once BFOX_DIR . '/iframe.php';
 
 //require_once("bfox-settings.php");
 
 // TODO3: get blogplans.php working and included
 //require_once BFOX_PLANS_DIR . '/blogplans.php';
-
-class Biblefox {
-
-	const option_version = 'bfox_version';
-}
 
 class BfoxBlog {
 
@@ -94,13 +81,13 @@ class BfoxBlog {
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
 
 		// Styles
-		wp_register_script('bfox-tooltip', BFOX_BLOG_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_BIBLE_VERSION);
-		wp_enqueue_style('bfox-scripture', BFOX_BLOG_URL . '/includes/css/scripture.css', array(), BFOX_BIBLE_VERSION);
-		wp_enqueue_style('bfox-blog', BFOX_BLOG_URL . '/includes/css/biblefox-blog.css', array(), BFOX_BIBLE_VERSION);
+		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_VERSION);
+		wp_enqueue_style('bfox-scripture', BFOX_URL . '/includes/css/scripture.css', array(), BFOX_VERSION);
+		wp_enqueue_style('bfox-blog', BFOX_URL . '/includes/css/biblefox-blog.css', array(), BFOX_VERSION);
 
 		// Scripts
-		wp_register_script('bfox-tooltip', BFOX_BLOG_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_BIBLE_VERSION);
-		wp_enqueue_script('bfox-blog', BFOX_BLOG_URL . '/includes/js/biblefox-blog.js', array('jquery', 'bfox-tooltip'), BFOX_BIBLE_VERSION);
+		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_VERSION);
+		wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery', 'bfox-tooltip'), BFOX_VERSION);
 
 		bfox_query_init();
 	}
@@ -112,7 +99,7 @@ class BfoxBlog {
 		if (isset($_REQUEST['bfox-tooltip-ref'])) {
 			global $tooltip_refs;
 			$tooltip_refs = new BfoxRefs($_REQUEST['bfox-tooltip-ref']);
-			require BFOX_BLOG_DIR . '/tooltip.php';
+			require BFOX_DIR . '/tooltip.php';
 			exit;
 		}
 	}
@@ -131,8 +118,8 @@ class BfoxBlog {
 	}
 
 	public static function admin_init() {
-		wp_enqueue_style('bfox-admin', BFOX_BLOG_URL . '/includes/css/admin.css', array(), BFOX_BIBLE_VERSION);
-		wp_enqueue_script('bfox-admin', BFOX_BLOG_URL . '/includes/js/admin.js', array('sack'), BFOX_BIBLE_VERSION);
+		wp_enqueue_style('bfox-admin', BFOX_URL . '/includes/css/admin.css', array(), BFOX_VERSION);
+		wp_enqueue_script('bfox-admin', BFOX_URL . '/includes/js/admin.js', array('sack'), BFOX_VERSION);
 	}
 
 	public static function save_post($post_id = 0, $post) {
@@ -427,5 +414,15 @@ function bfox_manage_posts_custom_column($column_name, $post_id) {
 }
 add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 2);
 //add_action('manage_pages_custom_column', 'bfox_manage_posts_custom_column', 10, 2);
+
+/**
+ * Loads the BuddyPress related features
+ */
+function bfox_social_load() {
+	do_action('bfox_social_loaded');
+}
+// TODO: when BP 1.2 comes out, use action hook on bp_init instead
+if (in_array('buddypress/bp-loader.php', apply_filters('active_plugins', get_option( 'active_plugins' )))) bfox_social_load();
+//add_action('bp_init', 'biblefox_social_load');
 
 ?>
