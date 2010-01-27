@@ -94,7 +94,8 @@ class BfoxBlog {
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
 
 		// Styles
-		BfoxUtility::register_style('bfox_scripture', 'scripture.css');
+		wp_register_script('bfox-tooltip', BFOX_BLOG_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_BIBLE_VERSION);
+		wp_enqueue_style('bfox-scripture', BFOX_BLOG_URL . '/includes/css/scripture.css', array(), BFOX_BIBLE_VERSION);
 		wp_enqueue_style('bfox-blog', BFOX_BLOG_URL . '/includes/css/biblefox-blog.css', array(), BFOX_BIBLE_VERSION);
 
 		// Scripts
@@ -130,8 +131,8 @@ class BfoxBlog {
 	}
 
 	public static function admin_init() {
-		BfoxUtility::enqueue_style('bfox_admin', 'blog/admin.css', array('bfox_scripture'));
-		BfoxUtility::enqueue_script('bfox_admin', 'blog/admin.js', array('sack'));
+		wp_enqueue_style('bfox-admin', BFOX_BLOG_URL . '/includes/css/admin.css', array(), BFOX_BIBLE_VERSION);
+		wp_enqueue_script('bfox-admin', BFOX_BLOG_URL . '/includes/js/admin.js', array('sack'), BFOX_BIBLE_VERSION);
 	}
 
 	public static function save_post($post_id = 0, $post) {

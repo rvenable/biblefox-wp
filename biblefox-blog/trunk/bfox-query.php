@@ -87,7 +87,6 @@ function bfox_parse_query($wp_query) {
 
 	if ($refs_is_valid) {
 		BfoxBlogQueryData::set_post_ids($refs);
-		BfoxUtility::enqueue_style('bfox_scripture');
 	}
 }
 

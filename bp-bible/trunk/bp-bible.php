@@ -334,7 +334,6 @@ function bp_bible_directory_setup() {
 			$bp_bible_search = new BibleSearch(urldecode($_REQUEST['s']), $_REQUEST['ref'], $_REQUEST['page'], $_REQUEST['trans'], $_REQUEST['group']);
 
 			do_action('bp_bible_screen_search');
-			wp_enqueue_style('bfox_scripture');
 			bp_core_load_template( apply_filters( 'bp_bible_template_screen_search', 'bible/search' ) );
 		}
 		else {
@@ -360,7 +359,6 @@ function bp_bible_directory_setup() {
 			$bp->bible->refs = $refs;
 
 			do_action('bp_bible_screen_passage');
-			wp_enqueue_style('bfox_scripture');
 			bp_core_load_template( apply_filters( 'bp_bible_template_screen_passage', 'bible/passage' ) );
 		}
 	}

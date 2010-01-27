@@ -16,7 +16,6 @@ if (!$allow_tooltips) wp_deregister_script('bfox-blog');
 
 // All we need are the scripture styles and script
 // TODO: Buddypress is adding a few other syles which we don't need to load here
-wp_enqueue_style('bfox_scripture');
 wp_enqueue_script('bfox-theme-print', get_stylesheet_directory_uri() . '/_inc/js/print.js', array('jquery'));
 
 ?>

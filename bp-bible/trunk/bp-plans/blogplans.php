@@ -51,8 +51,6 @@ class BfoxBlogPlans {
 			$wp_query->is_home = FALSE;
 			$showing_refs = TRUE;
 		}
-
-		if ($showing_refs) BfoxUtility::enqueue_style('bfox_scripture');
 	}
 
 	public static function widget_recent_readings($args) {
