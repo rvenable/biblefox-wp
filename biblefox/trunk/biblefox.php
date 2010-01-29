@@ -40,6 +40,7 @@ define(BFOX_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
 require_once BFOX_DIR . '/utility.php';
+require_once BFOX_DIR . '/refs-table.php';
 require_once BFOX_DIR . '/posts.php';
 require_once BFOX_DIR . '/bfox-query.php';
 require_once BFOX_DIR . '/bibletext.php';
@@ -50,6 +51,18 @@ require_once BFOX_DIR . '/iframe.php';
 
 // TODO3: get blogplans.php working and included
 //require_once BFOX_PLANS_DIR . '/blogplans.php';
+
+class Biblefox {
+	public $post_refs;
+
+	/**
+	 * @var BfoxRefsTable
+	 */
+	public $activity_refs;
+}
+
+global $biblefox;
+$biblefox = new Biblefox();
 
 class BfoxBlog {
 
@@ -418,11 +431,9 @@ add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 
 /**
  * Loads the BuddyPress related features
  */
-function bfox_social_load() {
-	do_action('bfox_social_loaded');
+function bfox_bp_load() {
+	require_once BFOX_DIR . '/biblefox-bp/biblefox-bp.php';
 }
-// TODO: when BP 1.2 comes out, use action hook on bp_init instead
-if (in_array('buddypress/bp-loader.php', apply_filters('active_plugins', get_option( 'active_plugins' )))) bfox_social_load();
-//add_action('bp_init', 'biblefox_social_load');
+add_action('bp_init', 'bfox_bp_load');
 
 ?>
