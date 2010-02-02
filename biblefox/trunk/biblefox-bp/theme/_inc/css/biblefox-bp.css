@@ -1,0 +1,14 @@
+/*
+Bible Reader Iframe
+*/
+
+iframe.bfox-passage-iframe {
+	border: 3px solid #EEE;
+	width: 100%;
+	height: 350px;
+}
+
+div.bfox-passage-iframe-wrap {
+	text-align: center;
+	margin: 0 0 10px 0;
+}

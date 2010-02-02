@@ -1,10 +1,67 @@
 <?php
 
 define(BFOX_BP_DIR, dirname(__FILE__));
+define(BFOX_BP_URL, BFOX_URL . '/biblefox-bp');
 
 require_once BFOX_BP_DIR . '/activity.php';
 
-function bfox_buddypress_admin_menu() {
+// TODO: only load if user option
+require_once BFOX_BP_DIR . '/bible-directory.php';
+
+// HACK: this function is a hack to get around a bug in bp_core_load_template() and bp_core_catch_no_access()
+function bfox_bp_core_load_template($template) {
+	bp_core_load_template($template);
+	remove_action('wp', 'bp_core_catch_no_access');
+}
+
+/**
+ * Function that imitates locate_template() but adds a filter so we can modify the located file name before we try to load it
+ *
+ * @param $template_names
+ * @param $load
+ * @return string located file name
+ */
+function bfox_bp_locate_template($template_names, $load = false) {
+	if (!is_array($template_names))
+		return '';
+
+	$located = apply_filters('bfox_bp_located_template', locate_template($template_names, false), $template_names);
+
+	if ($load && '' != $located)
+		load_template($located);
+
+	return $located;
+}
+
+/**
+ * Locates theme files within the plugin if they weren't found in the theme
+ *
+ * @param string $located
+ * @param array $template_names
+ * @return string
+ */
+function bfox_bp_located_template($located, $template_names) {
+	if (empty($located)) {
+		$dir = BFOX_BP_DIR . '/theme/';
+		foreach((array) $template_names as $template_name) {
+			$template_name = ltrim($template_name, '/');
+			list($start, $end) = explode('/', $template_name, 2);
+			if (('bible' == strtolower($start)) && (file_exists($dir . $template_name))) {
+				$located = $dir . $template_name;
+
+				wp_enqueue_style('biblefox-bp', BFOX_BP_URL . '/theme/_inc/css/biblefox-bp.css', array(), BFOX_VERSION);
+				wp_enqueue_script('biblefox-bp', BFOX_BP_URL . '/theme/_inc/js/biblefox-bp.js', array(), BFOX_VERSION);
+
+				break;
+			}
+		}
+	}
+	return $located;
+}
+add_filter('bp_located_template', 'bfox_bp_located_template', 10, 2);
+add_filter('bfox_bp_located_template', 'bfox_bp_located_template', 10, 2);
+
+function bfox_bp_admin_menu() {
 	add_submenu_page(
 		'bp-general-settings',
 		__('Bible Settings', 'biblefox'),
@@ -14,7 +71,7 @@ function bfox_buddypress_admin_menu() {
 		'bfox_bp_admin_settings'
 	);
 }
-add_action('admin_menu', 'bfox_buddypress_admin_menu', 20);
+add_action('admin_menu', 'bfox_bp_admin_menu', 20);
 
 function bfox_bp_admin_settings() {
 	$refresh_url = admin_url('admin.php?page=bfox-bp-settings&refresh=1');

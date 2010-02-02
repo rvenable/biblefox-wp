@@ -72,15 +72,22 @@ class BfoxIframe {
 	 * @return array
 	 */
 	private static function template_vars(BfoxRefs $refs) {
-		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
-		$books = array_keys($bcvs);
-		$cvs = array_shift($bcvs);
-		$cv = array_shift($cvs);
-		list($ch1, $vs1) = $cv->start;
+		$book_name = '';
+		$ch1 = $vs1 = 0;
+
+		if ($refs->is_valid()) {
+			$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
+			$books = array_keys($bcvs);
+			$book_name = BibleMeta::get_book_name($books[0]);
+
+			$cvs = array_shift($bcvs);
+			$cv = array_shift($cvs);
+			list($ch1, $vs1) = $cv->start;
+		}
 
 		return array(
 			'%ref%' => urlencode($refs->get_string()),
-			'%book%' => urlencode(BibleMeta::get_book_name($books[0])),
+			'%book%' => urlencode($book_name),
 			'%chapter%' => $ch1,
 			'%verse%' => $vs1,
 		);

@@ -65,10 +65,4 @@ function bfox_bp_activity_get_where_conditions($wheres, $filter) {
 }
 add_filter('bp_activity_get_where_conditions', 'bfox_bp_activity_get_where_conditions', 10, 2);
 
-// HACK: For testing activity queries while we don't have a Bible page
-function bfox_bp_ajax_querystring($query_str) {
-	return $query_str . '&bfox_refs=gen+1';
-}
-//add_filter('bp_ajax_querystring', 'bfox_bp_ajax_querystring');
-
 ?>

@@ -59,6 +59,26 @@ class Biblefox {
 	 * @var BfoxRefsTable
 	 */
 	public $activity_refs;
+
+	/**
+	 * @var BfoxRefs
+	 */
+	private $refs;
+
+	public function __construct() {
+		$this->set_refs(new BfoxRefs());
+	}
+
+	public function set_refs(BfoxRefs $refs) {
+		$this->refs = $refs;
+	}
+
+	/**
+	 * @return BfoxRefs
+	 */
+	public function refs() {
+		return $this->refs;
+	}
 }
 
 global $biblefox;
