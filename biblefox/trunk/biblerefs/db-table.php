@@ -1,12 +1,12 @@
 <?php
 
-class BfoxRefsTable {
-	private $table_name;
-	private $data_table_name;
-	private $item_id_definition;
+class BfoxSequenceDbTable {
+	protected $table_name;
+	protected $data_table_name;
+	protected $item_id_definition;
 
-	public function __construct($data_table_name) {
-		$this->table_name = $data_table_name . '_bfox_refs';
+	public function __construct($data_table_name, $postfix = '_bfox_seqs') {
+		$this->table_name = $data_table_name . $postfix;
 		$this->data_table_name = $data_table_name;
 		$this->set_item_id_definition(array('item_id' => '%d'));
 	}
@@ -29,10 +29,10 @@ class BfoxRefsTable {
 			require_once( ABSPATH . 'wp-admin/upgrade-functions.php' );
 			dbDelta("CREATE TABLE $this->table_name (
 					item_id BIGINT(20) NOT NULL,
-					verse_begin MEDIUMINT UNSIGNED NOT NULL,
-					verse_end MEDIUMINT UNSIGNED NOT NULL,
+					start MEDIUMINT UNSIGNED NOT NULL,
+					end MEDIUMINT UNSIGNED NOT NULL,
 					INDEX (item_id),
-					INDEX (verse_begin, verse_end)
+					INDEX (start, end)
 				);"
 			);
 			update_site_option($this->table_name . '_version', $version);
@@ -40,11 +40,11 @@ class BfoxRefsTable {
 	}
 
 	/**
-	 * Returns a string with SQL for joining the Refs Table in a FROM statement
+	 * Returns a string with SQL for joining the Sequence Table in a FROM statement
 	 * @param $short_table_name
 	 * @return string
 	 */
-	public function from_sql($short_table_name = 'refs') {
+	public function from_sql($short_table_name = 'seqs') {
 		return "$this->table_name $short_table_name";
 	}
 
@@ -54,18 +54,18 @@ class BfoxRefsTable {
 	 * @param string $short_table_name
 	 * @return string
 	 */
-	public function join_where($join_col, $short_table_name = 'refs') {
+	public function join_where($join_col, $short_table_name = 'seqs') {
 		return "($join_col = $short_table_name.item_id)";
 	}
 
 	/**
-	 * Returns a string with SQL for a WHERE statement to specify the Refs to select
-	 * @param BfoxRefs $refs
+	 * Returns a string with SQL for a WHERE statement to specify the sequence to select
+	 * @param BfoxSequenceList $seqs
 	 * @param string $short_table_name
 	 * @return string
 	 */
-	public function refs_where(BfoxRefs $refs, $short_table_name = 'refs') {
-		return $refs->sql_where2("$short_table_name.verse_begin", "$short_table_name.verse_end");
+	public function seqs_where(BfoxSequenceList $seqs, $short_table_name = 'seqs') {
+		return $seqs->sql_where2("$short_table_name.start", "$short_table_name.end");
 	}
 
 	/**
@@ -125,16 +125,16 @@ class BfoxRefsTable {
 	}
 
 	/**
-	 * Save Bible References for the given item ID
+	 * Save a sequence list for the given item ID
 	 *
 	 * @param array $item_id
-	 * @param BfoxRefs $refs
-	 * @return boolean (TRUE if there were actually Bible References to save)
+	 * @param BfoxSequenceList $seqs
+	 * @return boolean (TRUE if there were actually sequences to save)
 	 */
-	public function save_item($item_id, BfoxRefs $refs) {
+	public function save_item($item_id, BfoxSequenceList $seqs) {
 		$this->delete_items(array($item_id));
 
-		if ($refs->is_valid()) {
+		if ($seqs->is_valid()) {
 			global $wpdb;
 
 			$item_id = $this->prepare_item_id($item_id);
@@ -143,12 +143,12 @@ class BfoxRefsTable {
 			$item_id_col = implode(', ', array_keys($item_id));
 
 			$values = array();
-			foreach ($refs->get_seqs() as $seq) $values []= $wpdb->prepare("($item_id_value, %d, %d)", $seq->start, $seq->end);
+			foreach ($seqs->get_seqs() as $seq) $values []= $wpdb->prepare("($item_id_value, %d, %d)", $seq->start, $seq->end);
 
 			if (!empty($values)) {
 				$wpdb->query($wpdb->prepare("
 					INSERT INTO $this->table_name
-					($item_id_col, verse_begin, verse_end)
+					($item_id_col, start, end)
 					VALUES " . implode(', ', $values)));
 			}
 			return true;
@@ -162,6 +162,13 @@ class BfoxRefsTable {
 	public function delete_all() {
 		global $wpdb;
 		$wpdb->query("DELETE FROM $this->table_name");
+	}
+}
+
+class BfoxRefsDbTable extends BfoxSequenceDbTable {
+
+	public function __construct($data_table_name, $postfix = '_bfox_refs') {
+		parent::__construct($data_table_name, $postfix);
 	}
 
 	/**

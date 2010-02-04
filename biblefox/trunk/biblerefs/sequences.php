@@ -153,6 +153,63 @@ abstract class BfoxSequenceList {
 
 		$this->sequences = $new_seqs;
 	}
+
+	/**
+	 * Returns an SQL expression for comparing these bible references against one unique id column
+	 *
+	 * @param string $col1
+	 * @return string
+	 */
+	public function sql_where($col1 = 'unique_id') {
+		global $wpdb;
+
+		$wheres = array();
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare("($col1 >= %d AND $col1 <= %d)", $seq->start, $seq->end);
+
+		return '(' . implode(' OR ', $wheres) . ')';
+	}
+
+	/**
+	 * Returns an SQL expression for comparing these bible references against two unique id columns
+	 *
+	 * @param string $col1
+	 * @param string $col2
+	 * @return string
+	 */
+	public function sql_where2($col1 = 'start', $col2 = 'end') {
+		/*
+		 Equation for determining whether one bible reference overlaps another
+
+		 a1 <= b1 and b1 <= a2 or
+		 a1 <= b2 and b2 <= a2
+		 or
+		 b1 <= a1 and a1 <= b2 or
+		 b1 <= a2 and a2 <= b2
+
+		 a1b1 * b1a2 + a1b2 * b2a2 + b1a1 * a1b2 + b1a2 * a2b2
+		 b1a2 * (a1b1 + a2b2) + a1b2 * (b1a1 + b2a2)
+
+		 */
+
+		global $wpdb;
+
+		$wheres = array();
+
+		// Old equations using reduced <= and >= operators - these might not be as easy for MySQL to optimize as the BETWEEN operator
+		/*foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+			"((($col1 <= %d) AND ((%d <= $col1) OR (%d <= $col2))) OR
+			((%d <= $col2) AND (($col1 <= %d) OR ($col2 <= %d))))",
+			$seq->end, $seq->start, $seq->end,
+			$seq->start, $seq->start, $seq->end);*/
+
+		// Using the BETWEEN operator
+		foreach ($this->sequences as $seq) $wheres []= $wpdb->prepare(
+			"($col1 BETWEEN %d AND %d) OR ($col2 BETWEEN %d AND %d) OR (%d BETWEEN $col1 AND $col2) OR (%d BETWEEN $col1 AND $col2)",
+			$seq->start, $seq->end, $seq->start, $seq->end, $seq->start, $seq->end);
+
+		if (!empty($wheres)) return '(' . implode(' OR ', $wheres) . ')';
+		return "0";
+	}
 }
 
 ?>

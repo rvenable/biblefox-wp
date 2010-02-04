@@ -40,7 +40,6 @@ define(BFOX_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
 require_once BFOX_DIR . '/utility.php';
-require_once BFOX_DIR . '/refs-table.php';
 require_once BFOX_DIR . '/posts.php';
 require_once BFOX_DIR . '/bfox-query.php';
 require_once BFOX_DIR . '/bibletext.php';
@@ -56,7 +55,7 @@ class Biblefox {
 	public $post_refs;
 
 	/**
-	 * @var BfoxRefsTable
+	 * @var BfoxActivityRefsDbTable
 	 */
 	public $activity_refs;
 
