@@ -22,8 +22,43 @@ add_action('admin_menu', 'bfox_activity_install');
  */
 
 function bfox_bp_activity_after_save($activity) {
-	global $biblefox;
-	$biblefox->activity_refs->save_item($activity->id, new BfoxRefs($activity->content));
+	global $bp, $biblefox;
+
+	// For blog posts, index the full post content and tags
+	if ($activity->component == $bp->blogs->id && $activity->type == 'new_blog_post') {
+		switch_to_blog($activity->item_id);
+
+		// Get the blog post
+		$post = get_post($activity->secondary_item_id);
+
+		// Index the post content and tags
+		$refs = BfoxBlog::content_to_refs($post->post_content);
+		$tags = wp_get_post_tags($post->ID, array('fields' => 'names'));
+		foreach ($tags as $tag) $refs->add_refs(BfoxBlog::tag_to_refs($tag));
+
+		restore_current_blog();
+	}
+	// For forum posts, index the full post text and tags
+	elseif ($activity->component == $bp->groups->id && ($activity->type == 'new_forum_post' || $activity->type == 'new_forum_topic')) {
+		// Get the forum post
+		if ($activity->type == 'new_forum_topic') list($post) = bp_forums_get_topic_posts(array('topic_id' => $activity->secondary_item_id, 'per_page' => 1));
+		else $post = bp_forums_get_post($activity->secondary_item_id);
+
+		// Index the post text
+		$refs = BfoxBlog::content_to_refs($post->post_text);
+
+		// Only index the tags for the first post in a topic
+		if ($activity->type == 'new_forum_topic') {
+			$tags = bb_get_topic_tags($post->topic_id, array('fields' => 'names'));
+			foreach ($tags as $tag) $refs->add_refs(BfoxBlog::tag_to_refs($tag));
+		}
+	}
+	// For all other activities, just index the activity content
+	else {
+		$refs = BfoxBlog::content_to_refs($activity->content);
+	}
+
+	$biblefox->activity_refs->save_item($activity->id, apply_filters('bfox_bp_activity_after_save_refs', $refs, $activity));
 }
 add_action('bp_activity_after_save', 'bfox_bp_activity_after_save');
 

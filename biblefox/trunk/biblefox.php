@@ -144,7 +144,9 @@ class BfoxBlog {
 		//add_settings_field('bfox_bible_translations', 'Enable Bible Translations', 'BfoxBlog::bible_setting_translations', 'reading', self::settings_section_bible);
 
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
-		add_action('save_post', 'BfoxBlog::save_post', 10, 2);
+
+		// Add the save post action (we want it to run before the BP save_post action, so that BP gets our tag modifications)
+		add_action('save_post', 'BfoxBlog::save_post', 9, 2);
 
 		// Flush the hidden ref tags on the post-new screen
 		add_action('admin_head-post-new.php', 'BfoxBlog::flush_tag_script');
@@ -404,6 +406,12 @@ class BfoxBlog {
 	 */
 	public static function tag_to_refs($tag) {
 		return new BfoxRefs($tag);
+	}
+
+	public static function content_to_refs($content) {
+		$refs = new BfoxRefs;
+		BfoxRefParser::simple_html($content, $refs);
+		return $refs;
 	}
 }
 
