@@ -17,13 +17,7 @@ class BfoxActivityRefsDbTable extends BfoxRefsDbTable {
 		if ($activity->component == $bp->blogs->id && $activity->type == 'new_blog_post') {
 			switch_to_blog($activity->item_id);
 
-			// Get the blog post
-			$post = get_post($activity->secondary_item_id);
-
-			// Index the post content and tags
-			$refs = BfoxBlog::content_to_refs($post->post_content);
-			$tags = wp_get_post_tags($post->ID, array('fields' => 'names'));
-			foreach ($tags as $tag) $refs->add_refs(BfoxBlog::tag_to_refs($tag));
+			$refs = bfox_blog_post_get_refs($activity->secondary_item_id);
 
 			restore_current_blog();
 		}
@@ -50,33 +44,8 @@ class BfoxActivityRefsDbTable extends BfoxRefsDbTable {
 		return $this->save_item($activity->id, apply_filters('bfox_save_activity_refs', $refs, $activity));
 	}
 
-	/**
-	 * Refreshes the refs table with data from the data table
-	 *
-	 * Returns the next offset to use, or 0 if all items have been refreshed
-	 *
-	 * @param unknown_type $id_col
-	 * @param unknown_type $content_col
-	 * @param unknown_type $limit
-	 * @param unknown_type $offset
-	 * @return number The next offset to use, or 0 if all items have been refreshed
-	 */
-	public function simple_refresh($id_col, $content_col, $limit = 0, $offset = 0) {
-		global $wpdb;
-
-		$limit = (int)$limit;
-		$offset = (int)$offset;
-		if (0 == $limit) $limit = 100;
-
-		$results = $wpdb->get_results("SELECT SQL_CALC_FOUND_ROWS * FROM $this->data_table_name ORDER BY $id_col ASC LIMIT $offset, $limit");
-		$total = $wpdb->get_var('SELECT FOUND_ROWS()');
-
-		$scanned = count($results);
-		$indexed = 0;
-
-		foreach ($results as $activity) if ($this->save_activity($activity)) $indexed++;
-
-		return compact('scanned', 'indexed', 'total');
+	public function save_data_row($data_row, $id_col, $content_col) {
+		return $this->save_activity($data_row);
 	}
 }
 
@@ -146,5 +115,62 @@ function bfox_bp_activity_get_where_conditions($wheres, $filter) {
 	return $wheres;
 }
 add_filter('bp_activity_get_where_conditions', 'bfox_bp_activity_get_where_conditions', 10, 2);
+
+/*
+ * Settings Functions
+ */
+
+function bfox_bp_admin_activity_refresh_url() {
+	return admin_url('admin.php?page=bfox-bp-settings&bfox_activity_refresh=1');
+}
+
+function bfox_bp_admin_activity_refresh() {
+	?>
+		<h3><?php _e('Refresh Bible Index', 'biblefox') ?></h3>
+		<p><?php _e('You can refresh your Bible index to make sure all activity is indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
+		<p><a class="button" href="<?php echo bfox_bp_admin_activity_refresh_url() ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
+	<?php
+}
+add_action('bfox_bp_admin_settings', 'bfox_bp_admin_activity_refresh');
+
+function bfox_bp_admin_activity_check_refresh($show_settings) {
+	if ($show_settings && $_GET['bfox_activity_refresh']) {
+		global $biblefox;
+
+		// If this is the first page of refreshing, delete all the activities
+		$offset = (int) $_GET['offset'];
+		if (0 == $offset) $biblefox->activity_refs->delete_all();
+
+		// Refresh this set of activities
+		extract(BfoxRefsDbTable::simple_refresh($biblefox->activity_refs, 'id', 'content', $_GET['limit'], $offset));
+		$scan_total = $_GET['scan_total'] + $scanned;
+		$index_total = $_GET['index_total'] + $indexed;
+
+		?>
+		<h3><?php _e('Refreshing Bible Index...', 'biblefox') ?></h3>
+		<p><?php printf(__('Scanned %d activities (out of %d total activities)<br/>%d contained bible references', 'biblefox'), $scan_total, $total, $index_total) ?></p>
+
+		<?php
+		$offset += $scanned;
+		$next_url = add_query_arg(compact('offset', 'scan_total', 'index_total'), bfox_bp_admin_activity_refresh_url());
+
+		if ($offset < $total): ?>
+		<p><?php _e("If your browser doesn't start loading the next page automatically click this link:", 'biblefox'); ?> <a class="button" href="<?php echo $next_url ?>"><?php _e("Continue", 'biblefox'); ?></a></p>
+		<script type='text/javascript'>
+		<!--
+		function nextpage() {
+			location.href = "<?php echo $next_url ?>";
+		}
+		setTimeout( "nextpage()", 250 );
+		//-->
+		</script>
+		<?php
+		endif;
+		$show_settings = false;
+	}
+	return $show_settings;
+}
+add_filter('bfox_bp_admin_show_settings', 'bfox_bp_admin_activity_check_refresh');
+
 
 ?>

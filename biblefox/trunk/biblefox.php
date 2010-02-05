@@ -40,8 +40,7 @@ define(BFOX_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
 require_once BFOX_DIR . '/utility.php';
-require_once BFOX_DIR . '/posts.php';
-require_once BFOX_DIR . '/bfox-query.php';
+require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 require_once BFOX_DIR . '/bibletext.php';
 require_once BFOX_DIR . '/shortfoot.php';
 require_once BFOX_DIR . '/iframe.php';
@@ -52,6 +51,9 @@ require_once BFOX_DIR . '/iframe.php';
 //require_once BFOX_PLANS_DIR . '/blogplans.php';
 
 class Biblefox {
+	/**
+	 * @var BfoxPostRefsDbTable
+	 */
 	public $post_refs;
 
 	/**
@@ -63,6 +65,12 @@ class Biblefox {
 	 * @var BfoxRefs
 	 */
 	private $refs;
+
+	/**
+	 * The current WP_Query being run - used for the blog post query filter functions
+	 * @var WP_Query
+	 */
+	public $blog_query;
 
 	public function __construct() {
 		$this->set_refs(new BfoxRefs());
@@ -120,8 +128,6 @@ class BfoxBlog {
 		// Scripts
 		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_VERSION);
 		wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery', 'bfox-tooltip'), BFOX_VERSION);
-
-		bfox_query_init();
 	}
 
 	/**
@@ -189,7 +195,7 @@ class BfoxBlog {
 	 */
 	public static function quick_view_meta_box() {
 		global $post_ID;
-		$refs = BfoxPosts::get_post_refs($post_ID);
+		$refs = bfox_blog_post_get_refs($post_ID);
 
 		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
 			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
@@ -248,7 +254,7 @@ class BfoxBlog {
 	/**
 	 * Creates a link from an array specifying bible ref link options
 	 *
-	 * Used to create links by BfoxBlog::ref_bible_link() and BfoxBlog::ref_archive_link()
+	 * Used to create links by BfoxBlog::ref_bible_link() and BfoxBlog::ref_blog_link()
 	 *
 	 * @param array $options
 	 * @return string
@@ -310,42 +316,42 @@ class BfoxBlog {
 	}
 
 	/**
-	 * Returns a url for the tag archive page using a Bible Reference as the tag filter
+	 * Returns a url for the search page using a Bible Reference as the search filter
 	 *
-	 * Should be used whenever we want to link to the Bible archive, as opposed to the Bible reader
+	 * Should be used whenever we want to link to the Bible search archive, as opposed to the Bible reader
 	 *
 	 * @param string $ref_str
 	 * @return string
 	 */
-	public static function ref_archive_url($ref_str) {
+	public static function ref_blog_url($ref_str) {
 		$ref_str = urlencode($ref_str);
 
 		// NOTE: This function imitates the WP get_tag_link() function, but instead of getting a tag slug, we use $ref_str
 		global $wp_rewrite;
-		$taglink = $wp_rewrite->get_tag_permastruct();
+		$taglink = $wp_rewrite->get_search_permastruct();
 
-		if (empty($taglink)) $taglink = get_option('home') . '/?tag=' . $ref_str;
+		if (empty($taglink)) $taglink = get_option('home') . '/?s=' . $ref_str;
 		else {
-			$taglink = str_replace('%tag%', $ref_str, $taglink);
-			$taglink = self::$home_url . user_trailingslashit($taglink, 'category');
+			$taglink = str_replace('%search%', $ref_str, $taglink);
+			$taglink = self::$home_url . '/' . user_trailingslashit($taglink, 'category');
 		}
 
 		return $taglink;
 	}
 
 	/**
-	 * Returns a link for the tag archive page using a Bible Reference as the tag filter
+	 * Returns a link for the blog search page using a Bible Reference as the tag filter
 	 *
-	 * Should be used whenever we want to link to the Bible archive, as opposed to the Bible reader
+	 * Should be used whenever we want to link to the Bible search archive, as opposed to the Bible reader
 	 *
 	 * @param array $options
 	 * @return string
 	 */
-	public static function ref_archive_link($options) {
+	public static function ref_blog_link($options) {
 		BfoxBlog::fix_ref_link_options($options);
 
-		// If there is no href, get it from the self::ref_archive_url() function
-		if (!isset($options['attrs']['href'])) $options['attrs']['href'] = self::ref_archive_url($options['ref_str']);
+		// If there is no href, get it from the self::ref_blog_url() function
+		if (!isset($options['attrs']['href'])) $options['attrs']['href'] = self::ref_blog_url($options['ref_str']);
 
 		return BfoxBlog::ref_link_from_options($options);
 	}
@@ -393,8 +399,7 @@ class BfoxBlog {
 	 * @return WP_Query
 	 */
 	public static function query_for_refs(BfoxRefs $refs) {
-		BfoxBlogQueryData::set_post_ids(BfoxPosts::get_post_ids($refs));
-		return new WP_Query(1);
+		return new WP_Query('s=' . urlencode($refs->get_string()));
 	}
 
 	/**
@@ -416,6 +421,34 @@ class BfoxBlog {
 
 add_action('init', 'BfoxBlog::init');
 add_action('init', 'BfoxBlog::check_for_tooltip', 1000);
+
+/**
+ * Replaces bible references with bible links in a given html string
+ * @param string $content
+ * @return string
+ */
+function bfox_ref_replace_html($content) {
+	return BfoxRefParser::simple_html($content);
+}
+
+/**
+ * Finds any bible references in an array of tag links and adds tooltips to them
+ *
+ * Should be used to filter 'term_links-post_tag', called in get_the_term_list()
+ *
+ * @param array $tag_links
+ * @return array
+ */
+function bfox_add_tag_ref_tooltips($tag_links) {
+	if (!empty($tag_links)) foreach ($tag_links as &$tag_link) if (preg_match('/<a.*>(.*)<\/a>/', $tag_link, $matches)) {
+		$tag = $matches[1];
+		$refs = BfoxBlog::tag_to_refs($tag);
+		if ($refs->is_valid()) {
+			$tag_link = BfoxBlog::link_add_ref_tooltip(BfoxBlog::ref_bible_link(array('refs' => $refs, 'text' => $tag)), $refs->get_string());
+		}
+	}
+	return $tag_links;
+}
 
 /**
  * Filter function for adding biblefox columns to the edit posts list

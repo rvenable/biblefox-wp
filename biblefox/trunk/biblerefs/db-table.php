@@ -49,6 +49,16 @@ class BfoxSequenceDbTable {
 	}
 
 	/**
+	 * Returns a string with SQL for joining the Sequence Table in a JOIN statement
+	 * @param string $join_col
+	 * @param string $short_table_name
+	 * @return string
+	 */
+	public function join_sql($join_col, $short_table_name = 'seqs') {
+		return "JOIN $this->table_name AS $short_table_name ON " . $this->join_where($join_col, $short_table_name);
+	}
+
+	/**
 	 * Returns a string with SQL for a WHERE statement to specify the columns to join on
 	 * @param string $join_col
 	 * @param string $short_table_name
@@ -171,31 +181,40 @@ class BfoxRefsDbTable extends BfoxSequenceDbTable {
 		parent::__construct($data_table_name, $postfix);
 	}
 
+	public function refresh_select($id_col, $content_col, $limit = 0, $offset = 0) {
+		return "* FROM $this->data_table_name ORDER BY $id_col ASC LIMIT $offset, $limit";
+	}
+
+	public function save_data_row($data_row, $id_col, $content_col) {
+		return $this->save_item($data_row->$id_col, new BfoxRefs($data_row->$content_col));
+	}
+
 	/**
 	 * Refreshes the refs table with data from the data table
 	 *
-	 * Returns the next offset to use, or 0 if all items have been refreshed
+	 * Returns an array with counts: the number of scanned items, indexed items, and total items to scan
 	 *
-	 * @param unknown_type $id_col
-	 * @param unknown_type $content_col
-	 * @param unknown_type $limit
-	 * @param unknown_type $offset
-	 * @return number The next offset to use, or 0 if all items have been refreshed
+	 * @param BfoxRefsDbTable $db_table
+	 * @param string $id_col
+	 * @param string $content_col
+	 * @param integer $limit
+	 * @param integer $offset
+	 * @return array
 	 */
-	public function simple_refresh($id_col, $content_col, $limit = 0, $offset = 0) {
+	public static function simple_refresh(BfoxRefsDbTable $db_table, $id_col, $content_col, $limit = 0, $offset = 0) {
 		global $wpdb;
 
-		$limit = (int)$limit;
-		$offset = (int)$offset;
+		$limit = (int) $limit;
+		$offset = (int) $offset;
 		if (0 == $limit) $limit = 100;
 
-		$results = $wpdb->get_results("SELECT SQL_CALC_FOUND_ROWS $id_col, $content_col FROM $this->data_table_name ORDER BY $id_col ASC LIMIT $offset, $limit");
+		$results = $wpdb->get_results("SELECT SQL_CALC_FOUND_ROWS " . $db_table->refresh_select($id_col, $content_col, $limit, $offset));
 		$total = $wpdb->get_var('SELECT FOUND_ROWS()');
 
 		$scanned = count($results);
 		$indexed = 0;
 
-		foreach ($results as $data) if ($this->save_item($data->$id_col, new BfoxRefs($data->$content_col))) $indexed++;
+		foreach ($results as $data_row) if ($db_table->save_data_row($data_row, $id_col, $content_col)) $indexed++;
 
 		return compact('scanned', 'indexed', 'total');
 	}
