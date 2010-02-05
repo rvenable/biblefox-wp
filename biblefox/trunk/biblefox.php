@@ -494,6 +494,9 @@ add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 
 function bfox_bp_load() {
 	require_once BFOX_DIR . '/biblefox-bp/biblefox-bp.php';
 }
-add_action('bp_init', 'bfox_bp_load');
+// Call bfox_bp_load() if we have already loaded BP
+// Otherwise, if we haven't already loaded BP, then call bfox_bp_load() after bp_core_loaded
+if (function_exists('bp_core_install')) bfox_bp_load();
+else add_action('bp_core_loaded', 'bfox_bp_load');
 
 ?>
