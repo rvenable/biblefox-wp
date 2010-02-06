@@ -88,33 +88,43 @@ add_action('bp_activity_deleted_activities', 'bfox_bp_activity_deleted_activitie
  * Activity Query Functions
  */
 
-function bfox_bp_has_activities_filter($filters, $args) {
-	if (!empty($args['bfox_refs'])) {
-		$refs = new BfoxRefs($args['bfox_refs']);
-		if ($refs->is_valid()) $filters['bfox_refs'] = $refs;
-	}
-	return $filters;
+function bfox_bp_activity_set_refs(BfoxRefs $refs) {
+	global $bfox_activity_refs;
+	if ($refs->is_valid()) $bfox_activity_refs = $refs;
+	else unset($bfox_activity_refs);
 }
-add_filter('bp_has_activities_filter', 'bfox_bp_has_activities_filter', 10, 2);
 
-function bfox_bp_activity_get_from_sql($from_sql, $filter) {
-	if (isset($filter['bfox_refs'])) {
-		global $biblefox;
-		$from_sql .= ', ' . $biblefox->activity_refs->from_sql();
-	}
+function bfox_bp_activity_unset_refs() {
+	global $bfox_activity_refs;
+	unset($bfox_activity_refs);
+}
+
+function bfox_bp_activity_get_from_sql($from_sql) {
+	global $biblefox, $bfox_activity_refs;
+	if (isset($bfox_activity_refs)) $from_sql .= ' ' . $biblefox->activity_refs->join_sql('a.id');
 	return $from_sql;
 }
-add_filter('bp_activity_get_from_sql', 'bfox_bp_activity_get_from_sql', 10, 2);
+add_filter('bp_activity_get_from_sql', 'bfox_bp_activity_get_from_sql', 99);
 
-function bfox_bp_activity_get_where_conditions($wheres, $filter) {
-	if (isset($filter['bfox_refs'])) {
-		global $biblefox;
-		$wheres []= $biblefox->activity_refs->join_where('a.id');
-		$wheres []= $biblefox->activity_refs->seqs_where($filter['bfox_refs']);
+function bfox_bp_activity_get_where_sql($where) {
+	global $biblefox, $bfox_activity_refs;
+	if (isset($bfox_activity_refs)) {
+		$where .= ' AND ' . $biblefox->activity_refs->seqs_where($bfox_activity_refs);
+		//$where .= ' GROUP BY a.id ';
 	}
-	return $wheres;
+	return $where;
 }
-add_filter('bp_activity_get_where_conditions', 'bfox_bp_activity_get_where_conditions', 10, 2);
+add_filter('bp_activity_get_where_sql', 'bfox_bp_activity_get_where_sql');
+
+function bfox_bp_activity_get_group_sql($group) {
+	global $biblefox, $bfox_activity_refs;
+	if (isset($bfox_activity_refs)) {
+		if (empty($group)) $group .= 'GROUP BY';
+		$group .= ' a.id ';
+	}
+	return $group;
+}
+add_filter('bp_activity_get_group_sql', 'bfox_bp_activity_get_group_sql');
 
 /*
  * Settings Functions

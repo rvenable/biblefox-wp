@@ -15,127 +15,48 @@ function bfox_bp_bible_directory_setup() {
 		$bp->is_directory = true;
 
 		$biblefox->set_refs(new BfoxRefs(urldecode($bp->current_action)));
-		//add_filter('bp_ajax_querystring', 'bfox_bp_ajax_querystring', 1, 1);
 
-		add_action('bp_before_directory_activity_content', 'bfox_bp_bible_directory_before_directory_activity_content');
+		wp_enqueue_style('biblefox-bp');
+
+		// Add some javascript to ensure that any AJAX calls include the current bible references
+		add_action('wp_head', 'bfox_bp_bible_directory_setup_ajax');
+
+		// Add the Bible iframe
+		add_action('bp_before_directory_activity_content', 'bfox_bp_bible_directory_iframe');
 
 		do_action('bfox_bp_bible_directory_setup');
 
-		bfox_bp_core_load_template(apply_filters('bfox_bp_bible_directory_template', /*'activity/index'*/'bible/index'));
+		bfox_bp_core_load_template(apply_filters('bfox_bp_bible_directory_template', 'activity/index'));
 	}
 }
 add_action('wp', 'bfox_bp_bible_directory_setup', 2);
 
-function bfox_bp_bible_directory_ajax_filter() {
-	global $bp;
+function bfox_bp_bible_directory_setup_ajax() {
+	global $biblefox;
+	$refs = $biblefox->refs();
 
-	if (0 < $_POST['page']) $_POST['page']--;
-
-	// See bp_dtheme_object_filter()
-	$object = esc_attr( $_POST['object'] );
-	$filter = esc_attr( $_POST['filter'] );
-	$page = esc_attr( $_POST['page'] );
-	$ref_str = esc_attr( $_POST['search_terms'] );
-	$scope = esc_attr( $_POST['scope'] );
-
-	bfox_bp_dtheme_activity_loop($scope, $filter, false, 20, $page);
-	if (!empty($ref_str)) $bp->ajax_querystring .= '&bfox_refs=' . urlencode($ref_str);
-
-	bfox_bp_locate_template(array("activity/activity-loop.php"), true);
-}
-add_action('wp_ajax_bible_filter', 'bfox_bp_bible_directory_ajax_filter');
-
-/**
- * Copy of bp_dtheme_activity_loop() but without echoing anything.
- *
- * We use this just to set $bp->ajax_querystring
- *
- * @param $scope
- * @param $filter
- * @param $query_string
- * @param $per_page
- * @param $page
- * @return unknown_type
- */
-function bfox_bp_dtheme_activity_loop( $scope = 'all', $filter = false, $query_string = false, $per_page = 20, $page = 1 ) {
-	global $bp;
-
-	if ( !$query_string ) {
-		/* If we are on a profile page we only want to show that users activity */
-		if ( $bp->displayed_user->id ) {
-			$query_string = 'user_id=' . $bp->displayed_user->id;
-		} else {
-			/* Make sure a scope is set. */
-			if ( empty($scope) )
-				$type = 'all';
-
-			$feed_url = site_url( BP_ACTIVITY_SLUG . '/feed/' );
-
-			switch ( $scope ) {
-				case 'friends':
-					$friend_ids = implode( ',', friends_get_friend_user_ids( $bp->loggedin_user->id ) );
-					$query_string = 'user_id=' . $friend_ids;
-					$feed_url = $bp->loggedin_user->domain . BP_ACTIVITY_SLUG . '/my-friends/feed/';
-					break;
-				case 'groups':
-					$groups = groups_get_user_groups( $bp->loggedin_user->id );
-					$group_ids = implode( ',', $groups['groups'] );
-					$query_string = 'object=groups&primary_id=' . $group_ids . '&show_hidden=1';
-					$feed_url = $bp->loggedin_user->domain . BP_ACTIVITY_SLUG . '/my-groups/feed/';
-					break;
-				case 'favorites':
-					$favs = bp_activity_get_user_favorites( $bp->loggedin_user->id );
-
-					if ( empty( $favs ) )
-						$favorite_ids = false;
-
-					$favorite_ids = implode( ',', (array)$favs );
-					$query_string = 'include=' . $favorite_ids;
-					$feed_url = $bp->loggedin_user->domain  . BP_ACTIVITY_SLUG . '/favorites/feed/';
-					break;
-				case 'atme':
-					$query_string = 'search_terms=@' . bp_core_get_username( $bp->loggedin_user->id, $bp->loggedin_user->userdata->user_nicename, $bp->loggedin_user->userdata->user_login );
-					$feed_url = $bp->loggedin_user->domain . BP_ACTIVITY_SLUG . '/mentions/feed/';
-
-					/* Reset the number of new @ mentions for the user */
-					delete_usermeta( $bp->loggedin_user->id, 'bp_new_mention_count' );
-					break;
-			}
-		}
-
-		/* Build the filter */
-		if ( $filter && $filter != '-1' )
-			$query_string .= '&action=' . $filter;
-
-		/* If we are viewing a group then filter the activity just for this group */
-		if ( $bp->groups->current_group ) {
-			$query_string .= '&object=' . $bp->groups->id . '&primary_id=' . $bp->groups->current_group->id;
-
-			/* If we're viewing a non-private group and the user is a member, show the hidden activity for the group */
-			if ( 'public' != $bp->groups->current_group->status && groups_is_user_member( $bp->loggedin_user->id, $bp->groups->current_group->id ) )
-				$query_string .= '&show_hidden=1';
-		}
-
-		/* Add the per_page param */
-		$query_string .= '&per_page=' . $per_page;
-
-		/* Add the comments param */
-		if ( $bp->displayed_user->id || 'atme' == $scope )
-			$query_string .= '&display_comments=stream';
-		else
-			$query_string .= '&display_comments=threaded';
+	// Add some javascript to ensure that any AJAX calls include the current bible references
+	if ($refs->is_valid()) {
+		?>
+		<script type='text/javascript'>
+		<!--
+		jQuery.ajaxSetup({
+			data: {'bfox_refs': '<?php echo urlencode($refs->get_string()) ?>'}
+	 	});
+		//-->
+		</script>
+		<?php
 	}
-
-	/* Add the new page param */
-	$args = explode( '&', trim( $query_string ) );
-	foreach( $args as $arg ) {
-		if ( false === strpos( $arg, 'page' ) )
-			$new_args[] = $arg;
-	}
-	$query_string = implode( '&', $new_args ) . '&page=' . $page;
-
-	$bp->ajax_querystring = apply_filters( 'bp_dtheme_ajax_querystring_activity_filter', $query_string, $scope );
 }
+
+function bfox_bp_bible_directory_before_activity_loop() {
+	global $biblefox;
+	$refs = $biblefox->refs();
+	if ($refs->is_valid()) bfox_bp_activity_set_refs($refs);
+	elseif (!empty($_REQUEST['bfox_refs'])) bfox_bp_activity_set_refs(new BfoxRefs(urldecode($_REQUEST['bfox_refs'])));
+}
+add_action('bp_before_activity_loop', 'bfox_bp_bible_directory_before_activity_loop');
+add_action('bp_after_activity_loop', 'bfox_bp_activity_unset_refs');
 
 function bfox_bp_bible_directory_add_nav_item() {
 	?>
@@ -146,7 +67,7 @@ function bfox_bp_bible_directory_add_nav_item() {
 }
 add_action('bp_nav_items', 'bfox_bp_bible_directory_add_nav_item');
 
-function bfox_bp_bible_directory_before_directory_activity_content() {
+function bfox_bp_bible_directory_iframe() {
 	global $biblefox;
 	$refs = $biblefox->refs();
 

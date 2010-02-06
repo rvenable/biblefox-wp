@@ -8,6 +8,12 @@ require_once BFOX_BP_DIR . '/activity.php';
 // TODO: only load if user option
 require_once BFOX_BP_DIR . '/bible-directory.php';
 
+function bfox_bp_init() {
+	wp_register_style('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.css', array(), BFOX_VERSION);
+	//wp_register_script('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.js', array('jquery'), BFOX_VERSION);
+}
+add_action('init', 'bfox_bp_init');
+
 // HACK: this function is a hack to get around a bug in bp_core_load_template() and bp_core_catch_no_access()
 function bfox_bp_core_load_template($template) {
 	bp_core_load_template($template);
@@ -48,18 +54,14 @@ function bfox_bp_located_template($located, $template_names) {
 			list($start, $end) = explode('/', $template_name, 2);
 			if (('bible' == strtolower($start)) && (file_exists($dir . $template_name))) {
 				$located = $dir . $template_name;
-
-				wp_enqueue_style('biblefox-bp', BFOX_BP_URL . '/theme/_inc/css/biblefox-bp.css', array(), BFOX_VERSION);
-				wp_enqueue_script('biblefox-bp', BFOX_BP_URL . '/theme/_inc/js/biblefox-bp.js', array(), BFOX_VERSION);
-
 				break;
 			}
 		}
 	}
 	return $located;
 }
-add_filter('bp_located_template', 'bfox_bp_located_template', 10, 2);
-add_filter('bfox_bp_located_template', 'bfox_bp_located_template', 10, 2);
+//add_filter('bp_located_template', 'bfox_bp_located_template', 10, 2);
+//add_filter('bfox_bp_located_template', 'bfox_bp_located_template', 10, 2);
 
 function bfox_bp_admin_menu() {
 	add_submenu_page(

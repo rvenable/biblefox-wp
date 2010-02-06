@@ -150,9 +150,6 @@ class BfoxBlog {
 
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
 
-		// Add the save post action (we want it to run before the BP save_post action, so that BP gets our tag modifications)
-		add_action('save_post', 'BfoxBlog::save_post', 9, 2);
-
 		// Flush the hidden ref tags on the post-new screen
 		add_action('admin_head-post-new.php', 'BfoxBlog::flush_tag_script');
 	}
@@ -160,10 +157,6 @@ class BfoxBlog {
 	public static function admin_init() {
 		wp_enqueue_style('bfox-admin', BFOX_URL . '/includes/css/admin.css', array(), BFOX_VERSION);
 		wp_enqueue_script('bfox-admin', BFOX_URL . '/includes/js/admin.js', array('sack'), BFOX_VERSION);
-	}
-
-	public static function save_post($post_id = 0, $post) {
-		BfoxPosts::update_post($post, TRUE);
 	}
 
 	/**
