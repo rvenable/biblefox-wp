@@ -99,32 +99,25 @@ function bfox_bp_activity_unset_refs() {
 	unset($bfox_activity_refs);
 }
 
-function bfox_bp_activity_get_from_sql($from_sql) {
+function bfox_bp_activity_get_sql($sql) {
 	global $biblefox, $bfox_activity_refs;
-	if (isset($bfox_activity_refs)) $from_sql .= ' ' . $biblefox->activity_refs->join_sql('a.id');
-	return $from_sql;
-}
-add_filter('bp_activity_get_from_sql', 'bfox_bp_activity_get_from_sql', 99);
-
-function bfox_bp_activity_get_where_sql($where) {
-	global $biblefox, $bfox_activity_refs;
-	if (isset($bfox_activity_refs)) {
-		$where .= ' AND ' . $biblefox->activity_refs->seqs_where($bfox_activity_refs);
-		//$where .= ' GROUP BY a.id ';
+	if (isset($bfox_activity_refs) && preg_match('/(SELECT)(.*)(WHERE.*)(ORDER.*)$/i', $sql, $matches)) {
+		array_shift($matches); // Get rid of the first match which is the entire string
+		$matches[0] .= ' SQL_CALC_FOUND_ROWS ';
+		$matches[1] .= ' ' . $biblefox->activity_refs->join_sql('a.id') . ' ';
+		$matches[2] .= ' AND ' . $biblefox->activity_refs->seqs_where($bfox_activity_refs) . ' GROUP BY a.id ';
+		$sql = implode('', $matches);
 	}
-	return $where;
+	return $sql;
 }
-add_filter('bp_activity_get_where_sql', 'bfox_bp_activity_get_where_sql');
+add_filter('bp_activity_get_sql', 'bfox_bp_activity_get_sql');
 
-function bfox_bp_activity_get_group_sql($group) {
+function bfox_bp_activity_get_total_sql($sql) {
 	global $biblefox, $bfox_activity_refs;
-	if (isset($bfox_activity_refs)) {
-		if (empty($group)) $group .= 'GROUP BY';
-		$group .= ' a.id ';
-	}
-	return $group;
+	if (isset($bfox_activity_refs)) $sql = 'SELECT FOUND_ROWS()';
+	return $sql;
 }
-add_filter('bp_activity_get_group_sql', 'bfox_bp_activity_get_group_sql');
+add_filter('bp_activity_get_total_sql', 'bfox_bp_activity_get_total_sql');
 
 /*
  * Settings Functions
