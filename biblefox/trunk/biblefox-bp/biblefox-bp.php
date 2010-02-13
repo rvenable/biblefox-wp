@@ -8,6 +8,10 @@ require_once BFOX_BP_DIR . '/activity.php';
 // TODO: only load if user option
 require_once BFOX_BP_DIR . '/bible-directory.php';
 
+// Add Ref Replace filters
+add_filter('bp_get_activity_content_body', 'bfox_ref_replace_html');
+add_filter('bp_get_the_topic_post_content', 'bfox_ref_replace_html');
+
 function bfox_bp_init() {
 	wp_register_style('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.css', array(), BFOX_VERSION);
 	//wp_register_script('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.js', array('jquery'), BFOX_VERSION);
