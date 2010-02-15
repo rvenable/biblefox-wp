@@ -12,3 +12,38 @@ div.bfox-passage-iframe-wrap {
 	text-align: center;
 	margin: 0 0 10px 0;
 }
+
+/*
+Previous and Next chapter links
+*/
+
+.passage-nav {
+	position: relative;
+	top: -10px;
+}
+
+.ref_seq_prev, .ref_seq_next {
+	font-size: 0.8em;
+	margin-top: 1em;
+}
+
+.ref_seq_prev {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+.ref_seq_next {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+}
+
+.ref_seq_prev:before {
+	content: "\00AB \0020";
+}
+
+.ref_seq_next:after {
+	content: "\0020 \00BB";
+}
+

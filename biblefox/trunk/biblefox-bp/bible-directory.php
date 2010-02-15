@@ -107,9 +107,14 @@ add_action('bp_nav_items', 'bfox_bp_bible_directory_add_nav_item');
 function bfox_bp_bible_directory_iframe() {
 	global $biblefox;
 	$refs = $biblefox->refs();
-
+	$prev_ref_str = $refs->prev_chapter_string();
+	$next_ref_str = $refs->next_chapter_string();
+	$links = '';
+	if (!empty($prev_ref_str)) $links .= bp_bible_ref_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
+	if (!empty($next_ref_str)) $links .= bp_bible_ref_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
 	?>
 			<h4><?php echo $refs->get_string() ?></h4>
+			<div class='passage-nav'><?php echo $links ?></div>
 			<?php $iframe = new BfoxIframe($refs) ?>
 			<div class="bfox-iframe-wrap bfox-passage-iframe-wrap">
 				<select class="bfox-iframe-select bfox-passage-iframe-select">
