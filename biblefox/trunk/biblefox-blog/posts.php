@@ -188,6 +188,14 @@ function bfox_blog_posts_where($where) {
 }
 add_filter('posts_where', 'bfox_blog_posts_where');
 
+function bfox_blog_posts_groupby($sql) {
+	global $biblefox, $wpdb;
+	// Bible references searches need to group on the post ID
+	if (isset($biblefox->blog_query->bfox_refs)) $sql .= " $wpdb->posts.ID";
+	return $sql;
+}
+add_filter('posts_groupby', 'bfox_blog_posts_groupby');
+
 /*
  * Content Filters
  */
