@@ -22,13 +22,17 @@ function bfox_bp_bible_directory_setup() {
 
 		// Add some javascript to ensure that any AJAX calls include the current bible references
 		add_action('wp_head', 'bfox_bp_bible_directory_setup_ajax');
+		add_action('wp_head', 'bfox_bp_bible_directory_setup_what_read_ajax');
 
 		// Add the Bible iframe
 		add_action('bp_before_directory_activity_content', 'bfox_bp_before_bible_directory_activity_content');
 
+		add_action('bp_before_activity_post_form', 'bfox_bp_before_activity_post_form');
+
 		// HACK: Get rid of the 'Site Activity' string which is used as the header when not logged in
 		// This is a hack because we are filtering in the translate functions
 		add_filter('gettext', create_function('$translated, $text, $domain', 'if (\'Site Activity\' == $text) return \'\'; return $translated;'), 10, 3);
+		add_filter('gettext', create_function('$translated, $text, $domain', 'if (\'What\\\'s new %s?\' == $text) return \'Any thoughts to share?\'; return $translated;'), 10, 3);
 
 		do_action('bfox_bp_bible_directory_setup');
 
@@ -84,6 +88,24 @@ function bfox_bp_bible_directory_setup_ajax() {
 		</script>
 		<?php
 	}
+}
+
+function bfox_bp_bible_directory_setup_what_read_ajax() {
+	// Add some javascript to ensure that any AJAX calls include the current bible references
+	?>
+	<script type='text/javascript'>
+	<!--
+	jQuery(document).ready( function() {
+		var ref_str = jQuery('input#bfox_read_ref_str').val();
+		if (ref_str.length) {
+			jQuery.ajaxSetup({
+				data: {'bfox_read_ref_str': ref_str}
+		 	});
+		}
+	});
+	//-->
+	</script>
+	<?php
 }
 
 function bfox_bp_bible_directory_before_activity_loop() {
@@ -147,6 +169,19 @@ function bfox_bp_before_bible_directory_activity_content() {
 		</form>
 	<?php
 	bfox_bp_bible_directory_iframe();
+}
+
+function bfox_bp_before_activity_post_form() {
+	global $biblefox;
+
+	$refs = $biblefox->refs();
+	$ref_str = $refs->get_string();
+
+	?>
+		<div class="refs-read">
+		<label><?php _e('What did you read?', 'biblefox') ?>&nbsp;<input type="text" id="bfox_read_ref_str" name="bfox_read_ref_str" value="<?php echo attribute_escape($ref_str) ?>" /></label>
+		</div>
+	<?php
 }
 
 ?>

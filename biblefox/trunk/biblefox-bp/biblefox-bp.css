@@ -47,3 +47,43 @@ Previous and Next chapter links
 	content: "\0020 \00BB";
 }
 
+/*
+Refs read
+*/
+
+.refs-read {
+	color: #888888;
+	font-size: 12px;
+	font-weight: normal;
+	text-align: right;
+	float: right;
+}
+
+.refs-read input {
+	font-size: 12px;
+	-moz-border-radius-bottomleft: 3px;
+	-moz-border-radius-bottomright: 3px;
+	-moz-border-radius-topleft: 3px;
+	-moz-border-radius-topright: 3px;
+	-x-system-font: none;
+	border: 1px inset #CCCCCC;
+	color: #555555;
+	padding: 2px 5px;
+}
+
+/* Override the blue box that default.css adds (see .activity-list .activity-header a:first-child) */ 
+.activity-list .activity-header a.bible-ref {
+	background: none;
+	border: none;
+	color: #1FB3DD;
+	padding: 0;
+	margin: 0;
+	text-decoration: underline;
+	-moz-border-radius: 0;
+	-webkit-border-radius: 0;
+	border-radius: 0;
+}
+	.activity-list .activity-header a.bible-ref:hover {
+		background: none !important;
+		color: #888888 !important;
+	}

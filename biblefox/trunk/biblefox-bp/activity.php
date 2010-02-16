@@ -41,6 +41,14 @@ class BfoxActivityRefsDbTable extends BfoxRefsDbTable {
 			$refs = BfoxBlog::content_to_refs($activity->content);
 		}
 
+		// Add any read passage strings
+		if (!empty($activity->bfox_read_ref_str)) {
+			bp_activity_update_meta($activity->id, 'bfox_read_ref_str', $activity->bfox_read_ref_str);
+			$refs->add_string($activity->bfox_read_ref_str);
+
+			do_action('bfox_save_activity_read_ref_str', $activity);
+		}
+
 		return $this->save_item($activity->id, apply_filters('bfox_save_activity_refs', $refs, $activity));
 	}
 
@@ -175,5 +183,19 @@ function bfox_bp_admin_activity_check_refresh($show_settings) {
 }
 add_filter('bfox_bp_admin_show_settings', 'bfox_bp_admin_activity_check_refresh');
 
+/*
+ * "What did you read?" functions
+ */
+
+function bfox_bp_activity_before_save($activity) {
+	if ('activity_update' == $activity->type && isset($_REQUEST['bfox_read_ref_str'])) {
+		$refs = new BfoxRefs($_REQUEST['bfox_read_ref_str']);
+		if ($refs->is_valid()) {
+			$activity->bfox_read_ref_str = $refs->get_string();
+			$activity->action = str_replace(array('posted an update', 'in the group'), array(__('read ', 'biblefox') . $activity->bfox_read_ref_str, 'with the group'), $activity->action);
+		}
+	}
+}
+add_action('bp_activity_before_save', 'bfox_bp_activity_before_save');
 
 ?>
