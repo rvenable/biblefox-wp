@@ -26,8 +26,8 @@ class BfoxPostRefsDbTable extends BfoxRefsDbTable {
 					ref_type BOOLEAN NOT NULL,
 					start MEDIUMINT UNSIGNED NOT NULL,
 					end MEDIUMINT UNSIGNED NOT NULL,
-					INDEX (item_id),
-					INDEX (start, end)
+					KEY item_id (item_id),
+					KEY sequence (start,end)
 				);"
 			);
 			update_option($this->table_name . '_version', $version);

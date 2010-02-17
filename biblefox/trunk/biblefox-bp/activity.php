@@ -70,11 +70,11 @@ function bfox_activity_init() {
 add_action('plugins_loaded', 'bfox_activity_init', 99);
 add_action('admin_menu', 'bfox_activity_init', 99);
 
-function bfox_activity_install() {
+function bfox_activity_check_install() {
 	global $biblefox;
 	$biblefox->activity_refs->check_install(BFOX_ACTIVITY_REFS_TABLE_VERSION);
 }
-add_action('admin_menu', 'bfox_activity_install');
+add_action('bfox_bp_check_install', 'bfox_activity_check_install');
 
 /*
  * Management Functions
@@ -192,7 +192,7 @@ function bfox_bp_activity_before_save($activity) {
 		$refs = new BfoxRefs($_REQUEST['bfox_read_ref_str']);
 		if ($refs->is_valid()) {
 			$activity->bfox_read_ref_str = $refs->get_string();
-			$activity->action = str_replace(array('posted an update', 'in the group'), array(__('read ', 'biblefox') . $activity->bfox_read_ref_str, 'with the group'), $activity->action);
+			$activity->action = str_replace('posted an update', __('posted an update about ', 'biblefox') . $activity->bfox_read_ref_str, $activity->action);
 		}
 	}
 }

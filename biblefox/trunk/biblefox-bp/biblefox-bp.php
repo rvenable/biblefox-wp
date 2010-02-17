@@ -25,6 +25,12 @@ function bfox_bp_core_load_template($template) {
 	remove_action('wp', 'bp_core_catch_no_access');
 }
 
+function bfox_bp_check_install() {
+	do_action('bfox_bp_check_install');
+}
+add_action('admin_menu', 'bfox_bp_check_install');
+
+
 /**
  * Function that imitates locate_template() but adds a filter so we can modify the located file name before we try to load it
  *

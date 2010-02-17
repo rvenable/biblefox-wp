@@ -31,8 +31,8 @@ class BfoxSequenceDbTable {
 					item_id BIGINT(20) NOT NULL,
 					start MEDIUMINT UNSIGNED NOT NULL,
 					end MEDIUMINT UNSIGNED NOT NULL,
-					INDEX (item_id),
-					INDEX (start, end)
+					KEY item_id (item_id),
+					KEY sequence (start,end)
 				);"
 			);
 			update_site_option($this->table_name . '_version', $version);

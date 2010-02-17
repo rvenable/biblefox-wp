@@ -8,6 +8,18 @@ function bfox_bp_bible_directory_setup_root_component() {
 }
 add_action('plugins_loaded', 'bfox_bp_bible_directory_setup_root_component', 2);
 
+function bfox_bp_bible_directory_get_last_viewed() {
+	global $user_ID;
+	if ($user_ID) return get_user_option('bfox_bp_bible_directory_last_viewed');
+	return $_COOKIE['bfox_bp_bible_directory_last_viewed'];
+}
+
+function bfox_bp_bible_directory_set_last_viewed($ref_str) {
+	global $user_ID;
+	if ($user_ID) update_user_option($user_ID, 'bfox_bp_bible_directory_last_viewed', $ref_str, true);
+	else setcookie('bfox_bp_bible_directory_last_viewed', $ref_str, /* 30 days from now: */ time() + 60 * 60 * 24 * 30, '/');
+}
+
 function bfox_bp_bible_directory_setup() {
 	global $bp, $biblefox;
 
@@ -16,7 +28,20 @@ function bfox_bp_bible_directory_setup() {
 
 		$bp->is_directory = true;
 
-		$biblefox->set_refs(new BfoxRefs(urldecode($bp->current_action)));
+		// Get the bible reference from the current_action
+		$refs = new BfoxRefs(urldecode($bp->current_action));
+
+		// If we don't have a valid Bible reference, we should redirect to one
+		if (!$refs->is_valid()) {
+			// First, try to use the last viewed reference
+			$refs = new BfoxRefs(bfox_bp_bible_directory_get_last_viewed());
+			// If we don't have a last viewed reference, use Gen 1
+			if (!$refs->is_valid()) $refs = new BfoxRefs('Gen 1');
+			bp_core_redirect(bp_bible_ref_url($refs->get_string()));
+		}
+
+		bfox_bp_bible_directory_set_last_viewed($refs->get_string());
+		$biblefox->set_refs($refs);
 
 		wp_enqueue_style('biblefox-bp');
 
@@ -91,16 +116,14 @@ function bfox_bp_bible_directory_setup_ajax() {
 }
 
 function bfox_bp_bible_directory_setup_what_read_ajax() {
-	// Add some javascript to ensure that any AJAX calls include the current bible references
+	// Use the jQuery.ajaxSend() function to add the "What did you read?" data (see: http://api.jquery.com/ajaxSend/ )
 	?>
 	<script type='text/javascript'>
 	<!--
-	jQuery(document).ready( function() {
+	jQuery(document).ajaxSend( function(e, xhr, settings) {
 		var ref_str = jQuery('input#bfox_read_ref_str').val();
 		if (ref_str.length) {
-			jQuery.ajaxSetup({
-				data: {'bfox_read_ref_str': ref_str}
-		 	});
+			settings.data += '&bfox_read_ref_str=' + escape(ref_str);
 		}
 	});
 	//-->
