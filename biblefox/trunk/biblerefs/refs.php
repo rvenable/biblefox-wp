@@ -8,6 +8,83 @@ require_once BFOX_REFS_DIR . '/sequences.php';
 require_once BFOX_REFS_DIR . '/parser.php';
 require_once BFOX_REFS_DIR . '/db-table.php';
 
+class BfoxRefSequence extends BfoxSequence {
+
+	public function __construct($start = 0, $end = 0) {
+		$this->set_start($start);
+		$this->set_end($end);
+	}
+
+	public function set_start($start) {
+		if (is_array($start)) {
+			list($book1, $chapter1, $verse1) = $start;
+			$start = BibleVerse::calc_unique_id($book1, $chapter1, $verse1);
+		}
+		else {
+			list($book1, $chapter1, $verse1) = BibleVerse::calc_ref($start);
+		}
+
+		/*
+		 * Maximize bible reference before we actually add them to the sequence list
+		 */
+
+		$edit1 = FALSE;
+
+		// Adjust verse1 to be zero if it is one
+		if (1 == $verse1) {
+			$verse1 = 0;
+			$edit1 = TRUE;
+		}
+
+		// Adjust chapter1 to zero if this is the first verse of the first chapter
+		if ((1 == $chapter1) && (0 == $verse1)) {
+			$chapter1 = 0;
+			$edit1 = TRUE;
+		}
+
+		if ($edit1) $start = BibleVerse::calc_unique_id($book1, $chapter1, $verse1);
+
+		$this->start = $start;
+
+		return $this->start;
+	}
+
+	public function set_end($end) {
+		if (is_array($end)) {
+			list($book2, $chapter2, $verse2) = $end;
+			$end = BibleVerse::calc_unique_id($book2, $chapter2, $verse2);
+		}
+		else {
+			list($book2, $chapter2, $verse2) = BibleVerse::calc_ref($end);
+		}
+
+		/*
+		 * Maximize bible reference before we actually add them to the sequence list
+		 */
+
+		$edit2 = FALSE;
+
+		// Adjust verse2 to be max_verse_id if it is greater than equal to the end verse (min) for chapter2,
+		// or if chapter2 is greater than the end chapter for this verse
+		if (($verse2 >= BibleMeta::end_verse_min($book2, $chapter2)) || ($chapter2 > BibleMeta::end_verse_min($book2))) {
+			$verse2 = BibleVerse::max_verse_id;
+			$edit2 = TRUE;
+		}
+
+		// Adjust chapter2 to be max_chapter_id if it is greater than or equal to the last chapter of this book
+		if ((BibleVerse::max_verse_id == $verse2) && ($chapter2 >= BibleMeta::end_verse_min($book2))) {
+			$chapter2 = BibleVerse::max_chapter_id;
+			$edit2 = TRUE;
+		}
+
+		if ($edit2) $end = BibleVerse::calc_unique_id($book2, $chapter2, $verse2);
+
+		$this->end = $end;
+
+		return $this->end;
+	}
+}
+
 class BfoxRefs extends BfoxSequenceList {
 
 	/*
@@ -35,7 +112,7 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param BfoxRefs $refs
 	 */
 	public function add_refs(BfoxRefs $refs) {
-		$this->add_seqs($refs->get_seqs());
+		return $this->add_seqs($refs->get_seqs());
 	}
 
 	/**
@@ -49,7 +126,7 @@ class BfoxRefs extends BfoxSequenceList {
 
 	public function add_concat($begin_str, $end_str, $delim = ',') {
 		$ends = explode($delim, $end_str);
-		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq(new BfoxSequence($begin, $ends[$idx]));
+		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq(new BfoxRefSequence($begin, $ends[$idx]));
 	}
 
 	/**
@@ -58,7 +135,7 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param BfoxRefs $refs
 	 */
 	public function sub_refs(BfoxRefs $refs) {
-		$this->sub_seqs($refs->get_seqs());
+		return $this->sub_seqs($refs->get_seqs());
 	}
 
 	/**
@@ -141,54 +218,9 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param integer $verse2
 	 */
 	public function add_verse_seq($book, $chapter1, $verse1, $chapter2, $verse2) {
-		$this->add_seq(new BfoxSequence(
-			BibleVerse::calc_unique_id($book, $chapter1, $verse1),
-			BibleVerse::calc_unique_id($book, $chapter2, $verse2)));
-	}
-
-	/**
-	 * Adds a bible reference sequence (and "maximizes" the bible reference)
-	 *
-	 * @param BfoxSequence $seq
-	 */
-	public function add_seq(BfoxSequence $seq) {
-		list($book1, $chapter1, $verse1) = BibleVerse::calc_ref($seq->start);
-		list($book2, $chapter2, $verse2) = BibleVerse::calc_ref($seq->end);
-		$edit1 = $edit2 = FALSE;
-
-		/*
-		 * Maximize bible reference before we actually add them to the sequence list
-		 */
-
-		// Adjust verse1 to be zero if it is one
-		if (1 == $verse1) {
-			$verse1 = 0;
-			$edit1 = TRUE;
-		}
-
-		// Adjust chapter1 to zero if this is the first verse of the first chapter
-		if ((1 == $chapter1) && (0 == $verse1)) {
-			$chapter1 = 0;
-			$edit1 = TRUE;
-		}
-
-		// Adjust verse2 to be max_verse_id if it is greater than equal to the end verse (min) for chapter2,
-		// or if chapter2 is greater than the end chapter for this verse
-		if (($verse2 >= BibleMeta::end_verse_min($book2, $chapter2)) || ($chapter2 > BibleMeta::end_verse_min($book2))) {
-			$verse2 = BibleVerse::max_verse_id;
-			$edit2 = TRUE;
-		}
-
-		// Adjust chapter2 to be max_chapter_id if it is greater than or equal to the last chapter of this book
-		if ((BibleVerse::max_verse_id == $verse2) && ($chapter2 >= BibleMeta::end_verse_min($book2))) {
-			$chapter2 = BibleVerse::max_chapter_id;
-			$edit2 = TRUE;
-		}
-
-		if ($edit1) $seq->start = BibleVerse::calc_unique_id($book1, $chapter1, $verse1);
-		if ($edit2) $seq->end = BibleVerse::calc_unique_id($book2, $chapter2, $verse2);
-
-		parent::add_seq($seq);
+		return $this->add_seq(new BfoxRefSequence(
+			array($book, $chapter1, $verse1),
+			array($book, $chapter2, $verse2)));
 	}
 
 	/*
@@ -371,23 +403,21 @@ class BfoxRefs extends BfoxSequenceList {
 		if (BibleVerse::max_chapter_id == $ch2) $ch2 = BibleMeta::end_verse_max($book);
 
 		$seqs = array();
-		$seqs[$ch1] = new BfoxSequence;
-		$seqs[$ch1]->start = BibleVerse::calc_unique_id($book, $ch1, $vs1);
+		$seqs[$ch1] = new BfoxRefSequence;
+		$seqs[$ch1]->set_start(array($book, $ch1, $vs1));
 		if ($ch2 > $ch1) {
-			$seqs[$ch1]->end = BibleVerse::calc_unique_id($book, $ch1, BibleVerse::max_verse_id);
+			$seqs[$ch1]->set_end(array($book, $ch1, BibleVerse::max_verse_id));
 
 			$middle_chapters = $ch2 - $ch1;
 			for ($i = 0; $i < $middle_chapters; $i++) {
 				$ch = $ch1 + $i;
-				$seqs[$ch] = new BfoxSequence;
-				$seqs[$ch]->start = BibleVerse::calc_unique_id($book, $ch);
-				$seqs[$ch]->end = BibleVerse::calc_unique_id($book, $ch, BibleVerse::max_verse_id);
+				$seqs[$ch] = new BfoxRefSequence(array($book, $ch, 0), array($book, $ch, BibleVerse::max_verse_id));
 			}
 
-			$seqs[$ch2] = new BfoxSequence;
-			$seqs[$ch2]->start = BibleVerse::calc_unique_id($book, $ch2);
+			$seqs[$ch2] = new BfoxRefSequence;
+			$seqs[$ch2]->set_start(array($book, $ch2, 0));
 		}
-		$seqs[$ch2]->end = BibleVerse::calc_unique_id($book, $ch2, $vs2);
+		$seqs[$ch2]->set_end(array($book, $ch2, $vs2));
 
 		return $seqs;
 	}

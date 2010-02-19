@@ -25,12 +25,22 @@ abstract class BfoxSequenceList {
 		return $this->sequences;
 	}
 
-	protected function add_seqs($seqs) {
-		foreach ($seqs as $seq) $this->add_seq($seq);
+	protected function add_seqs($seqs, $test_only = false) {
+		$is_modified = false;
+		foreach ($seqs as $seq) {
+			$is_modified = $this->add_seq($seq, $test_only) || $is_modified;
+			if ($test_only && $is_modified) return $is_modified;
+		}
+		return $is_modified;
 	}
 
-	protected function sub_seqs($seqs) {
-		foreach ($seqs as $seq) $this->sub_seq($seq);
+	protected function sub_seqs($seqs, $test_only = false) {
+		$is_modified = false;
+		foreach ($seqs as $seq) {
+			$is_modified = $this->sub_seq($seq, $test_only) || $is_modified;
+			if ($test_only && $is_modified) return $is_modified;
+		}
+		return $is_modified;
 	}
 
 	public function start() {
@@ -49,12 +59,15 @@ abstract class BfoxSequenceList {
 	 *
 	 * This function maintains that there are no overlapping sequences and that they are in order from lowest to highest
 	 *
-	 * @param integer $start
-	 * @param integer $end
+	 * @param BfoxSequence $seq
+	 * @param boolean $test_only Set to true if you just want to check if the sequence intersects
+	 * @return boolean $is_modified Returns whether there were modifications (can be used to detect whether this sequence is contained in the list already)
 	 */
-	public function add_seq(BfoxSequence $seq) {
+	public function add_seq(BfoxSequence $seq, $test_only = false) {
 		// Make a copy of the sequence since it was passed by reference
 		$new_seq = new BfoxSequence($seq->start, $seq->end);
+
+		$is_modified = false;
 
 		$new_seqs = array();
 		foreach ($this->sequences as $seq) {
@@ -67,9 +80,13 @@ abstract class BfoxSequenceList {
 						$new_seqs []= $new_seq;
 						$new_seqs []= $seq;
 						unset($new_seq);
+						$is_modified = true;
 					}
 					else {
-						if ($new_seq->end < $seq->end) $new_seq->end = $seq->end;
+						if ($new_seq->end < $seq->end) {
+							$new_seq->end = $seq->end;
+							$is_modified = true;
+						}
 					}
 				}
 				else {
@@ -77,8 +94,13 @@ abstract class BfoxSequenceList {
 					// If the new seq starts before seq ends, we have an intersection
 					// Otherwise, we passed seq without intersecting it, so add it to the array
 					if (($new_seq->start - 1) <= $seq->end) {
+						// Create a new sequence that starts with seq->start
 						$new_seq->start = $seq->start;
-						if ($new_seq->end < $seq->end) $new_seq->end = $seq->end;
+						if ($new_seq->end <= $seq->end) {
+							// The new sequence is within an existing sequence, so set the existing one and get rid of the new one
+							$new_seqs []= $seq;
+							unset($new_seq);
+						}
 					}
 					else {
 						$new_seqs []= $seq;
@@ -87,20 +109,28 @@ abstract class BfoxSequenceList {
 			}
 			else $new_seqs []= $seq;
 		}
-		if (isset($new_seq)) $new_seqs []= $new_seq;
+		if (isset($new_seq)) {
+			$new_seqs []= $new_seq;
+			$is_modified = true;
+		}
 
-		$this->sequences = $new_seqs;
+
+		if ($is_modified && !$test_only) $this->sequences = $new_seqs;
+		return $is_modified;
 	}
 
 	/**
 	 * Subtracts a sequence from the list
 	 *
-	 * @param integer $start
-	 * @param integer $end
+	 * @param BfoxSequence $seq
+	 * @param boolean $test_only Set to true if you just want to check if the sequence intersects
+	 * @return boolean $is_modified Returns whether there were modifications (can be used to detect intersections)
 	 */
-	public function sub_seq(BfoxSequence $seq) {
+	public function sub_seq(BfoxSequence $seq, $test_only = false) {
 		// Make a copy of the sequence since it was passed by reference
 		$sub_seq = new BfoxSequence($seq->start, $seq->end);
+
+		$is_modified = false;
 
 		$new_seqs = array();
 		foreach ($this->sequences as $seq) {
@@ -115,6 +145,7 @@ abstract class BfoxSequenceList {
 					elseif ($seq->end <= $sub_seq->end) {
 						$seq->end = $sub_seq->start - 1;
 						$new_seqs []= $seq;
+						$is_modified = true;
 					}
 					// Otherwise, the seq ends after sub_seq ends, so we need to split the seq
 					else {
@@ -128,6 +159,7 @@ abstract class BfoxSequenceList {
 						// Add the seqs
 						$new_seqs []= $seq;
 						$new_seqs []= $new_seq;
+						$is_modified = true;
 					}
 				}
 				else {
@@ -140,6 +172,7 @@ abstract class BfoxSequenceList {
 							$seq->start = $sub_seq->end + 1;
 							$new_seqs []= $seq;
 						}
+						$is_modified = true;
 					}
 					else {
 						$new_seqs []= $seq;
@@ -151,7 +184,8 @@ abstract class BfoxSequenceList {
 			else $new_seqs []= $seq;
 		}
 
-		$this->sequences = $new_seqs;
+		if ($is_modified && !$test_only) $this->sequences = $new_seqs;
+		return $is_modified;
 	}
 
 	/**
@@ -209,6 +243,30 @@ abstract class BfoxSequenceList {
 
 		if (!empty($wheres)) return '(' . implode(' OR ', $wheres) . ')';
 		return "0";
+	}
+
+	/**
+	 * Returns whether the given sequence list is already contained by this sequence list
+	 *
+	 * @param BfoxSequenceList $seq_list
+	 * @return boolean
+	 */
+	public function contains(BfoxSequenceList $seq_list) {
+		// Test each sequence to see if it would modify our sequence list if we added it
+		// If it never modifies our list, then our list already contains it all
+		return !$this->add_seqs($seq_list->get_seqs(), true);
+	}
+
+	/**
+	 * Returns whether the given sequence list intersects this sequence list
+	 *
+	 * @param BfoxSequenceList $seq_list
+	 * @return boolean
+	 */
+	public function intersects(BfoxSequenceList $seq_list) {
+		// Test each sequence to see if it would modify our sequence list if we subtracted it
+		// If it never modifies our list, then our list never intersects
+		return $this->sub_seqs($seq_list->get_seqs(), true);
 	}
 }
 
