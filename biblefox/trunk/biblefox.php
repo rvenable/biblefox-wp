@@ -4,7 +4,7 @@
 	Plugin Name: Biblefox for WordPress
 	Plugin URI: http://tools.biblefox.com/
 	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
-	Version: 0.6
+	Version: 0.7
 	Author: Biblefox
 	Author URI: http://biblefox.com
 
@@ -32,7 +32,7 @@
 
 *************************************************************************/
 
-define(BFOX_VERSION, '0.6');
+define(BFOX_VERSION, '0.7');
 define(BFOX_DIR, dirname(__FILE__));
 define(BFOX_REFS_DIR, BFOX_DIR . '/biblerefs');
 define(BFOX_URL, WP_PLUGIN_URL . '/biblefox');
