@@ -19,6 +19,12 @@ function bfox_bp_init() {
 }
 add_action('init', 'bfox_bp_init');
 
+function bfox_bp_register_widgets() {
+	// Only register these widgets for the main blog
+	if (is_main_blog()) do_action('bfox_bp_register_widgets');
+}
+add_action('widgets_init', 'bfox_bp_register_widgets');
+
 // HACK: this function is a hack to get around a bug in bp_core_load_template() and bp_core_catch_no_access()
 function bfox_bp_core_load_template($template) {
 	bp_core_load_template($template);
