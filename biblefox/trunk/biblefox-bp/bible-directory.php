@@ -173,7 +173,7 @@ function bfox_bp_bible_directory_iframe() {
 function bfox_bp_bible_directory_search_form($search_value, $submit_value) {
 ?>
 		<label><input type="text" name="s" id="bible_search" value="<?php echo attribute_escape($search_value) ?>" /></label>
-		<input type="submit" id="groups_search_submit" name="groups_search_submit" value="<?php echo $submit_value ?>" />
+		<input type="submit" id="bible_search_submit" name="bible_search_submit" value="<?php echo $submit_value ?>" />
 <?php
 }
 
