@@ -202,6 +202,7 @@ add_filter('posts_groupby', 'bfox_blog_posts_groupby');
 
 // Replace bible references with bible links
 add_filter('the_content', 'bfox_ref_replace_html');
+add_filter('comment_text', 'bfox_ref_replace_html');
 
 // Add tooltips to Bible Ref tag links
 add_filter('term_links-post_tag', 'bfox_add_tag_ref_tooltips');
