@@ -121,12 +121,11 @@ class BfoxBlog {
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
 
 		// Styles
-		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_VERSION);
 		wp_enqueue_style('bfox-scripture', BFOX_URL . '/includes/css/scripture.css', array(), BFOX_VERSION);
 		wp_enqueue_style('bfox-blog', BFOX_URL . '/includes/css/biblefox-blog.css', array(), BFOX_VERSION);
 
 		// Scripts
-		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3.min.js', array('jquery'), BFOX_VERSION);
+		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
 		wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery', 'bfox-tooltip'), BFOX_VERSION);
 	}
 
