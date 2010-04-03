@@ -51,4 +51,42 @@ function bfox_blog_network_admin_settings() {
 	<?php
 }
 
+/*
+ * Bible post write link handling
+ *
+ * Pretty hacky, but better than previous javascript hack
+ * HACK necessary until WP ticket 10544 is fixed: http://core.trac.wordpress.org/ticket/10544
+ */
+
+function bfox_bible_post_link_setup($page, $context, $post) {
+	if (!$post->ID && 'post' == $page && 'side' == $context && !empty($_REQUEST['bfox_ref'])) {
+		$hidden_refs = new BfoxRefs($_REQUEST['bfox_ref']);
+		if ($hidden_refs->is_valid()) {
+			global $wp_meta_boxes;
+			// Change the callback function
+			$wp_meta_boxes[$page][$context]['core']['tagsdiv-post_tag']['callback'] = 'bfox_post_tags_meta_box';
+		}
+	}
+}
+add_action('do_meta_boxes', 'bfox_bible_post_link_setup', 10, 3);
+
+function bfox_post_tags_meta_box($post, $box) {
+	// We need our filter on wp_get_object_terms to get called, but it won't be if post->ID is 0, so we set it to -1
+	$fake_post = new stdClass;
+	$fake_post->ID = -1;
+	add_action('wp_get_object_terms', 'bfox_wp_get_object_terms');
+	post_tags_meta_box($fake_post, $box);
+	remove_action('wp_get_object_terms', 'bfox_wp_get_object_terms');
+}
+
+function bfox_wp_get_object_terms($terms) {
+	$hidden_refs = new BfoxRefs($_REQUEST['bfox_ref']);
+	if ($hidden_refs->is_valid()) {
+		$term = new stdClass;
+		$term->name = $hidden_refs->get_string();
+		$terms = array($term);
+	}
+	return $terms;
+}
+
 ?>

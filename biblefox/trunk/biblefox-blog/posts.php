@@ -128,21 +128,6 @@ function bfox_blog_delete_post($post_id) {
 }
 add_action('delete_post', 'bfox_blog_delete_post');
 
-// HACK: Part of the 'add post for ref' link stuff
-// Looks for a hidden ref tag and saves it
-function bfox_blog_save_post_add_hidden_tag($post_id, $post) {
-	// Try to get a hidden tag from form input
-	if (isset($_POST[BfoxBlog::hidden_ref_tag])) {
-		$new_tag_refs = new BfoxRefs($_POST[BfoxBlog::hidden_ref_tag]);
-		if ($new_tag_refs->is_valid()) {
-			$tags = wp_get_post_tags($post_id, array('fields' => 'names'));
-			$tags []= $new_tag_refs->get_string();
-			wp_set_post_tags($post_id, $tags);
-		}
-	}
-}
-add_action('save_post', 'bfox_blog_save_post_add_hidden_tag', 5, 2);
-
 /*
  * Post Query Functions
  */

@@ -93,9 +93,6 @@ $biblefox = new Biblefox();
 
 class BfoxBlog {
 
-	const var_bible_ref = 'bfox_ref';
-
-	const hidden_ref_tag = 'bfox_hidden_ref';
 	const col_bible_refs = 'bfox_col_ref';
 	const post_type_bible = 'bfox_bible';
 
@@ -148,37 +145,11 @@ class BfoxBlog {
 		//add_settings_field('bfox_bible_translations', 'Enable Bible Translations', 'BfoxBlog::bible_setting_translations', 'reading', self::settings_section_bible);
 
 		add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'BfoxBlog::quick_view_meta_box', 'post', 'normal', 'core');
-
-		// Flush the hidden ref tags on the post-new screen
-		add_action('admin_head-post-new.php', 'BfoxBlog::flush_tag_script');
 	}
 
 	public static function admin_init() {
 		wp_enqueue_style('bfox-admin', BFOX_URL . '/includes/css/admin.css', array(), BFOX_VERSION);
 		wp_enqueue_script('bfox-admin', BFOX_URL . '/includes/js/admin.js', array('sack'), BFOX_VERSION);
-	}
-
-	/**
-	 * Output a script to flush the hidden bible ref to the tags
-	 */
-	public static function flush_tag_script() {
-		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
-			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
-			if ($hidden_refs->is_valid()) {
-				?>
-				<script type='text/javascript'>
-				//<![CDATA[
-				jQuery(document).ready( function() {
-					jQuery('#new-tag-post_tag').removeClass('form-input-tip').val('<?php echo $hidden_refs->get_string() ?>');
-					jQuery('#bfox_hidden_refs').val('');
-					tag_flush_to_text('post_tag');
-					jQuery('#new-tag-post_tag').addClass('form-input-tip');
-				});
-				//]]>
-				</script>
-				<?php
-			}
-		}
 	}
 
 	/**
@@ -189,13 +160,8 @@ class BfoxBlog {
 		global $post_ID;
 		$refs = bfox_blog_post_get_refs($post_ID);
 
-		if (!empty($_REQUEST[BfoxBlog::var_bible_ref])) {
-			$hidden_refs = new BfoxRefs($_REQUEST[BfoxBlog::var_bible_ref]);
-			if ($hidden_refs->is_valid()) {
-				echo "<input id='bfox_hidden_refs' type='hidden' name='" . BfoxBlog::hidden_ref_tag . "' value='" . $hidden_refs->get_string() . "'/>";
-				$refs->add_refs($hidden_refs);
-			}
-		}
+		if (!empty($_REQUEST['bfox_ref'])) $refs->add_string($_REQUEST['bfox_ref']);
+
 		$is_valid = $refs->is_valid();
 		if ($is_valid) $ref_str = $refs->get_string();
 
@@ -357,7 +323,7 @@ class BfoxBlog {
 	public static function ref_write_url($ref_str, $home_url = '') {
 		if (empty($home_url)) $home_url = self::$home_url;
 
-		return rtrim($home_url, '/') . '/wp-admin/post-new.php?' . self::var_bible_ref . '=' . urlencode($ref_str);
+		return rtrim($home_url, '/') . '/wp-admin/post-new.php?bfox_ref=' . urlencode($ref_str);
 	}
 
 	public static function ref_write_link($ref_str, $text = '', $home_url = '') {
