@@ -98,13 +98,44 @@ add_action('bp_activity_deleted_activities', 'bfox_bp_activity_deleted_activitie
 
 function bfox_bp_activity_set_refs(BfoxRefs $refs) {
 	global $bfox_activity_refs;
-	if ($refs->is_valid()) $bfox_activity_refs = $refs;
-	else unset($bfox_activity_refs);
+	if ($refs->is_valid()) {
+		$bfox_activity_refs = $refs;
+		add_filter('query', 'bfox_bp_bible_directory_activity_sql_hack');
+	}
+	else bfox_bp_activity_unset_refs();
 }
 
 function bfox_bp_activity_unset_refs() {
 	global $bfox_activity_refs;
 	unset($bfox_activity_refs);
+	remove_filter('query', 'bfox_bp_bible_directory_activity_sql_hack');
+}
+
+/**
+ * HACK function needed because we need to filter the activity table queries, but BP doesn't support filtering SQL queries
+ * See: http://trac.buddypress.org/ticket/1721
+ *
+ * Our workaround is to actually filter in the $wpdb->query() function (using the 'query' filter)
+ *
+ * @param string $query
+ * @return string
+ */
+function bfox_bp_bible_directory_activity_sql_hack($query) {
+	global $wpdb, $bp;
+
+	// Check to see if this is the query called by the BP_Activity_Activity::get() function
+
+	// Activity Query
+	$select_sql = "SELECT a.*, u.user_email, u.user_nicename, u.user_login, u.display_name";
+	$from_sql = " FROM {$bp->activity->table_name} a LEFT JOIN {$wpdb->users} u ON a.user_id = u.ID";
+	$activity_sql = "{$select_sql} {$from_sql}";
+	if (0 == substr_compare($query, $activity_sql, 0, min(strlen($query), strlen($activity_sql)))) return bfox_bp_activity_get_sql($query);
+
+	// Activity Count Query
+	$activity_sql = "SELECT count(a.id) FROM {$bp->activity->table_name} a";
+	if (0 == substr_compare($query, $activity_sql, 0, min(strlen($query), strlen($activity_sql)))) return bfox_bp_activity_get_total_sql($query);
+
+	return $query;
 }
 
 function bfox_bp_activity_get_sql($sql) {
@@ -118,14 +149,14 @@ function bfox_bp_activity_get_sql($sql) {
 	}
 	return $sql;
 }
-add_filter('bp_activity_get_sql', 'bfox_bp_activity_get_sql');
+//add_filter('bp_activity_get_sql', 'bfox_bp_activity_get_sql');
 
 function bfox_bp_activity_get_total_sql($sql) {
 	global $biblefox, $bfox_activity_refs;
 	if (isset($bfox_activity_refs)) $sql = 'SELECT FOUND_ROWS()';
 	return $sql;
 }
-add_filter('bp_activity_get_total_sql', 'bfox_bp_activity_get_total_sql');
+//add_filter('bp_activity_get_total_sql', 'bfox_bp_activity_get_total_sql');
 
 /*
  * Settings Functions
