@@ -144,7 +144,10 @@ function bfox_blog_parse_query($wp_query) {
 	// Bible Reference tags should redirect to a ref search
 	if (!empty($wp_query->query_vars['tag'])) {
 		$refs = BfoxBlog::tag_to_refs($wp_query->query_vars['tag']);
-		if ($refs->is_valid()) wp_redirect(BfoxBlog::ref_blog_url($wp_query->query_vars['tag']));
+		if ($refs->is_valid()) {
+			wp_redirect(BfoxBlog::ref_blog_url($wp_query->query_vars['tag']));
+			die();
+		}
 	}
 
 	// Check to see if the search string is a bible reference
