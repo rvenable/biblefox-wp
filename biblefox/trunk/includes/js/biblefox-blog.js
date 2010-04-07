@@ -11,13 +11,13 @@ function bfox_blog_iframe_select_change() {
 	jQuery(this).next('iframe.bfox-iframe').attr('src', option.val()).get(0).reload();
 }
 
-function bfox_blog_add_tooltips(elements) {
-	// Prevent bible ref links from going anywhere because we are showing a tooltip on a click
-	elements.click(function(event) {
-		event.preventDefault();
-	});
-	
-	elements.each(function() {
+jQuery(document).ready(function() {
+	// Iframes
+	jQuery('select.bfox-iframe-select').change(bfox_blog_iframe_select_change);
+
+	// Add tooltips to bible ref links
+	// NOTE: For live() qTip config see: http://stackoverflow.com/questions/2005521/problem-with-qtip-tips-not-showing-because-elements-load-after-the-script#answer-2485862
+	jQuery('span.bible-tooltip a').live('click', function() {
 		jQuery(this).qtip({
 			content: {
 				text: 'Loading...',
@@ -36,7 +36,9 @@ function bfox_blog_add_tooltips(elements) {
 					screen: true // Keep the tooltip on-screen at all times
 				}
 			},
+			overwrite: false,
 			show: {
+				ready: true,
 				when: 'click',
 				solo: true
 			},
@@ -67,13 +69,6 @@ function bfox_blog_add_tooltips(elements) {
 				}
 			}
 		});
+		return false;
 	});
-}
-
-jQuery(document).ready(function() {
-	// Iframes
-	jQuery('select.bfox-iframe-select').change(bfox_blog_iframe_select_change);
-
-	// Add tooltips to bible ref links
-	bfox_blog_add_tooltips(jQuery('span.bible-tooltip a'));
 });
