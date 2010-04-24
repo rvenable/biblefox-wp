@@ -16,11 +16,15 @@ class BfoxIframe {
 			'name' => 'BibleGateway.com',
 			'site' => 'http://www.biblegateway.com',
 			'template' => '%site%/passage/?search=%ref%&version=%trans%&interface=print',
+			'mobile_site' => 'http://mobile.biblegateway.com',
+			'mobile_template' => '%site%/passage/index.php?search=%ref%&version=%trans%',
 		),
 		'blueletter' => array(
 			'name' => 'Blue Letter Bible',
 			'site' => 'http://www.blueletterbible.org',
 			'template' => '%site%/tools/printerFriendly.cfm?b=%book%&c=%chapter%&v=%verse%&t=%trans%',
+			'mobile_site' => 'http://m.blb.org',
+			'mobile_template' => '%site%/bible.cfm?b=%book%&c=%chapter%&v=%verse%&t=%trans%&type=1',
 		),
 	);
 
@@ -60,9 +64,9 @@ class BfoxIframe {
 	private $url;
 	private $options;
 
-	public function __construct(BfoxRefs $refs) {
+	public function __construct(BfoxRefs $refs, $is_mobile = false) {
 		$this->refs = $refs;
-		self::create_options();
+		self::create_options($is_mobile);
 	}
 
 	/**
@@ -96,7 +100,7 @@ class BfoxIframe {
 	/**
 	 * Creates the $this->options array
 	 */
-	private function create_options() {
+	private function create_options($is_mobile) {
 		// Create template variables for this Bible reference
 		$template_vars = self::template_vars($this->refs);
 
@@ -107,7 +111,9 @@ class BfoxIframe {
 		$this->options = array();
 		foreach (self::$translations as $site_id => $list) {
 			$site = self::$sites[$site_id];
-			$template_vars['%site%'] = $site['site'];
+
+			if ($is_mobile && !empty($site['mobile_site'])) $template_vars['%site%'] = $site['mobile_site'];
+			else $template_vars['%site%'] = $site['site'];
 
 			foreach ($list as $trans_key => $translation) {
 				$template_vars['%trans%'] = $translation[0];
@@ -115,7 +121,9 @@ class BfoxIframe {
 				$iframe_key = 'bfox-iframe-key-' . $site_id . '-' . $translation[0];
 
 				// Create the URL from the site's URL template, replacing the template variables
-				$url = str_replace(array_keys($template_vars), $template_vars, $site['template']);
+				if ($is_mobile && !empty($site['mobile_template'])) $template = $site['mobile_template'];
+				else $template = $site['template'];
+				$url = str_replace(array_keys($template_vars), $template_vars, $template);
 
 				// Set the currently selected URL using the cookied key (or set it to the first available URL)
 				if ($iframe_key == $cookied_key || empty($this->url)) $this->url = $url;

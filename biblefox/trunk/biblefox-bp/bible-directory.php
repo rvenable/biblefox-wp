@@ -43,28 +43,31 @@ function bfox_bp_bible_directory_setup() {
 		bfox_bp_bible_directory_set_last_viewed($refs->get_string());
 		$biblefox->set_refs($refs);
 
-		wp_enqueue_style('biblefox-bp');
-
-		// Add some javascript to ensure that any AJAX calls include the current bible references
-		add_action('wp_head', 'bfox_bp_bible_directory_setup_ajax');
-		add_action('wp_head', 'bfox_bp_bible_directory_setup_what_read_ajax');
-
-		// Add the Bible iframe
-		add_action('bp_before_directory_activity_content', 'bfox_bp_before_bible_directory_activity_content');
-
-		add_action('bp_before_activity_post_form', 'bfox_bp_before_activity_post_form');
-
-		// HACK: Get rid of the 'Site Activity' string which is used as the header when not logged in
-		// This is a hack because we are filtering in the translate functions
-		add_filter('gettext', create_function('$translated, $text, $domain', 'if (\'Site Activity\' == $text) return \'\'; return $translated;'), 10, 3);
-		add_filter('gettext', create_function('$translated, $text, $domain', 'if (\'What\\\'s new %s?\' == $text) return \'Any thoughts to share?\'; return $translated;'), 10, 3);
-
 		do_action('bfox_bp_bible_directory_setup');
 
 		bfox_bp_core_load_template(apply_filters('bfox_bp_bible_directory_template', 'activity/index'));
 	}
 }
 add_action('wp', 'bfox_bp_bible_directory_setup', 2);
+
+function bfox_bp_bible_directory_setup_activity_template() {
+	wp_enqueue_style('biblefox-bp');
+
+	// Add some javascript to ensure that any AJAX calls include the current bible references
+	add_action('wp_head', 'bfox_bp_bible_directory_setup_ajax');
+	add_action('wp_head', 'bfox_bp_bible_directory_setup_what_read_ajax');
+
+	// Add the Bible iframe
+	add_action('bp_before_directory_activity_content', 'bfox_bp_before_bible_directory_activity_content');
+
+	add_action('bp_before_activity_post_form', 'bfox_bp_before_activity_post_form');
+
+	// HACK: Get rid of the 'Site Activity' string which is used as the header when not logged in
+	// This is a hack because we are filtering in the translate functions
+	add_filter('gettext', create_function('$translated, $text, $domain', 'if (\'Site Activity\' == $text) return \'\'; return $translated;'), 10, 3);
+	add_filter('gettext', create_function('$translated, $text, $domain', 'if (\'What\\\'s new %s?\' == $text) return \'Any thoughts to share?\'; return $translated;'), 10, 3);
+}
+add_action('bfox_bp_bible_directory_setup', 'bfox_bp_bible_directory_setup_activity_template');
 
 function bfox_bp_bible_directory_url($page = '') {
 	global $bp;
