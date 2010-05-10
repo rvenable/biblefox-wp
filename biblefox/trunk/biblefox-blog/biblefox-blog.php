@@ -1,7 +1,7 @@
 <?php
 
-define(BFOX_BLOG_DIR, dirname(__FILE__));
-define(BFOX_BLOG_URL, BFOX_URL . '/biblefox-blog');
+define('BFOX_BLOG_DIR', dirname(__FILE__));
+define('BFOX_BLOG_URL', BFOX_URL . '/biblefox-blog');
 
 require_once BFOX_BLOG_DIR . '/posts.php';
 

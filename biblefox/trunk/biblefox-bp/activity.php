@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_ACTIVITY_REFS_TABLE_VERSION, 2);
+define('BFOX_ACTIVITY_REFS_TABLE_VERSION', 2);
 
 class BfoxActivityRefsDbTable extends BfoxRefsDbTable {
 

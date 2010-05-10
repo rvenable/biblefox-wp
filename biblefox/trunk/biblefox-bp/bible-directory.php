@@ -1,7 +1,7 @@
 <?php
 
 /* Define the slug for the component */
-if (!defined('BFOX_BIBLE_SLUG')) define(BFOX_BIBLE_SLUG, 'bible');
+if (!defined('BFOX_BIBLE_SLUG')) define('BFOX_BIBLE_SLUG', 'bible');
 
 function bfox_bp_bible_directory_setup_root_component() {
 	bp_core_add_root_component(BFOX_BIBLE_SLUG);

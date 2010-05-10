@@ -1,6 +1,6 @@
 <?php
 
-define(BFOX_POST_REFS_TABLE_VERSION, 1);
+define('BFOX_POST_REFS_TABLE_VERSION', 1);
 
 /**
  * Manages a DB table with a list of bible references for blog posts

@@ -1,7 +1,7 @@
 <?php
 
-define(BFOX_BP_DIR, dirname(__FILE__));
-define(BFOX_BP_URL, BFOX_URL . '/biblefox-bp');
+define('BFOX_BP_DIR', dirname(__FILE__));
+define('BFOX_BP_URL', BFOX_URL . '/biblefox-bp');
 
 require_once BFOX_BP_DIR . '/activity.php';
 
