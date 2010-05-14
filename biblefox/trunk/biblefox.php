@@ -32,11 +32,12 @@
 
 *************************************************************************/
 
-define(BFOX_VERSION, '0.7');
-define(BFOX_DIR, dirname(__FILE__));
-define(BFOX_REFS_DIR, BFOX_DIR . '/biblerefs');
-define(BFOX_URL, WP_PLUGIN_URL . '/biblefox');
-define(BFOX_TABLE_PREFIX, $GLOBALS['wpdb']->base_prefix . 'bfox_');
+define('BFOX_VERSION', '0.7');
+define('BFOX_DIR', dirname(__FILE__));
+define('BFOX_REFS_DIR', BFOX_DIR . '/biblerefs');
+define('BFOX_URL', WP_PLUGIN_URL . '/biblefox');
+// TODO: base_prefix is a wpmu var
+define('BFOX_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
 require_once BFOX_DIR . '/utility.php';
