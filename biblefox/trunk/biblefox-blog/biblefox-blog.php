@@ -14,7 +14,7 @@ function bfox_blog_admin_menu() {
 		'bfox_blog_admin_settings'
 	);
 
-	add_submenu_page(
+	if (is_multisite()) add_submenu_page(
 		'wpmu-admin.php',
 		__('Bible Settings', 'biblefox'),
 		__('Bible Settings', 'biblefox'),
@@ -22,10 +22,20 @@ function bfox_blog_admin_menu() {
 		'bfox-blog-network-settings',
 		'bfox_blog_network_admin_settings'
 	);
-
 }
 add_action('admin_menu', 'bfox_blog_admin_menu', 20);
 
+/**
+ * Hook for displaying admin settings.
+ *
+ * In a multisite install, these will appear in the Network admin panel (via bfox_blog_admin_settings).
+ * Otherwise, these will appear in the Blog settings panel (via bfox_blog_admin_settings).
+ */
+function bfox_admin_settings() {
+	do_action('bfox_admin_settings');
+}
+if (is_multisite()) add_action('bfox_blog_network_admin_settings', 'bfox_admin_settings', 100);
+else add_action('bfox_blog_admin_settings', 'bfox_admin_settings', 100);
 
 function bfox_blog_admin_settings() {
 	?>

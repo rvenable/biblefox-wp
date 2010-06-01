@@ -44,6 +44,7 @@ require_once BFOX_DIR . '/utility.php';
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 require_once BFOX_DIR . '/bibletext.php';
 require_once BFOX_DIR . '/shortfoot.php';
+require_once BFOX_DIR . '/translations.php';
 require_once BFOX_DIR . '/iframe.php';
 
 //require_once("bfox-settings.php");
