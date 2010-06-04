@@ -5,30 +5,29 @@
 	Plugin URI: http://tools.biblefox.com/
 	Description: Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
 	Version: 0.7
-	Author: Biblefox
+	Author: Biblefox.com
 	Author URI: http://biblefox.com
 
 *************************************************************************/
 
-// TODO2: Add the license file, and add copyright notice to all source files (see http://www.fsf.org/licensing/licenses/gpl-howto.html )
 /*************************************************************************
 
-	Copyright 2009 biblefox.com
+	Copyright 2009 Biblefox.com
 
-	This file is part of Biblefox.
+	This file is part of Biblefox for WordPress.
 
-	Biblefox is free software: you can redistribute it and/or modify
+	Biblefox for WordPress is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	Biblefox is distributed in the hope that it will be useful,
+	Biblefox for WordPress is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with Biblefox.  If not, see <http://www.gnu.org/licenses/>.
+	along with Biblefox for WordPress.  If not, see <http://www.gnu.org/licenses/>.
 
 *************************************************************************/
 
@@ -36,16 +35,12 @@ define('BFOX_VERSION', '0.7');
 define('BFOX_DIR', dirname(__FILE__));
 define('BFOX_REFS_DIR', BFOX_DIR . '/biblerefs');
 define('BFOX_URL', WP_PLUGIN_URL . '/biblefox');
-// TODO: base_prefix is a wpmu var
-define('BFOX_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
-require_once BFOX_DIR . '/utility.php';
 
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 
 require_once BFOX_DIR . '/bibletext.php';
-require_once BFOX_DIR . '/shortfoot.php';
 require_once BFOX_DIR . '/translations.php';
 require_once BFOX_DIR . '/iframe.php';
 
