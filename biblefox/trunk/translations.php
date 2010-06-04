@@ -157,7 +157,7 @@ function bfox_translation_settings() {
 		<input type="submit" name="remove-translations" class="button-primary" value="<?php esc_attr_e('Remove Selected', 'biblefox') ?>" />
 		</p>
 	</form>
-	<h4><?php _e('Add a new online Bible translation', 'biblefox') ?></h4>
+	<h3><?php _e('Add a new Online Bible translation', 'biblefox') ?></h3>
 	<form action="" method="post" class="standard-form" id="settings-form">
 		<table class="form-table">
 			<tr valign="top">
@@ -201,6 +201,7 @@ function bfox_translation_settings() {
 	<?php
 
 }
-add_action('bfox_admin_settings', 'bfox_translation_settings');
+if (is_multisite()) add_action('bfox_ms_admin_page', 'bfox_translation_settings', 30);
+else add_action('bfox_blog_admin_page', 'bfox_translation_settings', 30);
 
 ?>

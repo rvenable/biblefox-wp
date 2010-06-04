@@ -6,59 +6,85 @@ define('BFOX_BLOG_URL', BFOX_URL . '/biblefox-blog');
 require_once BFOX_BLOG_DIR . '/posts.php';
 
 function bfox_blog_admin_menu() {
+	require_once BFOX_BLOG_DIR . '/admin.php';
+
 	add_options_page(
 		__('Bible Settings', 'biblefox'),
 		__('Bible Settings', 'biblefox'),
 		'manage_options',
 		'bfox-blog-settings',
-		'bfox_blog_admin_settings'
+		'bfox_blog_admin_page'
 	);
 
-	if (is_multisite()) add_submenu_page(
+	add_settings_section('bfox-admin-settings-main', 'Settings', 'bfox_bp_admin_settings_bible_directory', 'bfox-admin-settings');
+
+	add_settings_section('bfox-blog-admin-settings-main', __('Settings', 'bfox'), 'bfox_blog_admin_settings_main', 'bfox-blog-admin-settings');
+
+	add_settings_field('bfox-tooltips', __('Bible Reference Tooltips', 'bfox'), 'bfox_blog_admin_setting_tooltips', 'bfox-blog-admin-settings', 'bfox-blog-admin-settings-main', array('label_for' => 'bfox-toolips'));
+	register_setting('bfox-blog-admin-settings', 'bfox-blog-options');
+
+	do_action('bfox_blog_admin_menu');
+}
+if (!is_multisite() || get_site_option('bfox-ms-allow-blog-options')) add_action('admin_menu', 'bfox_blog_admin_menu', 20);
+
+function bfox_ms_admin_menu() {
+	require_once BFOX_BLOG_DIR . '/ms-admin.php';
+	require_once BFOX_BLOG_DIR . '/admin.php'; // We need to load this for the blog options functions (for instance, bfox_blog_admin_setting_tooltips())
+
+	add_submenu_page(
 		'wpmu-admin.php',
-		__('Bible Settings', 'biblefox'),
-		__('Bible Settings', 'biblefox'),
+		__('Biblefox', 'biblefox'),
+		__('Biblefox', 'biblefox'),
 		10,
-		'bfox-blog-network-settings',
-		'bfox_blog_network_admin_settings'
+		'bfox-ms',
+		'bfox_ms_admin_page'
 	);
-}
-add_action('admin_menu', 'bfox_blog_admin_menu', 20);
 
-/**
- * Hook for displaying admin settings.
- *
- * In a multisite install, these will appear in the Network admin panel (via bfox_blog_admin_settings).
- * Otherwise, these will appear in the Blog settings panel (via bfox_blog_admin_settings).
- */
-function bfox_admin_settings() {
-	do_action('bfox_admin_settings');
-}
-if (is_multisite()) add_action('bfox_blog_network_admin_settings', 'bfox_admin_settings', 100);
-else add_action('bfox_blog_admin_settings', 'bfox_admin_settings', 100);
+	add_settings_section('bfox-ms-admin-settings-main', __('Settings', 'bfox'), 'bfox_ms_admin_settings_main', 'bfox-ms-admin-settings');
+	add_settings_field('bfox-ms-allow-blog-options', __('Allow Biblefox Blog Options', 'bfox'), 'bfox_ms_admin_setting_allow_blog_options', 'bfox-ms-admin-settings', 'bfox-ms-admin-settings-main', array('label_for' => 'bfox-ms-allow-blog-options'));
 
-function bfox_blog_admin_settings() {
-	?>
-	<div class="wrap">
-		<h2><?php _e('Biblefox for WordPress Settings', 'biblefox') ?></h2>
-	<?php if (apply_filters('bfox_blog_admin_show_settings', true)): ?>
-		<p><?php _e('Biblefox for WordPress finds Bible references in all your blog posts, indexing your blog by the Bible verses you write about.', 'biblefox')?></p>
-		<?php do_action('bfox_blog_admin_settings') ?>
-	<?php endif ?>
-	</div>
-	<?php
+	// Blog settings (found in admin.php, not ms-admin.php)
+	add_settings_field('bfox-tooltips', __('Bible Reference Tooltips', 'bfox'), 'bfox_blog_admin_setting_tooltips', 'bfox-ms-admin-settings', 'bfox-ms-admin-settings-main', array('label_for' => 'bfox-tooltips'));
+
+	do_action('bfox_ms_admin_menu');
+}
+if (is_multisite()) add_action('admin_menu', 'bfox_ms_admin_menu', 20);
+
+function bfox_blog_option_defaults($new_options = array()) {
+	$defaults = array(
+		'tooltips' => true,
+	);
+
+	if (!empty($new_options)) {
+		foreach ($defaults as $key => $value) {
+			if (isset($new_options[$key])) $defaults[$key] = $new_options[$value];
+		}
+	}
+
+	return $defaults;
 }
 
-function bfox_blog_network_admin_settings() {
-	?>
-	<div class="wrap">
-		<h2><?php _e('Biblefox for WordPress - Network Admin Settings', 'biblefox') ?></h2>
-	<?php if (apply_filters('bfox_blog_network_admin_show_settings', true)): ?>
-		<p><?php _e('Biblefox for WordPress finds Bible references in all your blog posts, indexing your blog by the Bible verses you write about.', 'biblefox')?></p>
-		<?php do_action('bfox_blog_network_admin_settings') ?>
-	<?php endif ?>
-	</div>
-	<?php
+function bfox_blog_options() {
+	global $_bfox_blog_options;
+
+	if (!isset($_bfox_blog_options)) {
+		// Get the options using get_site_option() first (which will be get_option() if not multisite anyway)
+		$_bfox_blog_options = get_site_option('bfox-blog-options');
+
+		// If we are allowing the blog to set options, use them to overwrite the defaults
+		if (is_multisite() && get_site_option('bfox-ms-allow-blog-options'))
+			$_bfox_blog_options = array_merge($_bfox_blog_options, (array) get_option('bfox-blog-options'));
+
+		// Add the default values
+		$_bfox_blog_options = bfox_blog_option_defaults($_bfox_blog_options);
+	}
+
+	return $_bfox_blog_options;
+}
+
+function bfox_blog_option($key) {
+	$options = bfox_blog_options();
+	return $options[$key];
 }
 
 /*

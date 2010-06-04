@@ -168,12 +168,13 @@ function bfox_bp_admin_activity_refresh_url() {
 
 function bfox_bp_admin_activity_refresh() {
 	?>
-		<h3><?php _e('Refresh Bible Index', 'biblefox') ?></h3>
-		<p><?php _e('You can refresh your Bible index to make sure all activity is indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
-		<p><a class="button" href="<?php echo bfox_bp_admin_activity_refresh_url() ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
+		<h3><?php _e('Refresh Bible Index for all BuddyPress Activities', 'biblefox') ?></h3>
+		<p><?php _e('Every BuddyPress activity gets added to the Bible index based on the Bible references it contains. You can refresh your Bible index to make sure all activity is indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
+		<p><a class="button-primary" href="<?php echo bfox_bp_admin_activity_refresh_url() ?>"><?php _e('Refresh BuddyPress Activities', 'biblefox') ?></a></p>
+		<br/>
 	<?php
 }
-add_action('bfox_bp_admin_settings', 'bfox_bp_admin_activity_refresh');
+add_action('bfox_bp_admin_page', 'bfox_bp_admin_activity_refresh', 21);
 
 function bfox_bp_admin_activity_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_activity_refresh']) {
@@ -212,7 +213,7 @@ function bfox_bp_admin_activity_check_refresh($show_settings) {
 	}
 	return $show_settings;
 }
-add_filter('bfox_bp_admin_show_settings', 'bfox_bp_admin_activity_check_refresh');
+add_filter('bfox_bp_show_admin_page', 'bfox_bp_admin_activity_check_refresh');
 
 /*
  * "What did you read?" functions

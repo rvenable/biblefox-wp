@@ -238,20 +238,21 @@ function bfox_blog_admin_post_refresh() {
 		<h3 id="bible-refresh"><?php _e('Refresh Bible Index', 'biblefox') ?></h3>
 		<p><?php _e('You can refresh the Bible index for your blog to make sure all blog posts are indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
 		<?php bfox_blog_admin_post_refresh_output_status(false) ?>
-		<p><a class="button" href="<?php echo bfox_blog_admin_post_refresh_url(false) ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
+		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(false) ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
 	<?php
 }
-add_action('bfox_blog_admin_settings', 'bfox_blog_admin_post_refresh');
+add_action('bfox_blog_admin_page', 'bfox_blog_admin_post_refresh');
 
 function bfox_blog_network_admin_post_refresh() {
 	?>
-		<h3 id="bible-refresh"><?php _e('Refresh Bible Index', 'biblefox') ?></h3>
+		<h3 id="bible-refresh"><?php _e('Refresh Bible Index for All Blogs', 'biblefox') ?></h3>
 		<p><?php _e('You can refresh the Bible index for all the blogs on your network to make sure all blog posts are indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
 		<?php bfox_blog_admin_post_refresh_output_status(true) ?>
-		<p><a class="button" href="<?php echo bfox_blog_admin_post_refresh_url(true) ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
+		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(true) ?>"><?php _e('Refresh All Blogs', 'biblefox') ?></a></p>
+		<br/>
 	<?php
 }
-add_action('bfox_blog_network_admin_settings', 'bfox_blog_network_admin_post_refresh');
+if (is_multisite()) add_action('bfox_ms_admin_page', 'bfox_blog_network_admin_post_refresh', 22);
 
 function bfox_blog_admin_post_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_post_refresh']) {
@@ -334,7 +335,7 @@ function bfox_blog_admin_post_check_refresh($show_settings) {
 	}
 	return $show_settings;
 }
-add_filter('bfox_blog_admin_show_settings', 'bfox_blog_admin_post_check_refresh');
-add_filter('bfox_blog_network_admin_show_settings', 'bfox_blog_admin_post_check_refresh');
+add_filter('bfox_blog_show_admin_page', 'bfox_blog_admin_post_check_refresh');
+add_filter('bfox_ms_show_admin_page', 'bfox_blog_admin_post_check_refresh');
 
 ?>

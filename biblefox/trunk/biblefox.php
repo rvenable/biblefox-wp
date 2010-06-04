@@ -41,16 +41,13 @@ define('BFOX_TABLE_PREFIX', $GLOBALS['wpdb']->base_prefix . 'bfox_');
 
 require_once BFOX_REFS_DIR . '/refs.php';
 require_once BFOX_DIR . '/utility.php';
+
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
+
 require_once BFOX_DIR . '/bibletext.php';
 require_once BFOX_DIR . '/shortfoot.php';
 require_once BFOX_DIR . '/translations.php';
 require_once BFOX_DIR . '/iframe.php';
-
-//require_once("bfox-settings.php");
-
-// TODO3: get blogplans.php working and included
-//require_once BFOX_PLANS_DIR . '/blogplans.php';
 
 class Biblefox {
 	/**
@@ -124,8 +121,12 @@ class BfoxBlog {
 		wp_enqueue_style('bfox-blog', BFOX_URL . '/includes/css/biblefox-blog.css', array(), BFOX_VERSION);
 
 		// Scripts
-		wp_register_script('bfox-tooltip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
-		wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery', 'bfox-tooltip'), BFOX_VERSION);
+		wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery'), BFOX_VERSION);
+
+		if (bfox_blog_option('tooltips')) {
+			wp_register_script('bfox-qtip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
+			wp_enqueue_script('bfox-tooltips', BFOX_URL . '/includes/js/tooltips.js', array('jquery', 'bfox-qtip'), BFOX_VERSION);
+		}
 	}
 
 	/**
@@ -197,7 +198,9 @@ class BfoxBlog {
 	 * @return string
 	 */
 	public static function link_add_ref_tooltip($link, $ref_str) {
-		return '<span class="bible-tooltip">' . $link . '<a class="bible-tooltip-url" href="' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '"></a></span>';
+		if (bfox_blog_option('tooltips'))
+			return '<span class="bible-tooltip">' . $link . '<a class="bible-tooltip-url" href="' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '"></a></span>';
+		return $link;
 	}
 
 	/**

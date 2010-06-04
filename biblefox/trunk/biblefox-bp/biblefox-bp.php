@@ -5,8 +5,26 @@ define('BFOX_BP_URL', BFOX_URL . '/biblefox-bp');
 
 require_once BFOX_BP_DIR . '/activity.php';
 
-// TODO: only load if user option
-require_once BFOX_BP_DIR . '/bible-directory.php';
+if (get_site_option('bfox-enable-bible-directory')) require_once BFOX_BP_DIR . '/bible-directory.php';
+
+function bfox_bp_admin_menu() {
+	require_once BFOX_BP_DIR . '/admin.php';
+
+	add_submenu_page(
+		'bp-general-settings',
+		__('Biblefox', 'biblefox'),
+		__('Biblefox', 'biblefox'),
+		'manage_options',
+		'bfox-bp-settings',
+		'bfox_bp_admin_page'
+	);
+
+	add_settings_section('bfox-bp-admin-settings-main', __('Settings', 'bfox'), 'bfox_bp_admin_settings_main', 'bfox-bp-admin-settings');
+
+	register_setting('bfox-bp-admin-settings', 'bfox-enable-bible-directory');
+	add_settings_field('bfox-enable-bible-directory', 'Enable BuddyPress Bible Directory', 'bfox_bp_admin_setting_enable_bible_directory', 'bfox-bp-admin-settings', 'bfox-bp-admin-settings-main', array('label_for' => 'bfox-enable-bible-directory'));
+}
+add_action('admin_menu', 'bfox_bp_admin_menu', 20);
 
 // Add Ref Replace filters
 add_filter('bp_get_activity_content_body', 'bfox_ref_replace_html');
@@ -79,31 +97,6 @@ function bfox_bp_located_template($located, $template_names) {
 }
 //add_filter('bp_located_template', 'bfox_bp_located_template', 10, 2);
 //add_filter('bfox_bp_located_template', 'bfox_bp_located_template', 10, 2);
-
-function bfox_bp_admin_menu() {
-	add_submenu_page(
-		'bp-general-settings',
-		__('Bible Settings', 'biblefox'),
-		__('Bible Settings', 'biblefox'),
-		'manage_options',
-		'bfox-bp-settings',
-		'bfox_bp_admin_settings'
-	);
-}
-add_action('admin_menu', 'bfox_bp_admin_menu', 20);
-
-
-function bfox_bp_admin_settings() {
-	?>
-	<div class="wrap">
-		<h2><?php _e('Biblefox for BuddyPress Settings', 'biblefox') ?></h2>
-	<?php if (apply_filters('bfox_bp_admin_show_settings', true)): ?>
-		<p><?php _e('Biblefox for BuddyPress finds Bible references in all BuddyPress activity, indexing your site by the Bible verses that people are discussing.', 'biblefox')?></p>
-		<?php do_action('bfox_bp_admin_settings') ?>
-	<?php endif ?>
-	</div>
-	<?php
-}
 
 do_action('bfox_bp_loaded');
 

@@ -1,6 +1,6 @@
 <?php
 
-/* Define the slug for the component */
+// Define the slug for the Bible Directory component
 if (!defined('BFOX_BIBLE_SLUG')) define('BFOX_BIBLE_SLUG', 'bible');
 
 function bfox_bp_bible_directory_setup_root_component() {
