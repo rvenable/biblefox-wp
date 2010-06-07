@@ -8,6 +8,17 @@ function bfox_bp_bible_directory_setup_root_component() {
 }
 add_action('plugins_loaded', 'bfox_bp_bible_directory_setup_root_component', 2);
 
+/**
+ * Filter function for overriding the URLs created by BfoxBlog::ref_bible_url so that they point to the local Bible Directory
+ * @param string $template
+ * @return string
+ */
+function bfox_bp_bible_url_template($template) {
+	global $bp;
+	return $bp->root_domain . '/' . BFOX_BIBLE_SLUG . '/%ref%';
+}
+add_filter('bfox_blog_bible_url_template', 'bfox_bp_bible_url_template');
+
 function bfox_bp_bible_directory_get_last_viewed() {
 	global $user_ID;
 	if ($user_ID) return get_user_option('bfox_bp_bible_directory_last_viewed');
@@ -37,7 +48,7 @@ function bfox_bp_bible_directory_setup() {
 			$refs = new BfoxRefs(bfox_bp_bible_directory_get_last_viewed());
 			// If we don't have a last viewed reference, use Gen 1
 			if (!$refs->is_valid()) $refs = new BfoxRefs('Gen 1');
-			bp_core_redirect(bp_bible_ref_url($refs->get_string()));
+			bp_core_redirect(BfoxBlog::ref_bible_url($refs->get_string()));
 		}
 
 		bfox_bp_bible_directory_set_last_viewed($refs->get_string());
@@ -158,8 +169,8 @@ function bfox_bp_bible_directory_iframe() {
 	$prev_ref_str = $refs->prev_chapter_string();
 	$next_ref_str = $refs->next_chapter_string();
 	$links = '';
-	if (!empty($prev_ref_str)) $links .= bp_bible_ref_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
-	if (!empty($next_ref_str)) $links .= bp_bible_ref_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
+	if (!empty($prev_ref_str)) $links .= BfoxBlog::ref_bible_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
+	if (!empty($next_ref_str)) $links .= BfoxBlog::ref_bible_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
 	?>
 			<h4><?php echo $refs->get_string() ?></h4>
 			<div class='passage-nav'><?php echo $links ?></div>

@@ -267,7 +267,7 @@ class BfoxBlog {
 	public static function ref_bible_link($options) {
 		BfoxBlog::fix_ref_link_options($options);
 
-		// If there is no href, get it from the bp_bible_ref_url() function
+		// If there is no href, get it from the BfoxBlog::ref_bible_url() function
 		if (!isset($options['attrs']['href'])) $options['attrs']['href'] = self::ref_bible_url($options['ref_str']);
 
 		return BfoxBlog::ref_link_from_options($options);
