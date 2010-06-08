@@ -54,50 +54,6 @@ function bfox_bp_check_install() {
 }
 add_action('admin_menu', 'bfox_bp_check_install');
 
-
-/**
- * Function that imitates locate_template() but adds a filter so we can modify the located file name before we try to load it
- *
- * @param $template_names
- * @param $load
- * @return string located file name
- */
-function bfox_bp_locate_template($template_names, $load = false) {
-	if (!is_array($template_names))
-		return '';
-
-	$located = apply_filters('bfox_bp_located_template', locate_template($template_names, false), $template_names);
-
-	if ($load && '' != $located)
-		load_template($located);
-
-	return $located;
-}
-
-/**
- * Locates theme files within the plugin if they weren't found in the theme
- *
- * @param string $located
- * @param array $template_names
- * @return string
- */
-function bfox_bp_located_template($located, $template_names) {
-	if (empty($located)) {
-		$dir = BFOX_BP_DIR . '/theme/';
-		foreach((array) $template_names as $template_name) {
-			$template_name = ltrim($template_name, '/');
-			list($start, $end) = explode('/', $template_name, 2);
-			if (('bible' == strtolower($start)) && (file_exists($dir . $template_name))) {
-				$located = $dir . $template_name;
-				break;
-			}
-		}
-	}
-	return $located;
-}
-//add_filter('bp_located_template', 'bfox_bp_located_template', 10, 2);
-//add_filter('bfox_bp_located_template', 'bfox_bp_located_template', 10, 2);
-
 do_action('bfox_bp_loaded');
 
 ?>
