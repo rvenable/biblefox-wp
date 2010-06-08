@@ -94,12 +94,12 @@ function bfox_blog_post_get_refs($post, $ref_type = null) {
 	$refs = new BfoxRefs;
 
 	// Get Bible references from content
-	if (is_null($ref_type) || BfoxPostRefsDbTable::ref_type_content == $ref_type) $refs->add_refs(BfoxBlog::content_to_refs($post->post_content));
+	if (is_null($ref_type) || BfoxPostRefsDbTable::ref_type_content == $ref_type) $refs->add_refs(Biblefox::content_to_refs($post->post_content));
 
 	// Get Bible references from tags
 	if (is_null($ref_type) || BfoxPostRefsDbTable::ref_type_tag == $ref_type) {
 		$tags = wp_get_post_tags($post->ID, array('fields' => 'names'));
-		foreach ($tags as $tag) $refs->add_refs(BfoxBlog::tag_to_refs($tag));
+		foreach ($tags as $tag) $refs->add_refs(Biblefox::tag_to_refs($tag));
 	}
 
 	return $refs;
@@ -143,7 +143,7 @@ function bfox_blog_parse_query($wp_query) {
 
 	// Bible Reference tags should redirect to a ref search
 	if (!empty($wp_query->query_vars['tag'])) {
-		$refs = BfoxBlog::tag_to_refs($wp_query->query_vars['tag']);
+		$refs = Biblefox::tag_to_refs($wp_query->query_vars['tag']);
 		if ($refs->is_valid()) {
 			wp_redirect(BfoxBlog::ref_blog_url($wp_query->query_vars['tag']));
 			die();
@@ -153,7 +153,7 @@ function bfox_blog_parse_query($wp_query) {
 	// Check to see if the search string is a bible reference
 	if (!empty($wp_query->query_vars['s'])) {
 		// TODO: use leftovers
-		$refs = BfoxBlog::tag_to_refs($wp_query->query_vars['s']);
+		$refs = Biblefox::tag_to_refs($wp_query->query_vars['s']);
 		if ($refs->is_valid()) {
 			$wp_query->query_vars['s'] = '';
 			$wp_query->bfox_refs = $refs;

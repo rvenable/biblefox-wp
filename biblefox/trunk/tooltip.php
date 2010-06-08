@@ -19,7 +19,7 @@ $count = 0;
 	</ul>
 	<div><?php echo $ref_str . __(' links', 'biblefox-blog') ?></div>
 	<ul>
-		<li><?php echo BfoxBlog::ref_bible_link(array('ref_str' => $ref_str, 'text' => __('Bible Reader', 'biblefox-blog'))) ?></li>
+		<li><?php echo Biblefox::ref_bible_link(array('ref_str' => $ref_str, 'text' => __('Bible Reader', 'biblefox-blog'))) ?></li>
 		<li><?php echo BfoxBlog::ref_blog_link(array('ref_str' => $ref_str, 'text' => __('Post Archive', 'biblefox-blog'))) ?></li>
 
 		<?php if (current_user_can('edit_posts')): ?>

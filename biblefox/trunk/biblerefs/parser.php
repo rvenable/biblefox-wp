@@ -104,7 +104,7 @@ class BfoxRefParser {
 				if ($data->save_refs_array) $refs_array []= $refs;
 
 				// TODO: the ref_link function needs to be passed in
-				$link = BfoxBlog::ref_bible_link(array(
+				$link = Biblefox::ref_bible_link(array(
 					'refs' => $refs,
 					'text' => substr($str, $substr->offset, $substr->length)
 				));
