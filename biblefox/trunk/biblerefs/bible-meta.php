@@ -1,11 +1,9 @@
 <?php
 
-class BibleBcvSubstr
-{
+class BibleBcvSubstr {
 	public $book, $offset, $length, $cv_offset;
 
-	public function __construct($book, $offset, $length, $cv_offset = 0)
-	{
+	public function __construct($book, $offset, $length, $cv_offset = 0) {
 		$this->book = $book;
 		$this->offset = $offset;
 		$this->length = $length;
@@ -13,8 +11,7 @@ class BibleBcvSubstr
 	}
 }
 
-class BibleMeta
-{
+class BibleMeta {
 	const name_normal = 'name';
 	const name_short = 'short_name';
 	const digits = '0123456789';
@@ -26,8 +23,7 @@ class BibleMeta
 	 * @param string $name Selects a particular book name (ie. name, short_name, ...)
 	 * @return unknown
 	 */
-	public static function get_book_name($book, $name = '')
-	{
+	public static function get_book_name($book, $name = '') {
 		if (empty($name)) $name = self::name_normal;
 		if (isset(self::$books[$book][$name])) return self::$books[$book][$name];
 		return 'Unknown';
@@ -43,16 +39,14 @@ class BibleMeta
 	 * @param integer $max_level
 	 * @return integer
 	 */
-	public static function get_book_id($raw_synonym, $max_level = 0)
-	{
+	public static function get_book_id($raw_synonym, $max_level = 0) {
 		$words = array();
 
 		// Chop the synonym into words (numeric digits count as words)
 		$raw_words = str_word_count(strtolower(trim($raw_synonym)), 1, self::digits);
 
 		// There needs to be at least one word
-		if (0 < count($raw_words))
-		{
+		if (0 < count($raw_words)) {
 			// Create a new word array with only the words we don't want to ignore (and get rid of the old array
 			foreach ($raw_words as $word) if (!isset(self::$ignore_words[$word])) $words []= $word;
 			unset($raw_words);
@@ -68,21 +62,18 @@ class BibleMeta
 	 * @param integer $max_level
 	 * @return array of BibleBcvSubstr
 	 */
-	public static function get_bcv_substrs($str, $max_level = 0)
-	{
+	public static function get_bcv_substrs($str, $max_level = 0) {
 		// Get all the book substrings in this string
 		$substrs = self::get_book_substrs($str, $max_level);
 
 		// For each book substring, check the characters immediately following it to see if there are chapter, verse references
-		foreach ($substrs as $index => &$substr)
-		{
+		foreach ($substrs as $index => &$substr) {
 			$cv_offset = $substr->offset + $substr->length;
 			if (isset($substrs[$index + 1])) $next_offset = $substrs[$index + 1]->offset;
 			else $next_offset = strlen($str);
 
 			$leftovers = substr($str, $cv_offset, $next_offset - $cv_offset);
-			if (preg_match('/^\s*\d[\s\d-:,;]*/', $leftovers, $match))
-			{
+			if (preg_match('/^\s*\d[\s\d-:,;]*/', $leftovers, $match)) {
 				$substr->cv_offset = $cv_offset;
 				$substr->length += strlen(rtrim($match[0]));
 			}
@@ -98,8 +89,7 @@ class BibleMeta
 	 * @param integer $max_level
 	 * @return array of BibleBcvSubstr
 	 */
-	private static function get_book_substrs($str, $max_level = 0)
-	{
+	private static function get_book_substrs($str, $max_level = 0) {
 		$str = strtolower($str);
 
 		$substrs = array();
@@ -108,15 +98,13 @@ class BibleMeta
 		$sections = preg_split('/[,;]/', $str, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
 
 		// We have to operate on each section separately
-		foreach ($sections as $section)
-		{
+		foreach ($sections as $section) {
 			$section_str = $section[0];
 			$section_offset = $section[1];
 
 			// Search for books in this section
 			$section_substrs = self::search_for_books($section_str, $max_level);
-			foreach ($section_substrs as $substr)
-			{
+			foreach ($section_substrs as $substr) {
 				$substr->offset += $section_offset;
 				$substrs []= $substr;
 			}
@@ -132,8 +120,7 @@ class BibleMeta
 	 * @param integer $max_level
 	 * @return array of BibleBcvSubstr
 	 */
-	private static function search_for_books($str, $max_level)
-	{
+	private static function search_for_books($str, $max_level) {
 		$books = array();
 		$prefix_words = array();
 		$prefix_offset = 0;
@@ -142,20 +129,16 @@ class BibleMeta
 		$words = str_word_count($str, 2, self::digits);
 
 		// Loop through each word to see if we can find a book name
-		foreach ($words as $pos => $word)
-		{
+		foreach ($words as $pos => $word) {
 			// We should ignore ignore words (unless there are no prefix words)
-			if (isset(self::$ignore_words[$word]))
-			{
+			if (isset(self::$ignore_words[$word])) {
 				// If no prefix words, but this ignore word can exist as the first word, add it to the prefix words
-				if (empty($prefix_words) && self::$ignore_words[$word])
-				{
+				if (empty($prefix_words) && self::$ignore_words[$word]) {
 					$prefix_words []= $word;
 					$prefix_offset = $pos;
 				}
 			}
-			else
-			{
+			else {
 				$book = array();
 
 				// Add the current word to the prefix list
@@ -166,27 +149,23 @@ class BibleMeta
 				// If the prefix words are a valid prefix, we should save them for later to see if we can add the next word
 				// Otherwise, we need to see if we can get book name from the prefix words
 				if (self::is_prefix($prefix_words)) $old_prefix_len = $new_prefix_len;
-				else
-				{
+				else {
 					// Try to get a book ID from the words
 					$book_id = self::get_book_id_from_words($prefix_words, $max_level);
 
 					// If we got a book ID, then we can add this book and clear our prefixes
 					// Otherwise, this newest word doesn't belong with the prefix list
-					if (!empty($book_id))
-					{
+					if (!empty($book_id)) {
 						$books []= new BibleBcvSubstr($book_id, $prefix_offset, $new_prefix_len);
 						$prefix_words = array();
 					}
-					else
-					{
+					else {
 						// Pop off the newest word which we had just added to the prefix list
 						array_pop($prefix_words);
 
 						// If we still have a prefix list,
 						// Then we should see if it is a book name and clear the prefix list
-						if (!empty($prefix_words))
-						{
+						if (!empty($prefix_words)) {
 							// If the prefix list is a valid book, we should add the book
 							$book_id = self::get_book_id_from_words($prefix_words, $max_level);
 							if (!empty($book_id)) $books []= new BibleBcvSubstr($book_id, $prefix_offset, $old_prefix_len);
@@ -199,13 +178,11 @@ class BibleMeta
 
 						// If this word is a prefix, then we should start a new prefix list with it
 						// Otherwise, if it is a book name, we should add the book
-						if (self::is_prefix(array($word)))
-						{
+						if (self::is_prefix(array($word))) {
 							$prefix_offset = $pos;
 							$prefix_words = array($word);
 						}
-						elseif ($book_id = self::get_book_id_from_words(array($word), $max_level))
-						{
+						elseif ($book_id = self::get_book_id_from_words(array($word), $max_level)) {
 							$books[] = new BibleBcvSubstr($book_id, $pos, strlen($word));
 						}
 					}
@@ -214,8 +191,7 @@ class BibleMeta
 		}
 
 		// If we still have prefix words, check to see if they are a book
-		if (!empty($prefix_words))
-		{
+		if (!empty($prefix_words)) {
 			$book_id = self::get_book_id_from_words($prefix_words, $max_level);
 			if (!empty($book_id)) $books []= new BibleBcvSubstr($book_id, $prefix_offset, $old_prefix_len);
 		}
@@ -232,8 +208,7 @@ class BibleMeta
 	 * @param array $prefix_words
 	 * @return bool
 	 */
-	private static function is_prefix($prefix_words)
-	{
+	private static function is_prefix($prefix_words) {
 		$prefix = implode(' ', $prefix_words);
 		return (isset(self::$prefixes[$prefix]) || isset(self::$num_strings[$prefix]));
 	}
@@ -247,28 +222,23 @@ class BibleMeta
 	 * @param integer $max_level
 	 * @return integer Book ID or FALSE
 	 */
-	private static function get_book_id_from_words($words, $max_level)
-	{
-		if (0 < count($words))
-		{
+	private static function get_book_id_from_words($words, $max_level) {
+		if (0 < count($words)) {
 			// If the first word is a string representing a number, shift that number off the word list
 			// That number will need to be prepended to the beginning of the first word
 			// For instance: '1 sam' should become '1sam'
 			if (isset(self::$num_strings[$words[0]])) $num = self::$num_strings[array_shift($words)];
 
-			if (0 < count($words))
-			{
+			if (0 < count($words)) {
 				// Prepend the book number if set
 				if (!empty($num)) $words[0] = $num . $words[0];
 
 				$synonym = implode(' ', $words);
 
-				if (!empty($synonym))
-				{
+				if (!empty($synonym)) {
 					// Loop through each allowed level
 					$level = 0;
-					while (empty($book_id) && ($level <= $max_level))
-					{
+					while (empty($book_id) && ($level <= $max_level)) {
 						$book_id = self::$synonyms[$level][$synonym];
 						$level++;
 					}
@@ -805,13 +775,11 @@ class BibleMeta
 	const start_chapter = 1;
 	const start_verse = 1;
 
-	static function end_verse_min($book, $chapter = 0)
-	{
+	static function end_verse_min($book, $chapter = 0) {
 		return self::$min_verse_counts[$book][$chapter];
 	}
 
-	static function end_verse_max($book, $chapter = 0)
-	{
+	static function end_verse_max($book, $chapter = 0) {
 		return (isset(self::$max_verse_counts[$book][$chapter])) ? self::$max_verse_counts[$book][$chapter] : self::$min_verse_counts[$book][$chapter];
 	}
 
