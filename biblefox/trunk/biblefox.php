@@ -81,21 +81,6 @@ class Biblefox {
 		return $this->refs;
 	}
 
-	const col_bible_refs = 'bfox_col_ref';
-
-	/**
-	 * Wraps some bible ref tooltip content around a bible link
-	 *
-	 * @param string $link
-	 * @param string $ref_str
-	 * @return string
-	 */
-	public static function link_add_ref_tooltip($link, $ref_str) {
-		if (bfox_blog_option('tooltips'))
-			return '<span class="bible-tooltip">' . $link . '<a class="bible-tooltip-url" href="' . get_option('home') . '/?bfox-tooltip-ref=' . $ref_str . '"></a></span>';
-		return $link;
-	}
-
 	/**
 	 * Fixes a bible ref link options array so that it has a ref_str if it doesn't already
 	 *
@@ -128,15 +113,15 @@ class Biblefox {
 			if (!isset($attrs['href'])) self::ref_bible_url($ref_str);
 
 			// Add the bible-ref class
-			if (!empty($attrs['class'])) $attrs['class'] .= ' ';
-			$attrs['class'] .= 'bible-ref';
+			if (!isset($disable_tooltip)) {
+				if (!empty($attrs['class'])) $attrs['class'] .= ' ';
+				$attrs['class'] .= 'bible-tip bible-tip-' . urlencode(str_replace(' ', '_', strtolower($ref_str)));
+			}
 
 			$attr_str = '';
 			foreach ($attrs as $attr => $value) $attr_str .= " $attr='$value'";
 
 			$link = "<a$attr_str>$text</a>";
-
-			if (!isset($disable_tooltip)) $link = self::link_add_ref_tooltip($link, $ref_str);
 		}
 
 		return $link;
@@ -151,7 +136,7 @@ class Biblefox {
 	 * @return string
 	 */
 	public static function ref_bible_url($ref_str) {
-		return str_replace('%ref%', urlencode($ref_str), apply_filters('bfox_blog_bible_url_template', 'http://biblefox.com/bible/%ref%'));
+		return sprintf(apply_filters('bfox_blog_bible_url_template', 'http://biblefox.com/bible/%s'), urlencode($ref_str));
 	}
 
 	/**
@@ -197,7 +182,7 @@ $biblefox = new Biblefox();
 function bfox_check_for_tooltip() {
 	if (isset($_REQUEST['bfox-tooltip-ref'])) {
 		global $tooltip_refs;
-		$tooltip_refs = new BfoxRefs($_REQUEST['bfox-tooltip-ref']);
+		$tooltip_refs = new BfoxRefs(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref']));
 		require BFOX_DIR . '/tooltip.php';
 		exit;
 	}

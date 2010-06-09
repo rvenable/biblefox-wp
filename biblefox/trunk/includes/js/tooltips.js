@@ -1,11 +1,32 @@
-jQuery(document).ready(function() {
+'use strict';
+
+var jQuery, ajaxurl, bfox_blog_iframe_select_change;
+
+jQuery(document).ready(function () {
+	var refClassPrefix = 'bible-tip-';
 	// Add tooltips to bible ref links
 	// NOTE: For live() qTip config see: http://stackoverflow.com/questions/2005521/problem-with-qtip-tips-not-showing-because-elements-load-after-the-script#answer-2485862
-	jQuery('span.bible-tooltip a').live('click', function() {
+	jQuery('a.bible-tip').live('click', function () {
+		var refStr, index, url, classes;
+		
+		classes = jQuery(this).attr('class').split(' ');
+		for (index = 0; index < classes.length; index = index + 1) {
+			if (classes[index].indexOf(refClassPrefix) === 0) {
+				refStr = classes[index].replace(refClassPrefix, '');
+				break;
+			}
+		}
+		
+		if (undefined === refStr) {
+			return true;
+		}
+		
+		url = ajaxurl + ((ajaxurl.indexOf('?') === -1) ? '?' : '&') + 'bfox-tooltip-ref=' + refStr;
+
 		jQuery(this).qtip({
 			content: {
 				text: 'Loading...',
-				url: jQuery(this).next('a.bible-tooltip-url').attr('href'),
+				url: url,
 				title: {
 					text: '<a href="' + jQuery(this).attr('href') + '">' + jQuery(this).text() + '</a>', // Give the tooltip a title using each elements text
 					button: 'Close' // Show a close link in the title
@@ -37,22 +58,23 @@ jQuery(document).ready(function() {
 				width: 640 // Set the tooltip width
 			},
 			api: {
-				onContentUpdate: function() {
+				onContentUpdate: function () {
 					// When the content is updated, make sure that any iframe selects can update properly
 					this.elements.content.find('select.bfox-iframe-select').change(bfox_blog_iframe_select_change);
 				},
-				onHide: function() {
+				onHide: function () {
 					// HACK: Firefox has a bug that causes flickering when the iframe scroll position is not 0
 					// See: http://craigsworks.com/projects/qtip/forum/topic/314/qtip-flicker-in-firefox/
 					// Fix it by disabling scrolling on the iframes when we hide them
 					this.elements.content.find('iframe').attr('scrolling', 'no');
 				},
-				onShow: function() {
+				onShow: function () {
 					// Re-enable scrolling on the iframes
 					this.elements.content.find('iframe').attr('scrolling', 'yes');
 				}
 			}
 		});
+		
 		return false;
 	});
 });

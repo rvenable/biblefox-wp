@@ -15,7 +15,7 @@ add_action('plugins_loaded', 'bfox_bp_bible_directory_setup_root_component', 2);
  */
 function bfox_bp_bible_url_template($template) {
 	global $bp;
-	return $bp->root_domain . '/' . BFOX_BIBLE_SLUG . '/%ref%';
+	return $bp->root_domain . '/' . BFOX_BIBLE_SLUG . '/%s';
 }
 add_filter('bfox_blog_bible_url_template', 'bfox_bp_bible_url_template');
 

@@ -9,18 +9,9 @@ class BfoxBlog {
 
 	const col_bible_refs = 'bfox_col_ref';
 
-	/**
-	 * Stores the home URL for this blog
-	 *
-	 * @var string
-	 */
-	private static $home_url;
-
 	public static function init() {
 		add_action('admin_menu', 'BfoxBlog::add_menu');
 		add_action('admin_init', 'BfoxBlog::admin_init');
-
-		self::$home_url = get_option('home');
 
 		add_filter('get_post_tag', 'BfoxBlog::get_post_tag', 10, 2);
 
@@ -42,7 +33,6 @@ class BfoxBlog {
 	}
 
 	public static function admin_init() {
-		wp_enqueue_style('bfox-admin', BFOX_URL . '/includes/css/admin.css', array(), BFOX_VERSION);
 		wp_enqueue_script('bfox-admin', BFOX_URL . '/includes/js/admin.js', array('sack'), BFOX_VERSION);
 	}
 
@@ -100,7 +90,7 @@ class BfoxBlog {
 		if (empty($taglink)) $taglink = get_option('home') . '/?s=' . $ref_str;
 		else {
 			$taglink = str_replace('%search%', $ref_str, $taglink);
-			$taglink = self::$home_url . '/' . user_trailingslashit($taglink, 'category');
+			$taglink = get_option('home') . '/' . user_trailingslashit($taglink, 'category');
 		}
 
 		return $taglink;
@@ -131,7 +121,7 @@ class BfoxBlog {
 	}
 
 	public static function ref_write_url($ref_str, $home_url = '') {
-		if (empty($home_url)) $home_url = self::$home_url;
+		if (empty($home_url)) $home_url = get_option('home');
 
 		return rtrim($home_url, '/') . '/wp-admin/post-new.php?bfox_ref=' . urlencode($ref_str);
 	}
@@ -144,7 +134,7 @@ class BfoxBlog {
 
 	public static function ref_edit_posts_link($ref_str, $text = '') {
 		if (empty($text)) $text = $ref_str;
-		$href = self::$home_url . '/wp-admin/edit.php?tag=' . urlencode($ref_str);
+		$href = get_option('home') . '/wp-admin/edit.php?tag=' . urlencode($ref_str);
 
 		return "<a href='$href'>$text</a>";
 	}
@@ -306,7 +296,7 @@ function bfox_add_tag_ref_tooltips($tag_links) {
 		$tag = $matches[1];
 		$refs = Biblefox::tag_to_refs($tag);
 		if ($refs->is_valid()) {
-			$tag_link = Biblefox::link_add_ref_tooltip(Biblefox::ref_bible_link(array('refs' => $refs, 'text' => $tag)), $refs->get_string());
+			$tag_link = Biblefox::ref_bible_link(array('refs' => $refs, 'text' => $tag));
 		}
 	}
 	return $tag_links;
