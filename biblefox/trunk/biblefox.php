@@ -155,22 +155,6 @@ class Biblefox {
 
 		return self::ref_link_from_options($options);
 	}
-
-	/**
-	 * Returns a BfoxRefs for the given tag string
-	 *
-	 * @param string $tag
-	 * @return BfoxRefs
-	 */
-	public static function tag_to_refs($tag) {
-		return new BfoxRefs($tag);
-	}
-
-	public static function content_to_refs($content) {
-		$refs = new BfoxRefs;
-		BfoxRefParser::simple_html($content, $refs);
-		return $refs;
-	}
 }
 
 global $biblefox;
@@ -195,7 +179,35 @@ add_action('init', 'bfox_check_for_tooltip', 1000);
  * @return string
  */
 function bfox_ref_replace_html($content) {
-	return BfoxRefParser::simple_html($content);
+	return BfoxRefParser::simple_html($content, null, 'bfox_ref_replace_html_cb');
+}
+	function bfox_ref_replace_html_cb($text, $refs) {
+		return Biblefox::ref_bible_link(array(
+			'refs' => $refs,
+			'text' => $text
+		));
+	}
+
+/**
+ * Returns a BfoxRefs for the given tag string
+ *
+ * @param string $tag
+ * @return BfoxRefs
+ */
+function bfox_refs_from_tag($tag) {
+	return BfoxRefParser::simple($tag);
+}
+
+/**
+ * Returns a BfoxRefs for the given content string
+ *
+ * @param string $content
+ * @return BfoxRefs
+ */
+function bfox_refs_from_content($content) {
+	$refs = new BfoxRefs;
+	BfoxRefParser::simple_html($content, $refs);
+	return $refs;
 }
 
 /**

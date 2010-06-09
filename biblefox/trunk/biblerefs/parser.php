@@ -5,19 +5,35 @@
  *
  */
 class BfoxRefParserData {
-	public $total_refs, $max_level, $add_whole_books, $save_refs_array, $save_leftovers;
-	public $refs_array, $leftovers;
+	/**
+	 * If not null, stores all bible references together in one BfoxRefs
+	 * @var BfoxRefs
+	 */
+	var $total_refs;
 
-	public function __construct(BfoxRefs &$total_refs = NULL, $max_level = 0, $add_whole_books = TRUE, $save_refs_array = FALSE, $save_leftovers = FALSE) {
-		$this->total_refs = $total_refs;
-		$this->max_level = $max_level;
-		$this->add_whole_books = $add_whole_books;
-		$this->save_refs_array = $save_refs_array;
-		$this->save_leftovers = $save_leftovers;
+	/**
+	 * If not null, stores an array of all the individual BfoxRefs found
+	 * @var array of BfoxRefs
+	 */
+	var $refs_array;
 
-		$this->refs_array = array();
-		$this->leftovers = '';
-	}
+	/**
+	 * If not null, stores a string containing all the leftover characters not considered part of a Bible reference
+	 * @var string
+	 */
+	var $leftovers;
+
+	/**
+	 * The max level of book abbreviations to allow
+	 * @var integer
+	 */
+	var $max_level = 0;
+
+	/**
+	 * Whether to allow references to whole books
+	 * @var boolean
+	 */
+	var $add_whole_books = true;
 }
 
 /**
@@ -26,38 +42,70 @@ class BfoxRefParserData {
  */
 class BfoxRefParser {
 
+	/**
+	 * Returns a BfoxRefs for all the bible references in a string
+	 *
+	 * @param string $str
+	 * @return BfoxRefs
+	 */
 	public static function simple($str) {
-		$total_refs = new BfoxRefs;
-		self::parse_string($str, new BfoxRefParserData($total_refs, 2));
-		return $total_refs;
+		$data = new BfoxRefParserData;
+		$data->total_refs = new BfoxRefs; // Save total_refs
+		$data->max_level = 2; // Include all book abbreviations
+
+		self::parse_string($str, $data);
+
+		return $data->total_refs;
 	}
 
 	/**
 	 * Returns the total bible references if and only if there were no leftovers
 	 *
 	 * @param $str
-	 * @return BfoxRefs or FALSE
+	 * @return BfoxRefs or false
 	 */
 	public static function no_leftovers($str) {
-		$total_refs = new BfoxRefs;
-		$data = new BfoxRefParserData($total_refs, 2, TRUE, FALSE, TRUE);
+		$data = new BfoxRefParserData;
+		$data->total_refs = new BfoxRefs; // Save total_refs
+		$data->leftovers = true; // Save the leftovers
+		$data->max_level = 2; // Include all book abbreviations
+
 		self::parse_string($str, $data);
-		if (empty($data->leftovers)) return $total_refs;
-		else return FALSE;
+
+		if (empty($data->leftovers)) return $data->total_refs;
+		else return false;
 	}
 
+	/**
+	 * Returns a BfoxRefs for the string, with some support for BibleGroupPassage
+	 *
+	 * @param $str
+	 * @return BfoxRefs
+	 */
 	public static function with_groups($str) {
 		if (isset(BibleMeta::$book_groups[$str])) return new BibleGroupPassage($str);
 		else return self::simple($str);
 	}
 
-	public static function text_flat($text) {
-		return self::simple($text);
-	}
+	/**
+	 * Parses HTML content for Bible references. Returns content modified by the optional $replace_func callback
+	 *
+	 * Optionally stores the total BfoxRefs in $total_refs parameter
+	 * Optionally modifies the content using the $replace_func parameter
+	 *
+	 * @param string $html
+	 * @param BfoxRefs $total_refs
+	 * @param function $replace_func
+	 * @return string HTML content modified by the optional $replace_func callback
+	 */
+	public static function simple_html($html, BfoxRefs $total_refs = null, $replace_func = null) {
+		$data = new BfoxRefParserData;
+		$data->total_refs = $total_refs; // Save total_refs
+		$data->replace_func = $replace_func; // Modify string with the replace_func callback
+		$data->max_level = 1; // Don't include 2 letter book abbreviations
+		$data->add_whole_books = false; // Don't allow whole book references
 
-	public static function simple_html($html, BfoxRefs &$total_refs = NULL) {
-		// Simple HTML parsing should only use level 1 and no whole books
-		return self::parse_html($html, new BfoxRefParserData($total_refs, 1, FALSE));
+		return self::parse_html($html, $data);
 	}
 
 	/**
@@ -76,46 +124,43 @@ class BfoxRefParser {
 	 * @param string $str
 	 */
 	public static function parse_string($str, BfoxRefParserData &$data) {
+
 		// Get all the bible reference substrings in this string
 		$substrs = BibleMeta::get_bcv_substrs($str, $data->max_level);
 
 		// Add each substring to our sequences
 		$refs_array = array();
-		$leftovers = '';
-		$leftover_end = strlen($str);
 
-		foreach (array_reverse($substrs) as $substr) {
-			$refs = new BfoxRefs;
+		// Loop through each bcv substr to create a BfoxRefs
+		foreach ($substrs as $substr) {
+			// $substr = new BibleBcvSubstr;
+			$key = $substr->substr($str);
+			if (!isset($refs_array[$key])) {
+				$refs = new BfoxRefs;
 
-			// If there is a chapter, verse string use it
-			if ($substr->cv_offset) self::parse_book_str($refs, $substr->book, substr($str, $substr->cv_offset, $substr->length - ($substr->cv_offset - $substr->offset)));
-			elseif ($data->add_whole_books) $refs->add_whole_book($substr->book);
+				// If there is a chapter, verse string use it
+				if ($substr->cv_offset) self::parse_book_str($refs, $substr->book, $substr->cv_substr($str));
+				elseif ($data->add_whole_books) $refs->add_whole_book($substr->book);
 
-			$is_valid = $refs->is_valid();
-
-			if ($data->save_leftovers) {
-				if ($is_valid) $leftover_begin = $substr->offset + $substr->length;
-				else $leftover_begin = $substr->offset;
-				$leftovers = substr($str, $leftover_begin, $leftover_end - $leftover_begin) . $leftovers;
-				$leftover_end = $substr->offset;
-			}
-
-			if ($is_valid) {
-				if ($data->save_refs_array) $refs_array []= $refs;
-
-				// TODO: the ref_link function needs to be passed in
-				$link = Biblefox::ref_bible_link(array(
-					'refs' => $refs,
-					'text' => substr($str, $substr->offset, $substr->length)
-				));
-				$str = substr_replace($str, $link, $substr->offset, $substr->length);
-
-				if (!is_null($data->total_refs)) $data->total_refs->add_refs($refs);
+				if ($refs->is_valid()) {
+					$refs_array[$key]= $refs;
+					if (!is_null($data->total_refs)) $data->total_refs->add_refs($refs);
+				}
 			}
 		}
 
-		if ($data->save_refs_array) $data->refs_array = array_merge($data->refs_array, array_reverse($refs_array));
-		if ($data->save_leftovers) $data->leftovers .= substr($str, 0, $leftover_end) . $leftovers;
+		// Save the refs_array if we want
+		if (isset($data->refs_array)) $data->refs_array = $refs_array;
+
+		// Save leftovers if we want
+		if (isset($data->leftovers)) $data->leftovers = str_replace(array_keys($refs_array), '', $str);
+
+		// If we are replacing, we should replace in reverse
+		if (isset($data->replace_func)) foreach (array_reverse($substrs) as $substr) {
+			// $substr = new BibleBcvSubstr;
+			$key = $substr->substr($str);
+			if (isset($refs_array[$key])) $str = $substr->replace($str, call_user_func_array($data->replace_func, array($key, $refs_array[$key])));
+		}
 
 		return $str;
 	}
@@ -172,6 +217,48 @@ class BfoxRefParser {
 			}
 		}
 	}
+}
+
+/**
+ * This function takes some html input ($html) and processes its text using the $func callback.
+ *
+ * It will skip all html tags and call $func for each chunk of text.
+ * The $func function should take the text as its parameter and return the modified text.
+ *
+ * @param string $html
+ * @param function $func
+ * @param array $params
+ * @return unknown_type
+ */
+function bfox_process_html_text($html, $func, $params = array()) {
+	if (!is_callable($func)) return $html;
+
+	$text_start = 0;
+	while (1 == preg_match('/<[^<>]*[^<>\s][^<>]*>/', $html, $matches, PREG_OFFSET_CAPTURE, $text_start)) {
+		// Store the match data in more readable variables
+		$text_end = (int) $matches[0][1];
+		$pattern = (string) $matches[0][0];
+
+		$text_len = $text_end - $text_start;
+		if (0 < $text_len) {
+			// Modify the data with the replacement text
+			$replacement = call_user_func_array($func, array_merge(array(substr($html, $text_start, $text_len)), $params));
+			$html = substr_replace($html, $replacement, $text_start, $text_len);
+
+			// Skip the rest of the replacement string
+			$text_end = $text_start + strlen($replacement);
+		}
+		$text_start = $text_end + strlen($pattern);
+	}
+
+	$text_len = strlen($html) - $text_start;
+	if (0 < $text_len) {
+		// Modify the data with the replacement text
+		$replacement = call_user_func_array($func, array_merge(array(substr($html, $text_start, $text_len)), $params));
+		$html = substr_replace($html, $replacement, $text_start, $text_len);
+	}
+
+	return $html;
 }
 
 ?>

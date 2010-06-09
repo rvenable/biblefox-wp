@@ -294,7 +294,7 @@ function bfox_wp_get_object_terms($terms) {
 function bfox_add_tag_ref_tooltips($tag_links) {
 	if (!empty($tag_links)) foreach ($tag_links as &$tag_link) if (preg_match('/<a.*>(.*)<\/a>/', $tag_link, $matches)) {
 		$tag = $matches[1];
-		$refs = Biblefox::tag_to_refs($tag);
+		$refs = bfox_refs_from_tag($tag);
 		if ($refs->is_valid()) {
 			$tag_link = Biblefox::ref_bible_link(array('refs' => $refs, 'text' => $tag));
 		}

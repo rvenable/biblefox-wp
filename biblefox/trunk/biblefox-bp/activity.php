@@ -28,17 +28,17 @@ class BfoxActivityRefsDbTable extends BfoxRefsDbTable {
 			else $post = bp_forums_get_post($activity->secondary_item_id);
 
 			// Index the post text
-			$refs = Biblefox::content_to_refs($post->post_text);
+			$refs = bfox_refs_from_content($post->post_text);
 
 			// Only index the tags for the first post in a topic
 			if ($activity->type == 'new_forum_topic') {
 				$tags = bb_get_topic_tags($post->topic_id, array('fields' => 'names'));
-				foreach ($tags as $tag) $refs->add_refs(Biblefox::tag_to_refs($tag));
+				foreach ($tags as $tag) $refs->add_refs(bfox_refs_from_tag($tag));
 			}
 		}
 		// For all other activities, just index the activity content
 		else {
-			$refs = Biblefox::content_to_refs($activity->content);
+			$refs = bfox_refs_from_content($activity->content);
 		}
 
 		// Add any read passage strings

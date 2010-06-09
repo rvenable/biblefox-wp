@@ -9,6 +9,18 @@ class BibleBcvSubstr {
 		$this->length = $length;
 		$this->cv_offset = $cv_offset;
 	}
+
+	public function substr($str) {
+		return substr($str, $this->offset, $this->length);
+	}
+
+	public function cv_substr($str) {
+		return substr($str, $this->cv_offset, $this->length - ($this->cv_offset - $this->offset));
+	}
+
+	public function replace($str, $replace) {
+		return substr_replace($str, $replace, $this->offset, $this->length);
+	}
 }
 
 class BibleMeta {
