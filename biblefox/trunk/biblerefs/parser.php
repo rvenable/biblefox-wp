@@ -101,38 +101,48 @@ class BfoxRefParserNew {
 		return $parser->parse_string_html($html);
 	}
 
-	static $_num_strings = array(
-	1 => '1|one|i|1st|first',
-	2 => '2|two|ii|2nd|second',
-	3 => '3|three|iii|3rd|third',
+	private static $book_regexes = array(
+	0 => array(0 => 'genesis|gen|exod|exo|exodus|leviticus|lev|num|numbers|deuteronomy|deut|deu|jsh|jos|josh|joshua|judges|judg|jdg|jdgs|rut|rth|ruth|1samuel|1sam|1sm|1sa|2samuel|2sam|2sm|2sa|1kings|1king|1kgs|1kin|1ki|2kings|2king|2kgs|2kin|2ki|1chronicles|1chron|1chr|1ch|2chronicles|2chron|2chr|2ch|ezra|ezr|neh|nehemiah|esther|esth|est|job|pss|psm|psa|psalms|pslm|psalm|pro|prv|prov|proverbs|eccl|ecc|qoheleth|qoh|eccles|ecclesiastes|sng|sos|song\s+songs|canticles|canticle\s+canticles|song|song\s+solomon|isaiah|isa|jer|jeremiah|lamentations|lam|ezk|eze|ezek|ezekiel|dan|daniel|hosea|hos|jol|joe|joel|amos|amo|oba|obad|obadiah|jonah|jnh|jon|micah|mic|nam|nah|nahum|habakkuk|hab|zephaniah|zeph|zep|hag|haggai|zechariah|zech|zec|mal|malachi|matthew|matt|mat|mrk|mark|luke|luk|jhn|john|acts|act|rom|romans|1corinthians|1cor|1co|2corinthians|2cor|2co|gal|galatians|ephesians|ephes|eph|philippians|phil|php|col|colossians|1thessalonians|1thess|1thes|1th|2thessalonians|2thess|2thes|2th|1timothy|1tim|1ti|2timothy|2tim|2ti|tit|titus|philemon|philem|phm|hebrews|heb|jas|james|1peter|1pet|1pt|1pe|2peter|2pet|2pt|2pe|1john|1jhn|1joh|1jn|1jo|2john|2jhn|2joh|2jn|2jo|3john|3jhn|3joh|3jn|3jo|jud|jude|revelation|revelations|rev|tob|tobit|judith|jdth|jdt|jth|esg|addesth|aes|rest\s+esther|add\s+es|add\s+esth|additions\s+to\s+esther|wis|wisd\s+sol|wisdom\s+solomon|wisdom|ecclus|sir|sirach|ecclesiasticus|baruch|bar|ltr\s+jer|lje|let\s+jer|letter\s+jeremiah|song\s+three\s+holy\s+children|song\s+three\s+children|song\s+three\s+youths|song\s+three\s+jews|song\s+three|song\s+thr|prayer\s+azariah|azariah|pr\s+az|susanna|sus|bel\s+and\s+dragon|bel\s+dragon|bel|1maccabees|1macc|1mac|1ma|2maccabees|2macc|2mac|2ma|1esdras|1esdr|1esd|1es|prayer\s+manasses|prayer\s+manasseh|pr\s+man|pma|2esdras|2esdr|2esd|2es', 1 => 'samuel|sam|sm|sa|kings|king|kgs|kin|ki|chronicles|chron|chr|ch|corinthians|cor|co|thessalonians|thess|thes|th|timothy|tim|ti|peter|pet|pt|pe|john|jhn|joh|jn|jo|maccabees|macc|mac|ma|esdras|esdr|esd|es', 2 => 'samuel|sam|sm|sa|kings|king|kgs|kin|ki|chronicles|chron|chr|ch|corinthians|cor|co|thessalonians|thess|thes|th|timothy|tim|ti|peter|pet|pt|pe|john|jhn|joh|jn|jo|maccabees|macc|mac|ma|esdras|esdr|esd|es', 3 => 'john|jhn|joh|jn|jo'),
+	1 => array(0 => 'ge|gn|le|lv|nb|nm|nu|dt|jg|ru|1s|2s|1k|2k|ne|es|jb|ps|pr|ec|jr|je|la|dn|da|ho|jl|ob|na|zp|hg|zc|ml|mt|mr|mk|lk|jn|ac|rm|ro|ga|jm|re|tb|ws|1m|2m', 1 => 's|k|m', 2 => 's|k|m'),
+	2 => array(0 => 'ex|so|is|am')
 	);
 
+	private static $prefixes = array(
+	1 => '(1|one|i|1st|first)(\s+book)?(\s+of)?\s',
+	2 => '(2|two|ii|2nd|second)(\s+book)?(\s+of)?\s',
+	3 => '(3|three|iii|3rd|third)(\s+book)?(\s+of)?\s'
+	);
+
+	private $_regex = '';
+	private function regex() {
+		if (empty($this->_regex)) {
+			$books = array();
+			for ($level = 0; $level <= $this->max_level; $level++) {
+				foreach (self::$book_regexes[$level] as $index => $regexes) {
+					if (!empty($books[$index])) $books[$index] .= '|';
+					$books[$index] .= $regexes;
+				}
+			}
+
+			$book_regex = '(' . $books[0] . ')';
+			for ($index = 1; $index <= 3; $index++) $book_regex .= '|(' . self::$prefixes[$index] . '(' . $books[$index] . '))';
+
+			if ($this->add_whole_books) $cv_question = '?';
+			else $cv_question = '';
+
+			if ($this->require_space_before_cv) $space_star = '+';
+			else $space_star = '*';
+
+			// Regex = word boundary, book regex, word boundary, CV regex
+			// CV regex = optional period, optional whitespace, number, optional [\s-:,;] ending with number
+			$this->_regex = "/\b($book_regex)\b(\.?\s$space_star\d([\s-:,;]*\d)*)$cv_question/i";
+		}
+
+		return $this->_regex;
+	}
+
 	public function parse_string($str) {
-		$books = array();
-		for ($level = 0; $level <= $this->max_level; $level++) $books = array_merge($books, BibleMeta::$synonyms[$level]);
-		$books = array_keys($books);
-		foreach ($books as $book) {
-			$book = str_replace(' ', '\s+', $book);
-			if (isset(self::$_num_strings[$book[0]])) $num_books[$book[0]] []= substr($book, 1);
-			$normal_books []= $book;
-		}
-		$regex []= '(' . implode('|', $normal_books) . ')';
-
-		foreach ($num_books as $num => $books) {
-			$regex []= '((' . self::$_num_strings[$num] . ')(\s+book)?(\s+of)?\s(' . implode('|', $books) . '))';
-		}
-
-		if ($this->add_whole_books) $cv_question = '?';
-		else $cv_question = '';
-
-		if ($this->require_space_before_cv) $space_star = '+';
-		else $space_star = '*';
-
-		// Regex = word boundary, book regex, word boundary, CV regex
-		// CV regex = optional period, optional whitespace, number, optional [\s-:,;] ending with number
-		$regex = '/\b(' . implode('|', $regex) . ")\b(\.?\s$space_star\d([\s-:,;]*\d)*)$cv_question/i";
-
-		return preg_replace_callback($regex, array($this, 'replace_cb'), $str);
+		return preg_replace_callback($this->regex(), array($this, 'replace_cb'), $str);
 	}
 
 	/**
