@@ -111,6 +111,8 @@ class BfoxRefParserNew {
 		return $parser->parse_string_html($html);
 	}
 
+	private static $book_id_lookup = array('genesis'=>1,'gen'=>1,'exod'=>2,'exo'=>2,'exodus'=>2,'leviticus'=>3,'lev'=>3,'num'=>4,'numbers'=>4,'deuteronomy'=>5,'deut'=>5,'deu'=>5,'jsh'=>6,'jos'=>6,'josh'=>6,'joshua'=>6,'judges'=>7,'judg'=>7,'jdg'=>7,'jdgs'=>7,'rut'=>8,'rth'=>8,'ruth'=>8,'1samuel'=>9,'1sam'=>9,'1sm'=>9,'1sa'=>9,'2samuel'=>10,'2sam'=>10,'2sm'=>10,'2sa'=>10,'1kings'=>11,'1king'=>11,'1kgs'=>11,'1kin'=>11,'1ki'=>11,'2kings'=>12,'2king'=>12,'2kgs'=>12,'2kin'=>12,'2ki'=>12,'1chronicles'=>13,'1chron'=>13,'1chr'=>13,'1ch'=>13,'2chronicles'=>14,'2chron'=>14,'2chr'=>14,'2ch'=>14,'ezra'=>15,'ezr'=>15,'neh'=>16,'nehemiah'=>16,'esther'=>17,'esth'=>17,'est'=>17,'job'=>18,'pss'=>19,'psm'=>19,'psa'=>19,'psalms'=>19,'pslm'=>19,'psalm'=>19,'pro'=>20,'prv'=>20,'prov'=>20,'proverbs'=>20,'eccl'=>21,'ecc'=>21,'qoheleth'=>21,'qoh'=>21,'eccles'=>21,'ecclesiastes'=>21,'sng'=>22,'sos'=>22,'song of songs'=>22,'canticles'=>22,'canticle of canticles'=>22,'song'=>22,'song of solomon'=>22,'isaiah'=>23,'isa'=>23,'jer'=>24,'jeremiah'=>24,'lamentations'=>25,'lam'=>25,'ezk'=>26,'eze'=>26,'ezek'=>26,'ezekiel'=>26,'dan'=>27,'daniel'=>27,'hosea'=>28,'hos'=>28,'jol'=>29,'joe'=>29,'joel'=>29,'amos'=>30,'amo'=>30,'oba'=>31,'obad'=>31,'obadiah'=>31,'jonah'=>32,'jnh'=>32,'jon'=>32,'micah'=>33,'mic'=>33,'nam'=>34,'nah'=>34,'nahum'=>34,'habakkuk'=>35,'hab'=>35,'zephaniah'=>36,'zeph'=>36,'zep'=>36,'hag'=>37,'haggai'=>37,'zechariah'=>38,'zech'=>38,'zec'=>38,'mal'=>39,'malachi'=>39,'matthew'=>40,'matt'=>40,'mat'=>40,'mrk'=>41,'mark'=>41,'luke'=>42,'luk'=>42,'jhn'=>43,'john'=>43,'acts'=>44,'act'=>44,'rom'=>45,'romans'=>45,'1corinthians'=>46,'1cor'=>46,'1co'=>46,'2corinthians'=>47,'2cor'=>47,'2co'=>47,'gal'=>48,'galatians'=>48,'ephesians'=>49,'ephes'=>49,'eph'=>49,'philippians'=>50,'phil'=>50,'php'=>50,'col'=>51,'colossians'=>51,'1thessalonians'=>52,'1thess'=>52,'1thes'=>52,'1th'=>52,'2thessalonians'=>53,'2thess'=>53,'2thes'=>53,'2th'=>53,'1timothy'=>54,'1tim'=>54,'1ti'=>54,'2timothy'=>55,'2tim'=>55,'2ti'=>55,'tit'=>56,'titus'=>56,'philemon'=>57,'philem'=>57,'phm'=>57,'hebrews'=>58,'heb'=>58,'jas'=>59,'james'=>59,'1peter'=>60,'1pet'=>60,'1pt'=>60,'1pe'=>60,'2peter'=>61,'2pet'=>61,'2pt'=>61,'2pe'=>61,'1john'=>62,'1jhn'=>62,'1joh'=>62,'1jn'=>62,'1jo'=>62,'2john'=>63,'2jhn'=>63,'2joh'=>63,'2jn'=>63,'2jo'=>63,'3john'=>64,'3jhn'=>64,'3joh'=>64,'3jn'=>64,'3jo'=>64,'jud'=>65,'jude'=>65,'revelation'=>66,'revelations'=>66,'rev'=>66,'tob'=>67,'tobit'=>67,'judith'=>68,'jdth'=>68,'jdt'=>68,'jth'=>68,'esg'=>69,'addesth'=>69,'aes'=>69,'rest of esther'=>69,'add to es'=>69,'add to esth'=>69,'additions to esther'=>69,'rest esther'=>69,'wis'=>70,'wisd of sol'=>70,'wisdom of solomon'=>70,'wisdom'=>70,'ecclus'=>71,'sir'=>71,'sirach'=>71,'ecclesiasticus'=>71,'baruch'=>72,'bar'=>72,'ltr jer'=>73,'lje'=>73,'let of jer'=>73,'letter of jeremiah'=>73,'song of the three holy children'=>74,'song ot the three children'=>74,'song of the three youths'=>74,'song of the three jews'=>74,'song of the three'=>74,'song thr'=>74,'prayer of azariah'=>74,'azariah'=>74,'pr az'=>74,'susanna'=>75,'sus'=>75,'bel and the dragon'=>76,'bel dragon'=>76,'bel'=>76,'1maccabees'=>77,'1macc'=>77,'1mac'=>77,'1ma'=>77,'2maccabees'=>78,'2macc'=>78,'2mac'=>78,'2ma'=>78,'1esdras'=>79,'1esdr'=>79,'1esd'=>79,'1es'=>79,'prayer of manasses'=>80,'prayer of manasseh'=>80,'pr man'=>80,'pma'=>80,'2esdras'=>81,'2esdr'=>81,'2esd'=>81,'2es'=>81,'ge'=>1,'gn'=>1,'le'=>3,'lv'=>3,'nb'=>4,'nm'=>4,'nu'=>4,'dt'=>5,'jg'=>7,'ru'=>8,'1s'=>9,'2s'=>10,'1k'=>11,'2k'=>12,'ne'=>16,'es'=>17,'jb'=>18,'ps'=>19,'pr'=>20,'ec'=>21,'jr'=>24,'je'=>24,'la'=>25,'dn'=>27,'da'=>27,'ho'=>28,'jl'=>29,'ob'=>31,'na'=>34,'zp'=>36,'hg'=>37,'zc'=>38,'ml'=>39,'mt'=>40,'mr'=>41,'mk'=>41,'lk'=>42,'jn'=>43,'ac'=>44,'rm'=>45,'ro'=>45,'ga'=>48,'jm'=>59,'re'=>66,'tb'=>67,'ws'=>70,'1m'=>77,'2m'=>78,'ex'=>2,'so'=>22,'is'=>23,'am'=>30);
+
 	// Note: Books have to be reverse sorted to give priority to the longer book names
 	private static $book_regexes = array(0 => array(
 	// Forward
@@ -204,13 +206,7 @@ class BfoxRefParserNew {
 		if (!$this->forward) $synonym = strrev($synonym);
 		$synonym = strtolower(preg_replace('/\s+/', ' ', $synonym));
 
-		$level = 0;
-		while (empty($book_id) && ($level <= $this->max_level)) {
-			$book_id = BibleMeta::$synonyms[$level][$synonym];
-			$level++;
-		}
-
-		if ($book_id) {
+		if ($book_id = self::$book_id_lookup[$synonym]) {
 			$refs = new BfoxRefs;
 
 			if ($this->forward) $cv_str = $matches[18];
@@ -223,8 +219,8 @@ class BfoxRefParserNew {
 			if ($refs->is_valid()) {
 				if (isset($this->refs_array)) $this->refs_array []= $refs;
 				if (isset($this->total_refs)) $this->total_refs->add_refs($refs);
-				if (isset($this->leftovers)) return '';
-				if (isset($this->replace_func)) return call_user_func_array($this->replace_func, array($text, $refs));
+				if (isset($this->replace_func)) $text = call_user_func_array($this->replace_func, array($text, $refs));
+				if (isset($this->leftovers)) $text = '';
 			}
 		}
 
