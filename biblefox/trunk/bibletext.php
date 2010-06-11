@@ -5,32 +5,32 @@
 	 *
 	 * Includes a Table of Contents at the bottom.
 	 *
-	 * @param BfoxRefs $input_refs
+	 * @param BfoxRef $input_ref
 	 * @param unknown_type $limit The limit of how many chapters can be displayed in full
 	 * @return string Scripture Text Output (with TOC)
 	 */
-	function bfox_get_ref_content_quick(BfoxRefs $input_refs, $limit = 5) {
-		// Limit the refs to $limit chapters
-		list($refs) = $input_refs->get_sections($limit, 1);
+	function bfox_get_ref_content_quick(BfoxRef $input_ref, $limit = 5) {
+		// Limit the ref to $limit chapters
+		list($ref) = $input_ref->get_sections($limit, 1);
 
-		$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
+		$bcvs = BfoxRef::get_bcvs($ref->get_seqs());
 
 		$book_content = array();
 		foreach ($bcvs as $book => $cvs) {
 			$content = '';
 			$book_name = BibleMeta::get_book_name($book);
-			$ref_str = BfoxRefs::create_book_string($book, $cvs);
+			$ref_str = BfoxRef::create_book_string($book, $cvs);
 
-			// Create a new bible refs for just this book (so we can later pass it into the BfoxIframe)
-			$book_refs = new BfoxRefs;
+			// Create a new bible ref for just this book (so we can later pass it into the BfoxIframe)
+			$book_ref = new BfoxRef;
 
 			unset($ch1);
 			foreach ($cvs as $cv) {
 				if (!isset($ch1)) list($ch1, $vs1) = $cv->start;
 				list($ch2, $vs2) = $cv->end;
 
-				// Add the cv onto our book bible refs
-				$book_refs->add_bcv($book, $cv);
+				// Add the cv onto our book bible ref
+				$book_ref->add_bcv($book, $cv);
 			}
 
 			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(\"post_tag\", this)'>$ref_str</a>";
@@ -47,7 +47,7 @@
 			}
 			$nav_bar .= "<br/>$tag_link</div>";
 
-			$iframe = new BfoxIframe($book_refs);
+			$iframe = new BfoxIframe($book_ref);
 			$verse_content = '<select class="bfox-iframe-select">' . $iframe->select_options() . '</select>';
 			$verse_content .= '<iframe class="bfox-iframe bfox-tooltip-iframe" src="' . $iframe->url() . '"></iframe>';
 
@@ -74,7 +74,7 @@
 	 */
 	function bfox_ajax_send_bible_text() {
 		$ref_str = $_POST['ref_str'];
-		$ref = new BfoxRefs($ref_str);
+		$ref = new BfoxRef($ref_str);
 		sleep(1);
 
 		// If it is not valid, give the user an error message

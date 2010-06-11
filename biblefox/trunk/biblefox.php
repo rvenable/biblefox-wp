@@ -33,10 +33,10 @@
 
 define('BFOX_VERSION', '0.7');
 define('BFOX_DIR', dirname(__FILE__));
-define('BFOX_REFS_DIR', BFOX_DIR . '/biblerefs');
+define('BFOX_REF_DIR', BFOX_DIR . '/biblerefs');
 define('BFOX_URL', WP_PLUGIN_URL . '/biblefox');
 
-require_once BFOX_REFS_DIR . '/refs.php';
+require_once BFOX_REF_DIR . '/refs.php';
 
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 
@@ -45,16 +45,16 @@ require_once BFOX_DIR . '/translations.php';
 require_once BFOX_DIR . '/iframe.php';
 
 /**
- * Getter/Setter for the active instance of BfoxRefs
+ * Getter/Setter for the active instance of BfoxRef
  *
- * @param BfoxRefs $refs
- * @return BfoxRefs
+ * @param BfoxRef $ref
+ * @return BfoxRef
  */
-function bfox_active_refs(BfoxRefs $refs = null) {
-	global $_bfox_active_refs;
-	if (!is_null($refs)) $_bfox_active_refs = $refs;
-	if (!isset($_bfox_active_refs)) $_bfox_active_refs = new BfoxRefs;
-	return $_bfox_active_refs;
+function bfox_active_ref(BfoxRef $ref = null) {
+	global $_bfox_active_ref;
+	if (!is_null($ref)) $_bfox_active_ref = $ref;
+	if (!isset($_bfox_active_ref)) $_bfox_active_ref = new BfoxRef;
+	return $_bfox_active_ref;
 }
 
 /**
@@ -63,9 +63,9 @@ function bfox_active_refs(BfoxRefs $refs = null) {
  * @param $options
  */
 function bfox_fix_ref_link_options(&$options) {
-	// If there is no ref_str, try to get it from $refs->get_string($name)
-	if (empty($options['ref_str']) && isset($options['refs']) && is_a($options['refs'], BfoxRefs) && $options['refs']->is_valid())
-		$options['ref_str'] = $options['refs']->get_string($options['name']);
+	// If there is no ref_str, try to get it from $ref->get_string($name)
+	if (empty($options['ref_str']) && isset($options['ref']) && is_a($options['ref'], BfoxRef) && $options['ref']->is_valid())
+		$options['ref_str'] = $options['ref']->get_string($options['name']);
 }
 
 /**
@@ -140,33 +140,33 @@ function bfox_ref_bible_link($options) {
 function bfox_ref_replace_html($content) {
 	return BfoxRefParser::simple_html($content, null, 'bfox_ref_replace_html_cb');
 }
-	function bfox_ref_replace_html_cb($text, $refs) {
+	function bfox_ref_replace_html_cb($text, $ref) {
 		return bfox_ref_bible_link(array(
-			'refs' => $refs,
+			'ref' => $ref,
 			'text' => $text
 		));
 	}
 
 /**
- * Returns a BfoxRefs for the given tag string
+ * Returns a BfoxRef for the given tag string
  *
  * @param string $tag
- * @return BfoxRefs
+ * @return BfoxRef
  */
-function bfox_refs_from_tag($tag) {
+function bfox_ref_from_tag($tag) {
 	return BfoxRefParser::simple($tag);
 }
 
 /**
- * Returns a BfoxRefs for the given content string
+ * Returns a BfoxRef for the given content string
  *
  * @param string $content
- * @return BfoxRefs
+ * @return BfoxRef
  */
-function bfox_refs_from_content($content) {
-	$refs = new BfoxRefs;
-	BfoxRefParser::simple_html($content, $refs);
-	return $refs;
+function bfox_ref_from_content($content) {
+	$ref = new BfoxRef;
+	BfoxRefParser::simple_html($content, $ref);
+	return $ref;
 }
 
 /**
@@ -174,8 +174,8 @@ function bfox_refs_from_content($content) {
  */
 function bfox_check_for_tooltip() {
 	if (isset($_REQUEST['bfox-tooltip-ref'])) {
-		global $tooltip_refs;
-		$tooltip_refs = new BfoxRefs(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref']));
+		global $tooltip_ref;
+		$tooltip_ref = new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref']));
 		require BFOX_DIR . '/tooltip.php';
 		exit;
 	}

@@ -1,14 +1,14 @@
 <?php
 
-if (!defined('BFOX_REFS_DIR')) define('BFOX_REFS_DIR', dirname(__FILE__));
+if (!defined('BFOX_REF_DIR')) define('BFOX_REF_DIR', dirname(__FILE__));
 
-require_once BFOX_REFS_DIR . '/bible-meta.php';
-require_once BFOX_REFS_DIR . '/verse.php';
-require_once BFOX_REFS_DIR . '/sequences.php';
-require_once BFOX_REFS_DIR . '/parser.php';
-require_once BFOX_REFS_DIR . '/db-table.php';
+require_once BFOX_REF_DIR . '/bible-meta.php';
+require_once BFOX_REF_DIR . '/verse.php';
+require_once BFOX_REF_DIR . '/sequences.php';
+require_once BFOX_REF_DIR . '/parser.php';
+require_once BFOX_REF_DIR . '/db-table.php';
 
-class BfoxRefSequence extends BfoxSequence {
+class BfoxRefequence extends BfoxSequence {
 
 	public function __construct($start = 0, $end = 0) {
 		$this->set_start($start);
@@ -85,7 +85,7 @@ class BfoxRefSequence extends BfoxSequence {
 	}
 }
 
-class BfoxRefs extends BfoxSequenceList {
+class BfoxRef extends BfoxSequenceList {
 
 	/*
 	 * Creation and Modification Functions
@@ -95,24 +95,24 @@ class BfoxRefs extends BfoxSequenceList {
 
 	public function __construct($value = NULL) {
 		if (is_string($value)) $this->add_string($value);
-		elseif ($value instanceof BfoxRefs) $this->add_refs($value);
+		elseif ($value instanceof BfoxRef) $this->add_ref($value);
 	}
 
 	public function __toString() {
 		// TODO3: Should we actually return the right string or an error?
-		// We only added this function because we are adding BfoxRefs to post data (see bfox_posts_results()),
-		// and WP sometimes tries to add_magic_quotes() to the BfoxRefs  (see wp_update_post()) which requires them to be
-		// able to convert to a string, but of course we aren't actually using the value of the refs in that instance
-		return 'BfoxRefs Error: Use get_string() instead';
+		// We only added this function because we are adding BfoxRef to post data (see bfox_posts_results()),
+		// and WP sometimes tries to add_magic_quotes() to the BfoxRef  (see wp_update_post()) which requires them to be
+		// able to convert to a string, but of course we aren't actually using the value of the ref in that instance
+		return 'BfoxRef Error: Use get_string() instead';
 	}
 
 	/**
 	 * Add bible references
 	 *
-	 * @param BfoxRefs $refs
+	 * @param BfoxRef $ref
 	 */
-	public function add_refs(BfoxRefs $refs) {
-		return $this->add_seqs($refs->get_seqs());
+	public function add_ref(BfoxRef $ref) {
+		return $this->add_seqs($ref->get_seqs());
 	}
 
 	/**
@@ -121,21 +121,21 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param string $ref_str
 	 */
 	public function add_string($ref_str) {
-		$this->add_refs(BfoxRefParser::simple($ref_str));
+		$this->add_ref(BfoxRefParser::simple($ref_str));
 	}
 
 	public function add_concat($begin_str, $end_str, $delim = ',') {
 		$ends = explode($delim, $end_str);
-		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq(new BfoxRefSequence($begin, $ends[$idx]));
+		foreach (explode($delim, $begin_str) as $idx => $begin) if (isset($ends[$idx])) $this->add_seq(new BfoxRefequence($begin, $ends[$idx]));
 	}
 
 	/**
 	 * Subtract bible references
 	 *
-	 * @param BfoxRefs $refs
+	 * @param BfoxRef $ref
 	 */
-	public function sub_refs(BfoxRefs $refs) {
-		return $this->sub_seqs($refs->get_seqs());
+	public function sub_ref(BfoxRef $ref) {
+		return $this->sub_seqs($ref->get_seqs());
 	}
 
 	/**
@@ -144,7 +144,7 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param string $ref_str
 	 */
 	public function sub_string($ref_str) {
-		$this->sub_refs(BfoxRefParser::simple($ref_str));
+		$this->sub_ref(BfoxRefParser::simple($ref_str));
 	}
 
 	/**
@@ -218,7 +218,7 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param integer $verse2
 	 */
 	public function add_verse_seq($book, $chapter1, $verse1, $chapter2, $verse2) {
-		return $this->add_seq(new BfoxRefSequence(
+		return $this->add_seq(new BfoxRefequence(
 			array($book, $chapter1, $verse1),
 			array($book, $chapter2, $verse2)));
 	}
@@ -387,7 +387,7 @@ class BfoxRefs extends BfoxSequenceList {
 		if (BibleVerse::max_chapter_id == $ch2) $ch2 = BibleMeta::passage_end($book);
 
 		$seqs = array();
-		$seqs[$ch1] = new BfoxRefSequence;
+		$seqs[$ch1] = new BfoxRefequence;
 		$seqs[$ch1]->set_start(array($book, $ch1, $vs1));
 		if ($ch2 > $ch1) {
 			$seqs[$ch1]->set_end(array($book, $ch1, BibleVerse::max_verse_id));
@@ -395,10 +395,10 @@ class BfoxRefs extends BfoxSequenceList {
 			$middle_chapters = $ch2 - $ch1;
 			for ($i = 0; $i < $middle_chapters; $i++) {
 				$ch = $ch1 + $i;
-				$seqs[$ch] = new BfoxRefSequence(array($book, $ch, 0), array($book, $ch, BibleVerse::max_verse_id));
+				$seqs[$ch] = new BfoxRefequence(array($book, $ch, 0), array($book, $ch, BibleVerse::max_verse_id));
 			}
 
-			$seqs[$ch2] = new BfoxRefSequence;
+			$seqs[$ch2] = new BfoxRefequence;
 			$seqs[$ch2]->set_start(array($book, $ch2, 0));
 		}
 		$seqs[$ch2]->set_end(array($book, $ch2, $vs2));
@@ -410,10 +410,10 @@ class BfoxRefs extends BfoxSequenceList {
 	 * Divides a bible reference into smaller references of chapter size $chapter_size
 	 *
 	 * @param integer $chapter_size
-	 * @return array of BfoxRefs
+	 * @return array of BfoxRef
 	 */
 	public function get_sections($chapter_size, $limit = 0) {
-		$sections = array(new BfoxRefs);
+		$sections = array(new BfoxRef);
 		$index = 0;
 		$ch_count = 0;
 
@@ -435,7 +435,7 @@ class BfoxRefs extends BfoxSequenceList {
 						if (!empty($limit) && ($index >= $limit)) return $sections;
 
 						$ch_count = 1;
-						$sections[$index] = new BfoxRefs;
+						$sections[$index] = new BfoxRef;
 					}
 
 					$sections[$index]->add_seq($seq);
@@ -489,7 +489,7 @@ class BfoxRefs extends BfoxSequenceList {
 	}
 }
 
-class BibleGroupPassage extends BfoxRefs {
+class BibleGroupPassage extends BfoxRef {
 	private $group;
 
 	public function __construct($group = '') {

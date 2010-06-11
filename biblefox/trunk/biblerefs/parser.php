@@ -6,16 +6,16 @@
  */
 class BfoxRefParser {
 	/**
-	 * If not null, stores all bible references together in one BfoxRefs
-	 * @var BfoxRefs
+	 * If not null, stores all bible references together in one BfoxRef
+	 * @var BfoxRef
 	 */
-	var $total_refs;
+	var $total_ref;
 
 	/**
-	 * If not null, stores an array of all the individual BfoxRefs found
-	 * @var array of BfoxRefs
+	 * If not null, stores an array of all the individual BfoxRef found
+	 * @var array of BfoxRef
 	 */
-	var $refs_array;
+	var $ref_array;
 
 	/**
 	 * If not null, stores a string containing all the leftover characters not considered part of a Bible reference
@@ -46,44 +46,44 @@ class BfoxRefParser {
 	var $forward = false;
 
 	/**
-	 * Returns a BfoxRefs for all the bible references in a string
+	 * Returns a BfoxRef for all the bible references in a string
 	 *
 	 * @param string $str
-	 * @return BfoxRefs
+	 * @return BfoxRef
 	 */
 	public static function simple($str) {
 		$parser = new BfoxRefParser;
-		$parser->total_refs = new BfoxRefs; // Save total_refs
+		$parser->total_ref = new BfoxRef; // Save total_ref
 		$parser->max_level = 2; // Include all book abbreviations
 
 		$parser->parse_string($str);
 
-		return $parser->total_refs;
+		return $parser->total_ref;
 	}
 
 	/**
 	 * Returns the total bible references if and only if there were no leftovers
 	 *
 	 * @param $str
-	 * @return BfoxRefs or false
+	 * @return BfoxRef or false
 	 */
 	public static function no_leftovers($str) {
 		$parser = new BfoxRefParser;
-		$parser->total_refs = new BfoxRefs; // Save total_refs
+		$parser->total_ref = new BfoxRef; // Save total_ref
 		$parser->leftovers = true; // Save the leftovers
 		$parser->max_level = 2; // Include all book abbreviations
 
 		$leftovers = $parser->parse_string($str);
 
-		if (empty($leftovers)) return $parser->total_refs;
+		if (empty($leftovers)) return $parser->total_ref;
 		else return false;
 	}
 
 	/**
-	 * Returns a BfoxRefs for the string, with some support for BibleGroupPassage
+	 * Returns a BfoxRef for the string, with some support for BibleGroupPassage
 	 *
 	 * @param $str
-	 * @return BfoxRefs
+	 * @return BfoxRef
 	 */
 	public static function with_groups($str) {
 		if (isset(BibleMeta::$book_groups[$str])) return new BibleGroupPassage($str);
@@ -93,17 +93,17 @@ class BfoxRefParser {
 	/**
 	 * Parses HTML content for Bible references. Returns content modified by the optional $replace_func callback
 	 *
-	 * Optionally stores the total BfoxRefs in $total_refs parameter
+	 * Optionally stores the total BfoxRef in $total_ref parameter
 	 * Optionally modifies the content using the $replace_func parameter
 	 *
 	 * @param string $html
-	 * @param BfoxRefs $total_refs
+	 * @param BfoxRef $total_ref
 	 * @param function $replace_func
 	 * @return string HTML content modified by the optional $replace_func callback
 	 */
-	public static function simple_html($html, BfoxRefs $total_refs = null, $replace_func = null) {
+	public static function simple_html($html, BfoxRef $total_ref = null, $replace_func = null) {
 		$parser = new BfoxRefParser;
-		$parser->total_refs = $total_refs; // Save total_refs
+		$parser->total_ref = $total_ref; // Save total_ref
 		$parser->replace_func = $replace_func; // Modify string with the replace_func callback
 		$parser->max_level = 1; // Don't include 2 letter book abbreviations
 		$parser->add_whole_books = true; // Don't allow whole book references
@@ -207,19 +207,19 @@ class BfoxRefParser {
 		$synonym = strtolower(preg_replace('/\s+/', ' ', $synonym));
 
 		if ($book_id = self::$book_id_lookup[$synonym]) {
-			$refs = new BfoxRefs;
+			$ref = new BfoxRef;
 
 			if ($this->forward) $cv_str = $matches[18];
 			else $cv_str = strrev($matches[1]);
 
 			$cv_str = ltrim(trim($cv_str), '.');
-			if (!empty($cv_str)) self::parse_book_str($refs, $book_id, $cv_str);
-			else $refs->add_whole_book($book_id);
+			if (!empty($cv_str)) self::parse_book_str($ref, $book_id, $cv_str);
+			else $ref->add_whole_book($book_id);
 
-			if ($refs->is_valid()) {
-				if (isset($this->refs_array)) $this->refs_array []= $refs;
-				if (isset($this->total_refs)) $this->total_refs->add_refs($refs);
-				if (isset($this->replace_func)) $text = call_user_func_array($this->replace_func, array($text, $refs));
+			if ($ref->is_valid()) {
+				if (isset($this->ref_array)) $this->ref_array []= $ref;
+				if (isset($this->total_ref)) $this->total_ref->add_ref($ref);
+				if (isset($this->replace_func)) $text = call_user_func_array($this->replace_func, array($text, $ref));
 				if (isset($this->leftovers)) $text = '';
 			}
 		}
@@ -231,11 +231,11 @@ class BfoxRefParser {
 	/**
 	 * Add the number part of a bible reference (ie, the 3:16 in John 3:16)
 	 *
-	 * @param BfoxRefs $refs
+	 * @param BfoxRef $ref
 	 * @param integer $book_id
 	 * @param string $str
 	 */
-	private static function parse_book_str(BfoxRefs &$refs, $book_id, $str) {
+	private static function parse_book_str(BfoxRef &$ref, $book_id, $str) {
 		// Spaces between numbers count as semicolons
 		preg_replace('/(\d)\s+(\d)/', '$1;$2', $str);
 
@@ -265,15 +265,15 @@ class BfoxRefParser {
 					}
 
 					// Whole Chapters (or whole verses)
-					if ((0 == $vs1) && (0 == $vs2)) $refs->add_whole($book_id, $ch1, $ch2, $verse_chapter);
+					if ((0 == $vs1) && (0 == $vs2)) $ref->add_whole($book_id, $ch1, $ch2, $verse_chapter);
 					// Inner Chapters
 					elseif ((0 == $ch2) || ($ch1 == $ch2)) {
 						$verse_chapter = $ch1;
-						$refs->add_inner($book_id, $verse_chapter, $vs1, $vs2);
+						$ref->add_inner($book_id, $verse_chapter, $vs1, $vs2);
 					}
 					// Mixed Chapters
 					else {
-						$refs->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2, $verse_chapter);
+						$ref->add_mixed($book_id, $ch1, $vs1, $ch2, $vs2, $verse_chapter);
 						$verse_chapter = $ch2;
 					}
 				}

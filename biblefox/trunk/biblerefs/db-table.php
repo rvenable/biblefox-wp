@@ -175,7 +175,7 @@ class BfoxSequenceDbTable {
 	}
 }
 
-class BfoxRefsDbTable extends BfoxSequenceDbTable {
+class BfoxRefDbTable extends BfoxSequenceDbTable {
 
 	public function __construct($data_table_name, $postfix = '_bfox_refs') {
 		parent::__construct($data_table_name, $postfix);
@@ -186,22 +186,22 @@ class BfoxRefsDbTable extends BfoxSequenceDbTable {
 	}
 
 	public function save_data_row($data_row, $id_col, $content_col) {
-		return $this->save_item($data_row->$id_col, new BfoxRefs($data_row->$content_col));
+		return $this->save_item($data_row->$id_col, new BfoxRef($data_row->$content_col));
 	}
 
 	/**
-	 * Refreshes the refs table with data from the data table
+	 * Refreshes the ref table with data from the data table
 	 *
 	 * Returns an array with counts: the number of scanned items, indexed items, and total items to scan
 	 *
-	 * @param BfoxRefsDbTable $db_table
+	 * @param BfoxRefDbTable $db_table
 	 * @param string $id_col
 	 * @param string $content_col
 	 * @param integer $limit
 	 * @param integer $offset
 	 * @return array
 	 */
-	public static function simple_refresh(BfoxRefsDbTable $db_table, $id_col, $content_col, $limit = 0, $offset = 0) {
+	public static function simple_refresh(BfoxRefDbTable $db_table, $id_col, $content_col, $limit = 0, $offset = 0) {
 		global $wpdb;
 
 		$limit = (int) $limit;

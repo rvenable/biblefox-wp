@@ -104,19 +104,19 @@ function bfox_blog_ref_edit_posts_link($ref_str, $text = '') {
  * @return object $term
  */
 function bfox_blog_get_post_tag($term) {
-	if ($refs = BfoxRefParser::no_leftovers($term->name)) $term->slug = urlencode($refs->get_string());
+	if ($ref = BfoxRefParser::no_leftovers($term->name)) $term->slug = urlencode($ref->get_string());
 	return $term;
 }
 add_filter('get_post_tag', 'bfox_blog_get_post_tag', 10, 2);
 
 /**
- * Returns a WP_Query object with the posts that contain the given BfoxRefs
+ * Returns a WP_Query object with the posts that contain the given BfoxRef
  *
- * @param BfoxRefs $refs
+ * @param BfoxRef $ref
  * @return WP_Query
  */
-function bfox_blog_query_for_refs(BfoxRefs $refs) {
-	return new WP_Query('s=' . urlencode($refs->get_string()));
+function bfox_blog_query_for_ref(BfoxRef $ref) {
+	return new WP_Query('s=' . urlencode($ref->get_string()));
 }
 
 function bfox_blog_admin_menu() {
@@ -210,8 +210,8 @@ function bfox_blog_option($key) {
 
 function bfox_bible_post_link_setup($page, $context, $post) {
 	if (!$post->ID && 'post' == $page && 'side' == $context && !empty($_REQUEST['bfox_ref'])) {
-		$hidden_refs = new BfoxRefs($_REQUEST['bfox_ref']);
-		if ($hidden_refs->is_valid()) {
+		$hidden_ref = new BfoxRef($_REQUEST['bfox_ref']);
+		if ($hidden_ref->is_valid()) {
 			global $wp_meta_boxes;
 			// Change the callback function
 			$wp_meta_boxes[$page][$context]['core']['tagsdiv-post_tag']['callback'] = 'bfox_post_tags_meta_box';
@@ -230,10 +230,10 @@ function bfox_post_tags_meta_box($post, $box) {
 }
 
 function bfox_wp_get_object_terms($terms) {
-	$hidden_refs = new BfoxRefs($_REQUEST['bfox_ref']);
-	if ($hidden_refs->is_valid()) {
+	$hidden_ref = new BfoxRef($_REQUEST['bfox_ref']);
+	if ($hidden_ref->is_valid()) {
 		$term = new stdClass;
-		$term->name = $hidden_refs->get_string();
+		$term->name = $hidden_ref->get_string();
 		$terms = array($term);
 	}
 	return $terms;
@@ -250,9 +250,9 @@ function bfox_wp_get_object_terms($terms) {
 function bfox_add_tag_ref_tooltips($tag_links) {
 	if (!empty($tag_links)) foreach ($tag_links as &$tag_link) if (preg_match('/<a.*>(.*)<\/a>/', $tag_link, $matches)) {
 		$tag = $matches[1];
-		$refs = bfox_refs_from_tag($tag);
-		if ($refs->is_valid()) {
-			$tag_link = bfox_ref_bible_link(array('refs' => $refs, 'text' => $tag));
+		$ref = bfox_ref_from_tag($tag);
+		if ($ref->is_valid()) {
+			$tag_link = bfox_ref_bible_link(array('ref' => $ref, 'text' => $tag));
 		}
 	}
 	return $tag_links;
@@ -289,7 +289,7 @@ add_filter('manage_posts_columns', 'bfox_manage_posts_columns');
 function bfox_manage_posts_custom_column($column_name, $post_id) {
 	if ('bfox_col_ref' == $column_name) {
 		global $post;
-		if (isset($post->bfox_bible_refs)) echo bfox_blog_ref_edit_posts_link($post->bfox_bible_refs->get_string(BibleMeta::name_short));
+		if (isset($post->bfox_bible_ref)) echo bfox_blog_ref_edit_posts_link($post->bfox_bible_ref->get_string(BibleMeta::name_short));
 	}
 
 }

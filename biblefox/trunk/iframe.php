@@ -3,15 +3,15 @@
 class BfoxIframe {
 
 	/**
-	 * @var BfoxRefs
+	 * @var BfoxRef
 	 */
-	private $refs;
+	private $ref;
 
 	private $url;
 
-	public function __construct(BfoxRefs $refs) {
-		$this->refs = $refs;
-		$translations = BfoxTranslations::replace_vars(BfoxTranslations::translations(), $this->refs);
+	public function __construct(BfoxRef $ref) {
+		$this->ref = $ref;
+		$translations = BfoxTranslations::replace_vars(BfoxTranslations::translations(), $this->ref);
 
 		// Get the previously used Bible translation from cookies
 		foreach ($translations as $id => $trans) if (empty($this->url) || $id == $_COOKIE['bfox-blog-iframe-select']) $this->url = $trans->url;

@@ -46,8 +46,8 @@ class BfoxTranslations {
 		self::save_translations($translations);
 	}
 
-	public static function replace_vars($translations, BfoxRefs $refs) {
-		$template_vars = self::template_vars($refs);
+	public static function replace_vars($translations, BfoxRef $ref) {
+		$template_vars = self::template_vars($ref);
 		$keys = array_keys($template_vars);
 
 		foreach ($translations as &$trans) $trans->url = str_replace($keys, $template_vars, $trans->url);
@@ -64,15 +64,15 @@ class BfoxTranslations {
 	/**
 	 * Create an array of values to use in place of variables in template strings
 	 *
-	 * @param BfoxRefs $refs
+	 * @param BfoxRef $ref
 	 * @return array
 	 */
-	private static function template_vars(BfoxRefs $refs) {
+	private static function template_vars(BfoxRef $ref) {
 		$book_name = '';
 		$ch1 = $vs1 = 0;
 
-		if ($refs->is_valid()) {
-			$bcvs = BfoxRefs::get_bcvs($refs->get_seqs());
+		if ($ref->is_valid()) {
+			$bcvs = BfoxRef::get_bcvs($ref->get_seqs());
 			$books = array_keys($bcvs);
 			$book_name = BibleMeta::get_book_name($books[0]);
 
@@ -82,7 +82,7 @@ class BfoxTranslations {
 		}
 
 		return array(
-			'%ref%' => urlencode($refs->get_string()),
+			'%ref%' => urlencode($ref->get_string()),
 			'%book%' => urlencode($book_name),
 			'%chapter%' => $ch1,
 			'%verse%' => $vs1,

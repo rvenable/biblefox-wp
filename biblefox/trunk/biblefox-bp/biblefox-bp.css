@@ -48,10 +48,10 @@ Previous and Next chapter links
 }
 
 /*
-Refs read
+Ref read
 */
 
-.refs-read {
+.ref-read {
 	color: #888888;
 	font-size: 12px;
 	font-weight: normal;
@@ -59,7 +59,7 @@ Refs read
 	float: right;
 }
 
-.refs-read input {
+.ref-read input {
 	font-size: 12px;
 	-moz-border-radius-bottomleft: 3px;
 	-moz-border-radius-bottomright: 3px;
