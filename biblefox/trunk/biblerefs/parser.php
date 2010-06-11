@@ -36,6 +36,16 @@ class BfoxRefParserNew {
 	var $add_whole_books = true;
 
 	/**
+	 * Whether to parse the string forward or reverse
+	 *
+	 * Parsing forward fails on strings like 'Genesis 3; 1 Samuel 5' because it thinks that the 1 is a chapter number for Genesis (result: Genesis 1,3)
+	 * Parsing in reverse fixes this, because the parser finds 1 Samuel before Genesis, because it gives priority to bible references appearing later.
+	 *
+	 * @var boolean
+	 */
+	var $forward = false;
+
+	/**
 	 * Returns a BfoxRefs for all the bible references in a string
 	 *
 	 * @param string $str
@@ -102,31 +112,46 @@ class BfoxRefParserNew {
 	}
 
 	// Note: Books have to be reverse sorted to give priority to the longer book names
-	private static $book_regexes = array(
+	private static $book_regexes = array(0 => array(
+	// Forward
 	0 => array(0 => 'zephaniah|zeph|zep|zechariah|zech|zec|wisdom\s+of\s+solomon|wisdom|wisd\s+of\s+sol|wis|tobit|tob|titus|tit|susanna|sus|sos|song\s+thr|song\s+ot\s+the\s+three\s+children|song\s+of\s+the\s+three\s+youths|song\s+of\s+the\s+three\s+jews|song\s+of\s+the\s+three\s+holy\s+children|song\s+of\s+the\s+three|song\s+of\s+songs|song\s+of\s+solomon|song|sng|sirach|sir|ruth|rut|rth|romans|rom|revelations|revelation|rev|rest\s+of\s+esther|rest\s+esther|qoheleth|qoh|pss|psm|pslm|psalms|psalm|psa|prv|proverbs|prov|pro|prayer\s+of\s+manasses|prayer\s+of\s+manasseh|prayer\s+of\s+azariah|pr\s+man|pr\s+az|pma|php|phm|philippians|philemon|philem|phil|obadiah|obad|oba|numbers|num|nehemiah|neh|nam|nahum|nah|mrk|micah|mic|matthew|matt|mat|mark|malachi|mal|luke|luk|ltr\s+jer|lje|leviticus|lev|letter\s+of\s+jeremiah|let\s+of\s+jer|lamentations|lam|judith|judges|judg|jude|jud|jth|jsh|joshua|josh|jos|jonah|jon|jol|john|joel|joe|job|jnh|jhn|jeremiah|jer|jdth|jdt|jdgs|jdg|jas|james|isaiah|isa|hosea|hos|hebrews|heb|haggai|hag|habakkuk|hab|genesis|gen|galatians|gal|ezra|ezr|ezk|ezekiel|ezek|eze|exodus|exod|exo|esther|esth|est|esg|ephesians|ephes|eph|ecclus|ecclesiasticus|ecclesiastes|eccles|eccl|ecc|deuteronomy|deut|deu|daniel|dan|colossians|col|canticles|canticle\s+of\s+canticles|bel\s+dragon|bel\s+and\s+the\s+dragon|bel|baruch|bar|azariah|amos|amo|aes|additions\s+to\s+esther|addesth|add\s+to\s+esth|add\s+to\s+es|acts|act|3john|3joh|3jo|3jn|3jhn|2timothy|2tim|2ti|2thessalonians|2thess|2thes|2th|2sm|2samuel|2sam|2sa|2pt|2peter|2pet|2pe|2maccabees|2macc|2mac|2ma|2kings|2king|2kin|2ki|2kgs|2john|2joh|2jo|2jn|2jhn|2esdras|2esdr|2esd|2es|2corinthians|2cor|2co|2chronicles|2chron|2chr|2ch|1timothy|1tim|1ti|1thessalonians|1thess|1thes|1th|1sm|1samuel|1sam|1sa|1pt|1peter|1pet|1pe|1maccabees|1macc|1mac|1ma|1kings|1king|1kin|1ki|1kgs|1john|1joh|1jo|1jn|1jhn|1esdras|1esdr|1esd|1es|1corinthians|1cor|1co|1chronicles|1chron|1chr|1ch', 1 => 'timothy|tim|ti|thessalonians|thess|thes|th|sm|samuel|sam|sa|pt|peter|pet|pe|maccabees|macc|mac|ma|kings|king|kin|ki|kgs|john|joh|jo|jn|jhn|esdras|esdr|esd|es|corinthians|cor|co|chronicles|chron|chr|ch', 2 => 'timothy|tim|ti|thessalonians|thess|thes|th|sm|samuel|sam|sa|pt|peter|pet|pe|maccabees|macc|mac|ma|kings|king|kin|ki|kgs|john|joh|jo|jn|jhn|esdras|esdr|esd|es|corinthians|cor|co|chronicles|chron|chr|ch', 3 => 'john|joh|jo|jn|jhn'),
 	1 => array(0 => 'zp|zc|ws|tb|ru|ro|rm|re|ps|pr|ob|nu|nm|ne|nb|na|mt|mr|ml|mk|lv|lk|le|la|jr|jn|jm|jl|jg|je|jb|ho|hg|gn|ge|ga|es|ec|dt|dn|da|ac|2s|2m|2k|1s|1m|1k', 1 => 's|m|k', 2 => 's|m|k'),
 	2 => array(0 => 'so|is|ex|am')
-	);
+	), 1 => array(
+	// Reverse
+	0 => array(0 => 'hainahpez|hpez|pez|hairahcez|hcez|cez|nomolos\s+fo\s+modsiw|modsiw|los\s+fo\s+dsiw|siw|tibot|bot|sutit|tit|annasus|sus|sos|rht\s+gnos|nerdlihc\s+eerht\s+eht\s+to\s+gnos|shtuoy\s+eerht\s+eht\s+fo\s+gnos|swej\s+eerht\s+eht\s+fo\s+gnos|nerdlihc\s+yloh\s+eerht\s+eht\s+fo\s+gnos|eerht\s+eht\s+fo\s+gnos|sgnos\s+fo\s+gnos|nomolos\s+fo\s+gnos|gnos|gns|hcaris|ris|htur|tur|htr|snamor|mor|snoitalever|noitalever|ver|rehtse\s+fo\s+tser|rehtse\s+tser|htelehoq|hoq|ssp|msp|mlsp|smlasp|mlasp|asp|vrp|sbrevorp|vorp|orp|sessanam\s+fo\s+reyarp|hessanam\s+fo\s+reyarp|hairaza\s+fo\s+reyarp|nam\s+rp|za\s+rp|amp|php|mhp|snaippilihp|nomelihp|melihp|lihp|haidabo|dabo|abo|srebmun|mun|haimehen|hen|man|muhan|han|krm|hacim|cim|wehttam|ttam|tam|kram|ihcalam|lam|ekul|kul|rej\s+rtl|ejl|sucitivel|vel|haimerej\s+fo\s+rettel|rej\s+fo\s+tel|snoitatnemal|mal|htiduj|segduj|gduj|eduj|duj|htj|hsj|auhsoj|hsoj|soj|hanoj|noj|loj|nhoj|leoj|eoj|boj|hnj|nhj|haimerej|rej|htdj|tdj|sgdj|gdj|saj|semaj|haiasi|asi|aesoh|soh|swerbeh|beh|iaggah|gah|kukkabah|bah|siseneg|neg|snaitalag|lag|arze|rze|kze|leikeze|keze|eze|sudoxe|doxe|oxe|rehtse|htse|tse|gse|snaisehpe|sehpe|hpe|sulcce|sucitsaiselcce|setsaiselcce|selcce|lcce|cce|ymonoretued|tued|ued|leinad|nad|snaissoloc|loc|selcitnac|selcitnac\s+fo\s+elcitnac|nogard\s+leb|nogard\s+eht\s+dna\s+leb|leb|hcurab|rab|hairaza|soma|oma|sea|rehtse\s+ot\s+snoitidda|htsedda|htse\s+ot\s+dda|se\s+ot\s+dda|stca|tca|nhoj3|hoj3|oj3|nj3|nhj3|yhtomit2|mit2|it2|snainolasseht2|sseht2|seht2|ht2|ms2|leumas2|mas2|as2|tp2|retep2|tep2|ep2|seebaccam2|ccam2|cam2|am2|sgnik2|gnik2|nik2|ik2|sgk2|nhoj2|hoj2|oj2|nj2|nhj2|sardse2|rdse2|dse2|se2|snaihtniroc2|roc2|oc2|selcinorhc2|norhc2|rhc2|hc2|yhtomit1|mit1|it1|snainolasseht1|sseht1|seht1|ht1|ms1|leumas1|mas1|as1|tp1|retep1|tep1|ep1|seebaccam1|ccam1|cam1|am1|sgnik1|gnik1|nik1|ik1|sgk1|nhoj1|hoj1|oj1|nj1|nhj1|sardse1|rdse1|dse1|se1|snaihtniroc1|roc1|oc1|selcinorhc1|norhc1|rhc1|hc1', 1 => 'yhtomit|mit|it|snainolasseht|sseht|seht|ht|ms|leumas|mas|as|tp|retep|tep|ep|seebaccam|ccam|cam|am|sgnik|gnik|nik|ik|sgk|nhoj|hoj|oj|nj|nhj|sardse|rdse|dse|se|snaihtniroc|roc|oc|selcinorhc|norhc|rhc|hc', 2 => 'yhtomit|mit|it|snainolasseht|sseht|seht|ht|ms|leumas|mas|as|tp|retep|tep|ep|seebaccam|ccam|cam|am|sgnik|gnik|nik|ik|sgk|nhoj|hoj|oj|nj|nhj|sardse|rdse|dse|se|snaihtniroc|roc|oc|selcinorhc|norhc|rhc|hc', 3 => 'nhoj|hoj|oj|nj|nhj'),
+	1 => array(0 => 'pz|cz|sw|bt|ur|or|mr|er|sp|rp|bo|un|mn|en|bn|an|tm|rm|lm|km|vl|kl|el|al|rj|nj|mj|lj|gj|ej|bj|oh|gh|ng|eg|ag|se|ce|td|nd|ad|ca|s2|m2|k2|s1|m1|k1', 1 => 's|m|k', 2 => 's|m|k'),
+	2 => array(0 => 'os|si|xe|ma')
+	));
 
-	private static $prefixes = array(
+	private static $prefixes = array(0 => array(
+	// Forward
 	1 => '(1|one|i|1st|first)(\s+book)?(\s+of)?\s',
 	2 => '(2|two|ii|2nd|second)(\s+book)?(\s+of)?\s',
 	3 => '(3|three|iii|3rd|third)(\s+book)?(\s+of)?\s'
-	);
+	), 1 => array(
+	// Reverse
+	1 => '\s(fo\s+)?(koob\s+)?(tsrif|ts1|i|eno|1)',
+	2 => '\s(fo\s+)?(koob\s+)?(dnoces|dn2|ii|owt|2)',
+	3 => '\s(fo\s+)?(koob\s+)?(driht|dr3|iii|eerht|3)'
+	));
 
 	private $_regex = '';
 	private function regex() {
 		if (empty($this->_regex)) {
 			$books = array();
 			for ($level = 0; $level <= $this->max_level; $level++) {
-				foreach (self::$book_regexes[$level] as $index => $regexes) {
+				foreach (self::$book_regexes[!$this->forward][$level] as $index => $regexes) {
 					if (!empty($books[$index])) $books[$index] .= '|';
 					$books[$index] .= $regexes;
 				}
 			}
 
 			$book_regex = '(' . $books[0] . ')';
-			for ($index = 1; $index <= 3; $index++) $book_regex .= '|(' . self::$prefixes[$index] . '(' . $books[$index] . '))';
+			for ($index = 1; $index <= 3; $index++) {
+				if ($this->forward) $book_regex .= '|(' . self::$prefixes[!$this->forward][$index] . '(' . $books[$index] . '))';
+				else $book_regex = '((' . $books[$index] . ')' . self::$prefixes[!$this->forward][$index] . ')|' . $book_regex;
+			}
 
 			if ($this->add_whole_books) $cv_question = '?';
 			else $cv_question = '';
@@ -136,14 +161,18 @@ class BfoxRefParserNew {
 
 			// Regex = word boundary, book regex, word boundary, CV regex
 			// CV regex = optional period, optional whitespace, number, optional [\s-:,;] ending with number
-			$this->_regex = "/\b($book_regex)\b(\.?\s$space_star\d([\s-:,;]*\d)*)$cv_question/i";
+			if ($this->forward) $this->_regex = "/\b($book_regex)\b(\.?\s$space_star\d([\s-:,;]*\d)*)$cv_question/i";
+			else $this->_regex = "/((\d[\s-:,;]*)*\d\s$space_star\.?)$cv_question\b($book_regex)\b/i";
 		}
 
 		return $this->_regex;
 	}
 
 	public function parse_string($str) {
-		return preg_replace_callback($this->regex(), array($this, 'replace_cb'), $str);
+		if (!$this->forward) $str = strrev($str); // Reverse before we parse
+		$str = preg_replace_callback($this->regex($this->forward), array($this, 'replace_cb'), $str);
+		if (!$this->forward) $str = strrev($str); // Restore forward order after parsing
+		return $str;
 	}
 
 	/**
@@ -157,12 +186,22 @@ class BfoxRefParserNew {
 
 	public function replace_cb($matches) {
 		$text = $matches[0];
+		if (!$this->forward) $text = strrev($text);
 
-		if (!empty($matches[2])) $synonym = $matches[2];
-		else if (!empty($matches[3])) $synonym = '1' . $matches[7];
-		else if (!empty($matches[8])) $synonym = '2' . $matches[12];
-		else if (!empty($matches[13])) $synonym = '3' . $matches[17];
+		if ($this->forward) {
+			if (!empty($matches[2])) $synonym = $matches[2];
+			else if (!empty($matches[7])) $synonym = '1' . $matches[7];
+			else if (!empty($matches[12])) $synonym = '2' . $matches[12];
+			else if (!empty($matches[17])) $synonym = '3' . $matches[17];
+		}
+		else {
+			if (!empty($matches[19])) $synonym = $matches[19];
+			else if (!empty($matches[15])) $synonym = $matches[15] . '1';
+			else if (!empty($matches[10])) $synonym = $matches[10] . '2';
+			else if (!empty($matches[5])) $synonym = $matches[5] . '3';
+		}
 
+		if (!$this->forward) $synonym = strrev($synonym);
 		$synonym = strtolower(preg_replace('/\s+/', ' ', $synonym));
 
 		$level = 0;
@@ -173,7 +212,11 @@ class BfoxRefParserNew {
 
 		if ($book_id) {
 			$refs = new BfoxRefs;
-			$cv_str = ltrim(trim($matches[18]), '.');
+
+			if ($this->forward) $cv_str = $matches[18];
+			else $cv_str = strrev($matches[1]);
+
+			$cv_str = ltrim(trim($cv_str), '.');
 			if (!empty($cv_str)) self::parse_book_str($refs, $book_id, $cv_str);
 			else $refs->add_whole_book($book_id);
 
@@ -185,6 +228,7 @@ class BfoxRefParserNew {
 			}
 		}
 
+		if (!$this->forward) $text = strrev($text);
 		return $text;
 	}
 
