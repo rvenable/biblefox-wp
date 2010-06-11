@@ -41,7 +41,7 @@
 				$prev_ref_str = $book_name . ' ' . ($ch1 - 1);
 				$nav_bar .= BfoxBlog::ref_link_ajax($prev_ref_str, "&lt; $prev_ref_str", "class='bible_post_prev'");
 			}
-			if ($ch2 < BibleMeta::end_verse_max($book)) {
+			if ($ch2 < BibleMeta::passage_end($book)) {
 				$next_ref_str = $book_name . ' ' . ($ch2 + 1);
 				$nav_bar .= BfoxBlog::ref_link_ajax($next_ref_str, "$next_ref_str &gt;", "class='bible_post_next'");
 			}
@@ -56,7 +56,7 @@
 
 			// Add the Table of Contents to the end of the output
 			$links = '';
-			$end_chapter = BibleMeta::end_verse_max($book);
+			$end_chapter = BibleMeta::passage_end($book);
 			for ($ch = BibleMeta::start_chapter; $ch <= $end_chapter; $ch++) {
 				if (!empty($links)) $links .= ' | ';
 				$links .= BfoxBlog::ref_link_ajax("$book_name $ch", $ch);

@@ -64,15 +64,15 @@ class BfoxRefSequence extends BfoxSequence {
 
 		$edit2 = FALSE;
 
-		// Adjust verse2 to be max_verse_id if it is greater than equal to the end verse (min) for chapter2,
+		// Adjust verse2 to be max_verse_id if it is greater than equal to the earliest possible end verse for chapter2,
 		// or if chapter2 is greater than the end chapter for this verse
-		if (($verse2 >= BibleMeta::end_verse_min($book2, $chapter2)) || ($chapter2 > BibleMeta::end_verse_min($book2))) {
+		if (($verse2 >= BibleMeta::earliest_end($book2, $chapter2)) || ($chapter2 > BibleMeta::earliest_end($book2))) {
 			$verse2 = BibleVerse::max_verse_id;
 			$edit2 = TRUE;
 		}
 
 		// Adjust chapter2 to be max_chapter_id if it is greater than or equal to the last chapter of this book
-		if ((BibleVerse::max_verse_id == $verse2) && ($chapter2 >= BibleMeta::end_verse_min($book2))) {
+		if ((BibleVerse::max_verse_id == $verse2) && ($chapter2 >= BibleMeta::passage_end($book2))) {
 			$chapter2 = BibleVerse::max_chapter_id;
 			$edit2 = TRUE;
 		}
@@ -243,26 +243,22 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param unknown_type $sequences
 	 * @return unknown
 	 */
-	public static function get_bcvs($sequences)
-	{
+	public static function get_bcvs($sequences) {
 		$bcvs = array();
-		foreach ($sequences as $seq)
-		{
+		foreach ($sequences as $seq) {
 			list($book1, $ch1, $vs1) = BibleVerse::calc_ref($seq->start);
 			list($book2, $ch2, $vs2) = BibleVerse::calc_ref($seq->end);
 
 			$books = array();
 			$books[$book1]->start = array($ch1, $vs1);
-			if ($book2 > $book1)
-			{
+			if ($book2 > $book1) {
 				$start = array(0, 0);
 				$end = array(BibleVerse::max_chapter_id, BibleVerse::max_verse_id);
 
 				$books[$book1]->end = $end;
 
 				$middle_books = $book2 - $book1;
-				for ($i = 1; $i < $middle_books; $i++)
-				{
+				for ($i = 1; $i < $middle_books; $i++) {
 					$book = $book1 + $i;
 					$books[$book]->start = $start;
 					$books[$book]->end = $end;
@@ -307,74 +303,62 @@ class BfoxRefs extends BfoxSequenceList {
 	 * @param string $name
 	 * @return string
 	 */
-	public static function create_book_string($book, $cvs, $name = '')
-	{
+	public static function create_book_string($book, $cvs, $name = '') {
 		$str = '';
 		$prev_ch = 0;
 
-		foreach ((array) $cvs as $cv)
-		{
+		foreach ((array) $cvs as $cv) {
 			list($ch1, $vs1) = $cv->start;
 			list($ch2, $vs2) = $cv->end;
 
 			$is_whole_book = FALSE;
 
 			// If chapter1 is 0, then this is either a whole book, or needs to begin at chapter 1
-			if (0 == $ch1)
-			{
+			if (0 == $ch1) {
 				if (BibleVerse::max_chapter_id == $ch2) $is_whole_book = TRUE;
 				else $ch1 = BibleMeta::start_chapter;
 			}
 
-			if (!$is_whole_book)
-			{
+			if (!$is_whole_book) {
 				$is_whole_chapters = FALSE;
 
 				// If verse1 is 0, then this is either a whole chapter(s), or needs to begin at verse 1
-				if (0 == $vs1)
-				{
+				if (0 == $vs1) {
 					if (BibleVerse::max_verse_id == $vs2) $is_whole_chapters = TRUE;
 					else $vs1 = BibleMeta::start_verse;
 				}
 
 				// Adjust the end chapter and verse to be the actual maximum chapter/verse we can display
-				$ch2 = min($ch2, BibleMeta::end_verse_max($book));
-				$vs2 = min($vs2, BibleMeta::end_verse_max($book, $ch2));
+				$ch2 = min($ch2, BibleMeta::passage_end($book));
+				$vs2 = min($vs2, BibleMeta::passage_end($book, $ch2));
 
-				if ($ch1 != $prev_ch)
-				{
+				if ($ch1 != $prev_ch) {
 					if (!empty($str)) $str .= '; ';
 					// Whole Chapters
-					if ($is_whole_chapters)
-					{
+					if ($is_whole_chapters) {
 						$str .= $ch1;
 						if ($ch1 != $ch2) $str .= "-$ch2";
 					}
 					// Inner Chapters
-					elseif ($ch1 == $ch2)
-					{
+					elseif ($ch1 == $ch2) {
 						$str .= "$ch1:$vs1";
 						if ($vs1 != $vs2) $str .= "-$vs2";
 					}
 					// Mixed Chapters
-					else
-					{
+					else {
 						$str .= $ch1;
 						if (BibleMeta::start_verse != $vs1) $str .= ":$vs1";
 						$str .= "-$ch2:$vs2";
 					}
 				}
-				else
-				{
+				else {
 					$str .= ",$vs1";
 					// Inner Chapters
-					if ($ch1 == $ch2)
-					{
+					if ($ch1 == $ch2) {
 						if ($vs1 != $vs2) $str .= "-$vs2";
 					}
 					// Mixed Chapters
-					else
-					{
+					else {
 						$str .= "-$ch2:$vs2";
 					}
 				}
@@ -400,7 +384,7 @@ class BfoxRefs extends BfoxSequenceList {
 		list($ch2, $vs2) = $cv->end;
 
 		if (0 == $ch1) $ch1 = 1;
-		if (BibleVerse::max_chapter_id == $ch2) $ch2 = BibleMeta::end_verse_max($book);
+		if (BibleVerse::max_chapter_id == $ch2) $ch2 = BibleMeta::passage_end($book);
 
 		$seqs = array();
 		$seqs[$ch1] = new BfoxRefSequence;
@@ -481,7 +465,7 @@ class BfoxRefs extends BfoxSequenceList {
 		if (BibleMeta::start_chapter > $ch) {
 			if ($book > BibleMeta::start_book) {
 				$book--;
-				$ch = BibleMeta::end_verse_max($book);
+				$ch = BibleMeta::passage_end($book);
 			}
 			else return '';
 		}
@@ -493,8 +477,8 @@ class BfoxRefs extends BfoxSequenceList {
 		list($book, $ch, $vs) = $this->last_verse();
 
 		$ch++;
-		if (BibleMeta::end_verse_max($book) < $ch) {
-			if ($book < BibleMeta::end_book) {
+		if (BibleMeta::passage_end($book) < $ch) {
+			if ($book < BibleMeta::passage_end()) {
 				$book++;
 				$ch = BibleMeta::start_chapter;
 			}

@@ -4,6 +4,11 @@ class BibleMeta {
 	const name_normal = 'name';
 	const name_short = 'short_name';
 
+	const start_book = 1; // Genesis
+	const start_chapter = 1;
+	const start_verse = 1;
+
+
 	/**
 	 * Returns the book name for the given book ID
 	 *
@@ -23,8 +28,8 @@ class BibleMeta {
 	 * @var array
 	 */
 	static $book_groups = array(
-	'bible' => array('old', 'new', 'apoc'),
-	'protest' => array('old', 'new'),
+	'bible' => array('old', 'new'),
+	'bible_apoc' => array('old', 'new', 'apoc'),
 	'old' => array('moses', 'history', 'wisdom', 'prophets'),
 	'moses' => array(1, 2, 3, 4, 5),
 	'history' => array(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17),
@@ -48,7 +53,7 @@ class BibleMeta {
 	 */
 	static $books = array(
 	'bible' => array('name' => 'Bible', 'short_name' => 'Bible'),
-	'protest' => array('name' => 'Bible', 'short_name' => 'Bible'),
+	'bible_apoc' => array('name' => 'Bible', 'short_name' => 'Bible'),
 	'old' => array('name' => 'Old Testament', 'short_name' => 'Old'),
 	'moses' => array('name' => 'Books of Moses', 'short_name' => 'Moses'),
 	'history' => array('name' => 'Books of History', 'short_name' => 'History'),
@@ -144,20 +149,40 @@ class BibleMeta {
 	'81' => array('name' => '2 Esdras', 'wiki_name' => '2_Esdras', 'short_name' => '2Esd')
 	);
 
-	const start_book = 1; // Genesis
-	const end_book = 66; // Revelation
-
-	const start_chapter = 1;
-	const start_verse = 1;
-
-	static function end_verse_min($book, $chapter = 0) {
-		return self::$min_verse_counts[$book][$chapter];
-	}
-
-	static function end_verse_max($book, $chapter = 0) {
+	/**
+	 * Returns the end of a passage (last chapter of book, or last verse of chapter)
+	 *
+	 * Because some translations have more verses in some chapters than others, this returns the largest possible number.
+	 * Use earliest_end() instead if you want the smallest possible number.
+	 *
+	 * @param integer $book
+	 * @param integer $chapter
+	 * @return integer
+	 */
+	static function passage_end($book = 0, $chapter = 0) {
+		if (!$book) return 66; // Revelation (TODO: support apocrypha as an option)
 		return (isset(self::$max_verse_counts[$book][$chapter])) ? self::$max_verse_counts[$book][$chapter] : self::$min_verse_counts[$book][$chapter];
 	}
 
+	/**
+	 * Returns the end of a passage (last chapter of book, or last verse of chapter)
+	 *
+	 * Because some translations have more verses in some chapters than others, this returns the smallest possible number.
+	 * Use passage_end() instead if you want the largest possible number.
+	 *
+	 * @param integer $book
+	 * @param integer $chapter
+	 * @return integer
+	 */
+	static function earliest_end($book, $chapter) {
+		return self::$min_verse_counts[$book][$chapter];
+	}
+
+	/**
+	 * Stores the verse counts of each chapter in the bible
+	 *
+	 * @var array of array of integer
+	 */
 	private static $min_verse_counts = array(
 	1 => array(50, 31, 25, 24, 26, 32, 22, 24, 22, 29, 32, 32, 20, 18, 24, 21, 16, 27, 33, 38, 18, 34, 24, 20, 67, 34, 35, 46, 22, 35, 43, 55, 32, 20, 31, 29, 43, 36, 30, 23, 23, 57, 38, 34, 34, 28, 34, 31, 22, 33, 26),
 	2 => array(40, 22, 25, 22, 31, 23, 30, 25, 32, 35, 29, 10, 51, 22, 31, 27, 36, 16, 27, 25, 26, 36, 31, 33, 18, 40, 37, 21, 43, 46, 38, 18, 35, 23, 35, 35, 38, 29, 31, 43, 38),
@@ -241,6 +266,11 @@ class BibleMeta {
 	81 => array(40, 48, 36, 52, 56, 59, 70, 63, 47, 59, 46, 51, 58, 48, 63, 78)
 	);
 
+	/**
+	 * Stores the maximum verse counts of each chapter in the bible
+	 *
+	 * @var array of array of integer
+	 */
 	private static $max_verse_counts = array (
 	45 => array(14 => 26, 16 => 27),
 	66 => array(22 => 21),
