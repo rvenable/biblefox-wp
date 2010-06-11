@@ -66,7 +66,7 @@ class BfoxRefSequence extends BfoxSequence {
 
 		// Adjust verse2 to be max_verse_id if it is greater than equal to the earliest possible end verse for chapter2,
 		// or if chapter2 is greater than the end chapter for this verse
-		if (($verse2 >= BibleMeta::earliest_end($book2, $chapter2)) || ($chapter2 > BibleMeta::earliest_end($book2))) {
+		if (($verse2 >= BibleMeta::earliest_end($book2, $chapter2)) || ($chapter2 > BibleMeta::passage_end($book2))) {
 			$verse2 = BibleVerse::max_verse_id;
 			$edit2 = TRUE;
 		}
