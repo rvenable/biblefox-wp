@@ -33,10 +33,10 @@
 
 define('BFOX_VERSION', '0.7');
 define('BFOX_DIR', dirname(__FILE__));
-define('BFOX_REF_DIR', BFOX_DIR . '/biblerefs');
+define('BFOX_REF_DIR', BFOX_DIR . '/biblefox-ref');
 define('BFOX_URL', WP_PLUGIN_URL . '/biblefox');
 
-require_once BFOX_REF_DIR . '/refs.php';
+require_once BFOX_REF_DIR . '/biblefox-ref.php';
 
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 
