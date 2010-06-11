@@ -4,7 +4,7 @@
  * Class for specifying parsing options and storing parsing results
  *
  */
-class BfoxRefParserNew {
+class BfoxRefParser {
 	/**
 	 * If not null, stores all bible references together in one BfoxRefs
 	 * @var BfoxRefs
@@ -322,9 +322,6 @@ function bfox_process_html_text($html, $func, $params = array()) {
 	}
 
 	return $html;
-}
-
-class BfoxRefParser extends BfoxRefParserNew {
 }
 
 ?>
