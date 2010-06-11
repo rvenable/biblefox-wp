@@ -2,7 +2,7 @@
 global $tooltip_refs;
 $ref_str = $tooltip_refs->get_string();
 
-$query = BfoxBlog::query_for_refs($tooltip_refs);
+$query = bfox_blog_query_for_refs($tooltip_refs);
 $count = 0;
 
 ?>
@@ -19,11 +19,11 @@ $count = 0;
 	</ul>
 	<div><?php echo $ref_str . __(' links', 'biblefox-blog') ?></div>
 	<ul>
-		<li><?php echo Biblefox::ref_bible_link(array('ref_str' => $ref_str, 'text' => __('Bible Reader', 'biblefox-blog'))) ?></li>
-		<li><?php echo BfoxBlog::ref_blog_link(array('ref_str' => $ref_str, 'text' => __('Post Archive', 'biblefox-blog'))) ?></li>
+		<li><?php echo bfox_ref_bible_link(array('ref_str' => $ref_str, 'text' => __('Bible Reader', 'biblefox-blog'))) ?></li>
+		<li><?php echo bfox_ref_blog_link(array('ref_str' => $ref_str, 'text' => __('Post Archive', 'biblefox-blog'))) ?></li>
 
 		<?php if (current_user_can('edit_posts')): ?>
-		<li><?php echo BfoxBlog::ref_write_link($ref_str, __('Write a post', 'biblefox-blog')) ?></li>
+		<li><?php echo bfox_blog_ref_write_link($ref_str, __('Write a post', 'biblefox-blog')) ?></li>
 		<?php endif ?>
 	</ul>
 </div>

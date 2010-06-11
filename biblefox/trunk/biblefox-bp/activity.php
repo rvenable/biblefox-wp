@@ -63,16 +63,20 @@ class BfoxActivityRefsDbTable extends BfoxRefsDbTable {
  * Initialization Functions
  */
 
-function bfox_activity_init() {
-	global $bp, $biblefox;
-	$biblefox->activity_refs = new BfoxActivityRefsDbTable($bp->activity->table_name);
+/**
+ * Returns the global instance of BfoxActivityRefsDbTable
+ *
+ * @return BfoxActivityRefsDbTable
+ */
+function bfox_activity_refs_table() {
+	global $bp, $_bfox_activity_refs_table;
+	if (!isset($_bfox_activity_refs_table)) $_bfox_activity_refs_table = new BfoxActivityRefsDbTable($bp->activity->table_name);
+	return $_bfox_activity_refs_table;
 }
-add_action('plugins_loaded', 'bfox_activity_init', 99);
-add_action('admin_menu', 'bfox_activity_init', 99);
 
 function bfox_activity_check_install() {
-	global $biblefox;
-	$biblefox->activity_refs->check_install(BFOX_ACTIVITY_REFS_TABLE_VERSION);
+	$table = bfox_activity_refs_table();
+	$table->check_install(BFOX_ACTIVITY_REFS_TABLE_VERSION);
 }
 add_action('bfox_bp_check_install', 'bfox_activity_check_install');
 
@@ -81,14 +85,14 @@ add_action('bfox_bp_check_install', 'bfox_activity_check_install');
  */
 
 function bfox_bp_activity_after_save($activity) {
-	global $biblefox;
-	$biblefox->activity_refs->save_activity($activity);
+	$table = bfox_activity_refs_table();
+	$table->save_activity($activity);
 }
 add_action('bp_activity_after_save', 'bfox_bp_activity_after_save');
 
 function bfox_bp_activity_deleted_activities($activity_ids) {
-	global $biblefox;
-	$biblefox->activity_refs->delete_simple_items($activity_ids);
+	$table = bfox_activity_refs_table();
+	$table->delete_simple_items($activity_ids);
 }
 add_action('bp_activity_deleted_activities', 'bfox_bp_activity_deleted_activities');
 
@@ -139,12 +143,14 @@ function bfox_bp_bible_directory_activity_sql_hack($query) {
 }
 
 function bfox_bp_activity_get_sql($sql) {
-	global $biblefox, $bfox_activity_refs;
+	global $bfox_activity_refs;
 	if (isset($bfox_activity_refs) && preg_match('/(SELECT)(.*)(WHERE.*)(ORDER.*)$/i', $sql, $matches)) {
+		$table = bfox_activity_refs_table();
+
 		array_shift($matches); // Get rid of the first match which is the entire string
 		$matches[0] .= ' SQL_CALC_FOUND_ROWS ';
-		$matches[1] .= ' ' . $biblefox->activity_refs->join_sql('a.id') . ' ';
-		$matches[2] .= ' AND ' . $biblefox->activity_refs->seqs_where($bfox_activity_refs) . ' GROUP BY a.id ';
+		$matches[1] .= ' ' . $table->join_sql('a.id') . ' ';
+		$matches[2] .= ' AND ' . $table->seqs_where($bfox_activity_refs) . ' GROUP BY a.id ';
 		$sql = implode('', $matches);
 	}
 	return $sql;
@@ -152,7 +158,7 @@ function bfox_bp_activity_get_sql($sql) {
 //add_filter('bp_activity_get_sql', 'bfox_bp_activity_get_sql');
 
 function bfox_bp_activity_get_total_sql($sql) {
-	global $biblefox, $bfox_activity_refs;
+	global $bfox_activity_refs;
 	if (isset($bfox_activity_refs)) $sql = 'SELECT FOUND_ROWS()';
 	return $sql;
 }
@@ -178,14 +184,14 @@ add_action('bfox_bp_admin_page', 'bfox_bp_admin_activity_refresh', 21);
 
 function bfox_bp_admin_activity_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_activity_refresh']) {
-		global $biblefox;
+		$table = bfox_activity_refs_table();
 
 		// If this is the first page of refreshing, delete all the activities
 		$offset = (int) $_GET['offset'];
-		if (0 == $offset) $biblefox->activity_refs->delete_all();
+		if (0 == $offset) $table->delete_all();
 
 		// Refresh this set of activities
-		extract(BfoxRefsDbTable::simple_refresh($biblefox->activity_refs, 'id', 'content', $_GET['limit'], $offset));
+		extract(BfoxRefsDbTable::simple_refresh($table, 'id', 'content', $_GET['limit'], $offset));
 		$scan_total = $_GET['scan_total'] + $scanned;
 		$index_total = $_GET['index_total'] + $indexed;
 

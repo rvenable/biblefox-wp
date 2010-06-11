@@ -9,7 +9,7 @@ function bfox_bp_bible_directory_setup_root_component() {
 add_action('plugins_loaded', 'bfox_bp_bible_directory_setup_root_component', 2);
 
 /**
- * Filter function for overriding the URLs created by Biblefox::ref_bible_url so that they point to the local Bible Directory
+ * Filter function for overriding the URLs created by bfox_ref_bible_url so that they point to the local Bible Directory
  * @param string $template
  * @return string
  */
@@ -32,7 +32,7 @@ function bfox_bp_bible_directory_set_last_viewed($ref_str) {
 }
 
 function bfox_bp_bible_directory_setup() {
-	global $bp, $biblefox;
+	global $bp;
 
 	if ($bp->current_component == BFOX_BIBLE_SLUG && empty($bp->displayed_user->id)) {
 		if (!empty($_POST['s'])) bp_core_redirect(bfox_bp_bible_directory_url($_POST['s']));
@@ -48,11 +48,13 @@ function bfox_bp_bible_directory_setup() {
 			$refs = new BfoxRefs(bfox_bp_bible_directory_get_last_viewed());
 			// If we don't have a last viewed reference, use Gen 1
 			if (!$refs->is_valid()) $refs = new BfoxRefs('Gen 1');
-			bp_core_redirect(Biblefox::ref_bible_url($refs->get_string()));
+			bp_core_redirect(bfox_ref_bible_url($refs->get_string()));
 		}
 
 		bfox_bp_bible_directory_set_last_viewed($refs->get_string());
-		$biblefox->set_refs($refs);
+
+		// Set the active Bible reference
+		bfox_active_refs($refs);
 
 		do_action('bfox_bp_bible_directory_setup');
 
@@ -112,8 +114,7 @@ function bfox_bp_bible_directory_action_search_site( $slug = false ) {
 add_action('init', 'bfox_bp_bible_directory_action_search_site', 4);
 
 function bfox_bp_bible_directory_setup_ajax() {
-	global $biblefox;
-	$refs = $biblefox->refs();
+	$refs = bfox_active_refs();
 
 	// Add some javascript to ensure that any AJAX calls include the current bible references
 	if ($refs->is_valid()) {
@@ -146,8 +147,7 @@ function bfox_bp_bible_directory_setup_what_read_ajax() {
 }
 
 function bfox_bp_bible_directory_before_activity_loop() {
-	global $biblefox;
-	$refs = $biblefox->refs();
+	$refs = bfox_active_refs();
 	if ($refs->is_valid()) bfox_bp_activity_set_refs($refs);
 	elseif (!empty($_REQUEST['bfox_refs'])) bfox_bp_activity_set_refs(new BfoxRefs(urldecode($_REQUEST['bfox_refs'])));
 }
@@ -164,13 +164,12 @@ function bfox_bp_bible_directory_add_nav_item() {
 add_action('bp_nav_items', 'bfox_bp_bible_directory_add_nav_item');
 
 function bfox_bp_bible_directory_iframe() {
-	global $biblefox;
-	$refs = $biblefox->refs();
+	$refs = bfox_active_refs();
 	$prev_ref_str = $refs->prev_chapter_string();
 	$next_ref_str = $refs->next_chapter_string();
 	$links = '';
-	if (!empty($prev_ref_str)) $links .= Biblefox::ref_bible_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
-	if (!empty($next_ref_str)) $links .= Biblefox::ref_bible_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
+	if (!empty($prev_ref_str)) $links .= bfox_ref_bible_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
+	if (!empty($next_ref_str)) $links .= bfox_ref_bible_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
 	?>
 			<h4><?php echo $refs->get_string() ?></h4>
 			<div class='passage-nav'><?php echo $links ?></div>
@@ -192,9 +191,7 @@ function bfox_bp_bible_directory_search_form($search_value, $submit_value) {
 }
 
 function bfox_bp_before_bible_directory_activity_content() {
-	global $biblefox;
-
-	$refs = $biblefox->refs();
+	$refs = bfox_active_refs();
 	$search_value = $refs->get_string(BibleMeta::name_short);
 
 	?>
@@ -209,9 +206,7 @@ function bfox_bp_before_bible_directory_activity_content() {
 }
 
 function bfox_bp_before_activity_post_form() {
-	global $biblefox;
-
-	$refs = $biblefox->refs();
+	$refs = bfox_active_refs();
 	$ref_str = $refs->get_string();
 
 	?>

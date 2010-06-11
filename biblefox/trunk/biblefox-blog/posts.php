@@ -58,22 +58,30 @@ class BfoxPostRefsDbTable extends BfoxRefsDbTable {
 	}
 }
 
-
 /*
  * Initialization Functions
  */
 
-function bfox_blog_post_init() {
-	global $biblefox;
-	$biblefox->post_refs = new BfoxPostRefsDbTable();
+/**
+ * Returns the global instance of BfoxPostRefsDbTable
+ *
+ * @return BfoxPostRefsDbTable
+ */
+function bfox_blog_post_refs_table($reset = false) {
+	global $_bfox_post_refs_table;
+	if (!isset($_bfox_post_refs_table) || $reset) $_bfox_post_refs_table = new BfoxPostRefsDbTable();
+	return $_bfox_post_refs_table;
 }
-add_action('plugins_loaded', 'bfox_blog_post_init');
-add_action('admin_menu', 'bfox_blog_post_init');
-add_action('switch_blog', 'bfox_blog_post_init');
+
+function bfox_blog_post_reset() {
+	bfox_blog_post_refs_table(true);
+}
+// We have to reset the post refs table every time we switch blogs
+add_action('switch_blog', 'bfox_blog_post_reset');
 
 function bfox_blog_post_install() {
-	global $biblefox;
-	$biblefox->post_refs->check_install();
+	$table = bfox_blog_post_refs_table();
+	$table->check_install();
 }
 add_action('admin_menu', 'bfox_blog_post_install');
 
@@ -112,8 +120,8 @@ function bfox_blog_post_get_refs($post, $ref_type = null) {
  * @param object $post
  */
 function bfox_blog_save_post($post_id, $post) {
-	global $biblefox;
-	$biblefox->post_refs->save_post($post);
+	$table = bfox_blog_post_refs_table();
+	$table->save_post($post);
 }
 add_action('save_post', 'bfox_blog_save_post', 10, 2);
 
@@ -123,8 +131,8 @@ add_action('save_post', 'bfox_blog_save_post', 10, 2);
  * @param integer $post_id
  */
 function bfox_blog_delete_post($post_id) {
-	global $biblefox;
-	$biblefox->post_refs->delete_simple_items($post_id);
+	$table = bfox_blog_post_refs_table();
+	$table->delete_simple_items($post_id);
 }
 add_action('delete_post', 'bfox_blog_delete_post');
 
@@ -138,14 +146,14 @@ add_action('delete_post', 'bfox_blog_delete_post');
  * @param WP_Query $wp_query
  */
 function bfox_blog_parse_query($wp_query) {
-	global $biblefox;
-	$biblefox->blog_query = $wp_query;
+	global $bfox_blog_query;
+	$bfox_blog_query = $wp_query;
 
 	// Bible Reference tags should redirect to a ref search
 	if (!empty($wp_query->query_vars['tag'])) {
 		$refs = bfox_refs_from_tag($wp_query->query_vars['tag']);
 		if ($refs->is_valid()) {
-			wp_redirect(BfoxBlog::ref_blog_url($wp_query->query_vars['tag']));
+			wp_redirect(bfox_ref_blog_url($wp_query->query_vars['tag']));
 			die();
 		}
 	}
@@ -163,23 +171,27 @@ function bfox_blog_parse_query($wp_query) {
 add_action('parse_query', 'bfox_blog_parse_query');
 
 function bfox_blog_posts_join($join) {
-	global $biblefox, $wpdb;
-	if (isset($biblefox->blog_query->bfox_refs)) $join .= ' ' . $biblefox->post_refs->join_sql("$wpdb->posts.ID");
+	global $bfox_blog_query, $wpdb;
+	if (isset($bfox_blog_query->bfox_refs)) {
+		$table = bfox_blog_post_refs_table();
+		$join .= ' ' . $table->join_sql("$wpdb->posts.ID");
+	}
 	return $join;
 }
 add_filter('posts_join', 'bfox_blog_posts_join');
 
 function bfox_blog_posts_where($where) {
-	global $biblefox;
-	if (isset($biblefox->blog_query->bfox_refs)) $where .= ' AND ' . $biblefox->post_refs->seqs_where($biblefox->blog_query->bfox_refs);
+	global $bfox_blog_query;
+	$table = bfox_blog_post_refs_table();
+	if (isset($bfox_blog_query->bfox_refs)) $where .= ' AND ' . $table->seqs_where($bfox_blog_query->bfox_refs);
 	return $where;
 }
 add_filter('posts_where', 'bfox_blog_posts_where');
 
 function bfox_blog_posts_groupby($sql) {
-	global $biblefox, $wpdb;
+	global $bfox_blog_query, $wpdb;
 	// Bible references searches need to group on the post ID
-	if (isset($biblefox->blog_query->bfox_refs)) $sql .= " $wpdb->posts.ID";
+	if (isset($bfox_blog_query->bfox_refs)) $sql .= " $wpdb->posts.ID";
 	return $sql;
 }
 add_filter('posts_groupby', 'bfox_blog_posts_groupby');
@@ -195,6 +207,41 @@ add_filter('the_excerpt', 'bfox_ref_replace_html');
 
 // Add tooltips to Bible Ref tag links
 add_filter('term_links-post_tag', 'bfox_add_tag_ref_tooltips');
+
+/**
+ * Creates the form displaying the scripture quick view
+ *
+ */
+function bfox_blog_quick_view_meta_box() {
+	global $post_ID;
+	$refs = bfox_blog_post_get_refs($post_ID);
+
+	if (!empty($_REQUEST['bfox_ref'])) $refs->add_string($_REQUEST['bfox_ref']);
+
+	$is_valid = $refs->is_valid();
+	if ($is_valid) $ref_str = $refs->get_string();
+
+	// Create the form
+	?>
+	<?php if (empty($ref_str)): ?>
+		<p>This post currently has no bible references.</p>
+	<?php else: ?>
+		<p>This post is currently referencing: <?php echo bfox_blog_ref_link_ajax($ref_str) ?></p>
+	<?php endif ?>
+		<p>Add more bible references by typing them into the post, or adding them to the post tags.</p>
+		<div class="hide-if-no-js">
+			<h4>Quick Scripture Viewer</h4>
+			<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
+			<input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
+			<span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
+			<br/>
+		</div>
+
+		<h4 id="bible-text-progress"><span id='bible_progress'><?php if ($is_valid) echo 'Viewing'?></span> <span id='bible_view_ref'><?php if ($is_valid) echo $refs->get_string(BibleMeta::name_short) ?></span></h4>
+		<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
+		<div id="bible-text"><?php if ($is_valid) echo bfox_get_ref_content_quick($refs) ?></div>
+	<?php
+}
 
 /*
  * Settings Functions
@@ -256,7 +303,8 @@ if (is_multisite()) add_action('bfox_ms_admin_page', 'bfox_blog_network_admin_po
 
 function bfox_blog_admin_post_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_post_refresh']) {
-		global $wpdb, $biblefox;
+		global $wpdb;
+		$table = bfox_blog_post_refs_table();
 
 		if ($_GET['page'] == 'bfox-blog-network-settings') {
 			$network_refresh = true;
@@ -283,12 +331,12 @@ function bfox_blog_admin_post_check_refresh($show_settings) {
 			if ($network_refresh) switch_to_blog($blog_id);
 
 			if (0 == $blog_offset) {
-				$biblefox->post_refs->check_install();
-				$biblefox->post_refs->delete_all();
+				$table->check_install();
+				$table->delete_all();
 			}
 
 			// Refresh this set of blog posts
-			extract(BfoxRefsDbTable::simple_refresh($biblefox->post_refs, 'ID', '', $limit, $blog_offset));
+			extract(BfoxRefsDbTable::simple_refresh($table, 'ID', '', $limit, $blog_offset));
 			$limit -= $scanned;
 			$scan_total += $scanned;
 			$index_total += $indexed;
