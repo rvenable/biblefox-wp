@@ -3,13 +3,19 @@
 
 	Plugin Name: Biblefox for WordPress
 	Plugin URI: http://tools.biblefox.com/
-	Description: Turns your blog or BuddyPress site into an online Bible study tool. Allows your blog to become a bible commentary, and adds the entire bible text to your blog, so you can read, search, and study the bible all from your blog.
+	Description: Turns your WordPress blog or BuddyPress site into an online Bible study tool. It indexes your content by Bible references, so that others can easily find content related to any Bible passage they are studying.
 	Version: 0.7
 	Author: Biblefox.com
 	Author URI: http://biblefox.com
+	License: General Public License version 2
+	Requires at least: WP 3.0, BuddyPress 1.2
+	Tested up to: WP 3.0, BuddyPress 1.2.4.1
+	Site Wide Only: true
+	Network: true
 
 *************************************************************************/
 
+// TODO: Use version 2 not 3
 /*************************************************************************
 
 	Copyright 2010 Biblefox.com

@@ -33,7 +33,7 @@
 				$book_ref->add_bcv($book, $cv);
 			}
 
-			$tag_link = "Add tag: <a href='#tagsdiv' onclick='tag_flush_to_text(\"post_tag\", this)'>$ref_str</a>";
+			$tag_link = "Add tag: <a href='#tagsdiv' class='add-bible-ref-tag'>$ref_str</a>";
 
 			// Create the navigation bar with the prev/write/next links
 			$nav_bar = "<div class='bible_post_nav'>";

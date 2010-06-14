@@ -1,3 +1,5 @@
+var jQuery, tagBox;
+
 function bible_ref_press_key( e ) {
 	if ( 13 == e.keyCode ) {
 		bible_text_request_new();
@@ -64,4 +66,7 @@ function bible_ref_link_click() {
 jQuery(document).ready( function() {
 	jQuery('#view-bible-ref').click(bible_text_request_new);
 	jQuery('#new-bible-ref').keypress(bible_ref_press_key);
+	jQuery('a.add-bible-ref-tag').live('click', function () {
+		tagBox.flushTags(jQuery('.tagsdiv'), this);
+	});
 });

@@ -16,6 +16,14 @@ function bfox_blog_init() {
 	if (bfox_blog_option('tooltips')) {
 		wp_register_script('bfox-qtip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
 		wp_enqueue_script('bfox-tooltips', BFOX_URL . '/includes/js/tooltips.js', array('jquery', 'bfox-qtip'), BFOX_VERSION);
+
+		// Load the ajaxurl var if BuddyPress isn't planning on loading
+		if (!has_action('wp_head', 'bp_core_add_ajax_url_js')) {
+			function bfox_blog_add_ajax_url_js() {
+				echo '<script type="text/javascript">var ajaxurl = "' . site_url( 'wp-load.php' ) . '";</script>';
+			}
+			add_action('wp_head', 'bfox_blog_add_ajax_url_js');
+		}
 	}
 }
 add_action('init', 'bfox_blog_init');
@@ -123,11 +131,11 @@ function bfox_blog_admin_menu() {
 	require_once BFOX_BLOG_DIR . '/admin.php';
 
 	add_options_page(
-		__('Bible Settings', 'biblefox'),
-		__('Bible Settings', 'biblefox'),
-		'manage_options',
-		'bfox-blog-settings',
-		'bfox_blog_admin_page'
+		__('Bible Settings', 'biblefox'), // Page title
+		__('Bible Settings', 'biblefox'), // Menu title
+		'manage_options', // Capability
+		'bfox-blog-settings', // Menu slug
+		'bfox_blog_admin_page' // Function
 	);
 
 	add_settings_section('bfox-admin-settings-main', 'Settings', 'bfox_bp_admin_settings_bible_directory', 'bfox-admin-settings');
@@ -146,12 +154,12 @@ function bfox_ms_admin_menu() {
 	require_once BFOX_BLOG_DIR . '/admin.php'; // We need to load this for the blog options functions (for instance, bfox_blog_admin_setting_tooltips())
 
 	add_submenu_page(
-		'wpmu-admin.php',
-		__('Biblefox', 'biblefox'),
-		__('Biblefox', 'biblefox'),
-		10,
-		'bfox-ms',
-		'bfox_ms_admin_page'
+		'wpmu-admin.php', // Parent slug
+		__('Biblefox', 'biblefox'), // Page title
+		__('Biblefox', 'biblefox'), // Menu title
+		10, // Capability
+		'bfox-ms', // Menu slug
+		'bfox_ms_admin_page' // Function
 	);
 
 	add_settings_section('bfox-ms-admin-settings-main', __('Settings', 'bfox'), 'bfox_ms_admin_settings_main', 'bfox-ms-admin-settings');
@@ -163,6 +171,17 @@ function bfox_ms_admin_menu() {
 	do_action('bfox_ms_admin_menu');
 }
 if (is_multisite()) add_action('admin_menu', 'bfox_ms_admin_menu', 20);
+
+// Add "Settings" link on plugins menu
+function bfox_blog_admin_add_action_link($links, $file) {
+	if ('biblefox/biblefox.php' != $file) return $links;
+
+	array_unshift($links, '<a href="' . menu_page_url('bfox-blog-settings', false) . '">' . __('Settings', 'bfox') . '</a>');
+	if (is_multisite()) array_unshift($links, '<a href="' . menu_page_url('bfox-ms', false) . '">' . __('Multisite Settings', 'bfox') . '</a>');
+
+	return $links;
+}
+add_filter('plugin_action_links', 'bfox_blog_admin_add_action_link', 10, 2);
 
 function bfox_blog_option_defaults($new_options = array()) {
 	$defaults = array(
@@ -200,100 +219,5 @@ function bfox_blog_option($key) {
 	$options = bfox_blog_options();
 	return $options[$key];
 }
-
-/*
- * Bible post write link handling
- *
- * Pretty hacky, but better than previous javascript hack
- * HACK necessary until WP ticket 10544 is fixed: http://core.trac.wordpress.org/ticket/10544
- */
-
-function bfox_bible_post_link_setup($page, $context, $post) {
-	if (!$post->ID && 'post' == $page && 'side' == $context && !empty($_REQUEST['bfox_ref'])) {
-		$hidden_ref = new BfoxRef($_REQUEST['bfox_ref']);
-		if ($hidden_ref->is_valid()) {
-			global $wp_meta_boxes;
-			// Change the callback function
-			$wp_meta_boxes[$page][$context]['core']['tagsdiv-post_tag']['callback'] = 'bfox_post_tags_meta_box';
-		}
-	}
-}
-add_action('do_meta_boxes', 'bfox_bible_post_link_setup', 10, 3);
-
-function bfox_post_tags_meta_box($post, $box) {
-	// We need our filter on wp_get_object_terms to get called, but it won't be if post->ID is 0, so we set it to -1
-	$fake_post = new stdClass;
-	$fake_post->ID = -1;
-	add_action('wp_get_object_terms', 'bfox_wp_get_object_terms');
-	post_tags_meta_box($fake_post, $box);
-	remove_action('wp_get_object_terms', 'bfox_wp_get_object_terms');
-}
-
-function bfox_wp_get_object_terms($terms) {
-	$hidden_ref = new BfoxRef($_REQUEST['bfox_ref']);
-	if ($hidden_ref->is_valid()) {
-		$term = new stdClass;
-		$term->name = $hidden_ref->get_string();
-		$terms = array($term);
-	}
-	return $terms;
-}
-
-/**
- * Finds any bible references in an array of tag links and adds tooltips to them
- *
- * Should be used to filter 'term_links-post_tag', called in get_the_term_list()
- *
- * @param array $tag_links
- * @return array
- */
-function bfox_add_tag_ref_tooltips($tag_links) {
-	if (!empty($tag_links)) foreach ($tag_links as &$tag_link) if (preg_match('/<a.*>(.*)<\/a>/', $tag_link, $matches)) {
-		$tag = $matches[1];
-		$ref = bfox_ref_from_tag($tag);
-		if ($ref->is_valid()) {
-			$tag_link = bfox_ref_bible_link(array('ref' => $ref, 'text' => $tag));
-		}
-	}
-	return $tag_links;
-}
-
-/**
- * Filter function for adding biblefox columns to the edit posts list
- *
- * @param $columns
- * @return array
- */
-function bfox_manage_posts_columns($columns) {
-	// Create a new columns array with our new columns, and in the specified order
-	// See wp_manage_posts_columns() for the list of default columns
-	$new_columns = array();
-	foreach ($columns as $key => $column) {
-		$new_columns[$key] = $column;
-
-		// Add the bible verse column right after 'author' column
-		if ('author' == $key) $new_columns['bfox_col_ref'] = __('Bible Verses');
-	}
-	return $new_columns;
-}
-add_filter('manage_posts_columns', 'bfox_manage_posts_columns');
-//add_filter('manage_pages_columns', 'bfox_manage_posts_columns');
-
-/**
- * Action function for displaying bible reference information in the edit posts list
- *
- * @param string $column_name
- * @param integer $post_id
- * @return none
- */
-function bfox_manage_posts_custom_column($column_name, $post_id) {
-	if ('bfox_col_ref' == $column_name) {
-		global $post;
-		if (isset($post->bfox_bible_ref)) echo bfox_blog_ref_edit_posts_link($post->bfox_bible_ref->get_string(BibleMeta::name_short));
-	}
-
-}
-add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 2);
-//add_action('manage_pages_custom_column', 'bfox_manage_posts_custom_column', 10, 2);
 
 ?>

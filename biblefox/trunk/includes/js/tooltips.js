@@ -1,5 +1,4 @@
 'use strict';
-
 var jQuery, ajaxurl, bfox_blog_iframe_select_change;
 
 jQuery(document).ready(function () {

@@ -36,6 +36,15 @@ class BfoxRefParser {
 	var $add_whole_books = true;
 
 	/**
+	 * Whether to require a space before the chapter/verse section
+	 *
+	 * ie. if true, John3:16 is not accepted
+	 *
+	 * @var boolean
+	 */
+	var $require_space_before_cv = false;
+
+	/**
 	 * Whether to parse the string forward or reverse
 	 *
 	 * Parsing forward fails on strings like 'Genesis 3; 1 Samuel 5' because it thinks that the 1 is a chapter number for Genesis (result: Genesis 1,3)
@@ -144,8 +153,8 @@ class BfoxRefParser {
 			$books = array();
 			for ($level = 0; $level <= $this->max_level; $level++) {
 				foreach (self::$book_regexes[!$this->forward][$level] as $index => $regexes) {
-					if (!empty($books[$index])) $books[$index] .= '|';
-					$books[$index] .= $regexes;
+					if (isset($books[$index])) $books[$index] .= "|$regexes";
+					else $books[$index] = $regexes;
 				}
 			}
 

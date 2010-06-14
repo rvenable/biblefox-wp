@@ -205,8 +205,31 @@ add_filter('the_content', 'bfox_ref_replace_html');
 add_filter('comment_text', 'bfox_ref_replace_html');
 add_filter('the_excerpt', 'bfox_ref_replace_html');
 
+/**
+ * Finds any bible references in an array of tag links and adds tooltips to them
+ *
+ * Should be used to filter 'term_links-post_tag', called in get_the_term_list()
+ *
+ * @param array $tag_links
+ * @return array
+ */
+function bfox_add_tag_ref_tooltips($tag_links) {
+	if (!empty($tag_links)) foreach ($tag_links as &$tag_link) if (preg_match('/<a.*>(.*)<\/a>/', $tag_link, $matches)) {
+		$tag = $matches[1];
+		$ref = bfox_ref_from_tag($tag);
+		if ($ref->is_valid()) {
+			$tag_link = bfox_ref_bible_link(array('ref' => $ref, 'text' => $tag));
+		}
+	}
+	return $tag_links;
+}
+
 // Add tooltips to Bible Ref tag links
 add_filter('term_links-post_tag', 'bfox_add_tag_ref_tooltips');
+
+/*
+ * Admin Page Functions
+ */
 
 /**
  * Creates the form displaying the scripture quick view
@@ -243,17 +266,93 @@ function bfox_blog_quick_view_meta_box() {
 	<?php
 }
 
+/**
+ * Bible post write link handling
+ *
+ * Pretty hacky, but better than previous javascript hack
+ * HACK necessary until WP ticket 10544 is fixed: http://core.trac.wordpress.org/ticket/10544
+ *
+ * @param string $page
+ * @param string $context
+ * @param object $post
+ */
+function bfox_bible_post_link_setup($page, $context, $post) {
+	if ((!$post->ID || 'auto-draft' == $post->post_status) && 'post' == $page && 'side' == $context && !empty($_REQUEST['bfox_ref'])) {
+		$hidden_ref = new BfoxRef($_REQUEST['bfox_ref']);
+		if ($hidden_ref->is_valid()) {
+			global $wp_meta_boxes;
+			// Change the callback function
+			$wp_meta_boxes[$page][$context]['core']['tagsdiv-post_tag']['callback'] = 'bfox_post_tags_meta_box';
+
+			function bfox_post_tags_meta_box($post, $box) {
+				function bfox_wp_get_object_terms($terms) {
+					$hidden_ref = new BfoxRef($_REQUEST['bfox_ref']);
+					if ($hidden_ref->is_valid()) {
+						$term = new stdClass;
+						$term->name = $hidden_ref->get_string();
+						$terms = array($term);
+					}
+					return $terms;
+				}
+
+				// We need our filter on wp_get_object_terms to get called, but it won't be if post->ID is 0, so we set it to -1
+				add_action('wp_get_object_terms', 'bfox_wp_get_object_terms');
+				post_tags_meta_box($post, $box);
+				remove_action('wp_get_object_terms', 'bfox_wp_get_object_terms');
+			}
+		}
+	}
+}
+add_action('do_meta_boxes', 'bfox_bible_post_link_setup', 10, 3);
+
+/**
+ * Filter function for adding biblefox columns to the edit posts list
+ *
+ * @param $columns
+ * @return array
+ */
+function bfox_manage_posts_columns($columns) {
+	// Create a new columns array with our new columns, and in the specified order
+	// See wp_manage_posts_columns() for the list of default columns
+	$new_columns = array();
+	foreach ($columns as $key => $column) {
+		$new_columns[$key] = $column;
+
+		// Add the bible verse column right after 'author' column
+		if ('author' == $key) $new_columns['bfox_col_ref'] = __('Bible References', 'bfox');
+	}
+	return $new_columns;
+}
+add_filter('manage_posts_columns', 'bfox_manage_posts_columns'); // Posts
+//add_filter('manage_pages_columns', 'bfox_manage_posts_columns'); // Pages
+
+/**
+ * Action function for displaying bible reference information in the edit posts list
+ *
+ * @param string $column_name
+ * @param integer $post_id
+ * @return none
+ */
+function bfox_manage_posts_custom_column($column_name, $post_id) {
+	if ('bfox_col_ref' == $column_name) {
+		global $post;
+		$ref = bfox_blog_post_get_ref($post);
+		if ($ref->is_valid()) echo bfox_blog_ref_edit_posts_link($ref->get_string(BibleMeta::name_short));
+	}
+}
+add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 2); // Posts
+//add_action('manage_pages_custom_column', 'bfox_manage_posts_custom_column', 10, 2); // Pages
+
 /*
  * Settings Functions
  */
 
 function bfox_blog_admin_post_refresh_url($network_refresh, $is_running = true) {
-	if (!$is_running) $is_running .= "#bible-refresh";
+	if ($network_refresh) $page = menu_page_url('bfox-ms', false);
+	else $page = menu_page_url('bfox-blog-settings', false);
 
-	if ($network_refresh) $page = 'bfox-blog-network-settings';
-	else $page = 'bfox-blog-settings';
-
-	return admin_url("admin.php?page=$page&bfox_post_refresh=$is_running");
+	if ($is_running) return add_query_arg('bfox_post_refresh', $is_running, $page);
+	return "$page#bible-refresh";
 }
 
 function bfox_blog_admin_post_refresh_output_status($network_refresh) {
@@ -286,6 +385,7 @@ function bfox_blog_admin_post_refresh() {
 		<p><?php _e('You can refresh the Bible index for your blog to make sure all blog posts are indexed properly.', 'biblefox') ?></p>
 		<?php bfox_blog_admin_post_refresh_output_status(false) ?>
 		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(false) ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
+		<br/>
 	<?php
 }
 if (!is_multisite()) add_action('bfox_blog_admin_page', 'bfox_blog_admin_post_refresh');
@@ -301,12 +401,27 @@ function bfox_blog_network_admin_post_refresh() {
 }
 if (is_multisite()) add_action('bfox_ms_admin_page', 'bfox_blog_network_admin_post_refresh', 22);
 
+function bfox_blog_admin_post_warnings() {
+	global $wpcom_api_key;
+	$network_refresh = is_multisite();
+	extract(bfox_blog_admin_post_refresh_status($network_refresh));
+	if (!$date_finished) {
+		function bfox_blog_admin_post_warning() {
+			echo "
+			<div id='bfox-blog-post-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your Bible reference index</a>.'), bfox_blog_admin_post_refresh_url($network_refresh))."</p></div>
+			";
+		}
+		add_action('admin_notices', 'bfox_blog_admin_post_warning');
+	}
+}
+add_action('admin_init', 'bfox_blog_admin_post_warnings');
+
 function bfox_blog_admin_post_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_post_refresh']) {
 		global $wpdb;
 		$table = bfox_blog_post_ref_table();
 
-		if ($_GET['page'] == 'bfox-blog-network-settings') {
+		if ($_GET['page'] == 'bfox-ms') {
 			$network_refresh = true;
 			$blog_ids = $wpdb->get_col($wpdb->prepare("SELECT blog_id FROM {$wpdb->blogs} WHERE blog_id >= %d AND site_id = '{$wpdb->siteid}' AND spam = '0' AND deleted = '0' AND archived = '0' ORDER BY blog_id ASC", $_GET['blog_id']));
 		}
