@@ -12,8 +12,8 @@ function bfox_bp_admin_menu() {
 
 	add_submenu_page(
 		'bp-general-settings',
-		__('Biblefox', 'biblefox'),
-		__('Biblefox', 'biblefox'),
+		__('Biblefox', 'bfox'),
+		__('Biblefox', 'bfox'),
 		'manage_options',
 		'bfox-bp-settings',
 		'bfox_bp_admin_page'

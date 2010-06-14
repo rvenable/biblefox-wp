@@ -3,8 +3,8 @@
 function bfox_blog_admin_page() {
 	?>
 	<div class="wrap">
-		<h2><?php _e('Bible Settings', 'biblefox') ?></h2>
-		<p><?php _e('Biblefox finds Bible references in all your blog posts, indexing your blog by the Bible verses you write about.', 'biblefox')?></p>
+		<h2><?php _e('Bible Settings', 'bfox') ?></h2>
+		<p><?php _e('Biblefox finds Bible references in all your blog posts, indexing your blog by the Bible verses you write about.', 'bfox')?></p>
 	<?php
 		if (apply_filters('bfox_blog_show_admin_page', true)) do_action('bfox_blog_admin_page');
 	?>
@@ -18,7 +18,7 @@ function bfox_blog_admin_settings() {
 		<?php settings_fields('bfox-blog-admin-settings') ?>
 		<?php do_settings_sections('bfox-blog-admin-settings') ?>
 		<p class="submit">
-		<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Settings', 'biblefox') ?>" />
+		<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Settings', 'bfox') ?>" />
 		</p>
 	</form>
 	<?php
@@ -32,7 +32,7 @@ function bfox_blog_admin_settings_main() {
 function bfox_blog_admin_setting_tooltips() {
 	?>
 	<input id="bfox-tooltips" name="bfox-blog-options[tooltips]" type="checkbox" value="1" <?php checked(1, bfox_blog_option('tooltips')) ?>/>
-	<p class="description"><?php _e('Bible tooltips are javascript popups that display Scripture when clicking on a Bible reference link.', 'biblefox')?></p>
+	<p class="description"><?php _e('Bible tooltips are javascript popups that display Scripture when clicking on a Bible reference link.', 'bfox')?></p>
 	<?php
 }
 

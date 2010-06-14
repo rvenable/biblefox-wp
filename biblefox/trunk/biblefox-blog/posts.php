@@ -360,9 +360,9 @@ function bfox_blog_admin_post_refresh_output_status($network_refresh) {
 	if ($scan_total) {
 		?>
 		<p>
-		<?php $date_finished ? printf(__('Indexing completed on %s (Biblefox version %s)', 'biblefox'), date("Y-m-d H:i:s", $date_finished), $version) : _e('Indexing not finished...', 'biblefox') ?><br/>
-		<?php printf(__('Scanned %d blog posts: %d posts contained bible references', 'biblefox'), $scan_total, $index_total) ?>
-		<?php if ($network_refresh) printf(__(' (%d blogs scanned)', 'biblefox'), $blog_count) ?>
+		<?php $date_finished ? printf(__('Indexing completed on %s (Biblefox version %s)', 'bfox'), date("Y-m-d H:i:s", $date_finished), $version) : _e('Indexing not finished...', 'bfox') ?><br/>
+		<?php printf(__('Scanned %d blog posts: %d posts contained bible references', 'bfox'), $scan_total, $index_total) ?>
+		<?php if ($network_refresh) printf(__(' (%d blogs scanned)', 'bfox'), $blog_count) ?>
 		</p>
 		<?php
 	}
@@ -381,10 +381,10 @@ function bfox_blog_admin_post_refresh_set_status($status, $network_refresh) {
 
 function bfox_blog_admin_post_refresh() {
 	?>
-		<h3 id="bible-refresh"><?php _e('Refresh Bible Index', 'biblefox') ?></h3>
-		<p><?php _e('You can refresh the Bible index for your blog to make sure all blog posts are indexed properly.', 'biblefox') ?></p>
+		<h3 id="bible-refresh"><?php _e('Refresh Bible Index', 'bfox') ?></h3>
+		<p><?php _e('You can refresh the Bible index for your blog to make sure all blog posts are indexed properly.', 'bfox') ?></p>
 		<?php bfox_blog_admin_post_refresh_output_status(false) ?>
-		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(false) ?>"><?php _e('Refresh Bible Index', 'biblefox') ?></a></p>
+		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(false) ?>"><?php _e('Refresh Bible Index', 'bfox') ?></a></p>
 		<br/>
 	<?php
 }
@@ -392,10 +392,10 @@ if (!is_multisite()) add_action('bfox_blog_admin_page', 'bfox_blog_admin_post_re
 
 function bfox_blog_network_admin_post_refresh() {
 	?>
-		<h3 id="bible-refresh"><?php _e('Refresh Bible Index for All Blogs', 'biblefox') ?></h3>
-		<p><?php _e('You can refresh the Bible index for all the blogs on your network to make sure all blog posts are indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
+		<h3 id="bible-refresh"><?php _e('Refresh Bible Index for All Blogs', 'bfox') ?></h3>
+		<p><?php _e('You can refresh the Bible index for all the blogs on your network to make sure all blog posts are indexed properly (this is good to do after Biblefox upgrades).', 'bfox') ?></p>
 		<?php bfox_blog_admin_post_refresh_output_status(true) ?>
-		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(true) ?>"><?php _e('Refresh All Blogs', 'biblefox') ?></a></p>
+		<p><a class="button-primary" href="<?php echo bfox_blog_admin_post_refresh_url(true) ?>"><?php _e('Refresh All Blogs', 'bfox') ?></a></p>
 		<br/>
 	<?php
 }
@@ -480,10 +480,10 @@ function bfox_blog_admin_post_check_refresh($show_settings) {
 		bfox_blog_admin_post_refresh_set_status(compact('blog_offset', 'scan_total', 'index_total', 'blog_count', 'date_finished'), $network_refresh);
 
 		?>
-		<h3><?php _e('Refreshing Bible Index...', 'biblefox') ?></h3>
+		<h3><?php _e('Refreshing Bible Index...', 'bfox') ?></h3>
 		<?php bfox_blog_admin_post_refresh_output_status($network_refresh) ?>
 
-		<p><?php _e("If your browser doesn't start loading the next page automatically click this link:", 'biblefox'); ?> <a class="button" href="<?php echo $next_url ?>"><?php _e("Continue", 'biblefox'); ?></a></p>
+		<p><?php _e("If your browser doesn't start loading the next page automatically click this link:", 'bfox'); ?> <a class="button" href="<?php echo $next_url ?>"><?php _e("Continue", 'bfox'); ?></a></p>
 		<script type='text/javascript'>
 		<!--
 		function nextpage() {

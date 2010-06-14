@@ -174,9 +174,9 @@ function bfox_bp_admin_activity_refresh_url() {
 
 function bfox_bp_admin_activity_refresh() {
 	?>
-		<h3><?php _e('Refresh Bible Index for all BuddyPress Activities', 'biblefox') ?></h3>
-		<p><?php _e('Every BuddyPress activity gets added to the Bible index based on the Bible references it contains. You can refresh your Bible index to make sure all activity is indexed properly (this is good to do after Biblefox upgrades).', 'biblefox') ?></p>
-		<p><a class="button-primary" href="<?php echo bfox_bp_admin_activity_refresh_url() ?>"><?php _e('Refresh BuddyPress Activities', 'biblefox') ?></a></p>
+		<h3><?php _e('Refresh Bible Index for all BuddyPress Activities', 'bfox') ?></h3>
+		<p><?php _e('Every BuddyPress activity gets added to the Bible index based on the Bible references it contains. You can refresh your Bible index to make sure all activity is indexed properly (this is good to do after Biblefox upgrades).', 'bfox') ?></p>
+		<p><a class="button-primary" href="<?php echo bfox_bp_admin_activity_refresh_url() ?>"><?php _e('Refresh BuddyPress Activities', 'bfox') ?></a></p>
 		<br/>
 	<?php
 }
@@ -196,15 +196,15 @@ function bfox_bp_admin_activity_check_refresh($show_settings) {
 		$index_total = $_GET['index_total'] + $indexed;
 
 		?>
-		<h3><?php _e('Refreshing Bible Index...', 'biblefox') ?></h3>
-		<p><?php printf(__('Scanned %d activities (out of %d total activities)<br/>%d contained bible references', 'biblefox'), $scan_total, $total, $index_total) ?></p>
+		<h3><?php _e('Refreshing Bible Index...', 'bfox') ?></h3>
+		<p><?php printf(__('Scanned %d activities (out of %d total activities)<br/>%d contained bible references', 'bfox'), $scan_total, $total, $index_total) ?></p>
 
 		<?php
 		$offset += $scanned;
 		$next_url = add_query_arg(compact('offset', 'scan_total', 'index_total'), bfox_bp_admin_activity_refresh_url());
 
 		if ($offset < $total): ?>
-		<p><?php _e("If your browser doesn't start loading the next page automatically click this link:", 'biblefox'); ?> <a class="button" href="<?php echo $next_url ?>"><?php _e("Continue", 'biblefox'); ?></a></p>
+		<p><?php _e("If your browser doesn't start loading the next page automatically click this link:", 'bfox'); ?> <a class="button" href="<?php echo $next_url ?>"><?php _e("Continue", 'bfox'); ?></a></p>
 		<script type='text/javascript'>
 		<!--
 		function nextpage() {
@@ -230,7 +230,7 @@ function bfox_bp_activity_before_save($activity) {
 		$ref = new BfoxRef($_REQUEST['bfox_read_ref_str']);
 		if ($ref->is_valid()) {
 			$activity->bfox_read_ref_str = $ref->get_string();
-			$activity->action = str_replace('posted an update', __('posted an update about ', 'biblefox') . $activity->bfox_read_ref_str, $activity->action);
+			$activity->action = str_replace('posted an update', __('posted an update about ', 'bfox') . $activity->bfox_read_ref_str, $activity->action);
 		}
 	}
 }

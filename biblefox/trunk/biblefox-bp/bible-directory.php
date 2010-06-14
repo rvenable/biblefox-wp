@@ -93,7 +93,7 @@ function bfox_bp_bible_directory_url($page = '') {
  * @return unknown_type
  */
 function bfox_bp_bible_directory_search_form_type_select($select) {
-	return preg_replace('/(<select.*?>)/', '$1<option value="' . BFOX_BIBLE_SLUG . '">' . __( 'Bible', 'biblefox' ) . '</option>', $select);
+	return preg_replace('/(<select.*?>)/', '$1<option value="' . BFOX_BIBLE_SLUG . '">' . __( 'Bible', 'bfox' ) . '</option>', $select);
 }
 add_filter('bp_search_form_type_select', 'bfox_bp_bible_directory_search_form_type_select');
 
@@ -157,7 +157,7 @@ add_action('bp_after_activity_loop', 'bfox_bp_activity_unset_ref');
 function bfox_bp_bible_directory_add_nav_item() {
 	?>
 	<li<?php if ( bp_is_page( BFOX_BIBLE_SLUG ) ) : ?> class="selected"<?php endif; ?>>
-		<a href="<?php echo bfox_bp_bible_directory_url() ?>" title="<?php _e( 'Bible', 'biblefox' ) ?>"><?php _e( 'Bible Reader', 'biblefox' ) ?></a>
+		<a href="<?php echo bfox_bp_bible_directory_url() ?>" title="<?php _e( 'Bible', 'bfox' ) ?>"><?php _e( 'Bible Reader', 'bfox' ) ?></a>
 	</li>
 	<?php
 }
@@ -196,9 +196,9 @@ function bfox_bp_before_bible_directory_activity_content() {
 
 	?>
 		<form action="<?php echo bfox_bp_bible_directory_url() ?>" method="post" id="bible-directory-form" class="dir-form">
-			<h3><?php _e( 'Bible Reader', 'biblefox' ) ?></h3>
+			<h3><?php _e( 'Bible Reader', 'bfox' ) ?></h3>
 			<div id="bible-dir-search" class="dir-search no-ajax">
-				<?php bfox_bp_bible_directory_search_form($search_value, __('Go to passage', 'biblefox')) ?>
+				<?php bfox_bp_bible_directory_search_form($search_value, __('Go to passage', 'bfox')) ?>
 			</div><!-- #group-dir-search -->
 		</form>
 	<?php
@@ -211,7 +211,7 @@ function bfox_bp_before_activity_post_form() {
 
 	?>
 		<div class="ref-read">
-		<label><?php _e('What did you read?', 'biblefox') ?>&nbsp;<input type="text" id="bfox_read_ref_str" name="bfox_read_ref_str" value="<?php echo attribute_escape($ref_str) ?>" /></label>
+		<label><?php _e('What did you read?', 'bfox') ?>&nbsp;<input type="text" id="bfox_read_ref_str" name="bfox_read_ref_str" value="<?php echo attribute_escape($ref_str) ?>" /></label>
 		</div>
 	<?php
 }

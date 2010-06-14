@@ -131,8 +131,8 @@ function bfox_blog_admin_menu() {
 	require_once BFOX_BLOG_DIR . '/admin.php';
 
 	add_options_page(
-		__('Bible Settings', 'biblefox'), // Page title
-		__('Bible Settings', 'biblefox'), // Menu title
+		__('Bible Settings', 'bfox'), // Page title
+		__('Bible Settings', 'bfox'), // Menu title
 		'manage_options', // Capability
 		'bfox-blog-settings', // Menu slug
 		'bfox_blog_admin_page' // Function
@@ -155,8 +155,8 @@ function bfox_ms_admin_menu() {
 
 	add_submenu_page(
 		'wpmu-admin.php', // Parent slug
-		__('Biblefox', 'biblefox'), // Page title
-		__('Biblefox', 'biblefox'), // Menu title
+		__('Biblefox', 'bfox'), // Page title
+		__('Biblefox', 'bfox'), // Menu title
 		10, // Capability
 		'bfox-ms', // Menu slug
 		'bfox_ms_admin_page' // Function
