@@ -4,6 +4,7 @@ function bfox_ms_admin_page() {
 	?>
 	<div class="wrap">
 		<h2><?php _e('Biblefox for WordPress - Network Admin Settings', 'bfox') ?></h2>
+		<?php settings_errors() ?>
 		<p><?php _e('Biblefox for WordPress finds Bible references in all your blog posts, indexing your blog by the Bible verses you write about.', 'bfox')?></p>
 		<?php
 			if (apply_filters('bfox_ms_show_admin_page', true)) do_action('bfox_ms_admin_page');
@@ -13,9 +14,8 @@ function bfox_ms_admin_page() {
 }
 
 function bfox_ms_admin_settings() {
-	// TODO: Change to ms-edit for WP 3
 	?>
-	<form action="wpmu-edit.php?action=bfox-ms" method="post" class="standard-form" id="settings-form">
+	<form action="ms-edit.php?action=bfox-ms" method="post" class="standard-form" id="settings-form">
 		<?php settings_fields('bfox-ms-admin-settings') ?>
 		<?php do_settings_sections('bfox-ms-admin-settings') ?>
 		<p class="submit">
@@ -42,7 +42,20 @@ function bfox_ms_admin_page_save() {
 		update_site_option('bfox-ms-allow-blog-options', $_POST['bfox-ms-allow-blog-options']);
 		update_site_option('bfox-blog-options', bfox_blog_option_defaults($_POST['bfox-blog-options']));
 
-		wp_redirect(admin_url('wpmu-admin.php?page=bfox-ms'));
+		/**
+		 *  Handle settings errors and return to options page
+		 */
+		// If no settings errors were registered add a general 'updated' message.
+		if ( !count( get_settings_errors() ) )
+			add_settings_error('general', 'settings_updated', __('Settings saved.'), 'updated');
+		set_transient('settings_errors', get_settings_errors(), 30);
+
+		/**
+		 * Redirect back to the settings page that was submitted
+		 */
+		$goback = add_query_arg( 'updated', 'true',  wp_get_referer() );
+		wp_redirect( $goback );
+		exit;
 	}
 }
 add_action('wpmuadminedit', 'bfox_ms_admin_page_save');

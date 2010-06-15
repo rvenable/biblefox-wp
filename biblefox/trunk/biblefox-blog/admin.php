@@ -3,7 +3,8 @@
 function bfox_blog_admin_page() {
 	?>
 	<div class="wrap">
-		<h2><?php _e('Bible Settings', 'bfox') ?></h2>
+		<h2><?php _e('Bible Blog Settings', 'bfox') ?></h2>
+		<?php settings_errors() ?>
 		<p><?php _e('Biblefox finds Bible references in all your blog posts, indexing your blog by the Bible verses you write about.', 'bfox')?></p>
 	<?php
 		if (apply_filters('bfox_blog_show_admin_page', true)) do_action('bfox_blog_admin_page');

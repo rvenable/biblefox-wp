@@ -402,12 +402,11 @@ function bfox_blog_network_admin_post_refresh() {
 if (is_multisite()) add_action('bfox_ms_admin_page', 'bfox_blog_network_admin_post_refresh', 22);
 
 function bfox_blog_admin_post_warnings() {
-	$network_refresh = is_multisite();
-	extract(bfox_blog_admin_post_refresh_status($network_refresh));
+	extract(bfox_blog_admin_post_refresh_status(is_multisite()));
 	if (!$date_finished) {
 		function bfox_blog_admin_post_warning() {
 			echo "
-			<div id='bfox-blog-post-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your Bible reference index</a>.'), bfox_blog_admin_post_refresh_url($network_refresh, false))."</p></div>
+			<div id='bfox-blog-post-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your Bible reference index</a>.'), bfox_blog_admin_post_refresh_url(is_multisite(), false))."</p></div>
 			";
 		}
 		add_action('admin_notices', 'bfox_blog_admin_post_warning');

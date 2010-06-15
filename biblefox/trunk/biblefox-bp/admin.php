@@ -4,6 +4,7 @@ function bfox_bp_admin_page() {
 	?>
 	<div class="wrap">
 		<h2><?php _e('Biblefox for BuddyPress Settings', 'bfox') ?></h2>
+		<?php settings_errors() ?>
 		<p><?php _e('Biblefox for BuddyPress finds Bible references in all BuddyPress activities, indexing your site by the Bible verses being discussed.', 'bfox') ?></p>
 	<?php
 		if (apply_filters('bfox_bp_show_admin_page', true)) do_action('bfox_bp_admin_page');
