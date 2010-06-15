@@ -3,10 +3,9 @@
 define('BFOX_BP_DIR', dirname(__FILE__));
 define('BFOX_BP_URL', BFOX_URL . '/biblefox-bp');
 
-require_once BFOX_BP_DIR . '/activity.php';
-
-if (get_site_option('bfox-enable-bible-directory')) require_once BFOX_BP_DIR . '/bible-directory.php';
-
+/**
+ * Set up the admin menu
+ */
 function bfox_bp_admin_menu() {
 	require_once BFOX_BP_DIR . '/admin.php';
 
@@ -21,7 +20,7 @@ function bfox_bp_admin_menu() {
 
 	add_settings_section('bfox-bp-admin-settings-main', __('Settings', 'bfox'), 'bfox_bp_admin_settings_main', 'bfox-bp-admin-settings');
 
-	register_setting('bfox-bp-admin-settings', 'bfox-enable-bible-directory');
+	register_setting('bfox-bp-admin-settings', 'bfox-enable-bible-directory', 'bfox_bp_option_sanitize');
 	add_settings_field('bfox-enable-bible-directory', 'Enable BuddyPress Bible Directory', 'bfox_bp_admin_setting_enable_bible_directory', 'bfox-bp-admin-settings', 'bfox-bp-admin-settings-main', array('label_for' => 'bfox-enable-bible-directory'));
 }
 add_action('admin_menu', 'bfox_bp_admin_menu', 20);
@@ -53,6 +52,41 @@ function bfox_bp_check_install() {
 	do_action('bfox_bp_check_install');
 }
 add_action('admin_menu', 'bfox_bp_check_install');
+
+/*
+ * Options Functions
+ */
+function bfox_bp_get_option($key) {
+	return get_blog_option(BP_ROOT_BLOG, $key);
+}
+
+function bfox_bp_update_option($key, $value) {
+	return update_blog_option(BP_ROOT_BLOG, $key, $value);
+}
+
+/**
+ * Sanitize the BP options
+ *
+ * We don't want to save BP options to any blog other than the BP_ROOT_BLOG
+ *
+ * @param string $new_value
+ * @param mixed $option
+ * @return string $new_value
+ */
+function bfox_bp_option_sanitize($new_value, $option = '') {
+	global $blog_id;
+	// We don't want to save BP options to any blog other than the BP_ROOT_BLOG
+	if (BP_ROOT_BLOG != $blog_id) {
+		if (!$option) $option = substr(current_filter(), strlen('sanitize_option_'));
+		update_blog_option(BP_ROOT_BLOG, $option, $new_value);
+		$new_value = null;
+	}
+	return $new_value;
+}
+
+// Load other files
+require_once BFOX_BP_DIR . '/activity.php';
+if (bfox_bp_get_option('bfox-enable-bible-directory')) require_once BFOX_BP_DIR . '/bible-directory.php';
 
 do_action('bfox_bp_loaded');
 
