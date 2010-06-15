@@ -11,12 +11,12 @@ function bfox_bp_admin_menu() {
 	require_once BFOX_BP_DIR . '/admin.php';
 
 	add_submenu_page(
-		'bp-general-settings',
-		__('Biblefox', 'bfox'),
-		__('Biblefox', 'bfox'),
-		'manage_options',
-		'bfox-bp-settings',
-		'bfox_bp_admin_page'
+		'bp-general-settings', // Parent slug
+		__('Biblefox', 'bfox'), // Page title
+		__('Biblefox', 'bfox'), // Menu title
+		'manage_options', // Capability
+		'bfox-bp-settings', // Menu slug
+		'bfox_bp_admin_page' // Function
 	);
 
 	add_settings_section('bfox-bp-admin-settings-main', __('Settings', 'bfox'), 'bfox_bp_admin_settings_main', 'bfox-bp-admin-settings');
@@ -39,7 +39,7 @@ add_action('init', 'bfox_bp_init');
 
 function bfox_bp_register_widgets() {
 	// Only register these widgets for the main blog
-	if (is_main_blog()) do_action('bfox_bp_register_widgets');
+	if (is_main_site()) do_action('bfox_bp_register_widgets');
 }
 add_action('widgets_init', 'bfox_bp_register_widgets');
 

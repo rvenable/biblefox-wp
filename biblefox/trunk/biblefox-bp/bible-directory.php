@@ -211,7 +211,7 @@ function bfox_bp_before_activity_post_form() {
 
 	?>
 		<div class="ref-read">
-		<label><?php _e('What did you read?', 'bfox') ?>&nbsp;<input type="text" id="bfox_read_ref_str" name="bfox_read_ref_str" value="<?php echo attribute_escape($ref_str) ?>" /></label>
+		<label><?php _e('Bible tags', 'bfox') ?>&nbsp;<input type="text" id="bfox_read_ref_str" name="bfox_read_ref_str" value="<?php echo attribute_escape($ref_str) ?>" /></label>
 		</div>
 	<?php
 }

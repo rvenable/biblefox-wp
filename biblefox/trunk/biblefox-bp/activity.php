@@ -168,19 +168,56 @@ function bfox_bp_activity_get_total_sql($sql) {
  * Settings Functions
  */
 
-function bfox_bp_admin_activity_refresh_url() {
-	return admin_url('admin.php?page=bfox-bp-settings&bfox_activity_refresh=1');
+function bfox_bp_admin_activity_refresh_url($refresh = false) {
+	$url = admin_url('admin.php?page=bfox-bp-settings');
+	if ($refresh) return add_query_arg('bfox_activity_refresh', $refresh, $url);
+	else return "$url#bible-refresh";
+}
+
+function bfox_bp_admin_activity_refresh_output_status() {
+	extract(bfox_bp_admin_activity_refresh_status());
+	if ($scan_total) {
+		?>
+		<p>
+		<?php $date_finished ? printf(__('Indexing completed on %s (Biblefox version %s)', 'bfox'), date("Y-m-d H:i:s", $date_finished), $version) : _e('Indexing not finished...', 'bfox') ?><br/>
+		<?php printf(__('Scanned %d activities (out of %d total activities): %d activities contained bible references', 'bfox'), $scan_total, $total, $index_total) ?>
+		</p>
+		<?php
+	}
+}
+
+function bfox_bp_admin_activity_refresh_status() {
+	return (array) get_option('bfox_bp_activity_refresh');
+}
+
+function bfox_bp_admin_activity_refresh_set_status($status) {
+	$status['version'] = BFOX_VERSION;
+	return update_option('bfox_bp_activity_refresh', $status);
 }
 
 function bfox_bp_admin_activity_refresh() {
 	?>
-		<h3><?php _e('Refresh Bible Index for all BuddyPress Activities', 'bfox') ?></h3>
+		<h3 id="bible-refresh"><?php _e('Refresh Bible Index for all BuddyPress Activities', 'bfox') ?></h3>
 		<p><?php _e('Every BuddyPress activity gets added to the Bible index based on the Bible references it contains. You can refresh your Bible index to make sure all activity is indexed properly (this is good to do after Biblefox upgrades).', 'bfox') ?></p>
-		<p><a class="button-primary" href="<?php echo bfox_bp_admin_activity_refresh_url() ?>"><?php _e('Refresh BuddyPress Activities', 'bfox') ?></a></p>
+		<?php bfox_bp_admin_activity_refresh_output_status() ?>
+		<p><a class="button-primary" href="<?php echo bfox_bp_admin_activity_refresh_url(true) ?>"><?php _e('Refresh BuddyPress Activities', 'bfox') ?></a></p>
 		<br/>
 	<?php
 }
 add_action('bfox_bp_admin_page', 'bfox_bp_admin_activity_refresh', 21);
+
+function bfox_bp_admin_activity_warnings() {
+	extract(bfox_bp_admin_activity_refresh_status());
+	if (!$date_finished) {
+		function bfox_bp_admin_activity_warning() {
+			echo "
+			<div id='bfox-blog-activity-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your BuddyPress Bible index</a>.'), bfox_bp_admin_activity_refresh_url())."</p></div>
+			";
+		}
+		add_action('admin_notices', 'bfox_bp_admin_activity_warning');
+	}
+}
+add_action('admin_init', 'bfox_bp_admin_activity_warnings');
 
 function bfox_bp_admin_activity_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_activity_refresh']) {
@@ -192,18 +229,34 @@ function bfox_bp_admin_activity_check_refresh($show_settings) {
 
 		// Refresh this set of activities
 		extract(BfoxRefDbTable::simple_refresh($table, 'id', 'content', $_GET['limit'], $offset));
-		$scan_total = $_GET['scan_total'] + $scanned;
-		$index_total = $_GET['index_total'] + $indexed;
+
+		// Get old values from bfox_bp_admin_activity_refresh_status() and increment them with the new values from BfoxRefDbTable::simple_refresh())
+		extract(bfox_bp_admin_activity_refresh_status());
+
+		// If the previous status is finished, then we must be starting a new complete refresh
+		if ($date_finished) {
+			$blog_offset = $scan_total = $index_total = $blog_count = $date_finished = 0;
+		}
+
+		$scan_total += $scanned;
+		$index_total += $indexed;
+
+		$offset += $scanned;
+		$is_running = ($offset < $total);
+
+		if ($is_running) $date_finished = 0;
+		else $date_finished = time();
+
+		bfox_bp_admin_activity_refresh_set_status(compact('scan_total', 'index_total', 'total', 'date_finished'));
 
 		?>
 		<h3><?php _e('Refreshing Bible Index...', 'bfox') ?></h3>
-		<p><?php printf(__('Scanned %d activities (out of %d total activities)<br/>%d contained bible references', 'bfox'), $scan_total, $total, $index_total) ?></p>
+		<?php bfox_bp_admin_activity_refresh_output_status() ?>
 
 		<?php
-		$offset += $scanned;
-		$next_url = add_query_arg(compact('offset', 'scan_total', 'index_total'), bfox_bp_admin_activity_refresh_url());
+		$next_url = add_query_arg(compact('offset'), bfox_bp_admin_activity_refresh_url(true));
 
-		if ($offset < $total): ?>
+		if ($is_running): ?>
 		<p><?php _e("If your browser doesn't start loading the next page automatically click this link:", 'bfox'); ?> <a class="button" href="<?php echo $next_url ?>"><?php _e("Continue", 'bfox'); ?></a></p>
 		<script type='text/javascript'>
 		<!--
