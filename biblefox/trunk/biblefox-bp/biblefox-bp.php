@@ -78,8 +78,12 @@ function bfox_bp_option_sanitize($new_value, $option = '') {
 	// We don't want to save BP options to any blog other than the BP_ROOT_BLOG
 	if (BP_ROOT_BLOG != $blog_id) {
 		if (!$option) $option = substr(current_filter(), strlen('sanitize_option_'));
+
+		// Save the option to the BP_ROOT_BLOG
 		update_blog_option(BP_ROOT_BLOG, $option, $new_value);
-		$new_value = null;
+
+		// Since we really want to save to the BP_ROOT_BLOG, let's not change the value in this blog
+		$new_value = get_option($option);
 	}
 	return $new_value;
 }
