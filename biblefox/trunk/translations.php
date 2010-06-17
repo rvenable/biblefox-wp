@@ -12,6 +12,7 @@ class BfoxTranslations {
 		// If we don't have any translations saved used the defaults
 		if ($use_default_if_empty && empty($translations)) {
 			$defaults = (array) apply_filters('bfox_translation_defaults', array(
+				array('ESV', 'English Standard Version', 'http://biblefox.com/?bfoxp=%ref%&trans=ESV'),
 				array('WEB', 'World English Bible', 'http://biblefox.com/?bfoxp=%ref%&trans=WEB'),
 				array('HNV', 'Hebrew Names Version', 'http://biblefox.com/?bfoxp=%ref%&trans=HNV'),
 				array('KJV', 'King James Version', 'http://biblefox.com/?bfoxp=%ref%&trans=KJV'),
