@@ -1,5 +1,6 @@
 <?php
 
+
 if (!defined('BFOX_REF_DIR')) define('BFOX_REF_DIR', dirname(__FILE__));
 
 require_once BFOX_REF_DIR . '/bible-meta.php';
