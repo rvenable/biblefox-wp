@@ -187,12 +187,12 @@ function bfox_bp_admin_activity_refresh_output_status() {
 }
 
 function bfox_bp_admin_activity_refresh_status() {
-	return (array) get_option('bfox_bp_activity_refresh');
+	return (array) get_site_option('bfox_bp_activity_refresh');
 }
 
 function bfox_bp_admin_activity_refresh_set_status($status) {
 	$status['version'] = BFOX_VERSION;
-	return update_option('bfox_bp_activity_refresh', $status);
+	return update_site_option('bfox_bp_activity_refresh', $status);
 }
 
 function bfox_bp_admin_activity_refresh() {

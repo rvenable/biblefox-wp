@@ -114,8 +114,8 @@ class BfoxRefParser {
 		$parser = new BfoxRefParser;
 		$parser->total_ref = $total_ref; // Save total_ref
 		$parser->replace_func = $replace_func; // Modify string with the replace_func callback
-		$parser->max_level = 1; // Don't include 2 letter book abbreviations
-		$parser->add_whole_books = true; // Don't allow whole book references
+		$parser->max_level = 1; // Include 2 letter book abbreviations, but not the risky ones (like so, is, ex, am)
+		$parser->add_whole_books = false; // Don't allow whole book references
 
 		return $parser->parse_string_html($html);
 	}
