@@ -6,8 +6,19 @@ define('BFOX_BP_URL', BFOX_URL . '/biblefox-bp');
 /**
  * Set up the admin menu
  */
+
+function bfox_bp_admin_init() {
+	if (is_super_admin()) {
+		require_once BFOX_BP_DIR . '/admin.php';
+		add_action('admin_menu', 'bfox_bp_admin_menu', 20);
+
+		do_action('bfox_bp_admin_init');
+	}
+}
+add_action('admin_init', 'bfox_bp_admin_init');
+
 function bfox_bp_admin_menu() {
-	require_once BFOX_BP_DIR . '/admin.php';
+	do_action('bfox_bp_check_install');
 
 	add_submenu_page(
 		'bp-general-settings', // Parent slug
@@ -22,8 +33,9 @@ function bfox_bp_admin_menu() {
 
 	register_setting('bfox-bp-admin-settings', 'bfox-enable-bible-directory', 'bfox_bp_option_sanitize');
 	add_settings_field('bfox-enable-bible-directory', 'Enable BuddyPress Bible Directory', 'bfox_bp_admin_setting_enable_bible_directory', 'bfox-bp-admin-settings', 'bfox-bp-admin-settings-main', array('label_for' => 'bfox-enable-bible-directory'));
+
+	do_action('bfox_bp_admin_menu');
 }
-add_action('admin_menu', 'bfox_bp_admin_menu', 20);
 
 // Add Ref Replace filters
 add_filter('bp_get_activity_content_body', 'bfox_ref_replace_html');
@@ -47,11 +59,6 @@ function bfox_bp_core_load_template($template) {
 	bp_core_load_template($template);
 	remove_action('wp', 'bp_core_catch_no_access');
 }
-
-function bfox_bp_check_install() {
-	do_action('bfox_bp_check_install');
-}
-add_action('admin_menu', 'bfox_bp_check_install');
 
 /*
  * Options Functions

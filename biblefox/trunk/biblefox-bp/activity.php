@@ -217,7 +217,7 @@ function bfox_bp_admin_activity_warnings() {
 		add_action('admin_notices', 'bfox_bp_admin_activity_warning');
 	}
 }
-add_action('admin_init', 'bfox_bp_admin_activity_warnings');
+add_action('bfox_bp_admin_init', 'bfox_bp_admin_activity_warnings');
 
 function bfox_bp_admin_activity_check_refresh($show_settings) {
 	if ($show_settings && $_GET['bfox_activity_refresh']) {
