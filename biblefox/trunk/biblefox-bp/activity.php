@@ -11,53 +11,27 @@ class BfoxActivityRefDbTable extends BfoxRefDbTable {
 	 * @return boolean (TRUE if there were actually Bible references to save)
 	 */
 	public function save_activity($activity) {
-		global $bp;
-
-		// For blog posts, index the full post content and tags
-		if ($activity->component == $bp->blogs->id && $activity->type == 'new_blog_post') {
-			switch_to_blog($activity->item_id);
-
-			$ref = bfox_blog_post_get_ref($activity->secondary_item_id);
-
-			restore_current_blog();
-		}
-		// For forum posts, index the full post text and tags
-		elseif ($activity->component == $bp->groups->id && ($activity->type == 'new_forum_post' || $activity->type == 'new_forum_topic')) {
-			// Get the forum post
-			if ($activity->type == 'new_forum_topic') list($post) = bp_forums_get_topic_posts(array('topic_id' => $activity->secondary_item_id, 'per_page' => 1));
-			else $post = bp_forums_get_post($activity->secondary_item_id);
-
-			// Index the post text
-			$ref = bfox_ref_from_content($post->post_text);
-
-			// Only index the tags for the first post in a topic
-			if ($activity->type == 'new_forum_topic') {
-				$tags = bb_get_topic_tags($post->topic_id, array('fields' => 'names'));
-				foreach ($tags as $tag) $ref->add_ref(bfox_ref_from_tag($tag));
-			}
-		}
-		// For all other activities, just index the activity content
-		else {
-			$ref = bfox_ref_from_content($activity->content);
-		}
-
 		// Add any read passage strings
 		if (!empty($activity->bfox_read_ref_str)) {
 			bp_activity_update_meta($activity->id, 'bfox_read_ref_str', $activity->bfox_read_ref_str);
-			$ref->add_string($activity->bfox_read_ref_str);
-
 			do_action('bfox_save_activity_read_ref_str', $activity);
 		}
 
-		return $this->save_item($activity->id, apply_filters('bfox_save_activity_ref', $ref, $activity));
+		if ($success = $this->save_item($activity->id, apply_filters('bfox_save_activity_ref', $activity->bfox_ref, $activity))) {
+			// If we successfully saved some Bible references, lets cache the string in the activity meta
+			// That way we don't have to recalculate it each time which could be a pain
+			// For example, recalculating the references for a blog post requires switching to that blog, getting the blog post and parsing it
+			// Instead, we can just use this meta
+			bp_activity_update_meta($activity->id, 'bfox_ref_str', $activity->bfox_ref->get_string(BibleMeta::name_short));
+		}
+
+		return $success;
 	}
 
 	public function save_data_row($data_row, $id_col, $content_col) {
 		return $this->save_activity($data_row);
 	}
 }
-
-
 
 /*
  * Initialization Functions
@@ -84,9 +58,66 @@ add_action('bfox_bp_check_install', 'bfox_activity_check_install');
  * Management Functions
  */
 
+/**
+ * Calculates the bible references for an activity before it is saved
+ *
+ * @param $activity
+ */
+function bfox_bp_activity_before_save($activity) {
+	global $bp;
+
+	// For blog posts, index the full post content and tags
+	if ($activity->component == $bp->blogs->id && $activity->type == 'new_blog_post') {
+		switch_to_blog($activity->item_id);
+
+		$ref = bfox_blog_post_get_ref($activity->secondary_item_id);
+
+		restore_current_blog();
+	}
+	// For forum posts, index the full post text and tags
+	elseif ($activity->component == $bp->groups->id && ($activity->type == 'new_forum_post' || $activity->type == 'new_forum_topic')) {
+		// Get the forum post
+		if ($activity->type == 'new_forum_topic') list($post) = bp_forums_get_topic_posts(array('topic_id' => $activity->secondary_item_id, 'per_page' => 1));
+		else $post = bp_forums_get_post($activity->secondary_item_id);
+
+		// Index the post text
+		$ref = bfox_ref_from_content($post->post_text);
+
+		// Only index the tags for the first post in a topic
+		if ($activity->type == 'new_forum_topic') {
+			$tags = bb_get_topic_tags($post->topic_id, array('fields' => 'names'));
+			foreach ($tags as $tag) $ref->add_ref(bfox_ref_from_tag($tag));
+		}
+	}
+	// For all other activities, just index the activity content
+	else {
+		$ref = bfox_ref_from_content($activity->content);
+	}
+
+	// Add any 'Bible Tag' read passage strings
+	if ('activity_update' == $activity->type && isset($_REQUEST['bfox_read_ref_str'])) {
+		$tag_ref = new BfoxRef($_REQUEST['bfox_read_ref_str']);
+		if ($tag_ref->is_valid()) {
+			$activity->bfox_read_ref_str = $tag_ref->get_string();
+			$activity->action = str_replace('posted an update', __('posted an update about ', 'bfox') . $activity->bfox_read_ref_str, $activity->action);
+			$ref->add_ref($tag_ref);
+		}
+	}
+
+	if ($ref->is_valid()) $activity->bfox_ref = $ref;
+}
+add_action('bp_activity_before_save', 'bfox_bp_activity_before_save');
+
+/**
+ * Saves bible reference data for an activity after the activity was just saved
+ *
+ * @param $activity
+ */
 function bfox_bp_activity_after_save($activity) {
-	$table = bfox_activity_ref_table();
-	$table->save_activity($activity);
+	if (isset($activity->bfox_ref)) {
+		$table = bfox_activity_ref_table();
+		$table->save_activity($activity);
+	}
 }
 add_action('bp_activity_after_save', 'bfox_bp_activity_after_save');
 
@@ -273,20 +304,5 @@ function bfox_bp_admin_activity_check_refresh($show_settings) {
 	return $show_settings;
 }
 add_filter('bfox_bp_show_admin_page', 'bfox_bp_admin_activity_check_refresh');
-
-/*
- * "What did you read?" functions
- */
-
-function bfox_bp_activity_before_save($activity) {
-	if ('activity_update' == $activity->type && isset($_REQUEST['bfox_read_ref_str'])) {
-		$ref = new BfoxRef($_REQUEST['bfox_read_ref_str']);
-		if ($ref->is_valid()) {
-			$activity->bfox_read_ref_str = $ref->get_string();
-			$activity->action = str_replace('posted an update', __('posted an update about ', 'bfox') . $activity->bfox_read_ref_str, $activity->action);
-		}
-	}
-}
-add_action('bp_activity_before_save', 'bfox_bp_activity_before_save');
 
 ?>

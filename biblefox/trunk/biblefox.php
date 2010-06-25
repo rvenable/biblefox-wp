@@ -118,7 +118,7 @@ function bfox_ref_link_from_options($options = array()) {
  * @return string
  */
 function bfox_ref_bible_url($ref_str) {
-	return sprintf(apply_filters('bfox_blog_bible_url_template', 'http://biblefox.com/bible/%s'), urlencode($ref_str));
+	return sprintf(apply_filters('bfox_blog_bible_url_template', 'http://biblefox.com/bible/%s'), urlencode(strtolower($ref_str)));
 }
 
 /**

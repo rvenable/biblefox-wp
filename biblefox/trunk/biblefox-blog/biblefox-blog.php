@@ -47,7 +47,7 @@ add_action('admin_init', 'bfox_blog_admin_init');
  * @return string
  */
 function bfox_ref_blog_url($ref_str) {
-	$ref_str = urlencode($ref_str);
+	$ref_str = urlencode(strtolower($ref_str));
 
 	// NOTE: This function imitates the WP get_tag_link() function, but instead of getting a tag slug, we use $ref_str
 	global $wp_rewrite;
