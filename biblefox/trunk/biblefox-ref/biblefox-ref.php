@@ -43,9 +43,24 @@ class BfoxRefSequence extends BfoxSequence {
 			$edit1 = TRUE;
 		}
 
-		if ($edit1) $start = BibleVerse::calc_unique_id($book1, $chapter1, $verse1);
+		// If the start verse is greater than the last verse of the chapter, try to start with the next chapter
+		// So, 'Haggai 1:100-2:4' should become 'Haggai 2:1-4'
+		if ($verse1 > BibleMeta::passage_end($book1, $chapter1)) {
+			$verse1 = 0;
+			if (BibleVerse::max_chapter_id > $chapter1) $chapter1++;
+			$edit1 = TRUE;
+		}
 
-		$this->start = $start;
+		// If the start chapter is greater than the last chapter of the book, this isn't a valid sequence
+		if ($chapter1 > BibleMeta::passage_end($book1)) {
+			$this->start = null;
+		}
+		else {
+			// We have a valid sequence, so calculate the unique id and set it
+			if ($edit1) $start = BibleVerse::calc_unique_id($book1, $chapter1, $verse1);
+
+			$this->start = $start;
+		}
 
 		return $this->start;
 	}

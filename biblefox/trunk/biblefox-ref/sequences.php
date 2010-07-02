@@ -7,6 +7,10 @@ class BfoxSequence {
 		$this->start = $start;
 		$this->end = $end;
 	}
+
+	public function is_valid() {
+		return !is_null($this->start) && !is_null($this->end);
+	}
 }
 
 abstract class BfoxSequenceList {
@@ -64,6 +68,8 @@ abstract class BfoxSequenceList {
 	 * @return boolean $is_modified Returns whether there were modifications (can be used to detect whether this sequence is contained in the list already)
 	 */
 	public function add_seq(BfoxSequence $seq, $test_only = false) {
+		if (!$seq->is_valid()) return false;
+
 		// Make a copy of the sequence since it was passed by reference
 		$new_seq = new BfoxSequence($seq->start, $seq->end);
 
@@ -127,6 +133,8 @@ abstract class BfoxSequenceList {
 	 * @return boolean $is_modified Returns whether there were modifications (can be used to detect intersections)
 	 */
 	public function sub_seq(BfoxSequence $seq, $test_only = false) {
+		if (!$seq->is_valid()) return false;
+
 		// Make a copy of the sequence since it was passed by reference
 		$sub_seq = new BfoxSequence($seq->start, $seq->end);
 
