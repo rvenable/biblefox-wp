@@ -1,21 +1,17 @@
 <?php
 /*************************************************************************
-
-	Plugin Name: Biblefox for WordPress
-	Plugin URI: http://tools.biblefox.com/
-	Description: Turns your WordPress blog or BuddyPress site into an online Bible study tool. It indexes your content by Bible references, so that others can easily find content related to any Bible passage they are studying.
-	Version: 0.7
-	Author: Biblefox.com
-	Author URI: http://biblefox.com
-	License: General Public License version 2
-	Requires at least: WP 3.0, BuddyPress 1.2
-	Tested up to: WP 3.0, BuddyPress 1.2.4.1
-	Site Wide Only: true
-	Network: true
-
+Plugin Name: Biblefox for WordPress
+Plugin URI: http://dev.biblefox.com/biblefox-for-wordpress/
+Description: Turns your WordPress site into an online Bible study tool. Creates a Bible index for your WordPress site, allowing your users to easily search your blog posts (or BuddyPress activities, when using BuddyPress) for any Bible reference. Use it for WordPress sites that involve a lot of discussion of the Bible.
+Version: 0.8
+Author: Biblefox.com, rvenable
+Author URI: http://biblefox.com
+License: General Public License version 2
+Requires at least: WP 3.0, BuddyPress 1.2
+Tested up to: WP 3.0, BuddyPress 1.2.4.1
+Network: true
 *************************************************************************/
 
-// TODO: Use version 2 not 3
 /*************************************************************************
 
 	Copyright 2010 Biblefox.com
@@ -37,7 +33,7 @@
 
 *************************************************************************/
 
-define('BFOX_VERSION', '0.7');
+define('BFOX_VERSION', '0.8');
 define('BFOX_DIR', dirname(__FILE__));
 define('BFOX_REF_DIR', BFOX_DIR . '/biblefox-ref');
 define('BFOX_URL', WP_PLUGIN_URL . '/biblefox');
