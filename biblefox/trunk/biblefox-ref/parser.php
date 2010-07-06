@@ -60,12 +60,13 @@ class BfoxRefParser {
 	 * @param string $str
 	 * @return BfoxRef
 	 */
-	public static function simple($str) {
+	public static function simple($str, &$leftovers = null) {
 		$parser = new BfoxRefParser;
 		$parser->total_ref = new BfoxRef; // Save total_ref
+		$parser->leftovers = $leftovers; // Save leftovers if not null
 		$parser->max_level = 2; // Include all book abbreviations
 
-		$parser->parse_string($str);
+		$leftovers = $parser->parse_string($str);
 
 		return $parser->total_ref;
 	}

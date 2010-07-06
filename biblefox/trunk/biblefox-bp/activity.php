@@ -131,18 +131,17 @@ add_action('bp_activity_deleted_activities', 'bfox_bp_activity_deleted_activitie
  * Activity Query Functions
  */
 
-function bfox_bp_activity_set_ref(BfoxRef $ref) {
-	global $bfox_activity_ref;
-	if ($ref->is_valid()) {
-		$bfox_activity_ref = $ref;
-		add_filter('query', 'bfox_bp_bible_directory_activity_sql_hack');
-	}
-	else bfox_bp_activity_unset_ref();
+/*
+ * Enables the ability to scan activity search terms for Bible references
+ *
+ * Once they are found, removes the bible reference text from the search terms and uses
+ * the more accurate Bible index to retrieve results
+ */
+function bfox_bp_activity_enable_search_term_refs() {
+	add_filter('query', 'bfox_bp_bible_directory_activity_sql_hack');
 }
 
-function bfox_bp_activity_unset_ref() {
-	global $bfox_activity_ref;
-	unset($bfox_activity_ref);
+function bfox_bp_activity_disable_search_term_refs() {
 	remove_filter('query', 'bfox_bp_bible_directory_activity_sql_hack');
 }
 
@@ -164,36 +163,54 @@ function bfox_bp_bible_directory_activity_sql_hack($query) {
 	$select_sql = "SELECT a.*, u.user_email, u.user_nicename, u.user_login, u.display_name";
 	$from_sql = " FROM {$bp->activity->table_name} a LEFT JOIN {$wpdb->users} u ON a.user_id = u.ID";
 	$activity_sql = "{$select_sql} {$from_sql}";
-	if (0 == substr_compare($query, $activity_sql, 0, min(strlen($query), strlen($activity_sql)))) return bfox_bp_activity_get_sql($query);
+	if (0 == substr_compare($query, $activity_sql, 0, min(strlen($query), strlen($activity_sql)))) return apply_filters('bp_activity_get_sql', $query);
 
 	// Activity Count Query
 	$activity_sql = "SELECT count(a.id) FROM {$bp->activity->table_name} a";
-	if (0 == substr_compare($query, $activity_sql, 0, min(strlen($query), strlen($activity_sql)))) return bfox_bp_activity_get_total_sql($query);
+	if (0 == substr_compare($query, $activity_sql, 0, min(strlen($query), strlen($activity_sql)))) return apply_filters('bp_activity_get_total_sql', $query);
 
 	return $query;
 }
 
 function bfox_bp_activity_get_sql($sql) {
-	global $bfox_activity_ref;
-	if (isset($bfox_activity_ref) && preg_match('/(SELECT)(.*)(WHERE.*)(ORDER.*)$/i', $sql, $matches)) {
-		$table = bfox_activity_ref_table();
+	// Check to see if this SQL has any search terms
+	if (preg_match("/a.content LIKE '%(.*?)%'/i", $sql, $matches)) {
+		// Check the search terms to see if there are any Bible references
+		$leftovers = true;
+		$ref = BfoxRefParser::simple($matches[1], $leftovers);
+		if ($ref->is_valid()) {
+			// Remove the bible references from the search terms
+			if (!empty($leftovers)) $leftovers = "a.content LIKE '%$leftovers%'";
+			else $leftovers = "1=1";
+			$sql = str_replace($matches[0], $leftovers, $sql);
 
-		array_shift($matches); // Get rid of the first match which is the entire string
-		$matches[0] .= ' SQL_CALC_FOUND_ROWS ';
-		$matches[1] .= ' ' . $table->join_sql('a.id') . ' ';
-		$matches[2] .= ' AND ' . $table->seqs_where($bfox_activity_ref) . ' GROUP BY a.id ';
-		$sql = implode('', $matches);
+			// Modify the sql to have use the bible references table
+			if (preg_match('/(SELECT)(.*)(WHERE.*)(ORDER.*)$/i', $sql, $matches)) {
+				$table = bfox_activity_ref_table();
+
+				array_shift($matches); // Get rid of the first match which is the entire string
+				$matches[0] .= ' SQL_CALC_FOUND_ROWS ';
+				$matches[1] .= ' ' . $table->join_sql('a.id') . ' ';
+				$matches[2] .= ' AND ' . $table->seqs_where($ref) . ' GROUP BY a.id ';
+				$sql = implode('', $matches);
+
+				// Make sure that we change the total SQL to use FOUND_ROWS()
+				add_filter('bp_activity_get_total_sql', 'bfox_bp_activity_get_total_sql');
+			}
+		}
+
 	}
+
 	return $sql;
 }
-//add_filter('bp_activity_get_sql', 'bfox_bp_activity_get_sql');
+add_filter('bp_activity_get_sql', 'bfox_bp_activity_get_sql');
 
 function bfox_bp_activity_get_total_sql($sql) {
-	global $bfox_activity_ref;
-	if (isset($bfox_activity_ref)) $sql = 'SELECT FOUND_ROWS()';
-	return $sql;
+	// Remove ourselves from the filter, because we only want to happen on demand
+	remove_filter('bp_activity_get_total_sql', 'bfox_bp_activity_get_total_sql');
+
+	return 'SELECT FOUND_ROWS()';
 }
-//add_filter('bp_activity_get_total_sql', 'bfox_bp_activity_get_total_sql');
 
 /*
  * Settings Functions

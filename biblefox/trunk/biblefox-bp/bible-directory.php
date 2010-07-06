@@ -146,13 +146,40 @@ function bfox_bp_bible_directory_setup_what_read_ajax() {
 	<?php
 }
 
+// Add the active bible references to the search terms
+function bfox_bp_bible_directory_querystring($query_string, $object) {
+	$ref = bfox_active_ref();
+	if ($ref->is_valid()) {
+		$args = wp_parse_args($query_string);
+		if (!empty($args['search_terms'])) $args['search_terms'] .= ' ';
+		$args['search_terms'] .= $ref->get_string();
+		$query_string = build_query($args);
+	}
+
+	return $query_string;
+}
+
 function bfox_bp_bible_directory_before_activity_loop() {
 	$ref = bfox_active_ref();
-	if ($ref->is_valid()) bfox_bp_activity_set_ref($ref);
-	elseif (!empty($_REQUEST['bfox_ref'])) bfox_bp_activity_set_ref(new BfoxRef(urldecode($_REQUEST['bfox_ref'])));
+
+	// Try to get a ref from the REQUEST params if there isn't already an active ref
+	if (!empty($_REQUEST['bfox_ref']) && !$ref->is_valid()) {
+		$ref = new BfoxRef(urldecode($_REQUEST['bfox_ref']));
+		if ($ref->is_valid()) bfox_active_ref($ref);
+	}
+
+	if ($ref->is_valid()) {
+		// Make sure our bible references get added to the search terms
+		add_filter('bp_ajax_querystring', 'bfox_bp_bible_directory_querystring', 20, 2);
+
+		// Enable search term refs
+		bfox_bp_activity_enable_search_term_refs();
+
+		// Disable the search term refs after the activity loop
+		add_action('bp_after_activity_loop', 'bfox_bp_activity_disable_search_term_refs');
+	}
 }
 add_action('bp_before_activity_loop', 'bfox_bp_bible_directory_before_activity_loop');
-add_action('bp_after_activity_loop', 'bfox_bp_activity_unset_ref');
 
 function bfox_bp_bible_directory_add_nav_item() {
 	?>
