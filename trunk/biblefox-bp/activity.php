@@ -29,7 +29,10 @@ class BfoxActivityRefDbTable extends BfoxRefDbTable {
 	}
 
 	public function save_data_row($data_row, $id_col, $content_col) {
-		return $this->save_activity($data_row);
+		bfox_bp_activity_before_save($data_row);
+
+		if (isset($data_row->bfox_ref)) return $this->save_activity($data_row);
+		return false;
 	}
 }
 
