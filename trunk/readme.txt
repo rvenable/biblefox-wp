@@ -1,9 +1,9 @@
-=== Biblefox for Wordpress ===
+=== Biblefox for WordPress ===
 Contributors: Biblefox.com, rvenable
 Tags: bible, buddypress
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.8
+Stable tag: 0.8.1
 
 == Description ==
 
@@ -35,7 +35,7 @@ For BuddyPress sites, you should also add support to your menus for the Bible Di
 
 = Where can I get support? =
 
-The support forums can be found here: http://biblefox.com/groups/biblefox-development/forum/
+The support forums can be found here: http://dev.biblefox.com/forums/
 
 = Does Biblefox install any database tables? =
 
@@ -49,6 +49,9 @@ Yes. Biblefox creates tables for storing the Bible references in each post. For 
 4. **Bible Post Meta Box** - Biblefox adds a post meta box that displays the Bible text while writing a blog post.
 
 == Changelog ==
+
+= 0.8.1 =
+* Fixed BuddyPress setting page and Activity refresh
 
 = 0.8 =
 * Initial release
