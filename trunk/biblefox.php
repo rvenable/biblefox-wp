@@ -36,7 +36,7 @@ Network: true
 define('BFOX_VERSION', '0.8.1');
 define('BFOX_DIR', dirname(__FILE__));
 define('BFOX_REF_DIR', BFOX_DIR . '/biblefox-ref');
-define('BFOX_URL', WP_PLUGIN_URL . '/biblefox');
+define('BFOX_URL', WP_PLUGIN_URL . '/biblefox-for-wordpress');
 
 require_once BFOX_REF_DIR . '/biblefox-ref.php';
 

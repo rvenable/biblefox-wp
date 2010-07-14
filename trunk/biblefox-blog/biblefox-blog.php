@@ -174,7 +174,7 @@ if (is_multisite()) add_action('admin_menu', 'bfox_ms_admin_menu', 20);
 
 // Add "Settings" link on plugins menu
 function bfox_blog_admin_add_action_link($links, $file) {
-	if ('biblefox/biblefox.php' != $file) return $links;
+	if ('biblefox-for-wordpress/biblefox.php' != $file) return $links;
 
 	if (!is_multisite() || get_site_option('bfox-ms-allow-blog-options')) array_unshift($links, '<a href="' . menu_page_url('bfox-blog-settings', false) . '">' . __('Settings', 'bfox') . '</a>');
 	if (is_multisite()) array_unshift($links, '<a href="' . menu_page_url('bfox-ms', false) . '">' . __('Network Settings', 'bfox') . '</a>');
