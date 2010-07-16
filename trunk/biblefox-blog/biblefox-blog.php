@@ -13,7 +13,7 @@ function bfox_blog_init() {
 	// Scripts
 	wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery'), BFOX_VERSION);
 
-	if (bfox_blog_option('tooltips')) {
+	if (!bfox_blog_option('disable-tooltips')) {
 		wp_register_script('bfox-qtip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
 		wp_enqueue_script('bfox-tooltips', BFOX_URL . '/includes/js/tooltips.js', array('jquery', 'bfox-qtip'), BFOX_VERSION);
 
@@ -142,7 +142,7 @@ function bfox_blog_admin_menu() {
 
 	add_settings_section('bfox-blog-admin-settings-main', __('Settings', 'bfox'), 'bfox_blog_admin_settings_main', 'bfox-blog-admin-settings');
 
-	add_settings_field('bfox-tooltips', __('Bible Reference Tooltips', 'bfox'), 'bfox_blog_admin_setting_tooltips', 'bfox-blog-admin-settings', 'bfox-blog-admin-settings-main', array('label_for' => 'bfox-toolips'));
+	add_settings_field('bfox-tooltips', __('Disable Bible Reference Tooltips', 'bfox'), 'bfox_blog_admin_setting_tooltips', 'bfox-blog-admin-settings', 'bfox-blog-admin-settings-main', array('label_for' => 'bfox-toolips'));
 	register_setting('bfox-blog-admin-settings', 'bfox-blog-options');
 
 	do_action('bfox_blog_admin_menu');
@@ -166,7 +166,7 @@ function bfox_ms_admin_menu() {
 	add_settings_field('bfox-ms-allow-blog-options', __('Allow Biblefox Blog Options', 'bfox'), 'bfox_ms_admin_setting_allow_blog_options', 'bfox-ms-admin-settings', 'bfox-ms-admin-settings-main', array('label_for' => 'bfox-ms-allow-blog-options'));
 
 	// Blog settings (found in admin.php, not ms-admin.php)
-	add_settings_field('bfox-tooltips', __('Bible Reference Tooltips', 'bfox'), 'bfox_blog_admin_setting_tooltips', 'bfox-ms-admin-settings', 'bfox-ms-admin-settings-main', array('label_for' => 'bfox-tooltips'));
+	add_settings_field('bfox-tooltips', __('Disable Bible Reference Tooltips', 'bfox'), 'bfox_blog_admin_setting_tooltips', 'bfox-ms-admin-settings', 'bfox-ms-admin-settings-main', array('label_for' => 'bfox-tooltips'));
 
 	do_action('bfox_ms_admin_menu');
 }
@@ -183,33 +183,16 @@ function bfox_blog_admin_add_action_link($links, $file) {
 }
 add_filter('plugin_action_links', 'bfox_blog_admin_add_action_link', 10, 2);
 
-function bfox_blog_option_defaults($new_options = array()) {
-	$defaults = array(
-		'tooltips' => true,
-	);
-
-	if (!empty($new_options)) {
-		foreach ($defaults as $key => $value) {
-			if (isset($new_options[$key])) $defaults[$key] = $new_options[$value];
-		}
-	}
-
-	return $defaults;
-}
-
 function bfox_blog_options() {
 	global $_bfox_blog_options;
 
 	if (!isset($_bfox_blog_options)) {
 		// Get the options using get_site_option() first (which will be get_option() if not multisite anyway)
-		$_bfox_blog_options = get_site_option('bfox-blog-options');
+		$_bfox_blog_options = (array) get_site_option('bfox-blog-options');
 
 		// If we are allowing the blog to set options, use them to overwrite the defaults
 		if (is_multisite() && get_site_option('bfox-ms-allow-blog-options'))
 			$_bfox_blog_options = array_merge($_bfox_blog_options, (array) get_option('bfox-blog-options'));
-
-		// Add the default values
-		$_bfox_blog_options = bfox_blog_option_defaults($_bfox_blog_options);
 	}
 
 	return $_bfox_blog_options;

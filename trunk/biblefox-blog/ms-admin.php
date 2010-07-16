@@ -39,8 +39,10 @@ function bfox_ms_admin_setting_allow_blog_options() {
 
 function bfox_ms_admin_page_save() {
 	if ('bfox-ms' == $_GET['action']) {
+		check_admin_referer('bfox-ms-admin-settings-options');
+
 		update_site_option('bfox-ms-allow-blog-options', $_POST['bfox-ms-allow-blog-options']);
-		update_site_option('bfox-blog-options', bfox_blog_option_defaults($_POST['bfox-blog-options']));
+		update_site_option('bfox-blog-options', $_POST['bfox-blog-options']);
 
 		/**
 		 *  Handle settings errors and return to options page

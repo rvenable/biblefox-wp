@@ -32,7 +32,7 @@ function bfox_blog_admin_settings_main() {
 
 function bfox_blog_admin_setting_tooltips() {
 	?>
-	<input id="bfox-tooltips" name="bfox-blog-options[tooltips]" type="checkbox" value="1" <?php checked(1, bfox_blog_option('tooltips')) ?>/>
+	<input id="bfox-tooltips" name="bfox-blog-options[disable-tooltips]" type="checkbox" value="1" <?php checked(1, bfox_blog_option('disable-tooltips')) ?>/>
 	<p class="description"><?php _e('Bible tooltips are javascript popups that display Scripture when clicking on a Bible reference link.', 'bfox')?></p>
 	<?php
 }
