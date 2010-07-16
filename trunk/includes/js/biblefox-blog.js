@@ -11,7 +11,7 @@ bfox_blog_iframe_select_change = function () {
 	date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
 	document.cookie = "bfox-blog-iframe-select=" + option.attr('name') + "; expires=" + date.toGMTString() + "; path=/";	
 
-	jQuery(this).next('iframe.bfox-iframe').attr('src', option.val()).get(0).reload();
+	jQuery(this).next('iframe.bfox-iframe').attr('src', option.val());
 };
 
 jQuery(document).ready(function () {
