@@ -1,4 +1,4 @@
-var jQuery, tagBox;
+var /* jQuery, /* Declaring jQuery breaks IE */ tagBox;
 
 function bible_ref_press_key( e ) {
 	if ( 13 == e.keyCode ) {
@@ -15,7 +15,7 @@ function bible_text_request(ref_str) {
 	mysack.setVar("action", "bfox_ajax_send_bible_text");
 	mysack.setVar("ref_str", ref_str);
 	mysack.encVar("cookie", document.cookie, false);
-	mysack.onError = function() { alert('Ajax error in looking up bible reference')};
+	mysack.onError = function() { alert('Ajax error in looking up bible reference'); };
 	mysack.runAJAX();
 
 	// Fade out the the progress text, then update it to say we are loading

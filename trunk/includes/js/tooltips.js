@@ -1,5 +1,5 @@
 'use strict';
-var jQuery, ajaxurl, bfox_blog_iframe_select_change;
+var /* jQuery, /* Declaring jQuery breaks IE */ ajaxurl, bfox_blog_iframe_select_change;
 
 jQuery(document).ready(function () {
 	var refClassPrefix = 'bible-tip-';

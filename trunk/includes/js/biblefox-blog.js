@@ -1,5 +1,5 @@
 'use strict';
-var jQuery, bfox_blog_iframe_select_change;
+var /* jQuery, /* Declaring jQuery breaks IE */ bfox_blog_iframe_select_change;
 
 // For when bfox translation iframe selects change to update their iframe
 bfox_blog_iframe_select_change = function () {
