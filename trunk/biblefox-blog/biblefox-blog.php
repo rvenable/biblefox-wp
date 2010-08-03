@@ -29,7 +29,7 @@ function bfox_blog_init() {
 add_action('init', 'bfox_blog_init');
 
 function bfox_blog_add_menu() {
-	add_meta_box('bible-quick-view-div', __('Biblefox Bible'), 'bfox_blog_quick_view_meta_box', 'post', 'normal', 'core');
+	add_meta_box('bible-quick-view-div', __('Biblefox Bible', 'bfox'), 'bfox_blog_quick_view_meta_box', 'post', 'normal', 'core');
 }
 add_action('admin_menu', 'bfox_blog_add_menu');
 

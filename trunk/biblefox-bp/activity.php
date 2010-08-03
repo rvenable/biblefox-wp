@@ -262,7 +262,7 @@ function bfox_bp_admin_activity_warnings() {
 	if (!$date_finished) {
 		function bfox_bp_admin_activity_warning() {
 			echo "
-			<div id='bfox-blog-activity-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your BuddyPress Bible index</a>.'), bfox_bp_admin_activity_refresh_url())."</p></div>
+			<div id='bfox-blog-activity-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.', 'bfox')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your BuddyPress Bible index</a>.', 'bfox'), bfox_bp_admin_activity_refresh_url())."</p></div>
 			";
 		}
 		add_action('admin_notices', 'bfox_bp_admin_activity_warning');

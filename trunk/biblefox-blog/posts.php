@@ -256,7 +256,7 @@ function bfox_blog_quick_view_meta_box() {
 			<h4>Quick Scripture Viewer</h4>
 			<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
 			<input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
-			<span class="howto"><?php _e('Type a bible reference (ie. "gen 1")'); ?></span>
+			<span class="howto"><?php _e('Type a bible reference (ie. "gen 1")', 'bfox'); ?></span>
 			<br/>
 		</div>
 
@@ -406,7 +406,7 @@ function bfox_blog_admin_post_warnings() {
 	if (!$date_finished) {
 		function bfox_blog_admin_post_warning() {
 			echo "
-			<div id='bfox-blog-post-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your Bible reference index</a>.'), bfox_blog_admin_post_refresh_url(is_multisite(), false))."</p></div>
+			<div id='bfox-blog-post-warning' class='updated fade'><p><strong>".__('Biblefox is almost ready.', 'bfox')."</strong> ".sprintf(__('You must <a href="%1$s">refresh your Bible reference index</a>.', 'bfox'), bfox_blog_admin_post_refresh_url(is_multisite(), false))."</p></div>
 			";
 		}
 		add_action('admin_notices', 'bfox_blog_admin_post_warning');

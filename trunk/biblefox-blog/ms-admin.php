@@ -49,7 +49,7 @@ function bfox_ms_admin_page_save() {
 		 */
 		// If no settings errors were registered add a general 'updated' message.
 		if ( !count( get_settings_errors() ) )
-			add_settings_error('general', 'settings_updated', __('Settings saved.'), 'updated');
+			add_settings_error('general', 'settings_updated', __('Settings saved.', 'bfox'), 'updated');
 		set_transient('settings_errors', get_settings_errors(), 30);
 
 		/**

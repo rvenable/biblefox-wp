@@ -165,14 +165,14 @@ function bfox_translation_settings() {
 				<th scope="row"><label for="long-name"><?php _e('Translation Name', 'bfox') ?></label></th>
 				<td>
 					<input type="text" name="long-name" id="long-name" value="<?php echo $trans->long_name ?>" size="40" /><br/>
-					<span class="description"><?php _e('ie. King James Version')?></span>
+					<span class="description"><?php _e('ie. King James Version', 'bfox')?></span>
 				</td>
 			</tr>
 			<tr valign="top">
 				<th scope="row"><label for="short-name"><?php _e('Translation Abbreviation', 'bfox') ?></label></th>
 				<td>
 					<input type="text" name="short-name" id="short-name" value="<?php echo $trans->short_name ?>" maxlength="5" size="5" /><br/>
-					<span class="description"><?php _e('ie. KJV')?></span>
+					<span class="description"><?php _e('ie. KJV', 'bfox')?></span>
 				</td>
 			</tr>
 			<tr valign="top">
