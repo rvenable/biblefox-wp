@@ -1,11 +1,5 @@
-var /* jQuery, /* Declaring jQuery breaks IE */ tagBox;
-
-function bible_ref_press_key( e ) {
-	if ( 13 == e.keyCode ) {
-		bible_text_request_new();
-		return false;
-	}
-}
+/*global jQuery, tagBox, sack */
+'use strict';
 
 function bible_text_request(ref_str) {
 	var mysack = new sack(jQuery('#bible-request-url').val());
@@ -61,6 +55,13 @@ function bible_text_request_new() {
 
 function bible_ref_link_click() {
 	bible_text_request(jQuery(this).attr('bible_ref'));
+}
+
+function bible_ref_press_key(e) {
+	if (13 == e.keyCode) {
+		bible_text_request_new();
+		return false;
+	}
 }
 
 jQuery(document).ready( function() {
