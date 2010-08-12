@@ -3,7 +3,7 @@ Contributors: Biblefox.com, rvenable
 Tags: bible, buddypress
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.8.2
+Stable tag: 0.8.3
 
 == Description ==
 
@@ -49,6 +49,10 @@ Yes. Biblefox creates tables for storing the Bible references in each post. For 
 4. **Bible Post Meta Box** - Biblefox adds a post meta box that displays the Bible text while writing a blog post.
 
 == Changelog ==
+
+= 0.8.3 =
+* Fixed JavaScript errors in IE
+* Fixed some issues with saving Biblefox options on single site installations
 
 = 0.8.2 =
 * Fixed hardcoded plugin URL from 'biblefox' to 'biblefox-for-wordpress'
