@@ -1,0 +1,394 @@
+# Translation of the WordPress plugin Biblefox for WordPress 0.8.2 by Biblefox.com, rvenable.
+# Copyright (C) 2010 Biblefox.com, rvenable
+# This file is distributed under the same license as the Biblefox for WordPress package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Biblefox for WordPress 0.8.2\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/biblefox-for-wordpress\n"
+"POT-Creation-Date: 2010-08-03 12:22-0500\n"
+"PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: biblefox-blog/admin.php:6
+msgid "Bible Blog Settings"
+msgstr ""
+
+#: biblefox-blog/admin.php:8
+msgid ""
+"Biblefox finds Bible references in all your blog posts, indexing your blog "
+"by the Bible verses you write about."
+msgstr ""
+
+#: biblefox-blog/admin.php:22 biblefox-blog/ms-admin.php:22
+#: biblefox-bp/admin.php:22
+msgid "Save Settings"
+msgstr ""
+
+#: biblefox-blog/admin.php:36
+msgid ""
+"Bible tooltips are javascript popups that display Scripture when clicking on "
+"a Bible reference link."
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:32
+msgid "Biblefox Bible"
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:134 biblefox-blog/biblefox-blog.php:135
+msgid "Bible Settings"
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:143 biblefox-blog/biblefox-blog.php:165
+#: biblefox-blog/biblefox-blog.php:179 biblefox-bp/biblefox-bp.php:32
+msgid "Settings"
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:145 biblefox-blog/biblefox-blog.php:169
+msgid "Disable Bible Reference Tooltips"
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:158 biblefox-blog/biblefox-blog.php:159
+#: biblefox-bp/biblefox-bp.php:25 biblefox-bp/biblefox-bp.php:26
+msgid "Biblefox"
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:166
+msgid "Allow Biblefox Blog Options"
+msgstr ""
+
+#: biblefox-blog/biblefox-blog.php:180
+msgid "Network Settings"
+msgstr ""
+
+#: biblefox-blog/ms-admin.php:6
+msgid "Biblefox for WordPress - Network Admin Settings"
+msgstr ""
+
+#: biblefox-blog/ms-admin.php:8
+msgid ""
+"Biblefox for WordPress finds Bible references in all your blog posts, "
+"indexing your blog by the Bible verses you write about."
+msgstr ""
+
+#: biblefox-blog/ms-admin.php:36
+msgid "When checked, individual blogs can edit their own Biblefox settings."
+msgstr ""
+
+#: biblefox-blog/ms-admin.php:52
+msgid "Settings saved."
+msgstr ""
+
+#: biblefox-blog/posts.php:259
+msgid "Type a bible reference (ie. \"gen 1\")"
+msgstr ""
+
+#: biblefox-blog/posts.php:322
+msgid "Bible References"
+msgstr ""
+
+#: biblefox-blog/posts.php:363 biblefox-bp/activity.php:233
+#, php-format
+msgid "Indexing completed on %s (Biblefox version %s)"
+msgstr ""
+
+#: biblefox-blog/posts.php:363 biblefox-bp/activity.php:233
+msgid "Indexing not finished..."
+msgstr ""
+
+#: biblefox-blog/posts.php:364
+#, php-format
+msgid "Scanned %d blog posts: %d posts contained bible references"
+msgstr ""
+
+#: biblefox-blog/posts.php:365
+#, php-format
+msgid " (%d blogs scanned)"
+msgstr ""
+
+#: biblefox-blog/posts.php:384 biblefox-blog/posts.php:387
+msgid "Refresh Bible Index"
+msgstr ""
+
+#: biblefox-blog/posts.php:385
+msgid ""
+"You can refresh the Bible index for your blog to make sure all blog posts "
+"are indexed properly."
+msgstr ""
+
+#: biblefox-blog/posts.php:395
+msgid "Refresh Bible Index for All Blogs"
+msgstr ""
+
+#: biblefox-blog/posts.php:396
+msgid ""
+"You can refresh the Bible index for all the blogs on your network to make "
+"sure all blog posts are indexed properly (this is good to do after Biblefox "
+"upgrades)."
+msgstr ""
+
+#: biblefox-blog/posts.php:398
+msgid "Refresh All Blogs"
+msgstr ""
+
+#: biblefox-blog/posts.php:409 biblefox-bp/activity.php:265
+msgid "Biblefox is almost ready."
+msgstr ""
+
+#: biblefox-blog/posts.php:409
+#, php-format
+msgid "You must <a href=\"%1$s\">refresh your Bible reference index</a>."
+msgstr ""
+
+#: biblefox-blog/posts.php:481 biblefox-bp/activity.php:304
+msgid "Refreshing Bible Index..."
+msgstr ""
+
+#: biblefox-blog/posts.php:484 biblefox-bp/activity.php:311
+msgid ""
+"If your browser doesn't start loading the next page automatically click this "
+"link:"
+msgstr ""
+
+#: biblefox-blog/posts.php:484 biblefox-bp/activity.php:311
+msgid "Continue"
+msgstr ""
+
+#: biblefox-bp/activity.php:105
+msgid "posted an update about "
+msgstr ""
+
+#: biblefox-bp/activity.php:234
+#, php-format
+msgid ""
+"Scanned %d activities (out of %d total activities): %d activities contained "
+"bible references"
+msgstr ""
+
+#: biblefox-bp/activity.php:251
+msgid "Refresh Bible Index for all BuddyPress Activities"
+msgstr ""
+
+#: biblefox-bp/activity.php:252
+msgid ""
+"Every BuddyPress activity gets added to the Bible index based on the Bible "
+"references it contains. You can refresh your Bible index to make sure all "
+"activity is indexed properly (this is good to do after Biblefox upgrades)."
+msgstr ""
+
+#: biblefox-bp/activity.php:254
+msgid "Refresh BuddyPress Activities"
+msgstr ""
+
+#: biblefox-bp/activity.php:265
+#, php-format
+msgid "You must <a href=\"%1$s\">refresh your BuddyPress Bible index</a>."
+msgstr ""
+
+#: biblefox-bp/admin.php:6
+msgid "Biblefox for BuddyPress Settings"
+msgstr ""
+
+#: biblefox-bp/admin.php:8
+msgid ""
+"Biblefox for BuddyPress finds Bible references in all BuddyPress activities, "
+"indexing your site by the Bible verses being discussed."
+msgstr ""
+
+#: biblefox-bp/admin.php:39
+msgid ""
+"The Bible Directory is a page that displays a Bible passage and all "
+"BuddyPress activity that corresponds to that passage. It is the exact same "
+"as the default Activity directory but it displays a Bible passage at the top "
+"and filters the activities by the Bible reference."
+msgstr ""
+
+#: biblefox-bp/admin.php:40
+#, php-format
+msgid "Bible Directory URL: %s"
+msgstr ""
+
+#: biblefox-bp/bible-directory.php:96 biblefox-bp/bible-directory.php:187
+msgid "Bible"
+msgstr ""
+
+#: biblefox-bp/bible-directory.php:187 biblefox-bp/bible-directory.php:226
+#: tooltip.php:22
+msgid "Bible Reader"
+msgstr ""
+
+#: biblefox-bp/bible-directory.php:228
+msgid "Go to passage"
+msgstr ""
+
+#: biblefox-bp/bible-directory.php:241
+msgid "Bible tags"
+msgstr ""
+
+#: tooltip.php:11
+msgid " blog posts"
+msgstr ""
+
+#: tooltip.php:17
+msgid "No blog posts"
+msgstr ""
+
+#: tooltip.php:20
+msgid " links"
+msgstr ""
+
+#: tooltip.php:23
+msgid "Post Archive"
+msgstr ""
+
+#: tooltip.php:26
+msgid "Write a post"
+msgstr ""
+
+#: translations.php:105
+msgid "You must enter a Translation name"
+msgstr ""
+
+#: translations.php:106
+msgid "You must enter a Translation abbreviation"
+msgstr ""
+
+#: translations.php:107
+msgid "You must enter the URL for the Translation"
+msgstr ""
+
+#: translations.php:108
+msgid "The URL must contain either the %ref% or %book% token"
+msgstr ""
+
+#: translations.php:112
+#, php-format
+msgid "Added translation %s."
+msgstr ""
+
+#: translations.php:125
+#, php-format
+msgid "Deleted %d translation(s)."
+msgstr ""
+
+#: translations.php:132
+msgid "Bible Translations"
+msgstr ""
+
+#: translations.php:138
+msgid ""
+"Biblefox uses iframes to display Bible content, allowing you to read your "
+"favorite online Bible translations quickly from your own blog."
+msgstr ""
+
+#: translations.php:143
+msgid "From"
+msgstr ""
+
+#: translations.php:158
+msgid "Remove Selected"
+msgstr ""
+
+#: translations.php:161
+msgid "Add a new Online Bible translation"
+msgstr ""
+
+#: translations.php:165
+msgid "Translation Name"
+msgstr ""
+
+#: translations.php:168
+msgid "ie. King James Version"
+msgstr ""
+
+#: translations.php:172
+msgid "Translation Abbreviation"
+msgstr ""
+
+#: translations.php:175
+msgid "ie. KJV"
+msgstr ""
+
+#: translations.php:179
+msgid "URL"
+msgstr ""
+
+#: translations.php:183
+msgid ""
+"This is the URL where the Bible text can be loaded by the iframe. To get it, "
+"go to your favorite online Bible website and load a Bible passage with the "
+"correct Bible translation. Copy the URL and paste it in here."
+msgstr ""
+
+#: translations.php:184
+msgid ""
+"You will need to modify the URL to be able to use it for any Bible passage. "
+"Just replace the Bible reference in the URL with \"%ref%\". If the URL "
+"doesn't support whole Bible references, you can use the \"%book%\", \"%"
+"chapter%\", and \"%verse%\" tokens."
+msgstr ""
+
+#: translations.php:186
+msgid ""
+"%ref% - Adds the current Bible reference (ie. Gen+1 for Genesis 1) to the URL"
+msgstr ""
+
+#: translations.php:187
+msgid ""
+"%book% - Adds the book name of the current Bible reference (ie. Gen for "
+"Genesis 1) to the URL"
+msgstr ""
+
+#: translations.php:188
+msgid ""
+"%chapter% - Adds the chapter number of the current Bible reference (ie. 1 "
+"for Genesis 1) to the URL"
+msgstr ""
+
+#: translations.php:189
+msgid ""
+"%verse% - Adds the verse number of the current Bible reference (ie. 2 for "
+"Genesis 1:2) to the URL"
+msgstr ""
+
+#: translations.php:191
+msgid ""
+"Example: When viewing Genesis 1, \"http://biblefox.com/?bfoxp=%ref%"
+"&trans=ASV&opts=1\" will become \"http://biblefox.com/?bfoxp=Gen"
+"+1&trans=ASV&opts=1\"."
+msgstr ""
+
+#: translations.php:198
+msgid "Add Translation"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Biblefox for WordPress"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://dev.biblefox.com/biblefox-for-wordpress/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Turns your WordPress site into an online Bible study tool. Creates a Bible "
+"index for your WordPress site, allowing your users to easily search your "
+"blog posts (or BuddyPress activities, when using BuddyPress) for any Bible "
+"reference. Use it for WordPress sites that involve a lot of discussion of "
+"the Bible."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Biblefox.com, rvenable"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://biblefox.com"
+msgstr ""
