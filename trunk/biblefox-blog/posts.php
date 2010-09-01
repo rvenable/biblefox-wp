@@ -146,9 +146,6 @@ add_action('delete_post', 'bfox_blog_delete_post');
  * @param WP_Query $wp_query
  */
 function bfox_blog_parse_query($wp_query) {
-	global $bfox_blog_query;
-	$bfox_blog_query = $wp_query;
-
 	// Bible Reference tags should redirect to a ref search
 	if (!empty($wp_query->query_vars['tag'])) {
 		$ref = bfox_ref_from_tag($wp_query->query_vars['tag']);
@@ -161,40 +158,39 @@ function bfox_blog_parse_query($wp_query) {
 	// Check to see if the search string is a bible reference
 	if (!empty($wp_query->query_vars['s'])) {
 		// TODO: use leftovers
-		$ref = bfox_ref_from_tag($wp_query->query_vars['s']);
+		$ref = bfox_ref_from_tag(urldecode($wp_query->query_vars['s']));
 		if ($ref->is_valid()) {
-			$wp_query->query_vars['s'] = '';
+			// Store the ref in the WP_Query
 			$wp_query->bfox_ref = $ref;
 		}
 	}
 }
 add_action('parse_query', 'bfox_blog_parse_query');
 
-function bfox_blog_posts_join($join) {
-	global $bfox_blog_query, $wpdb;
-	if (isset($bfox_blog_query->bfox_ref)) {
+function bfox_blog_posts_join($join, $query) {
+	global $wpdb;
+	if (isset($query->bfox_ref)) {
 		$table = bfox_blog_post_ref_table();
 		$join .= ' ' . $table->join_sql("$wpdb->posts.ID");
 	}
 	return $join;
 }
-add_filter('posts_join', 'bfox_blog_posts_join');
+add_filter('posts_join', 'bfox_blog_posts_join', 10, 2);
 
-function bfox_blog_posts_where($where) {
-	global $bfox_blog_query;
+function bfox_blog_posts_search($search, $query) {
 	$table = bfox_blog_post_ref_table();
-	if (isset($bfox_blog_query->bfox_ref)) $where .= ' AND ' . $table->seqs_where($bfox_blog_query->bfox_ref);
-	return $where;
+	if (isset($query->bfox_ref)) $search = ' AND ' . $table->seqs_where($query->bfox_ref);
+	return $search;
 }
-add_filter('posts_where', 'bfox_blog_posts_where');
+add_filter('posts_search', 'bfox_blog_posts_search', 10, 2);
 
-function bfox_blog_posts_groupby($sql) {
-	global $bfox_blog_query, $wpdb;
+function bfox_blog_posts_groupby($sql, $query) {
+	global $wpdb;
 	// Bible references searches need to group on the post ID
-	if (isset($bfox_blog_query->bfox_ref)) $sql .= " $wpdb->posts.ID";
+	if (isset($query->bfox_ref)) $sql .= " $wpdb->posts.ID";
 	return $sql;
 }
-add_filter('posts_groupby', 'bfox_blog_posts_groupby');
+add_filter('posts_groupby', 'bfox_blog_posts_groupby', 10, 2);
 
 /*
  * Content Filters
