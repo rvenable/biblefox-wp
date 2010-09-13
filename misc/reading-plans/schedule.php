@@ -785,7 +785,7 @@ class BfoxReadingSchedule extends BfoxOwnedObject {
 
 		if (!empty($user_ids)) {
 			// Remove all the users who don't want emails
-			$user_ids = array_diff($user_ids, bfox_bp_get_users_with_option_value('notification_plans_readings', 'no', $user_ids));
+			$user_ids = array_diff($user_ids, bfox_bp_plans_get_users_with_option_value('notification_plans_readings', 'no', $user_ids));
 
 
 			if (!empty($user_ids)) {
