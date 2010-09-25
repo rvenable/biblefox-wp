@@ -241,7 +241,7 @@ class BfoxTrans {
 		echo '<div style="display: none;"><script type="text/javascript" src="http://www.gnpcb.org/esv/share/js/?action=doPassageQuery&passage=' . $passage . '&include-footnotes=0&include-audio-link=0&include-headings=0&include-subheadings=0"></script></div>';
 
 		// Put the translation data where it needs to go
-		echo '<script type="text/javascript" src="' . BFOX_SITE_URL . '/translations/trans-loader.js"></script>';
+		echo '<script type="text/javascript" src="' . BFOX_TRANS_URL . '/trans-loader.js"></script>';
 	}
 }
 
