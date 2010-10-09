@@ -187,7 +187,17 @@ add_filter('posts_search', 'bfox_blog_posts_search', 10, 2);
 function bfox_blog_posts_groupby($sql, $query) {
 	global $wpdb;
 	// Bible references searches need to group on the post ID
-	if (isset($query->bfox_ref)) $sql .= " $wpdb->posts.ID";
+	if (isset($query->bfox_ref)) {
+		// We will try to add the post ID as a column to group by
+		$new_column = "$wpdb->posts.ID";
+
+		// If the SQL is blank, just add the new column
+		// Otherwise we want to make sure that it isn't already there,
+		// because it might have been added by other parts of the query
+		$sql = trim($sql);
+		if (empty($sql)) $sql = $new_column;
+		else if (false === stripos($sql, $new_column)) $sql .= ", $new_column";
+	}
 	return $sql;
 }
 add_filter('posts_groupby', 'bfox_blog_posts_groupby', 10, 2);
