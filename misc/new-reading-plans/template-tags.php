@@ -129,4 +129,38 @@ function bfox_plan_reading_date($reading_id, $format = '', $post_id = 0) {
 	else return date($format, strtotime($reading_data->dates[$reading_id]));
 }
 
+/*
+ * Reading Progress Template Tags
+ */
+
+/**
+ * Returns whether a reading plan reading has been read by the given user
+ *
+ * @param integer $reading_id
+ * @param integer $user_id
+ * @param integer $post_id
+ * @param bool
+ */
+function bfox_plan_is_read($reading_id, $user_id = 0, $post_id = 0) {
+	$statuses = (array) bfox_plan_reading_statuses($user_id, $post_id);
+	return (bool) $statuses[$reading_id];
+}
+
+/**
+ * Returns an HTML id element value for a reading plan reading
+ *
+ * These IDs are necessary for ajax status updates
+ *
+ * @param integer $reading_id
+ * @param integer $user_id
+ * @param integer $post_id
+ * @param string
+ */
+function bfox_plan_reading_status_id($reading_id, $user_id = 0, $post_id = 0) {
+	if (!$user_id) $user_id = bfox_plan_get_user_for_reading_statuses();
+	if (!$post_id) $post_id = $GLOBALS['post']->ID;
+
+	if ($user_id && $post_id) return "bfox-reading-status-$user_id-$post_id-$reading_id";
+}
+
 ?>

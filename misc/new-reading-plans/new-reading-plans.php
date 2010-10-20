@@ -19,6 +19,7 @@ require_once BFOX_PLANS_DIR . '/template-tags.php';
 function bfox_plans_create_post_type() {
 	//TODO: add plans directory template archive - see: http://www.ballyhooblog.com/custom-post-types-wordpress-30-with-template-archives/
 	wp_register_style('bfox-plan-reading-lists', BFOX_PLANS_URL . '/reading-lists.css');
+	wp_register_script('bfox-plan-ajax', BFOX_PLANS_URL . '/ajax.js');
 
 	register_post_type('bfox_plan',
 		array(
@@ -43,6 +44,7 @@ add_action('init', 'bfox_plans_create_post_type');
 
 function bfox_plans_register_meta_box_cb() {
 	wp_enqueue_style('bfox-plan-reading-lists');
+	wp_enqueue_script('bfox-plan-ajax');
 
 	add_meta_box('bfox-plan-view', __('View Readings', 'bfox'), 'bfox_plans_view_meta_box_cb', 'bfox_plan', 'normal', 'high');
 	add_meta_box('bfox-plan-content', __('Edit Readings', 'bfox'), 'bfox_plans_content_meta_box_cb', 'bfox_plan', 'normal', 'core');
@@ -56,16 +58,23 @@ function bfox_plans_register_meta_box_cb() {
 
 function bfox_plans_view_meta_box_cb() {
 	$count = bfox_plan_reading_count();
+	wp_nonce_field('bfox', 'bfox_plan_edit_status_nonce');
+
 	?>
 <?php if (0 < $count): ?>
 	<ol class="reading-list reading-list-3c-h">
 	<?php for ($reading_id = 0; $reading_id < $count; $reading_id++): ?>
 		<li>
-		<?php if (bfox_plan_is_scheduled()): ?>
-			<span class="reading-date"><?php echo bfox_plan_reading_date($reading_id, 'M j, Y') ?></span>
-		<?php endif ?>
-			<span class="reading-ref"><?php echo bfox_ref_bible_link(array('ref' => bfox_plan_reading_ref($reading_id), 'name' => BibleMeta::name_short)) ?></span>
-			<span class="reading-note"><?php echo bfox_plan_reading_note($reading_id) ?></span>
+			<div class="reading-status">
+				<input id="<?php echo bfox_plan_reading_status_id($reading_id) ?>" class="bfox-reading-status" type="checkbox" <?php checked(bfox_plan_is_read($reading_id)) ?> />
+			</div>
+			<div class="reading-info">
+			<?php if (bfox_plan_is_scheduled()): ?>
+				<span class="reading-date"><?php echo bfox_plan_reading_date($reading_id, 'M j, Y') ?></span>
+			<?php endif ?>
+				<span class="reading-ref"><?php echo bfox_ref_bible_link(array('ref' => bfox_plan_reading_ref($reading_id), 'name' => BibleMeta::name_short)) ?></span>
+				<span class="reading-note"><?php echo bfox_plan_reading_note($reading_id) ?></span>
+			</div>
 		</li>
 	<?php endfor ?>
 	</ol>
@@ -130,13 +139,13 @@ function bfox_plans_edit_schedule_meta_box_cb() {
 	<h4><?php _e('Days of the Week', 'bfox') ?></h4>
 	<p><?php _e( 'Which days of the week will you read?', 'bfox' ) ?></p>
 	<p>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="0"<?php checked(bfox_plan_is_day_included(0)) ?>/> <?php _e( 'Su', 'bfox' ) ?></label>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="1"<?php checked(bfox_plan_is_day_included(1)) ?>/> <?php _e( 'M', 'bfox' ) ?></label>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="2"<?php checked(bfox_plan_is_day_included(2)) ?>/> <?php _e( 'Tu', 'bfox' ) ?></label>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="3"<?php checked(bfox_plan_is_day_included(3)) ?>/> <?php _e( 'W', 'bfox' ) ?></label>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="4"<?php checked(bfox_plan_is_day_included(4)) ?>/> <?php _e( 'Th', 'bfox' ) ?></label>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="5"<?php checked(bfox_plan_is_day_included(5)) ?>/> <?php _e( 'F', 'bfox' ) ?></label>
-		<label><input type="checkbox" name="schedule-days[]" id="schedule-days" value="6"<?php checked(bfox_plan_is_day_included(6)) ?>/> <?php _e( 'Sa', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="0"<?php checked(bfox_plan_is_day_included(0)) ?>/> <?php _e( 'Su', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="1"<?php checked(bfox_plan_is_day_included(1)) ?>/> <?php _e( 'M', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="2"<?php checked(bfox_plan_is_day_included(2)) ?>/> <?php _e( 'Tu', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="3"<?php checked(bfox_plan_is_day_included(3)) ?>/> <?php _e( 'W', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="4"<?php checked(bfox_plan_is_day_included(4)) ?>/> <?php _e( 'Th', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="5"<?php checked(bfox_plan_is_day_included(5)) ?>/> <?php _e( 'F', 'bfox' ) ?></label>
+		<label><input type="checkbox" name="schedule-days[]" value="6"<?php checked(bfox_plan_is_day_included(6)) ?>/> <?php _e( 'Sa', 'bfox' ) ?></label>
 	</p>
 
 	<h4><?php _e('Excluded Dates', 'bfox') ?></h4>
@@ -428,5 +437,54 @@ function bfox_plan_parse_readings_from_passages($passages, $chunk_size) {
 
 	return $readings;
 }
+
+/*
+ * Reading Status Functions
+ */
+
+function bfox_plan_set_user_for_reading_statuses($user_id) {
+	global $bfox_reading_statuses_user_id;
+	$bfox_reading_statuses_user_id = $user_id;
+}
+
+function bfox_plan_get_user_for_reading_statuses() {
+	global $bfox_reading_statuses_user_id, $user_ID;
+	if (!$bfox_reading_statuses_user_id) return $user_ID;
+	return $bfox_reading_statuses_user_id;
+}
+
+function bfox_plan_reading_statuses($user_id = 0, $post_id = 0) {
+	if (!$user_id) $user_id = bfox_plan_get_user_for_reading_statuses();
+	if (!$post_id) $post_id = $GLOBALS['post']->ID;
+	$statuses = (array) get_user_meta($user_id, 'bfox_reading_statuses', true);
+
+	if (isset($statuses[$post_id])) return (array) $statuses[$post_id];
+	else return false;
+}
+
+function bfox_plan_update_reading_status($value, $reading_id, $user_id, $post_id) {
+	if ($user_id && $post_id) {
+		$statuses = (array) get_user_meta($user_id, 'bfox_reading_statuses', true);
+		if ($value) $statuses[$post_id][$reading_id] = $value;
+		else unset($statuses[$post_id][$reading_id]);
+
+		if (empty($statuses[$post_id])) unset($statuses[$post_id]);
+
+		update_user_meta($user_id, 'bfox_reading_statuses', $statuses);
+	}
+}
+
+function bfox_plan_ajax_post_reading_status() {
+	if (wp_verify_nonce($_POST['nonce'], 'bfox')) {
+		global $user_ID;
+		$ids = (array) $_POST['status_id'];
+		foreach ($ids as $id) {
+			list($user_id, $post_id, $reading_id) = explode('-', str_replace('bfox-reading-status-', '', $id));
+			if ($user_id && $user_id == $user_ID) bfox_plan_update_reading_status($_POST['checked'] && ($_POST['checked'] != 'false'), $reading_id, $user_id, $post_id);
+		}
+	}
+	exit;
+}
+add_action('wp_ajax_bfox_plan_post_reading_status', 'bfox_plan_ajax_post_reading_status');
 
 ?>

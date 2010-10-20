@@ -9,6 +9,14 @@ ol.reading-list li {
 	font-size: 0.9em;
 }
 
+ol.reading-list li .reading-status {
+	float: left;
+}
+
+ol.reading-list li .reading-info {
+	margin-left: 20px;
+}
+
 ol.reading-list li .reading-note {
 	display: block;
 	font-style: italic;
