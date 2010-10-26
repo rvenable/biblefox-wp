@@ -70,6 +70,17 @@ function bfox_plan_excluded_dates_text($post_id = 0) {
 	return implode("\n", $excluded_dates);
 }
 
+/**
+ * Returns the latest reading id
+ *
+ * @param integer $post_id
+ * @return integer
+ */
+function bfox_plan_latest_reading($post_id = 0) {
+	$reading_data = bfox_plan_reading_data($post_id);
+	return $reading_data->latest_reading_id;
+}
+
 /*
  * Reading Template Tags
  */
@@ -129,6 +140,73 @@ function bfox_plan_reading_date($reading_id, $format = '', $post_id = 0) {
 	else return date($format, strtotime($reading_data->dates[$reading_id]));
 }
 
+/**
+ * Outputs an HTML list of readings for a reading plan
+ *
+ * @param array $args
+ */
+function bfox_plan_reading_list($args = array()) {
+	$defaults = array(
+		'post_id' => 0,
+		'user_id' => 0,
+		'from_reading' => 0,
+		'to_reading' => -1,
+		'max_count' => 0,
+		'column_class' => 'reading-list-3c-h',
+		'date_format' => 'M j, Y',
+	);
+
+	extract(wp_parse_args($args, $defaults));
+
+	$reading_count = bfox_plan_reading_count($post_id);
+
+	if (0 > $from_reading) $from_reading += $reading_count;
+
+	// Adjust the max_count
+	if (0 >= $max_count) $max_count = $reading_count;
+	$max_count = min($max_count, $reading_count - $from_reading);
+
+	// Adjust the to_reading
+	if (0 > $to_reading) $to_reading += $from_reading + $max_count;
+	if ($to_reading < $from_reading) $to_reading = $from_reading + $max_count - 1;
+
+	// Adjust the count
+	$count = $to_reading - $from_reading + 1;
+	if ($count > $max_count) {
+		$to_reading = $from_reading + $max_count - 1;
+		$count = $max_count;
+	}
+
+	// Add the nonce in the footer so that we can display multiple lists using just one nonce
+	add_action('wp_footer', 'bfox_plan_edit_status_nonce');
+	add_action('admin_footer', 'bfox_plan_edit_status_nonce');
+
+	if ($count): ?>
+	<ol class="reading-list <?php echo $column_class ?>" start="<?php echo $from_reading + 1 ?>">
+	<?php for ($reading_id = $from_reading; $reading_id <= $to_reading; $reading_id++): ?>
+		<li>
+			<div class="reading-status">
+				<input id="<?php echo bfox_plan_reading_status_id($reading_id, $user_id, $post_id) ?>" class="bfox-reading-status" type="checkbox" <?php checked(bfox_plan_is_read($reading_id, $user_id, $post_id)) ?> />
+			</div>
+			<div class="reading-info">
+			<?php if (bfox_plan_is_scheduled($post_id)): ?>
+				<span class="reading-date"><?php echo bfox_plan_reading_date($reading_id, $date_format, $post_id) ?></span>
+			<?php endif ?>
+				<span class="reading-ref"><?php echo bfox_ref_bible_link(array('ref' => bfox_plan_reading_ref($reading_id, $post_id), 'name' => BibleMeta::name_short)) ?></span>
+				<span class="reading-note"><?php echo bfox_plan_reading_note($reading_id, $post_id) ?></span>
+			</div>
+		</li>
+	<?php endfor ?>
+	</ol>
+<?php
+	endif;
+
+	return $count;
+}
+	function bfox_plan_edit_status_nonce() {
+		wp_nonce_field('bfox', 'bfox_plan_edit_status_nonce');
+	}
+
 /*
  * Reading Progress Template Tags
  */
@@ -144,6 +222,20 @@ function bfox_plan_reading_date($reading_id, $format = '', $post_id = 0) {
 function bfox_plan_is_read($reading_id, $user_id = 0, $post_id = 0) {
 	$statuses = (array) bfox_plan_reading_statuses($user_id, $post_id);
 	return (bool) $statuses[$reading_id];
+}
+
+/**
+ * Returns the first unread reading id for the plan
+ *
+ * @param integer $user_id
+ * @param integer $post_id
+ * @param bool
+ */
+function bfox_plan_first_unread($user_id = 0, $post_id = 0) {
+	$statuses = (array) bfox_plan_reading_statuses($user_id, $post_id);
+	$reading_id = 0;
+	while ($statuses[$reading_id]) $reading_id++;
+	return $reading_id;
 }
 
 /**

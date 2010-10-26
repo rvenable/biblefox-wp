@@ -57,28 +57,8 @@ function bfox_plans_register_meta_box_cb() {
  */
 
 function bfox_plans_view_meta_box_cb() {
-	$count = bfox_plan_reading_count();
-	wp_nonce_field('bfox', 'bfox_plan_edit_status_nonce');
-
 	?>
-<?php if (0 < $count): ?>
-	<ol class="reading-list reading-list-3c-h">
-	<?php for ($reading_id = 0; $reading_id < $count; $reading_id++): ?>
-		<li>
-			<div class="reading-status">
-				<input id="<?php echo bfox_plan_reading_status_id($reading_id) ?>" class="bfox-reading-status" type="checkbox" <?php checked(bfox_plan_is_read($reading_id)) ?> />
-			</div>
-			<div class="reading-info">
-			<?php if (bfox_plan_is_scheduled()): ?>
-				<span class="reading-date"><?php echo bfox_plan_reading_date($reading_id, 'M j, Y') ?></span>
-			<?php endif ?>
-				<span class="reading-ref"><?php echo bfox_ref_bible_link(array('ref' => bfox_plan_reading_ref($reading_id), 'name' => BibleMeta::name_short)) ?></span>
-				<span class="reading-note"><?php echo bfox_plan_reading_note($reading_id) ?></span>
-			</div>
-		</li>
-	<?php endfor ?>
-	</ol>
-	<br style="clear:both;"/>
+<?php if (bfox_plan_reading_list(array('from_reading' => bfox_plan_latest_reading(), 'column_class' => 'reading-list-4c-h'))): ?>
 	<p><?php _e('In total, this reading plan covers all of the following passages:', 'bfox') ?> <?php echo bfox_ref_bible_link(array('ref' => bfox_plan_total_ref(), 'name' => BibleMeta::name_short)) ?></p>
 <?php else: ?>
 	<p><?php _e('This reading plan doesn\'t currently have any readings. Enter some Bible references in the \'Edit Readings\' box to add some readings. You can also use the \'Append Chapters in Bulk\' box to automatically add multiple readings quickly.', 'bfox') ?></p>
@@ -333,6 +313,7 @@ function bfox_plan_update_reading_data($post_id = 0) {
 	$reading_data->refs = array();
 	$reading_data->leftovers = array();
 	$reading_data->dates = array();
+	$reading_data->latest_reading_id = -1;
 
 	_bfox_plan_parse_content($post->post_content, $reading_data);
 
@@ -453,10 +434,14 @@ function bfox_plan_get_user_for_reading_statuses() {
 	return $bfox_reading_statuses_user_id;
 }
 
-function bfox_plan_reading_statuses($user_id = 0, $post_id = 0) {
+function bfox_plan_user_reading_statuses($user_id = 0) {
 	if (!$user_id) $user_id = bfox_plan_get_user_for_reading_statuses();
+	return (array) get_user_meta($user_id, 'bfox_reading_statuses', true);
+}
+
+function bfox_plan_reading_statuses($user_id = 0, $post_id = 0) {
 	if (!$post_id) $post_id = $GLOBALS['post']->ID;
-	$statuses = (array) get_user_meta($user_id, 'bfox_reading_statuses', true);
+	$statuses = bfox_plan_user_reading_statuses($user_id);
 
 	if (isset($statuses[$post_id])) return (array) $statuses[$post_id];
 	else return false;
@@ -486,5 +471,24 @@ function bfox_plan_ajax_post_reading_status() {
 	exit;
 }
 add_action('wp_ajax_bfox_plan_post_reading_status', 'bfox_plan_ajax_post_reading_status');
+
+function bfox_plan_ids_for_user($user_id = 0) {
+	$statuses = (array) bfox_plan_user_reading_statuses($user_id);
+	return (array) array_keys($statuses);
+}
+
+function bfox_plan_query_for_user($user_id = 0) {
+	return array(
+		'post_type' => 'bfox_plan',
+		'post__in' => bfox_plan_ids_for_user($user_id),
+	);
+}
+
+function bfox_plan_query_root() {
+	return array(
+		'post_type' => 'bfox_plan',
+		'post_parent' => 0,
+	);
+}
 
 ?>
