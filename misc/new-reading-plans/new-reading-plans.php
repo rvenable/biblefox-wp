@@ -39,6 +39,8 @@ function bfox_plans_create_post_type() {
 			'register_meta_box_cb' => 'bfox_plans_register_meta_box_cb',
 		)
 	);
+
+	add_feed('readings-rss', 'bfox_plan_do_feed_readings');
 }
 add_action('init', 'bfox_plans_create_post_type');
 
@@ -309,6 +311,7 @@ function bfox_plan_meta($key, $post_id = 0) {
 	if (empty($value)) {
 		$defaults = array(
 			'frequency' => 'daily',
+			'per_day' => 1,
 		);
 		$value = $defaults[$key];
 	}
@@ -558,6 +561,10 @@ function bfox_plan_ajax_post_reading_status() {
 }
 add_action('wp_ajax_bfox_plan_post_reading_status', 'bfox_plan_ajax_post_reading_status');
 
+/*
+ * WP Query Functions
+ */
+
 function bfox_plan_ids_for_user($user_id = 0) {
 	$statuses = (array) bfox_plan_user_reading_statuses($user_id);
 	return (array) array_keys($statuses);
@@ -575,6 +582,66 @@ function bfox_plan_query_root() {
 		'post_type' => 'bfox_plan',
 		'post_parent' => 0,
 	);
+}
+
+function is_bfox_plan() {
+	global $wp_query;
+	return $wp_query->is_bfox_plan;
+}
+
+function is_bfox_plan_reading() {
+	return (bool) bfox_plan_query_reading();
+}
+
+function bfox_plan_query_reading() {
+	global $wp_query;
+	return $wp_query->bfox_plan_reading;
+}
+
+function bfox_plan_parse_query($query) {
+	if ('bfox_plan' == $query->query_vars['post_type']) {
+		$query->is_bfox_plan = true;
+
+		// Try to get a reading number from the reading or page query vars
+		// (page is used so we don't have to modify rewrite rules to have queries like plans/[reading-plan-name]/[reading-num]/)
+		if ($query->query_vars['reading']) $query->bfox_plan_reading = (int) $query->query_vars['reading'];
+		else if ($query->is_single && $query->query_vars['page']) $query->bfox_plan_reading = (int) trim($query->query_vars['page'], '/');
+	}
+}
+add_action('parse_query', 'bfox_plan_parse_query');
+
+/*
+ * Theme Template Functions
+ */
+
+function bfox_plan_reading_template() {
+	$templates = array('single-bfox_plan_reading.php', 'single-bfox_plan.php', 'single.php');
+	return apply_filters('bfox_plan_reading_template', locate_template($templates));
+}
+
+function bfox_plan_template_redirect() {
+	if (is_bfox_plan_reading()) {
+		// @todo redirect to the Bible page if the user has this option set
+		if (0/*check user option*/) {
+			wp_redirect(bfox_ref_blog_url(bfox_plan_reading_ref_str(bfox_plan_query_reading() - 1)));
+			exit;
+		}
+
+		if ( $template = apply_filters( 'template_include', bfox_plan_reading_template() ) ) {
+			include( $template );
+			exit;
+		}
+	}
+}
+add_action('template_redirect', 'bfox_plan_template_redirect');
+
+function bfox_plan_do_feed_readings() {
+	if (is_single()) {
+		global $post;
+		if ('bfox_plan' == $post->post_type) {
+			load_template(BFOX_PLANS_DIR . '/feed-readings.php');
+		}
+	}
 }
 
 ?>

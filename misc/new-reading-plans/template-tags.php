@@ -133,6 +133,38 @@ function bfox_plan_latest_reading($post_id = 0) {
  */
 
 /**
+ * Returns a URL for an individual reading in a reading plan
+ *
+ * @param integer $reading_id
+ * @param integer $post_id
+ * @return string URL
+ */
+function bfox_plan_reading_url($reading_id, $post_id = 0) {
+	$url = get_post_permalink($post_id);
+
+	// @todo make user options for which url to point to
+	if (1/*supports_reading_urls()*/) {
+		$reading_id++;
+
+		if (false !== strpos($url, '?')) $url = add_query_arg('reading', $reading_id, $url);
+		else $url = user_trailingslashit(trailingslashit($url) . $reading_id);
+	}
+
+	return $url;
+}
+
+/**
+ * Returns a guid for an individual reading in a reading plan
+ *
+ * @param integer $reading_id
+ * @param integer $post_id
+ * @return string guid
+ */
+function bfox_plan_reading_guid($reading_id, $post_id = 0) {
+	return add_query_arg('reading', $reading_id, get_the_guid($post_id));
+}
+
+/**
  * Returns the number of readings for this reading plan
  * @param integer $post_id
  * @return integer
@@ -171,7 +203,26 @@ function bfox_plan_reading_ref($reading_id, $post_id = 0) {
 }
 
 /**
+ * Returns a Bible reference string for the given reading plan reading
+ *
+ * @param integer $reading_id
+ * @param integer $post_id
+ * @param string $name
+ * @return string
+ */
+function bfox_plan_reading_ref_str($reading_id, $post_id = 0, $name = '') {
+	$ref = bfox_plan_reading_ref($reading_id, $post_id);
+	return $ref->get_string($name);
+}
+
+/**
  * Returns a formatted date string for the given reading plan reading
+ *
+ * Result will always be without a timezone. For example, using format 'H:i:s O' will always return '00:00:00 +0000'
+ * Thus, use this function when saying things like 'this reading is for this date...' (ex. listing the dates for the schedule)
+ *
+ * Use the function bfox_plan_reading_gmdate() to get a more precise date.
+ * Thus, use bfox_plan_reading_gmdate() when saying things like 'this reading will begin exactly at this time GMT' (ex. for RSS feeds)
  *
  * @param integer $reading_id
  * @param string $format (Default is 'Y-m-d')
@@ -183,8 +234,27 @@ function bfox_plan_reading_date($reading_id, $format = '', $post_id = 0) {
 
 	if ($reading_id < 0) $reading_id += count($reading_data->dates);
 
+	// If no format, just return the saved date string
+	// Otherwise, convert the saved date string to a timestamp and then format that with gmdate()
+	// We use gmdate() because it ignores timezones and this function should only return a single day anyway
 	if (empty($format)) return $reading_data->dates[$reading_id];
-	else return date($format, strtotime($reading_data->dates[$reading_id]));
+	else return gmdate($format, strtotime($reading_data->dates[$reading_id] . ' +0000'));
+}
+
+/**
+ * Returns a more universal date for the start of the reading than bfox_plan_reading_date()
+ *
+ * The hour and date may vary depending on the blog's saved time zone.
+ * For example, for date 2010-10-27 in timezone +0500, this function would return 2010-10-26 19:00:00 +0000
+ *
+ * @param integer $reading_id
+ * @param string $format (Default is 'r')
+ * @param integer $post_id
+ * @param string Formatted date string
+ */
+function bfox_plan_reading_gmdate($reading_id, $format = 'r', $post_id = 0) {
+	$date = bfox_plan_reading_date($reading_id, '', $post_id);
+	return gmdate($format, strtotime($date . ' +0000') - get_option('gmt_offset') * 3600);
 }
 
 /**
