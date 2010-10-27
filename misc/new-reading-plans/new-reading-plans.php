@@ -35,7 +35,7 @@ function bfox_plans_create_post_type() {
 			'public' => true,
 			'rewrite' => array('slug' => 'plans'),
 			'hierarchical' => true, // Enable hierarchies for copying reading plans
-			'supports' => array('title', 'revisions', 'thumbnail'),
+			'supports' => array('title', 'excerpt', 'revisions', 'thumbnail'),
 			'register_meta_box_cb' => 'bfox_plans_register_meta_box_cb',
 		)
 	);
@@ -51,6 +51,53 @@ function bfox_plans_register_meta_box_cb() {
 	add_meta_box('bfox-plan-append', __('Append Chapters in Bulk', 'bfox'), 'bfox_plans_append_meta_box_cb', 'bfox_plan', 'advanced', 'low');
 	add_meta_box('bfox-plan-schedule', __('Edit Schedule', 'bfox'), 'bfox_plans_edit_schedule_meta_box_cb', 'bfox_plan', 'side', 'low');
 }
+
+function bfox_plans_setup_follow() {
+	$redirect = false;
+
+	if ($_REQUEST['bfox_plan_follow']) {
+		$post_id = $_REQUEST['bfox_plan_follow'];
+		check_admin_referer("bfox_plan_follow-$post_id");
+		bfox_plan_user_set_follow(true, $post_id);
+		$redirect = true;
+	}
+	else if ($_REQUEST['bfox_plan_unfollow']) {
+		$post_id = $_REQUEST['bfox_plan_unfollow'];
+		check_admin_referer("bfox_plan_unfollow-$post_id");
+		bfox_plan_user_set_follow(false, $post_id);
+		$redirect = true;
+	}
+
+	if ($redirect) {
+		wp_redirect(remove_query_arg(array('bfox_plan_follow', 'bfox_plan_unfollow', '_wpnonce')));
+		exit;
+	}
+}
+add_action('init', 'bfox_plans_setup_follow');
+
+function bfox_plans_adjust_content_for_copy() {
+	global $post;
+
+	if ($_REQUEST['post'] && ('copy-plan' == $_REQUEST['action'] || 'custom-schedule' == $_REQUEST['action'])) {
+		$parent_post = get_post($_REQUEST['post']);
+		$post->post_title = $parent_post->post_title;
+		$post->post_content = $parent_post->post_content;
+		$post->post_excerpt = $parent_post->post_excerpt;
+
+		// Add a 'copy' to the end of the title for copies
+		if ('copy-plan' == $_REQUEST['action']) $post->post_title .= ' copy';
+
+		// Custom schedules set the original post as their parent
+		if ('custom-schedule' == $_REQUEST['action']) {
+			// If the original post has a parent, use its parent, otherwise use the post
+			$post->post_parent = $parent_post->post_parent ? $parent_post->post_parent : $parent_post->ID;
+
+			// If the post type doesn't support page attributes it doesn't have a place for the parent id, so add a hidden input for it
+			if (!post_type_supports('bfox_plan', 'page-attributes')) add_action('dbx_post_sidebar', 'bfox_plans_hidden_parent_id');
+		}
+	}
+}
+add_action('add_meta_boxes_bfox_plan', 'bfox_plans_adjust_content_for_copy');
 
 /*
  * Meta Box Callbacks
@@ -72,6 +119,13 @@ function bfox_plans_content_meta_box_cb() {
 	<textarea name="content" id="content" cols="40" rows="10"><?php echo $post->post_content ?></textarea>
 	<p><?php _e('Enter all the readings for this reading plan here. Each line that contains at least one Bible reference will be considered an individual reading in the reading plan. Lines that do not contain Bible references will not be part of the reading plan, but can be used for adding additional information to the plan.', 'bfox') ?></p>
 	<p><?php _e('You can also add titles/notes to individual readings. Any text on the same line that is not a part of the Bible reference will be part of the note.', 'bfox') ?></p>
+	<?php
+}
+
+function bfox_plans_hidden_parent_id() {
+	global $post;
+	?>
+	<input type="hidden" name="parent_id" value="<?php echo $post->post_parent ?>" />
 	<?php
 }
 
@@ -133,6 +187,17 @@ function bfox_plans_edit_schedule_meta_box_cb() {
 	<p><?php _e('You can exclude dates by entering them here in YYYY-MM-DD format (ex. \'2010-12-31\'). Separate individual dates by semicolons (\';\') or put them on separate lines. You can also create date ranges by using a colon in between two dates (ex. \'2010-12-31:2011-01-01\')', 'bfox') ?></p>
 	<?php
 }
+
+function bfox_plans_table_row_actions($actions, $post) {
+	if ('bfox_plan' == $post->post_type) {
+		if (bfox_plan_is_followed($post->ID)) $actions['follow'] = '<a href="' . bfox_plan_admin_follow_url(0, $post->ID) . '">' . __('Unfollow', 'bfox') . '</a>';
+		else $actions['follow'] = '<a href="' . bfox_plan_admin_follow_url(1, $post->ID) . '">' . __('Follow', 'bfox') . '</a>';
+		$actions['copy'] = '<a href="' . bfox_plan_admin_copy_url($post->ID) . '">' . __('Copy', 'bfox') . '</a>';
+		$actions['custom-schedule'] = '<a href="' . bfox_plan_admin_custom_schedule_url($post->ID) . '">' . __('New&nbsp;Schedule', 'bfox') . '</a>';
+	}
+	return $actions;
+}
+add_filter('page_row_actions', 'bfox_plans_table_row_actions', 10, 2);
 
 /*
  * Saving Reading Plans
@@ -457,6 +522,27 @@ function bfox_plan_update_reading_status($value, $reading_id, $user_id, $post_id
 
 		update_user_meta($user_id, 'bfox_reading_statuses', $statuses);
 	}
+}
+
+function bfox_plan_user_followed_plans($user_id = 0) {
+	if (!$user_id) $user_id = bfox_plan_get_user_for_reading_statuses();
+	return (array) get_user_meta($user_id, 'bfox_followed_plans', true);
+}
+
+function bfox_plan_user_set_follow($follow, $post_id, $user_id = 0) {
+	if (!$user_id) $user_id = bfox_plan_get_user_for_reading_statuses();
+	$follow = (int) $follow;
+
+	$plans = bfox_plan_user_followed_plans($user_id);
+
+	if ($follow && !isset($plans[$post_id])) {
+		$plans[$post_id] = true;
+	}
+	else if (!$follow && isset($plans[$post_id])) {
+		unset($plans[$post_id]);
+	}
+
+	update_user_meta($user_id, 'bfox_followed_plans', $plans);
 }
 
 function bfox_plan_ajax_post_reading_status() {

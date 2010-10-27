@@ -28,6 +28,53 @@ function bfox_plan_total_ref($post_id = 0) {
 	return $total_ref;
 }
 
+/**
+ * Returns a URL for setting the follow status of a plan
+ *
+ * @param boolean $follow
+ * @param integer $post_id
+ * @return string URL
+ */
+function bfox_plan_admin_follow_url($follow = true, $post_id = 0) {
+	if (empty($post_id)) $post_id = $GLOBALS['post']->ID;
+	$follow = (int) $follow;
+
+	if ($follow) $follow = 'bfox_plan_follow';
+	else $follow = 'bfox_plan_unfollow';
+
+	return wp_nonce_url(add_query_arg($follow, $post_id), "$follow-$post_id");
+}
+
+/**
+ * Returns a URL for creating a new reading plan that is a copy of an existing plan
+ *
+ * This URL goes to the reading plan editor with a new plan that has the same content as the existing plan
+ *
+ * @param integer $post_id
+ * @param integer $blog_id
+ * @return string URL
+ */
+function bfox_plan_admin_copy_url($post_id = 0, $blog_id = null) {
+	if (empty($post_id)) $post_id = $GLOBALS['post']->ID;
+	return get_admin_url($blog_id, "post-new.php?post_type=bfox_plan&post=$post_id&action=copy-plan");
+}
+
+/**
+ * Returns a URL for creating a new reading plan schedule for an existing plan
+ *
+ * This URL goes to the reading plan editor with a new plan that has the same content as the existing plan
+ * and is a child of the existing plan. The main difference between a copy of a reading plan and a custom
+ * schedule for a reading plan is that the custom schedule becomes a child of the existing plan.
+ *
+ * @param integer $post_id
+ * @param integer $blog_id
+ * @return string URL
+ */
+function bfox_plan_admin_custom_schedule_url($post_id = 0, $blog_id = null) {
+	if (empty($post_id)) $post_id = $GLOBALS['post']->ID;
+	return get_admin_url($blog_id, "post-new.php?post_type=bfox_plan&post=$post_id&action=custom-schedule");
+}
+
 /*
  * Schedule Template Tags
  */
@@ -210,6 +257,18 @@ function bfox_plan_reading_list($args = array()) {
 /*
  * Reading Progress Template Tags
  */
+
+/**
+ * Returns whether a reading plan is being followed by a user (ie. the user is tracking his progress for it)
+ *
+ * @param integer $user_id
+ * @param integer $post_id
+ * @param bool
+ */
+function bfox_plan_is_followed($post_id, $user_id = 0) {
+	$plans = bfox_plan_user_followed_plans($user_id);
+	return isset($plans[$post_id]);
+}
 
 /**
  * Returns whether a reading plan reading has been read by the given user
