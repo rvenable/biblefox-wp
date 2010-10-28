@@ -48,7 +48,7 @@ header('Content-Type: text/calendar; charset=' . get_option('blog_charset'), tru
 
 bfox_plan_ical_print_array(array(
 	'BEGIN' => 'VCALENDAR',
-	'PRODID' => '-//Google Inc//Google Calendar 70.9054//EN',
+	'PRODID' => '-//Epicfox//Biblefox for WordPress//EN',
 	'VERSION' => '2.0',
 	'CALSCALE' => 'GREGORIAN',
 	'METHOD' => 'PUBLISH',
