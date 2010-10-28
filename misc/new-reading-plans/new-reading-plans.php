@@ -108,7 +108,7 @@ add_action('add_meta_boxes_bfox_plan', 'bfox_plans_adjust_content_for_copy');
 
 function bfox_plans_view_meta_box_cb() {
 	?>
-<?php if (bfox_plan_reading_list(array('from_reading' => bfox_plan_latest_reading(), 'column_class' => 'reading-list-4c-h'))): ?>
+<?php if (bfox_plan_reading_list(array('column_class' => 'reading-list-4c-h'))): ?>
 	<p><?php _e('In total, this reading plan covers all of the following passages:', 'bfox') ?> <?php echo bfox_ref_bible_link(array('ref' => bfox_plan_total_ref(), 'name' => BibleMeta::name_short)) ?></p>
 <?php else: ?>
 	<p><?php _e('This reading plan doesn\'t currently have any readings. Enter some Bible references in the \'Edit Readings\' box to add some readings. You can also use the \'Append Chapters in Bulk\' box to automatically add multiple readings quickly.', 'bfox') ?></p>
