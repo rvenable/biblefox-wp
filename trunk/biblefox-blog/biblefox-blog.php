@@ -25,11 +25,16 @@ function bfox_blog_init() {
 			add_action('wp_head', 'bfox_blog_add_ajax_url_js');
 		}
 	}
+
+	bfox_add_taxonomy_ref_support('post_tag');
+	bfox_add_post_type_ref_support('post', array('post_content', 'post_tag'));
+	bfox_add_ref_links_to_taxonomy('post_tag');
+	bfox_add_ref_admin_column('post', 'author');
 }
 add_action('init', 'bfox_blog_init');
 
 function bfox_blog_add_menu() {
-	add_meta_box('bible-quick-view-div', __('Biblefox Bible', 'bfox'), 'bfox_blog_quick_view_meta_box', 'post', 'normal', 'core');
+	bfox_add_quick_view_meta_box('post');
 }
 add_action('admin_menu', 'bfox_blog_add_menu');
 

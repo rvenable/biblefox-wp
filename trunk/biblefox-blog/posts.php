@@ -1,6 +1,6 @@
 <?php
 
-define('BFOX_POST_REF_TABLE_VERSION', 1);
+define('BFOX_POST_REF_TABLE_VERSION', 2);
 
 /**
  * Manages a DB table with a list of bible references for blog posts
@@ -9,48 +9,54 @@ define('BFOX_POST_REF_TABLE_VERSION', 1);
  *
  */
 class BfoxPostRefDbTable extends BfoxRefDbTable {
-	const ref_type_tag = 0;
-	const ref_type_content = 1;
 
 	public function __construct() {
 		global $wpdb;
 		parent::__construct($wpdb->posts);
-		$this->set_item_id_definition(array('item_id' => '%d', 'ref_type' => '%d'));
+		$this->set_item_id_definition(array('item_id' => '%d', 'taxonomy' => '%s'));
 	}
 
 	public function check_install($version = BFOX_POST_REF_TABLE_VERSION) {
-		if (get_option($this->table_name . '_version') < $version) {
+		$old_version = get_option($this->table_name . '_version');
+		if ($old_version < $version) {
 			require_once( ABSPATH . 'wp-admin/upgrade-functions.php' );
 			dbDelta("CREATE TABLE $this->table_name (
 					item_id BIGINT(20) NOT NULL,
-					ref_type BOOLEAN NOT NULL,
 					start MEDIUMINT UNSIGNED NOT NULL,
 					end MEDIUMINT UNSIGNED NOT NULL,
+					taxonomy VARCHAR(32) NOT NULL DEFAULT '',
 					KEY item_id (item_id),
 					KEY sequence (start,end)
 				);"
 			);
+
+			if ($old_version < 2) {
+				require_once BFOX_DIR . '/upgrade.php';
+				bfox_upgrade_post_ref_table_2($this->table_name);
+			}
+
 			update_option($this->table_name . '_version', $version);
 		}
-	}
-
-	public function save_post_for_ref_type($post, $ref_type) {
-		return $this->save_item(array('item_id' => $post->ID, 'ref_type' => $ref_type), bfox_blog_post_get_ref($post, $ref_type));
 	}
 
 	public function save_post($post) {
 		$post_id = $post->ID;
 
-		$content_ref_found = $tag_ref_found = false;
+		$saved = false;
 		if (!empty($post_id)) {
-			$content_ref_found = $this->save_post_for_ref_type($post, self::ref_type_content);
-			$tag_ref_found = $this->save_post_for_ref_type($post, self::ref_type_tag);
+			$refs_for_taxonomies = bfox_blog_post_get_refs_for_taxonomies($post);
+			foreach ($refs_for_taxonomies as $taxonomy => $ref) {
+				$saved = $this->save_item(array('item_id' => $post->ID, 'taxonomy' => $taxonomy), $ref) || $saved;
+			}
 		}
-		return $content_ref_found || $tag_ref_found;
+		return $saved;
 	}
 
 	public function refresh_select($id_col, $content_col, $limit = 0, $offset = 0) {
-		return "* FROM $this->data_table_name WHERE post_type = 'post' ORDER BY $id_col ASC LIMIT $offset, $limit";
+		$post_types = bfox_post_types_with_ref_support();
+		if (!empty($post_type)) $where = 'WHERE post_type IN (' . implode(',', $wpdb->escape($post_types)) . ')';
+
+		return "* FROM $this->data_table_name $where ORDER BY $id_col ASC LIMIT $offset, $limit";
 	}
 
 	public function save_data_row($data_row, $id_col, $content_col) {
@@ -83,34 +89,167 @@ function bfox_blog_post_install() {
 	$table = bfox_blog_post_ref_table();
 	$table->check_install();
 }
-add_action('admin_menu', 'bfox_blog_post_install');
+add_action('init', 'bfox_blog_post_install');
 
 /*
  * Management Functions
  */
 
 /**
+ * Adds Bible Reference support for a given taxonomy
+ *
+ * @param string $taxonomy
+ */
+function bfox_add_taxonomy_ref_support($taxonomy) {
+	bfox_add_post_type_ref_support('', array($taxonomy));
+}
+
+/**
+ * Adds Bible Reference support for a given post_type/taxonomy combination
+ *
+ * Bible reference support means that Bible references will be detected and indexed for the given post_type/taxonomy combo.
+ * If no taxonomies specified, the default is array('post_content')
+ *
+ * @param string $post_type
+ * @param array $taxonomies
+ */
+function bfox_add_post_type_ref_support($post_type = '', $taxonomies = '') {
+	global $_bfox_post_type_ref_support;
+	if (!$post_type) $post_type = '_bfox_all_types';
+	if (!$taxonomies) $taxonomies = array('post_content');
+
+	foreach ((array) $taxonomies as $taxonomy) {
+		$_bfox_post_type_ref_support[$post_type][$taxonomy] = true;
+	}
+}
+
+/**
+ * Removes Bible Reference support for a given post_type/taxonomy combination
+ *
+ * If no taxonomies specified, all support for the post_type will be removed
+ *
+ * @param string $post_type
+ * @param array $taxonomies
+ */
+function bfox_remove_post_type_ref_support($post_type = '', $taxonomies = array()) {
+	global $_bfox_post_type_ref_support;
+	if (!$post_type) $post_type = '_bfox_all_types';
+	if (empty($taxonomies)) $taxonomies = array_keys((array) $_bfox_post_type_ref_support[$post_type]);
+	foreach ((array) $taxonomies as $taxonomy) $_bfox_post_type_ref_support[$post_type][$taxonomy] = false;
+}
+
+/**
+ * Returns whether a given post_type/taxonomy combination support bible references
+ *
+ * If no taxonomy given, returns whether the post_type supports refs with at least one taxonomy
+ * If no post_type given, returns whether the taxonomy supports refs by default with any post type (ie. taxonomies that are Bible specific would do this)
+ * If both given, returns whether the post_type/taxonomy combo supports refs
+ * If neither given, returns false
+ *
+ * @param string $post_type
+ * @param string $taxonomy
+ * @return bool
+ */
+function bfox_post_type_supports_refs($post_type = '', $taxonomy = '') {
+	global $_bfox_post_type_ref_support;
+
+	if ($taxonomy) {
+		if (!$post_type) $post_type = '_bfox_all_types';
+		return $_bfox_post_type_ref_support[$post_type][$taxonomy] || ($_bfox_post_type_ref_support['_bfox_all_types'][$taxonomy] && false !== $_bfox_post_type_ref_support[$post_type][$taxonomy]);
+	}
+	else {
+		return $post_type && in_array(true, (array) $_bfox_post_type_ref_support[$post_type]);
+	}
+}
+
+/**
+ * Returns an array of taxonomies that support refs
+ *
+ * @param $post_type
+ * @return array
+ */
+function bfox_post_type_ref_taxonomies($post_type) {
+	global $_bfox_post_type_ref_support;
+
+	$taxonomies = array();
+
+	// Add the taxonomies for this post type
+	foreach ((array) $_bfox_post_type_ref_support[$post_type] as $taxonomy => $is_supported)
+		if ($is_supported) $taxonomies []= $taxonomy;
+
+	// Add the taxonomies that support all post types
+	foreach ((array) $_bfox_post_type_ref_support['_bfox_all_types'] as $taxonomy => $is_supported)
+		if ($is_supported && false !== $_bfox_post_type_ref_support[$post_type][$taxonomy]) $taxonomies []= $taxonomy;
+
+	return $taxonomies;
+}
+
+/**
+ * Returns an array of post_types that support Bible references
+ *
+ * @return array
+ */
+function bfox_post_types_with_ref_support() {
+	global $_bfox_post_type_ref_support;
+
+	$post_types = array();
+	foreach ($_bfox_post_type_ref_support as $post_type => $taxonomies) if ('_bfox_all_types' != $post_type) {
+		if (in_array(true, $taxonomies)) $post_types []= $post_type;
+	}
+
+	return $post_types;
+}
+
+/**
  * Return the bible references for a given blog post
  *
  * @param $post
- * @param $ref_type
  * @return BfoxRef
  */
-function bfox_blog_post_get_ref($post, $ref_type = null) {
+function bfox_blog_post_get_refs_for_taxonomies($post) {
 	if (!is_object($post)) $post = get_post($post);
 
-	$ref = new BfoxRef;
+	$refs_for_taxonomies = array();
+	$taxonomies = bfox_post_type_ref_taxonomies($post->post_type);
+	foreach ($taxonomies as $taxonomy) {
+		if ('post_content' == $taxonomy) {
+			$ref = bfox_ref_from_content($post->post_content);
+		}
+		else {
+			$ref = new BfoxRef;
+			$terms = wp_get_post_terms($post->ID, $taxonomy, array('fields' => 'names'));
+			foreach ($terms as $term) $ref->add_ref(bfox_ref_from_tag($term));
+		}
 
-	// Get Bible references from content
-	if (is_null($ref_type) || BfoxPostRefDbTable::ref_type_content == $ref_type) $ref->add_ref(bfox_ref_from_content($post->post_content));
-
-	// Get Bible references from tags
-	if (is_null($ref_type) || BfoxPostRefDbTable::ref_type_tag == $ref_type) {
-		$tags = wp_get_post_tags($post->ID, array('fields' => 'names'));
-		foreach ($tags as $tag) $ref->add_ref(bfox_ref_from_tag($tag));
+		if ($ref && $ref->is_valid()) {
+			$refs_for_taxonomies[$taxonomy] = $ref;
+		}
+		unset($ref);
 	}
 
-	return $ref;
+	return $refs_for_taxonomies;
+}
+
+/**
+ * Return the bible references for a given blog post
+ *
+ * @param $post
+ * @param string $taxonomy
+ * @return BfoxRef
+ */
+function bfox_blog_post_get_ref($post, $taxonomy = '') {
+	$total_ref = new BfoxRef;
+
+	$refs_for_taxonomies = bfox_blog_post_get_refs_for_taxonomies($post);
+
+	if (!empty($taxonomy)) {
+		if (isset($refs_for_taxonomies[$taxonomy])) $total_ref = $total_ref->add_ref($refs_for_taxonomies[$taxonomy]);
+	}
+	else {
+		foreach ($refs_for_taxonomies as $ref) $total_ref->add_ref($ref);
+	}
+
+	return $total_ref;
 }
 
 /**
@@ -120,8 +259,11 @@ function bfox_blog_post_get_ref($post, $ref_type = null) {
  * @param object $post
  */
 function bfox_blog_save_post($post_id, $post) {
-	$table = bfox_blog_post_ref_table();
-	$table->save_post($post);
+	// Only save the post if it supports Bible references
+	if (bfox_post_type_supports_refs($post->post_type)) {
+		$table = bfox_blog_post_ref_table();
+		$table->save_post($post);
+	}
 }
 add_action('save_post', 'bfox_blog_save_post', 10, 2);
 
@@ -146,8 +288,10 @@ add_action('delete_post', 'bfox_blog_delete_post');
  * @param WP_Query $wp_query
  */
 function bfox_blog_parse_query($wp_query) {
+	$post_type = $wp_query->query_vars['post_type'];
+
 	// Bible Reference tags should redirect to a ref search
-	if (!empty($wp_query->query_vars['tag'])) {
+	if (!empty($wp_query->query_vars['tag']) && bfox_post_type_supports_refs($post_type, 'post_tag')) {
 		$ref = bfox_ref_from_tag($wp_query->query_vars['tag']);
 		if ($ref->is_valid()) {
 			wp_redirect(bfox_ref_blog_url($wp_query->query_vars['tag']));
@@ -212,6 +356,15 @@ add_filter('comment_text', 'bfox_ref_replace_html');
 add_filter('the_excerpt', 'bfox_ref_replace_html');
 
 /**
+ * Replaces taxonomy links with Bible reference links
+ *
+ * @param string $taxonomy
+ */
+function bfox_add_ref_links_to_taxonomy($taxonomy) {
+	add_filter("term_links-$taxonomy", 'bfox_add_tag_ref_tooltips');
+}
+
+/**
  * Finds any bible references in an array of tag links and adds tooltips to them
  *
  * Should be used to filter 'term_links-post_tag', called in get_the_term_list()
@@ -230,12 +383,20 @@ function bfox_add_tag_ref_tooltips($tag_links) {
 	return $tag_links;
 }
 
-// Add tooltips to Bible Ref tag links
-add_filter('term_links-post_tag', 'bfox_add_tag_ref_tooltips');
-
 /*
  * Admin Page Functions
  */
+
+/**
+ * Add a Bible quick view meta box
+ *
+ * @param $page
+ * @param $context
+ * @param $priority
+ */
+function bfox_add_quick_view_meta_box($page, $context = 'normal', $priority = 'core') {
+	add_meta_box('bible-quick-view-div', __('Biblefox Bible', 'bfox'), 'bfox_blog_quick_view_meta_box', $page, $context, $priority);
+}
 
 /**
  * Creates the form displaying the scripture quick view
@@ -312,25 +473,53 @@ function bfox_bible_post_link_setup($page, $context, $post) {
 add_action('do_meta_boxes', 'bfox_bible_post_link_setup', 10, 3);
 
 /**
+ * Add a column on the post_type admin page for Bible References
+ *
+ * The position parameter specified the name of the column that this new column will come immediately after
+ *
+ * @param string $post_type
+ * @param string $position
+ */
+function bfox_add_ref_admin_column($post_type, $position = false) {
+	global $_bfox_post_type_ref_col_positions;
+	$_bfox_post_type_ref_col_positions[$post_type] = $position;
+}
+
+/**
  * Filter function for adding biblefox columns to the edit posts list
  *
  * @param $columns
+ * @param $post_type (Default is 'page' because the 'manage_pages_columns' filter doesn't pass the post type)
  * @return array
  */
-function bfox_manage_posts_columns($columns) {
-	// Create a new columns array with our new columns, and in the specified order
-	// See wp_manage_posts_columns() for the list of default columns
-	$new_columns = array();
-	foreach ($columns as $key => $column) {
-		$new_columns[$key] = $column;
+function bfox_manage_posts_columns($columns, $post_type = 'page') {
+	global $_bfox_post_type_ref_col_positions;
+	if (isset($_bfox_post_type_ref_col_positions[$post_type])) {
+		$position = $_bfox_post_type_ref_col_positions[$post_type];
+		$column_text = __('Bible References', 'bfox');
 
-		// Add the bible verse column right after 'author' column
-		if ('author' == $key) $new_columns['bfox_col_ref'] = __('Bible References', 'bfox');
+		// If a position was set, place the column after that position
+		// Otherwise just add the column
+		if ($position) {
+			// Create a new columns array with our new columns, and in the specified order
+			// See wp_manage_posts_columns() for the list of default columns
+			$new_columns = array();
+			foreach ($columns as $key => $column) {
+				$new_columns[$key] = $column;
+
+				// Add the bible verse column right after 'author' column
+				if ($position == $key) $new_columns['bfox_col_ref'] = $column_text;
+			}
+			$columns = $new_columns;
+		}
+		else {
+			$columns['bfox_col_ref'] = $column_text;
+		}
 	}
-	return $new_columns;
+	return $columns;
 }
-add_filter('manage_posts_columns', 'bfox_manage_posts_columns'); // Posts
-//add_filter('manage_pages_columns', 'bfox_manage_posts_columns'); // Pages
+add_filter('manage_posts_columns', 'bfox_manage_posts_columns', 10, 2);
+add_filter('manage_pages_columns', 'bfox_manage_posts_columns');
 
 /**
  * Action function for displaying bible reference information in the edit posts list
@@ -347,7 +536,7 @@ function bfox_manage_posts_custom_column($column_name, $post_id) {
 	}
 }
 add_action('manage_posts_custom_column', 'bfox_manage_posts_custom_column', 10, 2); // Posts
-//add_action('manage_pages_custom_column', 'bfox_manage_posts_custom_column', 10, 2); // Pages
+add_action('manage_pages_custom_column', 'bfox_manage_posts_custom_column', 10, 2); // Pages
 
 /*
  * Settings Functions
