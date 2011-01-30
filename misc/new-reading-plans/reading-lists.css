@@ -1,0 +1,82 @@
+@CHARSET "UTF-8";
+/*
+CSS for styling various reading list arrangements
+
+For more info on styling multi column lists see: http://www.alistapart.com/articles/multicolumnlists/
+*/
+
+ol.reading-list li {
+	font-size: 0.9em;
+}
+
+ol.reading-list li .reading-status {
+	float: left;
+}
+
+ol.reading-list li .reading-info {
+	margin-left: 20px;
+}
+
+ol.reading-list li .reading-note {
+	display: block;
+	font-style: italic;
+	font-size: 0.8em;
+}
+
+ol.reading-list li .reading-date {
+	font-weight: bold;
+}
+
+ol.reading-list li .reading-date:after {
+	content: ": ";
+}
+
+/*
+Reading List with 2 or 3 Columns running Horizontally
+
+ol.reading-list-2c-h Example:
+1. reading	2. reading
+3. reading	4. reading
+
+ol.reading-list-3c-h Example:
+1. reading	2. reading	3. reading
+4. reading	5. reading	6. reading
+
+*/
+
+ol.reading-list-2c-h, ol.reading-list-3c-h, ol.reading-list-4c-h {
+	width: 100%;
+}
+
+ol.reading-list-2c-h li, ol.reading-list-3c-h li, ol.reading-list-4c-h li {
+	float: left;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	margin-left: 3%;
+	margin-right: 3%;
+}
+
+ol.reading-list-2c-h li {
+	width: 44%;
+}
+
+ol.reading-list-3c-h li {
+	width: 27%;
+}
+
+ol.reading-list-4c-h li {
+	width: 19%;
+}
+
+ol.reading-list-2c-h li:nth-child(2n+3), ol.reading-list-3c-h li:nth-child(3n+4), ol.reading-list-4c-h li:nth-child(4n+5) {
+	clear: left;
+}
+
+/* Clear the floats */
+ol.reading-list-2c-h:after, ol.reading-list-3c-h:after, ol.reading-list-4c-h:after {
+	content: ".";
+	display: block;
+	height: 0;
+	clear: both;
+	visibility: hidden;
+}

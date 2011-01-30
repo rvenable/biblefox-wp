@@ -1,0 +1,98 @@
+/**** Begin Default Theme Styles **************************************************/
+
+body {
+	line-height: 170%;
+	color: #555;
+	background: #fff;
+}
+
+h1, h2, h3 {
+	font-family: Georgia, Times, Serif;
+}
+	h2 {
+		border-bottom: 1px solid #ddd;
+		padding-bottom: 10px;
+		margin-bottom: 15px;
+	}
+
+
+/*** WordPress Blog Styles ***************************************************/
+
+.post {
+	padding: 20px 15px;	
+}
+
+.post p {
+	margin-top: 15px;
+}
+
+
+.post h3 {
+	font: normal 1.6em Georgia, times, serif;
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+	.post h3 a {
+		color: #555;
+	}
+
+
+/* Font styles */
+
+ul.footnotes {
+	list-style-type: none;
+	margin: 0 0 0 1em;
+}
+
+.bfox-view-options {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	font-size: 10px;
+	text-align: right;
+}
+
+.bfox-view-options p {
+	text-decoration: underline;
+	margin: 0;
+}
+
+.bfox-view-options ul {
+	display: none;
+	border: 1px solid #CCC;
+	list-style-type: none;
+	background-color: #FFF;
+	text-decoration: none;
+	padding: 5px;
+	margin: 0;
+}
+
+.bfox-view-options ul li {
+	text-decoration: none;
+	text-align: left;
+}
+
+.bfox-view-options ul li label {
+	cursor: pointer;
+}
+
+.bfox-view-options:hover ul {
+	display: block;
+}
+
+.ref_foot_link_hidden {
+	display: none;
+}
+
+.chapter_head {
+	font-size: 1.8em;
+	float: left;
+	margin: 0.2em 0.2em 0 0;
+	padding: 0.2em 0.1em;
+	min-width: 1.5em;
+	height: 1.1em;
+	text-align: center;
+	font-weight: bold;
+}
+
