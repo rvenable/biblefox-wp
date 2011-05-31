@@ -1,0 +1,3 @@
+[submodule "trunk/external/biblefox-ref"]
+	path = trunk/external/biblefox-ref
+	url = git://github.com/rvenable/BiblefoxRefPHP.git
