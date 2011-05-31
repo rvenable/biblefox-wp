@@ -1,6 +1,8 @@
 /*global jQuery, bfox_blog_iframe_select_change: true */
 'use strict';
 
+var bfox_blog_iframe_select_change;
+
 // For when bfox translation iframe selects change to update their iframe
 bfox_blog_iframe_select_change = function () {
 	var option, date;
