@@ -68,7 +68,7 @@ function bfox_active_ref(BfoxRef $ref = null) {
  */
 function bfox_fix_ref_link_options(&$options) {
 	// If there is no ref_str, try to get it from $ref->get_string($name)
-	if (empty($options['ref_str']) && isset($options['ref']) && is_a($options['ref'], BfoxRef) && $options['ref']->is_valid())
+	if (empty($options['ref_str']) && isset($options['ref']) && is_a($options['ref'], 'BfoxRef') && $options['ref']->is_valid())
 		$options['ref_str'] = $options['ref']->get_string($options['name']);
 }
 
