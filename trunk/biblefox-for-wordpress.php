@@ -38,6 +38,7 @@ define('BFOX_VERSION', '0.8.3');
 define('BFOX_DIR', dirname(__FILE__));
 define('BFOX_REF_DIR', BFOX_DIR . '/external/biblefox-ref');
 define('BFOX_URL', WP_PLUGIN_URL . '/biblefox-for-wordpress');
+define('BFOX_PLANS_URL', BFOX_URL . '/reading-plans');
 
 require_once BFOX_REF_DIR . '/biblefox-ref.php';
 
@@ -195,5 +196,10 @@ function bfox_bp_load() {
 // Otherwise, if we haven't already loaded BP, then call bfox_bp_load() after bp_core_loaded
 if (function_exists('bp_core_install')) bfox_bp_load();
 else add_action('bp_core_loaded', 'bfox_bp_load');
+
+
+// TODO: These need to be conditionally included based on a WP setting
+require_once BFOX_DIR . '/reading-plans/reading-plans.php';
+require_once BFOX_DIR . '/reading-plans/template-tags.php';
 
 ?>
