@@ -201,5 +201,6 @@ else add_action('bp_core_loaded', 'bfox_bp_load');
 // TODO: These need to be conditionally included based on a WP setting
 require_once BFOX_DIR . '/reading-plans/reading-plans.php';
 require_once BFOX_DIR . '/reading-plans/template-tags.php';
+require_once BFOX_DIR . '/bible-tools/bible-tools.php';
 
 ?>
