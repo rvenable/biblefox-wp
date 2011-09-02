@@ -1,12 +1,15 @@
 <?php
-global $tooltip_ref;
-$tooltip_ref = new BfoxRef('Gen 1');
-$ref_str = $tooltip_ref->get_string();
+$ref_param = $_REQUEST['ref'];
 
-$query = bfox_blog_query_for_ref($tooltip_ref);
+$ref = new BfoxRef($ref_param);
+$ref_str = $ref->get_string();
+
+$query = bfox_blog_query_for_ref($ref);
 $count = 0;
 
 ?>
+
+<?php if (is_bfox_tool_link()): ?>
 
 <p>
 TODO: This is a linked bible tool; Load the tool in an iframe or frame, and have a toolbar for modifying the viewed passage.
@@ -35,9 +38,17 @@ TODO: This is a linked bible tool; Load the tool in an iframe or frame, and have
 </div>
 
 <div class="bfox-tooltip-bible">
-	<?php $iframe = new BfoxIframe($tooltip_ref) ?>
+	<?php $iframe = new BfoxIframe($ref) ?>
 	<select class="bfox-iframe-select">
 		<?php echo $iframe->select_options() ?>
 	</select>
-	<iframe class="bfox-iframe bfox-tooltip-iframe" src="<?php echo bfox_tool_url_for_ref($tooltip_ref) ?>"></iframe>
+	<iframe class="bfox-iframe bfox-tooltip-iframe" src="<?php echo bfox_tool_url_for_ref($ref) ?>"></iframe>
 </div>
+
+<?php else: ?>
+
+<div>
+	<?php echo bfox_tool_content_for_ref($ref) ?>
+</div>
+
+<?php endif; ?>

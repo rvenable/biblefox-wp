@@ -58,6 +58,11 @@ function bfox_tools_localdb_meta_box_cb() {
 	<p><label for="bfox-tool-db-ref-index-row"><?php _e( 'Bible Reference Index Row', 'bfox' ) ?></label>
 	<input type="text" name="bfox-tool-localdb[ref_index_row]" id="bfox-tool-db-ref-index-row" value="<?php echo $local_db['ref_index_row'] ?>" /></p>
 
+	<?php
+
+	/*
+	In the future we might support Book, Chapter, Verse rows, but for now we only support the index row
+
 	<p><label for="bfox-tool-db-book-row"><?php _e( 'Book Row', 'bfox' ) ?></label>
 	<input type="text" name="bfox-tool-localdb[book_row]" id="bfox-tool-db-book-row" value="<?php echo $local_db['book_row'] ?>" /></p>
 
@@ -66,7 +71,7 @@ function bfox_tools_localdb_meta_box_cb() {
 
 	<p><label for="bfox-tool-db-verse-row"><?php _e( 'Verse Row', 'bfox' ) ?></label>
 	<input type="text" name="bfox-tool-localdb[verse_row]" id="bfox-tool-db-verse-row" value="<?php echo $local_db['verse_row'] ?>" /></p>
-	<?php
+	*/
 }
 
 /*
@@ -129,11 +134,44 @@ function bfox_tool_template_redirect($template) {
 }
 add_action('single_template', 'bfox_tool_template_redirect');
 
+/*
+Template Tags
+*/
+
 function bfox_tool_url_for_ref(BfoxRef $ref) {
 	$template = bfox_tool_meta('url');
 	$link = new BfoxBibleToolLink();
 	$link->setRef($ref);
 	return $link->urlForTemplate($template);
+}
+
+function is_bfox_tool_link() {
+	$url = bfox_tool_meta('url');
+	return !empty($url);
+}
+
+function bfox_tool_content_for_ref(BfoxRef $ref) {
+	global $wpdb;
+
+	$local_db = bfox_tool_meta('local_db');
+	$table = $wpdb->escape($local_db['table_name']);
+
+	$index_row = $local_db['ref_index_row'];
+	$index_row2 = $local_db['ref_index_row2'];
+	if (empty($index_row2)) $ref_where = $ref->sql_where($index_row);
+	else $ref_where = $ref->sql_where2($index_row, $index_row2);
+
+	$content_row = $local_db['content_row'];
+
+	$sql = $wpdb->prepare("SELECT * FROM $table WHERE $ref_where");
+	$results = $wpdb->get_results($sql);
+
+	$content = '';
+	foreach ($results as $result) {
+		$content .= $result->$content_row;
+	}
+
+	return apply_filters('bfox_tool_content_for_ref', $content, $ref);
 }
 
 ?>
