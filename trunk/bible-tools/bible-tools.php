@@ -14,6 +14,7 @@ function bfox_tools_create_post_type() {
 				'view_item' => __('View Tool', 'bfox')
 			),
 			'public' => true,
+			'has_archive' => true,
 			'rewrite' => array('slug' => 'bible-tools'),
 			'supports' => array('title', 'excerpt', 'thumbnail'),
 			'register_meta_box_cb' => 'bfox_tools_register_meta_box_cb',
@@ -133,6 +134,13 @@ function bfox_tool_template_redirect($template) {
 	}
 }
 add_action('single_template', 'bfox_tool_template_redirect');
+
+function bfox_tool_archive_template_redirect($template) {
+	if ('archive.php' == basename($template) && is_post_type_archive('bfox_tool')) {
+		return BFOX_DIR . '/theme/archive-bfox_tool.php';
+	}
+}
+add_action('archive_template', 'bfox_tool_archive_template_redirect');
 
 /*
 Template Tags
