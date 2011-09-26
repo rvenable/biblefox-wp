@@ -180,11 +180,24 @@ function bfox_check_for_tooltip() {
 	if (isset($_REQUEST['bfox-tooltip-ref'])) {
 		global $tooltip_ref;
 		$tooltip_ref = new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref']));
-		require BFOX_DIR . '/tooltip.php';
+		load_template(get_bfox_tooltip_template());
 		exit;
 	}
 }
 add_action('init', 'bfox_check_for_tooltip', 1000);
+
+// Returns the path for the tooltip template
+function get_bfox_tooltip_template() {
+	return apply_filters('bfox_tooltip_template', locate_template(array('bfox-tooltip.php')));
+}
+
+// If the tooltip file wasn't found in the theme, use the default from the plugin
+function bfox_tool_tooltip_template_redirect($template) {
+	if ('' == $template) {
+		return BFOX_DIR . '/theme/bfox-tooltip.php';
+	}
+}
+add_action('bfox_tooltip_template', 'bfox_tool_tooltip_template_redirect');
 
 /**
  * Loads the BuddyPress related features
