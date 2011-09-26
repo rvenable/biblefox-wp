@@ -1,8 +1,8 @@
 <?php
-global $tooltip_ref;
-$ref_str = $tooltip_ref->get_string();
+$ref = bfox_active_ref();
+$ref_str = $ref->get_string();
 
-$query = bfox_blog_query_for_ref($tooltip_ref);
+$query = bfox_blog_query_for_ref($ref);
 $count = 0;
 
 ?>
@@ -29,7 +29,7 @@ $count = 0;
 </div>
 
 <div class="bfox-tooltip-bible">
-	<?php $iframe = new BfoxIframe($tooltip_ref) ?>
+	<?php $iframe = new BfoxIframe($ref) ?>
 	<select class="bfox-iframe-select">
 		<?php echo $iframe->select_options() ?>
 	</select>

@@ -178,8 +178,7 @@ function bfox_ref_from_content($content) {
  */
 function bfox_check_for_tooltip() {
 	if (isset($_REQUEST['bfox-tooltip-ref'])) {
-		global $tooltip_ref;
-		$tooltip_ref = new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref']));
+		bfox_active_ref(new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref'])));
 		load_template(get_bfox_tooltip_template());
 		exit;
 	}
