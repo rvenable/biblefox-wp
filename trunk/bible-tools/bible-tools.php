@@ -146,11 +146,26 @@ add_action('archive_template', 'bfox_tool_archive_template_redirect');
 Template Tags
 */
 
+// DEPRECATED, use bfox_tool_source_url()
 function bfox_tool_url_for_ref(BfoxRef $ref) {
-	$template = bfox_tool_meta('url');
-	$link = new BfoxBibleToolLink();
-	$link->setRef($ref);
-	return $link->urlForTemplate($template);
+	return bfox_tool_source_url($ref);
+}
+
+function bfox_tool_source_linker(BfoxRef $ref = null) {
+	global $_bfox_tool_source_linker;
+	if (is_null($_bfox_tool_source_linker)) {
+		$_bfox_tool_source_linker = new BfoxBibleToolLink();
+		if (is_null($ref)) $ref = bfox_active_ref();
+	}
+
+	if (!is_null($ref)) $_bfox_tool_source_linker->setRef($ref);
+	return $_bfox_tool_source_linker;
+}
+
+function bfox_tool_source_url($post_id = 0, BfoxRef $ref = null) {
+	$template = bfox_tool_meta('url', $post_id);
+	$linker = bfox_tool_source_linker($ref);
+	return $linker->urlForTemplate($template);
 }
 
 function is_bfox_tool_link() {
@@ -180,6 +195,11 @@ function bfox_tool_content_for_ref(BfoxRef $ref) {
 	}
 
 	return apply_filters('bfox_tool_content_for_ref', $content, $ref);
+}
+
+function bfox_tool_query($args = array()) {
+	$args['post_type'] = 'bfox_tool';
+	return new WP_Query($args);
 }
 
 ?>

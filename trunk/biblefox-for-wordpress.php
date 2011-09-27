@@ -179,6 +179,12 @@ function bfox_ref_from_content($content) {
 function bfox_check_for_tooltip() {
 	if (isset($_REQUEST['bfox-tooltip-ref'])) {
 		bfox_active_ref(new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref'])));
+
+		// Make sure that the we have a query on bfox_tool
+		// TODO: We can get rid of this if we make sure that the tooltip URL is already loading the right query
+		// ie. if the tooltip URL loads the bfox_tool archive query (/bible-tools/?tooltip_ref=Gen+1).
+		query_posts(array('post_type' => 'bfox_tool'));
+
 		load_template(get_bfox_tooltip_template());
 		exit;
 	}
