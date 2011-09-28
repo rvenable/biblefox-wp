@@ -107,8 +107,10 @@ function bfox_ref_link_from_options($options = array()) {
 	return $link;
 }
 
-function bfox_ref_url($ref_str) {
-	$bible_url = get_post_type_archive_link('bfox_tool');
+function bfox_ref_url($ref_str, $post_id = 0) {
+	if ($post_id) $bible_url = get_post_permalink($post_id);
+	else $bible_url = get_post_type_archive_link('bfox_tool');
+
 	return add_query_arg('ref', urlencode(strtolower($ref_str)), $bible_url);
 }
 
