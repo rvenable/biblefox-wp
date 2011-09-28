@@ -136,7 +136,7 @@ function bfox_tool_template_redirect($template) {
 add_action('single_template', 'bfox_tool_template_redirect');
 
 function bfox_tool_archive_template_redirect($template) {
-	if ('archive.php' == basename($template) && is_post_type_archive('bfox_tool')) {
+	if ('archive.php' == basename($template) && 'bfox_tool' == get_query_var('post_type')) {
 		return BFOX_DIR . '/theme/archive-bfox_tool.php';
 	}
 }
@@ -163,7 +163,14 @@ function bfox_tool_source_linker(BfoxRef $ref = null) {
 }
 
 function bfox_tool_source_url($post_id = 0, BfoxRef $ref = null) {
+	if (empty($post_id)) $post_id = $GLOBALS['post']->ID;
 	$template = bfox_tool_meta('url', $post_id);
+
+	if (empty($template)) {
+		if (is_null($ref)) $ref = bfox_active_ref();
+		return add_query_arg('src', true, bfox_ref_url($ref->get_string(), $post_id));
+	}
+
 	$linker = bfox_tool_source_linker($ref);
 	return $linker->urlForTemplate($template);
 }

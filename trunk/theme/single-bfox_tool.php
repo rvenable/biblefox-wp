@@ -1,54 +1,5 @@
-<?php
-$ref_param = $_REQUEST['ref'];
-
-$ref = new BfoxRef($ref_param);
-$ref_str = $ref->get_string();
-
-$query = bfox_blog_query_for_ref($ref);
-$count = 0;
-
-?>
-
-<?php if (is_bfox_tool_link()): ?>
-
-<p>
-TODO: This is a linked bible tool; Load the tool in an iframe or frame, and have a toolbar for modifying the viewed passage.
-</p>
-
-
-<div class="bfox-tooltip-posts">
-	<div><?php echo $ref_str . __(' blog posts', 'bfox') ?></div>
-	<ul>
-		<?php while($count < 10 && $query->have_posts()): $count++; $query->the_post() ?>
-		<li><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></li>
-		<?php endwhile ?>
-		<?php if (0 == $count): ?>
-		<li><?php _e('No blog posts', 'bfox') ?></li>
-		<?php endif ?>
-	</ul>
-	<div><?php echo $ref_str . __(' links', 'bfox') ?></div>
-	<ul>
-		<li><?php echo bfox_ref_bible_link(array('ref_str' => $ref_str, 'text' => __('Bible Reader', 'bfox'), 'disable_tooltip' => true)) ?></li>
-		<li><?php echo bfox_ref_blog_link(array('ref_str' => $ref_str, 'text' => __('Post Archive', 'bfox'), 'disable_tooltip' => true)) ?></li>
-
-		<?php if (current_user_can('edit_posts')): ?>
-		<li><?php echo bfox_blog_ref_write_link($ref_str, __('Write a post', 'bfox')) ?></li>
-		<?php endif ?>
-	</ul>
-</div>
-
-<div class="bfox-tooltip-bible">
-	<?php $iframe = new BfoxIframe($ref) ?>
-	<select class="bfox-iframe-select">
-		<?php echo $iframe->select_options() ?>
-	</select>
-	<iframe class="bfox-iframe bfox-tooltip-iframe" src="<?php echo bfox_tool_url_for_ref($ref) ?>"></iframe>
-</div>
-
+<?php if (!empty($_REQUEST['src'])): ?>
+	<?php echo bfox_tool_content_for_ref(new BfoxRef($_REQUEST['ref'])); ?>
 <?php else: ?>
-
-<div>
-	<?php echo bfox_tool_content_for_ref($ref) ?>
-</div>
-
+	<?php load_template(get_archive_template()); ?>
 <?php endif; ?>
