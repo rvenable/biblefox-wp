@@ -107,6 +107,11 @@ function bfox_ref_link_from_options($options = array()) {
 	return $link;
 }
 
+function bfox_ref_url($ref_str) {
+	$bible_url = get_post_type_archive_link('bfox_tool');
+	return add_query_arg('ref', urlencode(strtolower($ref_str)), $bible_url);
+}
+
 /**
  * Returns a URL to the external Bible reader of choice for a given Bible Ref
  *
@@ -116,7 +121,7 @@ function bfox_ref_link_from_options($options = array()) {
  * @return string
  */
 function bfox_ref_bible_url($ref_str) {
-	return sprintf(apply_filters('bfox_blog_bible_url_template', 'http://biblefox.com/bible/%s'), urlencode(strtolower($ref_str)));
+	return bfox_ref_url($ref_str);
 }
 
 /**
