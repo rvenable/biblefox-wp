@@ -192,24 +192,29 @@ function bfox_check_for_tooltip() {
 		// ie. if the tooltip URL loads the bfox_tool archive query (/bible-tools/?tooltip_ref=Gen+1).
 		query_posts(array('post_type' => 'bfox_tool'));
 
-		load_template(get_bfox_tooltip_template());
+		load_bfox_template('bfox-tooltip');
 		exit;
 	}
 }
 add_action('init', 'bfox_check_for_tooltip', 1000);
 
-// Returns the path for the tooltip template
-function get_bfox_tooltip_template() {
-	return apply_filters('bfox_tooltip_template', locate_template(array('bfox-tooltip.php')));
+/**
+ * Returns a path for a Biblefox theme template file, first trying to load from the theme, then from the plugin
+ */
+function bfox_template_path($template) {
+	$template .= '.php';
+	$path = locate_template(array($template));
+	if (empty($path)) $path = BFOX_DIR . '/theme/' . $template;
+	return apply_filters('bfox_template_path', $path, $template);
 }
 
-// If the tooltip file wasn't found in the theme, use the default from the plugin
-function bfox_tool_tooltip_template_redirect($template) {
-	if ('' == $template) {
-		return BFOX_DIR . '/theme/bfox-tooltip.php';
-	}
+/**
+ * Loads a Biblefox theme template file, first trying to load from the theme, then from the plugin
+ */
+function load_bfox_template($template) {
+	$path = bfox_template_path($template);
+	load_template($path);
 }
-add_action('bfox_tooltip_template', 'bfox_tool_tooltip_template_redirect');
 
 /**
  * Loads the BuddyPress related features

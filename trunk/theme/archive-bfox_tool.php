@@ -26,7 +26,7 @@ bfox_active_ref(new BfoxRef('Gen 1'));
 			</h1>
 		</header>
 
-		<?php load_template(get_bfox_tooltip_template()); ?>
+		<?php load_bfox_template('bfox-tooltip'); ?>
 
 	<?php else : ?>
 

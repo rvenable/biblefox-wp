@@ -129,18 +129,18 @@ Theme Templates
 */
 
 function bfox_tool_template_redirect($template) {
-	if ('single.php' == basename($template) && is_singular('bfox_tool')) {
-		return BFOX_DIR . '/theme/single-bfox_tool.php';
+	if ('bfox_tool' == get_query_var('post_type')) {
+		if (is_singular('bfox_tool')) {
+			load_bfox_template('single-bfox_tool');
+			exit;
+		}
+		if (is_archive()) {
+			load_bfox_template('archive-bfox_tool');
+			exit;
+		}
 	}
 }
-add_action('single_template', 'bfox_tool_template_redirect');
-
-function bfox_tool_archive_template_redirect($template) {
-	if ('archive.php' == basename($template) && 'bfox_tool' == get_query_var('post_type')) {
-		return BFOX_DIR . '/theme/archive-bfox_tool.php';
-	}
-}
-add_action('archive_template', 'bfox_tool_archive_template_redirect');
+add_action('template_redirect', 'bfox_tool_template_redirect');
 
 /*
 Template Tags
