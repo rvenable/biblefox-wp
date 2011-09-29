@@ -209,4 +209,48 @@ function bfox_tool_query($args = array()) {
 	return new WP_Query($args);
 }
 
+function update_selected_bfox_tool() {
+	if (is_singular('bfox_tool')) {
+		global $post, $_selected_bfox_tool_post_id;
+		$_selected_bfox_tool_post_id = $post->ID;
+		$_COOKIE['selected_bfox_tool'] = $post->ID;
+		setcookie('selected_bfox_tool', $_COOKIE['selected_bfox_tool'], /* 30 days from now: */ time() + 60 * 60 * 24 * 30, '/');
+	}
+}
+add_action('wp', 'update_selected_bfox_tool');
+
+function selected_bfox_tool_post_id() {
+	global $_selected_bfox_tool_post_id;
+
+	if (!$_selected_bfox_tool_post_id) {
+		// First try to get the selected BfoxTool from the cookies
+		$post_id = $_COOKIE['selected_bfox_tool'];
+
+		// Make sure that the cookied post id is actually a BfoxTool
+		if ($post_id) {
+			$post = &get_post($post_id);
+			if ('bfox_tool' != $post->post_type) $post_id = 0;
+		}
+
+		// If we didn't get a BfoxTool from the cookies, just get the first one from a query
+		if (!$post_id) {
+			$tools = bfox_tool_query();
+			if ($tools->have_posts()) {
+				$post = $tools->next_post();
+				$post_id = $post->ID;
+			}
+		}
+
+		$_selected_bfox_tool_post_id = $post_id;
+	}
+
+	return $_selected_bfox_tool_post_id;
+}
+
+function the_selected_bfox_tool_post() {
+	global $post;
+	$post = get_post(selected_bfox_tool_post_id());
+	setup_postdata($post);
+}
+
 ?>

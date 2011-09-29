@@ -48,4 +48,24 @@ class BfoxIframe {
 	}
 }
 
+function bfox_tool_iframe_select($query = false) {
+	if (!$query) $query = bfox_tool_query();
+
+	$selected_post_id = selected_bfox_tool_post_id();
+	while ($query->have_posts()) {
+		$query->the_post();
+
+		$post_id = get_the_ID();
+		$url = bfox_tool_source_url();
+		$title = get_the_title();
+
+		if ($post_id == $selected_post_id) $selected = " selected='selected'";
+		else $selected = '';
+
+		$content .= "<option name='$post_id' value='$url'$selected>$title</option>";
+	}
+
+	return '<select class="bfox-iframe-select">' . $content . '</select>';
+}
+
 ?>
