@@ -23,6 +23,14 @@ function bfox_tools_create_post_type() {
 }
 add_action('init', 'bfox_tools_create_post_type');
 
+// Flush the rewrite rules upon plugin activation
+// See: http://codex.wordpress.org/Function_Reference/register_post_type#Flushing_Rewrite_on_Activation
+function bfox_tools_flush_rewrite() {
+	bfox_tools_create_post_type();
+	flush_rewrite_rules();
+}
+register_activation_hook(__FILE__, 'bfox_tools_flush_rewrite');
+
 function bfox_tools_register_meta_box_cb() {
 	add_meta_box('bfox-tool-link', __('External Link', 'bfox'), 'bfox_tools_link_meta_box_cb', 'bfox_tool', 'normal', 'high');
 	add_meta_box('bfox-tool-localdb', __('Local Database', 'bfox'), 'bfox_tools_localdb_meta_box_cb', 'bfox_tool', 'normal', 'high');
