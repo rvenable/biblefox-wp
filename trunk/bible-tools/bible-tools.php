@@ -253,4 +253,20 @@ function the_selected_bfox_tool_post() {
 	setup_postdata($post);
 }
 
+function bfox_tool_query_vars($query_vars) {
+	$query_vars []= 'ref';
+	return $query_vars;
+}
+add_filter('query_vars', 'bfox_tool_query_vars');
+
+function bfox_tool_parse_query($wp_query) {
+	$post_type = $wp_query->query_vars['post_type'];
+	if ('bfox_tool' == $post_type) {
+		if (!empty($wp_query->query_vars['ref']))
+			bfox_active_ref(new BfoxRef($wp_query->query_vars['ref']));
+	}
+}
+add_action('parse_query', 'bfox_tool_parse_query');
+
+
 ?>

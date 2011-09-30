@@ -8,13 +8,6 @@
 
 get_header(); ?>
 
-<?php
-
-bfox_active_ref(new BfoxRef('Gen 1'));
-
-
-?>
-
 <section id="primary">
 	<div id="content" role="main">
 
