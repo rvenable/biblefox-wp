@@ -99,7 +99,6 @@ function bfox_bp_option_sanitize($new_value, $option = '') {
 
 // Load other files
 require_once BFOX_BP_DIR . '/activity.php';
-if (bfox_bp_get_option('bfox-enable-bible-directory')) require_once BFOX_BP_DIR . '/bible-directory.php';
 
 do_action('bfox_bp_loaded');
 

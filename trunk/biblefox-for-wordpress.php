@@ -232,5 +232,6 @@ else add_action('bp_core_loaded', 'bfox_bp_load');
 require_once BFOX_DIR . '/reading-plans/reading-plans.php';
 require_once BFOX_DIR . '/reading-plans/template-tags.php';
 require_once BFOX_DIR . '/bible-tools/bible-tools.php';
+require_once bfox_template_path('bp-bible-directory-functions');
 
 ?>
