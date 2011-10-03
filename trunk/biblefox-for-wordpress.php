@@ -61,6 +61,11 @@ function bfox_active_ref(BfoxRef $ref = null) {
 	return $_bfox_active_ref;
 }
 
+function bfox_active_ref_str($format = '') {
+	$ref = bfox_active_ref();
+	return $ref->get_string($format);
+}
+
 /**
  * Fixes a bible ref link options array so that it has a ref_str if it doesn't already
  *
