@@ -1,6 +1,8 @@
 <?php
 
 require_once BFOX_REF_DIR . '/bfox_bible_tool_link.php';
+require_once BFOX_DIR . '/bfox_tool/bfox_tool-functions.php';
+require_once BFOX_DIR . '/bfox_tool/bfox_tool-template.php';
 
 function bfox_tools_create_post_type() {
 	register_post_type('bfox_tool',
