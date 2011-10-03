@@ -6,6 +6,11 @@
  *
  */
 
+if (defined('BP_VERSION')) {
+	load_bfox_template('activities/index-bfox_tool');
+	exit;
+}
+
 get_header(); ?>
 
 <section id="primary">
