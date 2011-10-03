@@ -58,6 +58,22 @@ function bfox_tool_query($args = array()) {
 }
 
 /*
+Functions for remembering the most recent used Bible Reference
+*/
+
+function bfox_tool_last_viewed_ref_str() {
+	global $user_ID;
+	if ($user_ID) return get_user_option('bfox_tool_last_viewed_ref_str');
+	return $_COOKIE['bfox_tool_last_viewed_ref_str'];
+}
+
+function bfox_tool_set_last_viewed_ref_str($ref_str) {
+	global $user_ID;
+	if ($user_ID) update_user_option($user_ID, 'bfox_tool_last_viewed_ref_str', $ref_str, true);
+	else setcookie('bfox_tool_last_viewed_ref_str', $ref_str, /* 30 days from now: */ time() + 60 * 60 * 24 * 30, '/');
+}
+
+/*
 Functions for remembering the most recent used Bible Tool
 */
 
