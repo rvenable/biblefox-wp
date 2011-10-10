@@ -44,6 +44,7 @@ define('BFOX_PLANS_URL', BFOX_URL . '/reading-plans');
 require_once BFOX_REF_DIR . '/biblefox-ref.php';
 
 require_once BFOX_API_DIR . '/bfox_ref-functions.php';
+require_once BFOX_API_DIR . '/bfox_ref-template.php';
 
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 

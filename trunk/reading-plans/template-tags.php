@@ -28,6 +28,11 @@ function bfox_plan_total_ref($post_id = 0) {
 	return $total_ref;
 }
 
+function bfox_plan_total_ref_str($post_id = 0, $format = '') {
+	$total_ref = bfox_plan_total_ref($post_id);
+	return $total_ref->get_string($format);
+}
+
 /*
  * Schedule Template Tags
  */
@@ -255,7 +260,7 @@ function bfox_plan_reading_list($args = array()) {
 			<?php if (bfox_plan_is_scheduled($post_id)): ?>
 				<span class="reading-date"><?php echo bfox_plan_reading_date($reading_id, $date_format, $post_id) ?></span>
 			<?php endif ?>
-				<span class="reading-ref"><?php echo bfox_ref_bible_link(array('ref' => bfox_plan_reading_ref($reading_id, $post_id), 'name' => BibleMeta::name_short)) ?></span>
+				<span class="reading-ref"><?php echo bfox_ref_link(bfox_plan_reading_ref_str($reading_id, $post_id, BibleMeta::name_short)) ?></span>
 				<span class="reading-note"><?php echo bfox_plan_reading_note($reading_id, $post_id) ?></span>
 			</div>
 		</li>

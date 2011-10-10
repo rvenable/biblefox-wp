@@ -67,23 +67,6 @@ function bfox_ref_blog_url($ref_str) {
 	return $taglink;
 }
 
-/**
- * Returns a link for the blog search page using a Bible Reference as the tag filter
- *
- * Should be used whenever we want to link to the Bible search archive, as opposed to the Bible reader
- *
- * @param array $options
- * @return string
- */
-function bfox_ref_blog_link($options) {
-	bfox_fix_ref_link_options($options);
-
-	// If there is no href, get it from the bfox_ref_blog_url() function
-	if (!isset($options['attrs']['href'])) $options['attrs']['href'] = bfox_ref_blog_url($options['ref_str']);
-
-	return bfox_ref_link_from_options($options);
-}
-
 // TODO: remove
 function bfox_blog_ref_link_ajax($ref_str, $text = '', $attrs = '') {
 	if (empty($text)) $text = $ref_str;

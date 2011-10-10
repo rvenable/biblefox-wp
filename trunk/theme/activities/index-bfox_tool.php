@@ -79,15 +79,12 @@ function bfox_bp_bible_directory_before_activity_loop() {
 add_action('bp_before_activity_loop', 'bfox_bp_bible_directory_before_activity_loop');
 
 function bfox_bp_bible_directory_iframe() {
-	$ref = bfox_ref();
-	$prev_ref_str = $ref->prev_chapter_string();
-	$next_ref_str = $ref->next_chapter_string();
-	$links = '';
-	if (!empty($prev_ref_str)) $links .= bfox_ref_bible_link(array('ref_str' => $prev_ref_str, 'attrs' => array('class' => "ref_seq_prev"), 'disable_tooltip' => TRUE));
-	if (!empty($next_ref_str)) $links .= bfox_ref_bible_link(array('ref_str' => $next_ref_str, 'attrs' => array('class' => "ref_seq_next"), 'disable_tooltip' => TRUE));
 	?>
-			<h4><?php echo $ref->get_string() ?></h4>
-			<div class='passage-nav'><?php echo $links ?></div>
+			<h4><?php echo bfox_ref_str() ?></h4>
+			<div class='passage-nav'>
+				<?php echo bfox_ref_link(bfox_previous_chapter_ref_str(), array('class' => 'ref_seq_prev', 'tooltip' => false)); ?>
+				<?php echo bfox_ref_link(bfox_next_chapter_ref_str(), array('class' => 'ref_seq_next', 'tooltip' => false)); ?>
+			</div>
 			<div class="bfox-iframe-wrap bfox-passage-iframe-wrap">
 				<?php echo bfox_tool_iframe_select() ?>
 				<?php the_selected_bfox_tool_post(); // Resets post data to the bible tool that is currently selected ?>

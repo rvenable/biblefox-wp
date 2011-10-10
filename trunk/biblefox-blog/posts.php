@@ -377,7 +377,7 @@ function bfox_add_tag_ref_tooltips($tag_links) {
 		$tag = $matches[1];
 		$ref = bfox_ref_from_tag($tag);
 		if ($ref->is_valid()) {
-			$tag_link = bfox_ref_bible_link(array('ref' => $ref, 'text' => $tag));
+			$tag_link = bfox_ref_link($ref->get_string(), array('text' => $tag));
 		}
 	}
 	return $tag_links;
