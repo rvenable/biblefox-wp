@@ -172,7 +172,7 @@ function bfox_tool_parse_query($wp_query) {
 		}
 
 		// Set the active Bible reference
-		bfox_active_ref($ref);
+		set_bfox_ref($ref);
 
 		// Keep the ref_str in the query_vars
 		$wp_query->query_vars['ref'] = $ref->get_string();

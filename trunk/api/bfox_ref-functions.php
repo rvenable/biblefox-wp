@@ -1,5 +1,11 @@
 <?php
 
+function set_bfox_ref(BfoxRef $ref) {
+	global $_bfox_ref;
+	$_bfox_ref = $ref;
+	return $_bfox_ref;
+}
+
 function bfox_ref_url($ref_str, $post_id = 0) {
 	if ($post_id) $bible_url = get_post_permalink($post_id);
 	else $bible_url = get_post_type_archive_link('bfox_tool');
@@ -15,7 +21,7 @@ function bfox_ref_url($ref_str, $post_id = 0) {
  */
 function bfox_active_ref(BfoxRef $ref = null) {
 	global $_bfox_ref;
-	if (!is_null($ref)) $_bfox_ref = $ref;
+	if (!is_null($ref)) set_bfox_ref($ref);
 	if (!isset($_bfox_ref)) $_bfox_ref = new BfoxRef;
 	return $_bfox_ref;
 }

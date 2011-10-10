@@ -57,7 +57,7 @@ require_once BFOX_DIR . '/iframe.php';
  */
 function bfox_check_for_tooltip() {
 	if (isset($_REQUEST['bfox-tooltip-ref'])) {
-		bfox_active_ref(new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref'])));
+		set_bfox_ref(new BfoxRef(str_replace('_', ' ', $_REQUEST['bfox-tooltip-ref'])));
 
 		// Make sure that the we have a query on bfox_tool
 		// TODO: We can get rid of this if we make sure that the tooltip URL is already loading the right query

@@ -62,7 +62,7 @@ function bfox_bp_bible_directory_before_activity_loop() {
 	// Try to get a ref from the REQUEST params if there isn't already an active ref
 	if (!empty($_REQUEST['bfox_ref']) && !$ref->is_valid()) {
 		$ref = new BfoxRef(urldecode($_REQUEST['bfox_ref']));
-		if ($ref->is_valid()) bfox_active_ref($ref);
+		if ($ref->is_valid()) set_bfox_ref($ref);
 	}
 
 	if ($ref->is_valid()) {
