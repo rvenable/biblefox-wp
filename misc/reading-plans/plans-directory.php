@@ -929,7 +929,7 @@ function bfox_bp_bible_study_group_screen_view_tabs() {
 function bfox_bp_plans_add_sidebar() {
 	global $bp;
 	if (BFOX_BIBLE_SLUG == bp_current_component() && bp_is_directory() && $bp->loggedin_user->id) {
-		$ref = bfox_active_ref();
+		$ref = bfox_ref();
 		$schedule_ids = bfox_bp_plans_get_active_schedule_ids();
 		$revision_ids = array();
 		foreach ($schedule_ids as $schedule_id) if ($_schedule->revision_id) $revision_ids []= $_schedule->revision_id;

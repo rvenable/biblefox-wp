@@ -10,7 +10,7 @@ wp_enqueue_style('biblefox-bp');
 
 // Add some javascript to ensure that any AJAX calls include the current bible references
 function bfox_bp_bible_directory_setup_ajax() {
-	$ref = bfox_active_ref();
+	$ref = bfox_ref();
 
 	if ($ref->is_valid()) {
 		?>
@@ -45,7 +45,7 @@ add_action('wp_head', 'bfox_bp_bible_directory_setup_what_read_ajax');
 
 // Add the active bible references to the search terms
 function bfox_bp_bible_directory_querystring($query_string, $object) {
-	$ref = bfox_active_ref();
+	$ref = bfox_ref();
 	if ($ref->is_valid()) {
 		$args = wp_parse_args($query_string);
 		if (!empty($args['search_terms'])) $args['search_terms'] .= ' ';
@@ -57,7 +57,7 @@ function bfox_bp_bible_directory_querystring($query_string, $object) {
 }
 
 function bfox_bp_bible_directory_before_activity_loop() {
-	$ref = bfox_active_ref();
+	$ref = bfox_ref();
 
 	// Try to get a ref from the REQUEST params if there isn't already an active ref
 	if (!empty($_REQUEST['bfox_ref']) && !$ref->is_valid()) {
@@ -79,7 +79,7 @@ function bfox_bp_bible_directory_before_activity_loop() {
 add_action('bp_before_activity_loop', 'bfox_bp_bible_directory_before_activity_loop');
 
 function bfox_bp_bible_directory_iframe() {
-	$ref = bfox_active_ref();
+	$ref = bfox_ref();
 	$prev_ref_str = $ref->prev_chapter_string();
 	$next_ref_str = $ref->next_chapter_string();
 	$links = '';
@@ -105,7 +105,7 @@ function bfox_bp_bible_directory_search_form($search_value, $submit_value) {
 
 // Add the Bible Tools before the activities
 function bfox_bp_before_bible_directory_activity_content() {
-	$ref = bfox_active_ref();
+	$ref = bfox_ref();
 	$search_value = $ref->get_string(BibleMeta::name_short);
 
 	?>
@@ -121,7 +121,7 @@ function bfox_bp_before_bible_directory_activity_content() {
 add_action('bp_before_directory_activity_content', 'bfox_bp_before_bible_directory_activity_content');
 
 function bfox_bp_before_activity_post_form() {
-	$ref = bfox_active_ref();
+	$ref = bfox_ref();
 	$ref_str = $ref->get_string();
 
 	?>

@@ -1,9 +1,31 @@
 <?php
 
+/**
+ * Getter for the active instance of BfoxRef
+ *
+ * @return BfoxRef
+ */
+function bfox_ref() {
+	global $_bfox_ref;
+	if (!isset($_bfox_ref)) $_bfox_ref = new BfoxRef;
+	return $_bfox_ref;
+}
+
+/**
+ * Setter for the active instance of BfoxRef
+ *
+ * @param BfoxRef $ref
+ * @return BfoxRef
+ */
 function set_bfox_ref(BfoxRef $ref) {
 	global $_bfox_ref;
 	$_bfox_ref = $ref;
 	return $_bfox_ref;
+}
+
+function bfox_ref_str($format = '') {
+	$ref = bfox_ref();
+	return $ref->get_string($format);
 }
 
 function bfox_ref_url($ref_str, $post_id = 0) {
@@ -11,24 +33,6 @@ function bfox_ref_url($ref_str, $post_id = 0) {
 	else $bible_url = get_post_type_archive_link('bfox_tool');
 
 	return add_query_arg('ref', urlencode(strtolower($ref_str)), $bible_url);
-}
-
-/**
- * Getter/Setter for the active instance of BfoxRef
- *
- * @param BfoxRef $ref
- * @return BfoxRef
- */
-function bfox_active_ref(BfoxRef $ref = null) {
-	global $_bfox_ref;
-	if (!is_null($ref)) set_bfox_ref($ref);
-	if (!isset($_bfox_ref)) $_bfox_ref = new BfoxRef;
-	return $_bfox_ref;
-}
-
-function bfox_active_ref_str($format = '') {
-	$ref = bfox_ref();
-	return $ref->get_string($format);
 }
 
 /**

@@ -23,7 +23,7 @@ function bfox_tool_source_linker(BfoxRef $ref = null) {
 	global $_bfox_tool_source_linker;
 	if (is_null($_bfox_tool_source_linker)) {
 		$_bfox_tool_source_linker = new BfoxBibleToolLink();
-		if (is_null($ref)) $ref = bfox_active_ref();
+		if (is_null($ref)) $ref = bfox_ref();
 	}
 
 	if (!is_null($ref)) $_bfox_tool_source_linker->setRef($ref);
@@ -35,7 +35,7 @@ function bfox_tool_source_url($post_id = 0, BfoxRef $ref = null) {
 	$template = bfox_tool_meta('url', $post_id);
 
 	if (empty($template)) {
-		if (is_null($ref)) $ref = bfox_active_ref();
+		if (is_null($ref)) $ref = bfox_ref();
 		return add_query_arg('src', true, bfox_ref_url($ref->get_string(), $post_id));
 	}
 
