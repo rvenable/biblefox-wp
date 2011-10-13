@@ -410,6 +410,7 @@ function bfox_blog_quick_view_meta_box() {
 
 	$is_valid = $ref->is_valid();
 	if ($is_valid) $ref_str = $ref->get_string();
+	set_bfox_ref($ref);
 
 	// Create the form
 	?>
@@ -429,7 +430,7 @@ function bfox_blog_quick_view_meta_box() {
 
 		<h4 id="bible-text-progress"><span id='bible_progress'><?php if ($is_valid) echo 'Viewing'?></span> <span id='bible_view_ref'><?php if ($is_valid) echo $ref->get_string(BibleMeta::name_short) ?></span></h4>
 		<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
-		<div id="bible-text"><?php if ($is_valid) echo bfox_get_ref_content_quick($ref) ?></div>
+		<div id="bible-text"><?php if ($is_valid) load_bfox_template('admin-bfox_tool'); ?></div>
 	<?php
 }
 

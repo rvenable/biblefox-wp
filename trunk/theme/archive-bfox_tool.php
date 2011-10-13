@@ -24,7 +24,7 @@ get_header(); ?>
 			</h1>
 		</header>
 
-		<?php load_bfox_template('bfox-tooltip'); ?>
+		<?php load_bfox_template('iframe-bfox_tool'); ?>
 
 	<?php else : ?>
 

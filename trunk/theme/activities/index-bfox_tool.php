@@ -78,21 +78,6 @@ function bfox_bp_bible_directory_before_activity_loop() {
 }
 add_action('bp_before_activity_loop', 'bfox_bp_bible_directory_before_activity_loop');
 
-function bfox_bp_bible_directory_iframe() {
-	?>
-			<h4><?php echo bfox_ref_str() ?></h4>
-			<div class='passage-nav'>
-				<?php echo bfox_ref_link(bfox_previous_chapter_ref_str(), array('class' => 'ref_seq_prev', 'tooltip' => false)); ?>
-				<?php echo bfox_ref_link(bfox_next_chapter_ref_str(), array('class' => 'ref_seq_next', 'tooltip' => false)); ?>
-			</div>
-			<div class="bfox-iframe-wrap bfox-passage-iframe-wrap">
-				<?php echo bfox_tool_iframe_select() ?>
-				<?php the_selected_bfox_tool_post(); // Resets post data to the bible tool that is currently selected ?>
-				<iframe class="bfox-iframe bfox-passage-iframe" src="<?php echo bfox_tool_source_url() ?>"></iframe>
-			</div>
-	<?php
-}
-
 function bfox_bp_bible_directory_search_form($search_value, $submit_value) {
 ?>
 		<label><input type="text" name="ref" id="bible_search" value="<?php echo attribute_escape($search_value) ?>" /></label>
@@ -112,8 +97,11 @@ function bfox_bp_before_bible_directory_activity_content() {
 				<?php bfox_bp_bible_directory_search_form($search_value, __('Go to passage', 'bfox')) ?>
 			</div><!-- #group-dir-search -->
 		</form>
+		<h4><?php echo bfox_ref_str() ?></h4>
+		<div class="bfox-tool-bp-bible">
+			<?php load_bfox_template('iframe-bfox_tool'); ?>
+		</div>
 	<?php
-	bfox_bp_bible_directory_iframe();
 }
 add_action('bp_before_directory_activity_content', 'bfox_bp_before_bible_directory_activity_content');
 

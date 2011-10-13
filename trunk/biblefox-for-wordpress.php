@@ -56,6 +56,11 @@ require_once BFOX_DIR . '/bibletext.php';
 require_once BFOX_DIR . '/translations.php';
 require_once BFOX_DIR . '/iframe.php';
 
+function bfox_init() {
+	wp_enqueue_style('bfox-style', BFOX_URL . '/theme/style.css', array(), BFOX_VERSION);
+}
+add_action('init', 'bfox_init');
+
 /**
  * Checks to see if we are requesting tooltip content (ie. by an AJAX call), returns the content, and exits
  */
