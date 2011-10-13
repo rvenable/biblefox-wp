@@ -6,8 +6,6 @@ It duplicates the BP activities/index template, but adds bfox_tools to the top o
 and filters activities by Bible reference.
 */
 
-wp_enqueue_style('biblefox-bp');
-
 // Add some javascript to ensure that any AJAX calls include the current bible references
 function bfox_bp_bible_directory_setup_ajax() {
 	$ref = bfox_ref();

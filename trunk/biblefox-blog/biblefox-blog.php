@@ -6,10 +6,6 @@ define('BFOX_BLOG_URL', BFOX_URL . '/biblefox-blog');
 require_once BFOX_BLOG_DIR . '/posts.php';
 
 function bfox_blog_init() {
-	// Styles
-	wp_enqueue_style('bfox-scripture', BFOX_URL . '/includes/css/scripture.css', array(), BFOX_VERSION);
-	wp_enqueue_style('bfox-blog', BFOX_URL . '/includes/css/biblefox-blog.css', array(), BFOX_VERSION);
-
 	// Scripts
 	wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery'), BFOX_VERSION);
 

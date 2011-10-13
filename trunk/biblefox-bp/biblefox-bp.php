@@ -45,7 +45,6 @@ add_filter('bp_get_the_topic_post_content', 'bfox_ref_replace_html');
 add_action('bp_get_activity_action', 'bfox_ref_replace_html');
 
 function bfox_bp_init() {
-	wp_register_style('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.css', array(), BFOX_VERSION);
 	//wp_register_script('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.js', array('jquery'), BFOX_VERSION);
 }
 add_action('init', 'bfox_bp_init');
