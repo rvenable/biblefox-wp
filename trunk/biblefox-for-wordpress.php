@@ -53,7 +53,6 @@ require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 
 // TODO: these need to be moved into API
 require_once BFOX_DIR . '/translations.php';
-require_once BFOX_DIR . '/iframe.php';
 
 function bfox_init() {
 	wp_enqueue_style('bfox-style', BFOX_URL . '/theme/style.css', array(), BFOX_VERSION);
