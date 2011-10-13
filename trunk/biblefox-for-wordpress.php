@@ -42,9 +42,12 @@ define('BFOX_URL', WP_PLUGIN_URL . '/biblefox-for-wordpress');
 define('BFOX_PLANS_URL', BFOX_URL . '/reading-plans');
 
 require_once BFOX_REF_DIR . '/biblefox-ref.php';
+require_once BFOX_DIR . '/bfox_tool.php';
 
 require_once BFOX_API_DIR . '/bfox_ref-functions.php';
 require_once BFOX_API_DIR . '/bfox_ref-template.php';
+require_once BFOX_API_DIR . '/bfox_tool-functions.php';
+require_once BFOX_API_DIR . '/bfox_tool-template.php';
 
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 
@@ -104,6 +107,5 @@ else add_action('bp_core_loaded', 'bfox_bp_load');
 // TODO: These need to be conditionally included based on a WP setting
 require_once BFOX_DIR . '/reading-plans/reading-plans.php';
 require_once BFOX_DIR . '/reading-plans/template-tags.php';
-require_once BFOX_DIR . '/bfox_tool/bfox_tool.php';
 
 ?>
