@@ -9,7 +9,6 @@ Author URI: http://biblefox.com
 License: General Public License version 2
 Requires at least: WP 3.0, BuddyPress 1.2
 Tested up to: WP 3.0, BuddyPress 1.2.4.1
-Network: true
 Text Domain: bfox
 *************************************************************************/
 
