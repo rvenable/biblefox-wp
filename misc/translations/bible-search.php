@@ -374,7 +374,7 @@ class BibleSearch {
 		$wpdb->query($wpdb->prepare("DELETE FROM " . self::index_table . " WHERE trans_id = %d", $trans->id));
 
 		// Add the new index data, one book at a time
-		$books = range(BibleGroupPassage::get_first_book($group), BibleGroupPassage::get_last_book($group));
+		$books = range(BibleGroupPassage::get_first_book_of_group($group), BibleGroupPassage::get_last_book_of_group($group));
 		foreach ($books as $book) {
 			// Get all the verses to index for this book (we don't index chapter 0 or verse 0)
 			$verses = $wpdb->get_results($wpdb->prepare("SELECT unique_id, book_id, verse FROM $trans->table WHERE book_id = %d AND chapter_id != 0 AND verse_id != 0", $book));
