@@ -24,7 +24,7 @@ function bfox_bp_admin_settings() {
 	</form>
 	<?php
 }
-add_action('bfox_bp_admin_page', 'bfox_bp_admin_settings', 9);
+//add_action('bfox_bp_admin_page', 'bfox_bp_admin_settings', 9);
 
 function bfox_bp_admin_settings_main() {
 	//echo '<p>Intro text for our settings section</p>';

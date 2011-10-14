@@ -8,46 +8,48 @@ define('BFOX_BP_URL', BFOX_URL . '/biblefox-bp');
  */
 
 function bfox_bp_admin_init() {
-	if (is_super_admin()) {
-		require_once BFOX_BP_DIR . '/admin.php';
+	require_once BFOX_BP_DIR . '/admin.php';
 
-		do_action('bfox_bp_admin_init');
-	}
+	do_action('bfox_bp_admin_init');
+
+	do_action('bfox_bp_check_install');
+
+	add_submenu_page(
+		'bp-general-settings', // Parent slug
+		__('Biblefox', 'bfox'), // Page title
+		__('Biblefox', 'bfox'), // Menu title
+		'manage_options', // Capability
+		'bfox-bp-settings', // Menu slug
+		'bfox_bp_admin_page' // Function
+	);
+
+	//add_settings_section('bfox-bp-admin-settings-main', __('Settings', 'bfox'), 'bfox_bp_admin_settings_main', 'bfox-bp-admin-settings');
+
+	//register_setting('bfox-bp-admin-settings', 'bfox-enable-bible-directory', 'bfox_bp_option_sanitize');
+	//add_settings_field('bfox-enable-bible-directory', 'Enable BuddyPress Bible Directory', 'bfox_bp_admin_setting_enable_bible_directory', 'bfox-bp-admin-settings', 'bfox-bp-admin-settings-main', array('label_for' => 'bfox-enable-bible-directory'));
+
+	do_action('bfox_bp_admin_menu');
 }
-add_action('admin_init', 'bfox_bp_admin_init');
+//add_action('admin_init', 'bfox_bp_admin_init');
 
 function bfox_bp_admin_menu() {
-	if (is_super_admin()) {
-		do_action('bfox_bp_check_install');
-
-		add_submenu_page(
-			'bp-general-settings', // Parent slug
-			__('Biblefox', 'bfox'), // Page title
-			__('Biblefox', 'bfox'), // Menu title
-			'manage_options', // Capability
-			'bfox-bp-settings', // Menu slug
-			'bfox_bp_admin_page' // Function
-		);
-
-		add_settings_section('bfox-bp-admin-settings-main', __('Settings', 'bfox'), 'bfox_bp_admin_settings_main', 'bfox-bp-admin-settings');
-
-		register_setting('bfox-bp-admin-settings', 'bfox-enable-bible-directory', 'bfox_bp_option_sanitize');
-		add_settings_field('bfox-enable-bible-directory', 'Enable BuddyPress Bible Directory', 'bfox_bp_admin_setting_enable_bible_directory', 'bfox-bp-admin-settings', 'bfox-bp-admin-settings-main', array('label_for' => 'bfox-enable-bible-directory'));
-
-		do_action('bfox_bp_admin_menu');
+	if (!is_multisite()) {
+		bfox_bp_admin_init();
 	}
 }
 add_action('admin_menu', 'bfox_bp_admin_menu', 20);
+
+function bfox_bp_network_admin_menu() {
+	if (is_super_admin()) {
+		bfox_bp_admin_init();
+	}
+}
+add_action('network_admin_menu', 'bfox_bp_network_admin_menu', 20);
 
 // Add Ref Replace filters
 add_filter('bp_get_activity_content_body', 'bfox_ref_replace_html');
 add_filter('bp_get_the_topic_post_content', 'bfox_ref_replace_html');
 add_action('bp_get_activity_action', 'bfox_ref_replace_html');
-
-function bfox_bp_init() {
-	//wp_register_script('biblefox-bp', BFOX_BP_URL . '/biblefox-bp.js', array('jquery'), BFOX_VERSION);
-}
-add_action('init', 'bfox_bp_init');
 
 function bfox_bp_register_widgets() {
 	// Only register these widgets for the main blog

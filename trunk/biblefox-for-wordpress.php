@@ -117,14 +117,10 @@ function load_bfox_template($template) {
 /**
  * Loads the BuddyPress related features
  */
-function bfox_bp_load() {
+function bfox_bp_init() {
 	require_once BFOX_DIR . '/biblefox-bp/biblefox-bp.php';
 }
-// Call bfox_bp_load() if we have already loaded BP
-// Otherwise, if we haven't already loaded BP, then call bfox_bp_load() after bp_core_loaded
-if (function_exists('bp_core_install')) bfox_bp_load();
-else add_action('bp_core_loaded', 'bfox_bp_load');
-
+add_action('bp_init', 'bfox_bp_init');
 
 // TODO: These need to be conditionally included based on a WP setting
 require_once BFOX_DIR . '/reading-plans/reading-plans.php';
