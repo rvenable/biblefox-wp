@@ -155,22 +155,24 @@ function bfox_tool_parse_query($wp_query) {
 	$post_type = $wp_query->query_vars['post_type'];
 	if ('bfox_tool' == $post_type) {
 		// Bible Tools need to have a Bible Reference
-
-		// If no Bible reference is passed in try to use the last viewed ref
-		if (empty($wp_query->query_vars['ref'])) {
-			$ref = new BfoxRef(bfox_tool_last_viewed_ref_str());
-		}
-		else {
-			$ref = new BfoxRef($wp_query->query_vars['ref']);
-		}
-
-		// If we still don't have a valid ref, use Genesis 1
+		$ref = bfox_ref();
 		if (!$ref->is_valid()) {
-			$ref = new BfoxRef('Genesis 1');
-		}
+			// If no Bible reference is passed in try to use the last viewed ref
+			if (empty($wp_query->query_vars['ref'])) {
+				$ref = new BfoxRef(bfox_tool_last_viewed_ref_str());
+			}
+			else {
+				$ref = new BfoxRef($wp_query->query_vars['ref']);
+			}
 
-		// Set the active Bible reference
-		set_bfox_ref($ref);
+			// If we still don't have a valid ref, use Genesis 1
+			if (!$ref->is_valid()) {
+				$ref = new BfoxRef('Genesis 1');
+			}
+
+			// Set the active Bible reference
+			set_bfox_ref($ref);
+		}
 
 		// Keep the ref_str in the query_vars
 		$wp_query->query_vars['ref'] = $ref->get_string();
