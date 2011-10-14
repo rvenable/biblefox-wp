@@ -35,6 +35,11 @@ function bfox_ref_url($ref_str, $post_id = 0) {
 	return add_query_arg('ref', urlencode(strtolower($ref_str)), $bible_url);
 }
 
+function bfox_book_ref(BfoxRef $ref = null) {
+	if (is_null($ref)) $ref = bfox_ref();
+	return $ref->book_ref();
+}
+
 function bfox_next_chapter_ref_str($format = '') {
 	$ref = bfox_ref();
 	return $ref->next_chapter_string($format);

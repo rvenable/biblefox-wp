@@ -11,4 +11,8 @@
 
 <div class="bfox-tool-admin">
 	<?php load_bfox_template('iframe-bfox_tool'); ?>
+
+	<div class='chapter-list'>
+		<?php echo list_bfox_ref_chapters(bfox_book_ref(), array('before' => '', 'after' => '', 'between' => ' | ', 'first_format' => BibleMeta::name_short)); ?>
+	</div>
 </div>

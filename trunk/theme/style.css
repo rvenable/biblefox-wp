@@ -50,6 +50,10 @@ BfoxTool iFrames
 	content: "\0020 \00BB";
 }
 
+.chapter-list {
+	text-align: center;
+}
+
 /*
 Bible Reader Iframe
 */
