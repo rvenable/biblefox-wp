@@ -6,9 +6,12 @@
  *
  */
 
-if (defined('BP_VERSION')) {
-	load_bfox_template('activities/index-bfox_tool');
-	exit;
+/* For BuddyPress, we actually reuse the activity directory theme files */
+if (defined('BP_VERSION') && bp_is_active('activity')) {
+	if (locate_template(array('activity/index.php'))) {
+		load_bfox_template('activities/index-bfox_tool');
+		exit;
+	}
 }
 
 get_header(); ?>
