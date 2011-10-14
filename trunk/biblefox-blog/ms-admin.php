@@ -15,7 +15,7 @@ function bfox_ms_admin_page() {
 
 function bfox_ms_admin_settings() {
 	?>
-	<form action="ms-edit.php?action=bfox-ms" method="post" class="standard-form" id="settings-form">
+	<form action="edit.php?action=bfox-ms" method="post" class="standard-form" id="settings-form">
 		<?php settings_fields('bfox-ms-admin-settings') ?>
 		<?php do_settings_sections('bfox-ms-admin-settings') ?>
 		<p class="submit">

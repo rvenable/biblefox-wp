@@ -138,7 +138,7 @@ function bfox_ms_admin_menu() {
 	require_once BFOX_BLOG_DIR . '/admin.php'; // We need to load this for the blog options functions (for instance, bfox_blog_admin_setting_tooltips())
 
 	add_submenu_page(
-		'ms-admin.php', // Parent slug
+		'settings.php', // Parent slug
 		__('Biblefox', 'bfox'), // Page title
 		__('Biblefox', 'bfox'), // Menu title
 		10, // Capability
@@ -154,7 +154,7 @@ function bfox_ms_admin_menu() {
 
 	do_action('bfox_ms_admin_menu');
 }
-if (is_multisite()) add_action('admin_menu', 'bfox_ms_admin_menu', 20);
+add_action('network_admin_menu', 'bfox_ms_admin_menu', 20);
 
 // Add "Settings" link on plugins menu
 function bfox_blog_admin_add_action_link($links, $file) {
