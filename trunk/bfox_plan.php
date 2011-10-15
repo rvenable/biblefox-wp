@@ -359,23 +359,18 @@ add_action('parse_query', 'bfox_plan_parse_query');
  * Theme Template Functions
  */
 
-function bfox_plan_reading_template() {
-	$templates = array('single-bfox_plan_reading.php', 'single-bfox_plan.php', 'single.php');
-	return apply_filters('bfox_plan_reading_template', locate_template($templates));
-}
-
-function bfox_plan_template_redirect() {
-	if (is_bfox_plan_reading()) {
-		// @todo redirect to the Bible page if the user has this option set
-		if (0/*check user option*/) {
-			wp_redirect(bfox_ref_blog_url(bfox_plan_reading_ref_str(bfox_plan_query_reading() - 1)));
+function bfox_plan_template_redirect($template) {
+	if ('bfox_plan' == get_query_var('post_type')) {
+		if (is_singular('bfox_plan')) {
+			load_bfox_template('single-bfox_plan');
 			exit;
 		}
-
-		if ( $template = apply_filters( 'template_include', bfox_plan_reading_template() ) ) {
-			include( $template );
+		/* TODO: Add archive-bfox_plan
+		if (is_archive()) {
+			load_bfox_template('archive-bfox_plan');
 			exit;
 		}
+		*/
 	}
 }
 add_action('template_redirect', 'bfox_plan_template_redirect');
