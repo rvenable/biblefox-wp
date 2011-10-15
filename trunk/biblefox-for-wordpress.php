@@ -42,11 +42,14 @@ define('BFOX_PLANS_URL', BFOX_URL . '/reading-plans');
 
 require_once BFOX_REF_DIR . '/biblefox-ref.php';
 require_once BFOX_DIR . '/bfox_tool.php';
+require_once BFOX_DIR . '/bfox_plan.php';
+
 
 require_once BFOX_API_DIR . '/bfox_ref-functions.php';
 require_once BFOX_API_DIR . '/bfox_ref-template.php';
 require_once BFOX_API_DIR . '/bfox_tool-functions.php';
 require_once BFOX_API_DIR . '/bfox_tool-template.php';
+require_once BFOX_API_DIR . '/bfox_plan-template.php';
 
 require_once BFOX_DIR . '/biblefox-blog/biblefox-blog.php';
 
@@ -55,6 +58,7 @@ require_once BFOX_DIR . '/translations.php';
 
 function bfox_init() {
 	wp_enqueue_style('bfox-style', BFOX_URL . '/theme/style.css', array(), BFOX_VERSION);
+	wp_enqueue_style('bfox-plan-style', BFOX_URL . '/theme/style-bfox_plan.css', array(), BFOX_VERSION);
 }
 add_action('init', 'bfox_init');
 
@@ -121,9 +125,5 @@ function bfox_bp_init() {
 	require_once BFOX_DIR . '/biblefox-bp/biblefox-bp.php';
 }
 add_action('bp_init', 'bfox_bp_init');
-
-// TODO: These need to be conditionally included based on a WP setting
-require_once BFOX_DIR . '/reading-plans/reading-plans.php';
-require_once BFOX_DIR . '/reading-plans/template-tags.php';
 
 ?>
