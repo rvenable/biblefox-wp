@@ -1,6 +1,6 @@
 <?php
 
-function bfox_ref_link($ref_str, $options) {
+function bfox_ref_link($ref_str, $options = array()) {
 	if (empty($ref_str)) return false;
 
 	$defaults = array(
