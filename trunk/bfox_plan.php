@@ -355,25 +355,22 @@ function bfox_plan_parse_query($query) {
 }
 add_action('parse_query', 'bfox_plan_parse_query');
 
-/*
- * Theme Template Functions
- */
+// Replace the_content() results with a better formatted reading plan
+function bfox_plan_replace_content($content) {
+	global $_bfox_plan_already_replacing_content;
+	if (!$_bfox_plan_already_replacing_content && 'bfox_plan' == get_post_type()) {
+		// Make sure we don't recursively replace the content, if the_content() is called within template
+		$_bfox_plan_already_replacing_content = true;
 
-function bfox_plan_template_redirect($template) {
-	if ('bfox_plan' == get_query_var('post_type')) {
-		if (is_singular('bfox_plan')) {
-			load_bfox_template('single-bfox_plan');
-			exit;
-		}
-		/* TODO: Add archive-bfox_plan
-		if (is_archive()) {
-			load_bfox_template('archive-bfox_plan');
-			exit;
-		}
-		*/
+		ob_start();
+		load_bfox_template('content-bfox_plan');
+		$content = ob_get_clean();
+
+		$_bfox_plan_already_replacing_content = false;
 	}
+	return $content;
 }
-add_action('template_redirect', 'bfox_plan_template_redirect');
+add_filter('the_content', 'bfox_plan_replace_content');
 
 function bfox_plan_do_feed_readings() {
 	if (is_single()) {
