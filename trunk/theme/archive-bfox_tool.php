@@ -19,25 +19,29 @@ get_header(); ?>
 <section id="primary">
 	<div id="content" role="main">
 
-	<?php if ( have_posts() ) : ?>
+	<?php if ( bfox_bible() ) : ?>
 
 		<header class="page-header">
 			<h1 class="page-title">
-				<?php _e( 'Bible Tools' ); ?>
+				<?php _e('Bible Tools'); ?>
 			</h1>
 		</header>
 
-		<?php load_bfox_template('iframe-bfox_tool'); ?>
+		<?php echo bfox_tool_select(); ?>
+
+		<div id="bfox-bible-container">
+			<?php load_bfox_template('content-bfox_bible'); ?>
+		</div>
 
 	<?php else : ?>
 
 		<article id="post-0" class="post no-results not-found">
 			<header class="entry-header">
-				<h1 class="entry-title"><?php _e( 'No Bible Tools Found' ); ?></h1>
+				<h1 class="entry-title"><?php _e( 'Bible Tool Not Found' ); ?></h1>
 			</header><!-- .entry-header -->
 
 			<div class="entry-content">
-				<p><?php _e( 'Apologies, but no Bible Tools have been found.' ); ?></p>
+				<p><?php _e( 'Apologies, but the Bible Tool was not found.' ); ?></p>
 			</div><!-- .entry-content -->
 		</article><!-- #post-0 -->
 

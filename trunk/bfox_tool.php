@@ -1,6 +1,7 @@
 <?php
 
 require_once BFOX_REF_DIR . '/bfox_bible_tool_link.php';
+require_once BFOX_DIR . '/bfox_bible.php';
 
 function bfox_tools_create_post_type() {
 	register_post_type('bfox_tool',
@@ -22,6 +23,28 @@ function bfox_tools_create_post_type() {
 	);
 }
 add_action('init', 'bfox_tools_create_post_type');
+
+function bfox_tool_content_ajax() {
+	if (!wp_verify_nonce($_REQUEST['bfox-ajax-nonce'], 'bfox-ajax')) die;
+
+	set_bfox_ref(new BfoxRef($_REQUEST['ref']));
+
+	ob_start();
+	load_bfox_template('content-bfox_bible');
+	$html = ob_get_clean();
+
+	$response = json_encode(array(
+		'html' => $html,
+		'nonce' => wp_create_nonce('bfox-ajax'),
+	));
+
+	header('Content-Type: application/json');
+	echo $response;
+
+	exit;
+}
+add_action('wp_ajax_nopriv_bfox-tool-content', 'bfox_tool_content_ajax');
+add_action('wp_ajax_bfox-tool-content', 'bfox_tool_content_ajax');
 
 // Flush the rewrite rules upon plugin activation
 // See: http://codex.wordpress.org/Function_Reference/register_post_type#Flushing_Rewrite_on_Activation
