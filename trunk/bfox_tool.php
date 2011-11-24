@@ -1,7 +1,7 @@
 <?php
 
 require_once BFOX_REF_DIR . '/bfox_bible_tool_link.php';
-require_once BFOX_DIR . '/bfox_bible.php';
+require_once BFOX_REF_DIR . '/bfox_bible_tool_api.php';
 
 function bfox_tools_create_post_type() {
 	register_post_type('bfox_tool',
@@ -21,6 +21,8 @@ function bfox_tools_create_post_type() {
 			'register_meta_box_cb' => 'bfox_tools_register_meta_box_cb',
 		)
 	);
+
+	load_bfox_template('config-bfox_tool');
 }
 add_action('init', 'bfox_tools_create_post_type');
 
@@ -30,7 +32,7 @@ function bfox_tool_content_ajax() {
 	set_bfox_ref(new BfoxRef($_REQUEST['ref']));
 
 	ob_start();
-	load_bfox_template('content-bfox_bible');
+	load_bfox_template('content-bfox_tool');
 	$html = ob_get_clean();
 
 	$response = json_encode(array(
@@ -57,6 +59,107 @@ register_activation_hook(__FILE__, 'bfox_tools_flush_rewrite');
 function bfox_tools_register_meta_box_cb() {
 	add_meta_box('bfox-tool-link', __('External Link', 'bfox'), 'bfox_tools_link_meta_box_cb', 'bfox_tool', 'normal', 'high');
 	add_meta_box('bfox-tool-localdb', __('Local Database', 'bfox'), 'bfox_tools_localdb_meta_box_cb', 'bfox_tool', 'normal', 'high');
+}
+
+/*
+ * Classes
+ */
+
+class BfoxBibleToolController {
+	var $tools;
+	var $activeShortName = '';
+
+	private static $_sharedInstance = NULL;
+
+	/**
+	 * @return BfoxBibleToolController
+	 */
+	static function sharedInstance() {
+		if (is_null(self::$_sharedInstance)) {
+			self::$_sharedInstance = new BfoxBibleToolController();
+		}
+		return self::$_sharedInstance;
+	}
+
+	function addTool(BfoxBibleTool $tool) {
+		$this->tools[$tool->shortName] = $tool;
+		if (empty($this->activeShortName)) $this->activeShortName = $tool->shortName;
+	}
+
+	/**
+	 * @param string $shortName
+	 * @return BfoxBibleTool
+	 */
+	function toolForShortName($shortName = '') {
+		if (empty($shortName)) $shortName = $this->activeShortName;
+		if (isset($this->tools[$shortName])) return $this->tools[$shortName];
+		return null;
+	}
+
+	function activeTool() {
+		return $this->toolForShortName($this->activeShortName);
+	}
+
+	function select() {
+		foreach ($this->tools as $tool) {
+			if ($post_id == $selected_post_id) $selected = " selected='selected'";
+			else $selected = '';
+
+			$content .= "<option name='$tool->shortName' value='$tool->shortName'$selected>$tool->longName</option>";
+		}
+
+		return '<select class="bfox-tool-select">' . $content . '</select>';
+	}
+}
+
+class BfoxBibleTool {
+	/**
+	 * @var BfoxBibleToolApi
+	 */
+	var $api;
+	var $shortName;
+	var $longName;
+
+	function __construct(BfoxBibleToolApi $api, $shortName = '', $longName = '') {
+		$this->api = $api;
+		if (empty($shortName)) $shortName = $api->bible;
+		if (empty($longName)) $longName = $shortName;
+		$this->shortName = $shortName;
+		$this->longName = $longName;
+	}
+
+	function echoContentForRef(BfoxRef $ref) {
+		$this->api->echoContentForRef($ref);
+	}
+}
+
+class BfoxLocalWPBibleToolApi extends BfoxLocalBibleToolApi {
+	function rowsForRef(BfoxRef $ref) {
+		global $wpdb;
+
+		$tableName = $wpdb->escape($this->tableName);
+
+		$indexCol = $wpdb->escape($this->indexCol);
+		$indexCol2 = $wpdb->escape($this->indexCol2);
+
+		if (empty($indexCol2)) $refWhere = $ref->sql_where($indexCol);
+		else $refWhere = $ref->sql_where2($indexCol, $indexCol2);
+
+		$sql = $wpdb->prepare("SELECT * FROM $tableName WHERE $refWhere");
+		$rows = $wpdb->get_results($sql);
+
+		return $rows;
+	}
+}
+
+class BfoxWPBibleToolIframeApi extends BfoxBibleToolIframeApi {
+	function echoContentForUrl($url) {
+?>
+	<div class="bfox-tool-iframe">
+		<?php parent::echoContentForUrl($url); ?>
+	</div>
+<?php
+	}
 }
 
 /*

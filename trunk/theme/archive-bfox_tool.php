@@ -19,7 +19,7 @@ get_header(); ?>
 <section id="primary">
 	<div id="content" role="main">
 
-	<?php if ( bfox_bible() ) : ?>
+	<?php if ( has_bfox_tool() ) : ?>
 
 		<header class="page-header">
 			<h1 class="page-title">
@@ -30,7 +30,7 @@ get_header(); ?>
 		<?php echo bfox_tool_select(); ?>
 
 		<div id="bfox-bible-container">
-			<?php load_bfox_template('content-bfox_bible'); ?>
+			<?php load_bfox_template('content-bfox_tool'); ?>
 		</div>
 
 	<?php else : ?>

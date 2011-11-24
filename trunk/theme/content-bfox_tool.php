@@ -4,7 +4,7 @@
  *
  */
 
-$bible = bfox_bible();
+$bible = active_bfox_tool();
 
 ?>
 		<article id="bfox_bible-<?php echo $bible->shortName; ?>" class="bfox_bible">

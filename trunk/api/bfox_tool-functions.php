@@ -1,5 +1,36 @@
 <?php
 
+function add_bfox_tool(BfoxBibleToolApi $api, $shortName, $longName = '') {
+	$bfoxTools = BfoxBibleToolController::sharedInstance();
+	$bfoxTools->addTool(new BfoxBibleTool($api, $shortName, $longName));
+}
+
+function active_bfox_tool() {
+	$bfoxTools = BfoxBibleToolController::sharedInstance();
+	return $bfoxTools->activeTool();
+}
+
+function has_bfox_tool() {
+	return (!is_null(active_bfox_tool()));
+}
+
+/**
+ * Loops through Bible Tool links and adds a Bible Tool for each (loaded in Iframe)
+ */
+function load_blog_bfox_tools() {
+	$query = bfox_tool_query();
+
+	while ($query->have_posts()) {
+		$query->the_post();
+
+		$url = bfox_tool_source_url();
+		$title = get_the_title();
+		$post = &get_post($id);
+
+		add_bfox_tool(new BfoxWPBibleToolIframeApi($url), $post->post_name, $title);
+	}
+}
+
 /*
  * Reading Tool Meta Data functions
  */
