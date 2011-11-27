@@ -29,10 +29,7 @@ function bfox_ref_str($format = '') {
 }
 
 function bfox_ref_url($ref_str, $post_id = 0) {
-	if ($post_id) $bible_url = get_post_permalink($post_id);
-	else $bible_url = get_post_type_archive_link('bfox_tool');
-
-	return add_query_arg('ref', urlencode(strtolower($ref_str)), $bible_url);
+	return add_query_arg('ref', urlencode(strtolower($ref_str)), bfox_tool_url());
 }
 
 function bfox_book_ref(BfoxRef $ref = null) {

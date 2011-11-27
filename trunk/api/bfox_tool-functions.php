@@ -1,5 +1,11 @@
 <?php
 
+function bfox_tool_url($shortName = '') {
+	$url = get_post_type_archive_link('bfox_tool');
+	if (!empty($shortName)) $url = add_query_arg('tool', $shortName, $url);
+	return $url;
+}
+
 function add_bfox_tool(BfoxBibleToolApi $api, $shortName, $longName = '') {
 	$bfoxTools = BfoxBibleToolController::sharedInstance();
 	$bfoxTools->addTool(new BfoxBibleTool($api, $shortName, $longName));
@@ -107,6 +113,18 @@ function bfox_tool_set_last_viewed_ref_str($ref_str) {
 /*
 Functions for remembering the most recent used Bible Tool
 */
+
+function bfox_last_viewed_tool() {
+	global $user_ID;
+	if ($user_ID) return get_user_option('bfox_last_viewed_tool');
+	return $_COOKIE['bfox_last_viewed_tool'];
+}
+
+function set_bfox_last_viewed_tool($shortName) {
+	global $user_ID;
+	if ($user_ID) update_user_option($user_ID, 'bfox_last_viewed_tool', $shortName, true);
+	else setcookie('bfox_last_viewed_tool', $shortName, /* 30 days from now: */ time() + 60 * 60 * 24 * 30, '/');
+}
 
 function selected_bfox_tool_post_id() {
 	global $_selected_bfox_tool_post_id;

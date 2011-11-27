@@ -67,7 +67,7 @@ function bfox_tools_register_meta_box_cb() {
 
 class BfoxBibleToolController {
 	var $tools;
-	var $activeShortName = '';
+	private $_activeShortName = '';
 
 	private static $_sharedInstance = NULL;
 
@@ -83,7 +83,7 @@ class BfoxBibleToolController {
 
 	function addTool(BfoxBibleTool $tool) {
 		$this->tools[$tool->shortName] = $tool;
-		if (empty($this->activeShortName)) $this->activeShortName = $tool->shortName;
+		if (empty($this->_activeShortName)) $this->_activeShortName = $tool->shortName;
 	}
 
 	/**
@@ -91,24 +91,32 @@ class BfoxBibleToolController {
 	 * @return BfoxBibleTool
 	 */
 	function toolForShortName($shortName = '') {
-		if (empty($shortName)) $shortName = $this->activeShortName;
+		if (empty($shortName)) $shortName = $this->_activeShortName;
 		if (isset($this->tools[$shortName])) return $this->tools[$shortName];
 		return null;
 	}
 
-	function activeTool() {
-		return $this->toolForShortName($this->activeShortName);
+	function setActiveTool($shortName) {
+		$tool = $this->toolForShortName($shortName);
+		if (!is_null($tool)) $this->_activeShortName = $tool->shortName;
 	}
 
-	function select() {
+	function activeTool() {
+		return $this->toolForShortName($this->_activeShortName);
+	}
+
+	function select($options = array()) {
+		extract($options);
+
+		$activeTool = $this->activeTool();
 		foreach ($this->tools as $tool) {
-			if ($post_id == $selected_post_id) $selected = " selected='selected'";
+			if ($tool == $activeTool) $selected = " selected='selected'";
 			else $selected = '';
 
 			$content .= "<option name='$tool->shortName' value='$tool->shortName'$selected>$tool->longName</option>";
 		}
 
-		return '<select class="bfox-tool-select">' . $content . '</select>';
+		return "<select $attrs>" . $content . '</select>';
 	}
 }
 
@@ -273,22 +281,24 @@ add_action('wp', 'update_selected_bfox_tool');
 
 function bfox_tool_query_vars($query_vars) {
 	$query_vars []= 'ref';
+	$query_vars []= 'tool';
+
 	return $query_vars;
 }
 add_filter('query_vars', 'bfox_tool_query_vars');
 
-function bfox_tool_parse_query($wp_query) {
-	$post_type = $wp_query->query_vars['post_type'];
+function bfox_tool_parse_request($wp) {
+	$post_type = $wp->query_vars['post_type'];
 	if ('bfox_tool' == $post_type) {
 		// Bible Tools need to have a Bible Reference
 		$ref = bfox_ref();
 		if (!$ref->is_valid()) {
 			// If no Bible reference is passed in try to use the last viewed ref
-			if (empty($wp_query->query_vars['ref'])) {
+			if (empty($wp->query_vars['ref'])) {
 				$ref = new BfoxRef(bfox_tool_last_viewed_ref_str());
 			}
 			else {
-				$ref = new BfoxRef($wp_query->query_vars['ref']);
+				$ref = new BfoxRef($wp->query_vars['ref']);
 			}
 
 			// If we still don't have a valid ref, use Genesis 1
@@ -301,12 +311,30 @@ function bfox_tool_parse_query($wp_query) {
 		}
 
 		// Keep the ref_str in the query_vars
-		$wp_query->query_vars['ref'] = $ref->get_string();
+		$wp->query_vars['ref'] = $ref->get_string();
 
 		// Save the ref_str as the last viewed ref str
-		bfox_tool_set_last_viewed_ref_str($wp_query->query_vars['ref']);
+		bfox_tool_set_last_viewed_ref_str($wp->query_vars['ref']);
+
+		$bfoxTools = BfoxBibleToolController::sharedInstance();
+		$toolName = $wp->query_vars['tool'];
+		if (empty($toolName)) {
+			$toolName = bfox_last_viewed_tool();
+			$bfoxTools->setActiveTool($toolName);
+		}
+		else {
+			$tool = $bfoxTools->toolForShortName($toolName);
+			if (!is_null($tool)) {
+				$oldToolName = bfox_last_viewed_tool();
+				if ($oldToolName != $toolName) {
+					set_bfox_last_viewed_tool($toolName);
+				}
+				$bfoxTools->setActiveTool($toolName);
+			}
+		}
+
 	}
 }
-add_action('parse_query', 'bfox_tool_parse_query');
+add_action('parse_request', 'bfox_tool_parse_request');
 
 ?>
