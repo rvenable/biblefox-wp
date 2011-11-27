@@ -22,6 +22,11 @@ function bfox_tools_create_post_type() {
 		)
 	);
 
+	/*
+	 * Javascript for changing the bible tool via ajax.
+	 * Doesn't work for Bible APIs loaded via javascript because we can't inject javascript via javascript
+	 *
+
 	// Scripts
 	wp_enqueue_script('bfox_tool', BFOX_URL . '/bfox_tool.js', array('jquery'), BFOX_VERSION);
 
@@ -32,6 +37,7 @@ function bfox_tools_create_post_type() {
 			'nonce' => wp_create_nonce('bfox-ajax'),
 			'ref' => urlencode(bfox_ref_str()),
 	));
+	/**/
 
 	load_bfox_template('config-bfox_tool');
 }
