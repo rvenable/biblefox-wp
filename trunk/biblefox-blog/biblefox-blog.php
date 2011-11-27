@@ -6,17 +6,6 @@ define('BFOX_BLOG_URL', BFOX_URL . '/biblefox-blog');
 require_once BFOX_BLOG_DIR . '/posts.php';
 
 function bfox_blog_init() {
-	// Scripts
-	wp_enqueue_script('bfox-blog', BFOX_URL . '/includes/js/biblefox-blog.js', array('jquery'), BFOX_VERSION);
-
-	// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
-	// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
-	wp_localize_script('bfox-blog', 'BfoxAjax', array(
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('bfox-ajax'),
-			'ref' => urlencode(bfox_ref_str()),
-	));
-
 	if (!bfox_blog_option('disable-tooltips')) {
 		wp_register_script('bfox-qtip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
 		wp_enqueue_script('bfox-tooltips', BFOX_URL . '/includes/js/tooltips.js', array('jquery', 'bfox-qtip'), BFOX_VERSION);

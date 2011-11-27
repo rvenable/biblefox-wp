@@ -22,6 +22,17 @@ function bfox_tools_create_post_type() {
 		)
 	);
 
+	// Scripts
+	wp_enqueue_script('bfox_tool', BFOX_URL . '/bfox_tool.js', array('jquery'), BFOX_VERSION);
+
+	// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
+	// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
+	wp_localize_script('bfox_tool', 'BfoxAjax', array(
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('bfox-ajax'),
+			'ref' => urlencode(bfox_ref_str()),
+	));
+
 	load_bfox_template('config-bfox_tool');
 }
 add_action('init', 'bfox_tools_create_post_type');
