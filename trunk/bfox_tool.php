@@ -354,4 +354,27 @@ function bfox_tool_parse_request($wp) {
 }
 add_action('parse_request', 'bfox_tool_parse_request');
 
+function bfox_tool_shortcode($atts) {
+	// [bible-tool tool="esv" ref="Matthew 1"]
+
+	extract( shortcode_atts( array(
+		'tool' => '',
+		'ref' => '',
+	), $atts ) );
+
+	$bfoxTools = BfoxBibleToolController::sharedInstance();
+	$tool = $bfoxTools->toolForShortName($tool);
+	if (is_null($tool)) return;
+
+	$ref = new BfoxRef($ref);
+	if (!$ref->is_valid()) return;
+
+	ob_start();
+	$tool->echoContentForRef($ref);
+	$content = ob_get_clean();
+
+	return $content;
+}
+add_shortcode('bible-tool', 'bfox_tool_shortcode');
+
 ?>

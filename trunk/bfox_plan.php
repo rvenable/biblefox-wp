@@ -383,4 +383,45 @@ function bfox_plan_do_feed_readings() {
 	}
 }
 
+function bfox_plan_reading_shortcode($atts) {
+	// [bible-reading plan="cbr" intersects="old"]
+
+	extract( shortcode_atts( array(
+		'post_id' => 0,
+		'reading' => 'latest',
+		'intersects' => '',
+		'tool' => '',
+	), $atts ) );
+
+	if (empty($post_id)) return;
+
+	if ($reading == 'latest') {
+		$reading = bfox_plan_latest_reading($post_id);
+	}
+
+	$reading_id = intval($reading);
+	if ($reading_id >= bfox_plan_reading_count($post_id)) return;
+
+	$ref_str = bfox_plan_reading_ref_str($reading_id, $post_id);
+
+	if (!empty($intersects)) {
+		$ref = new BfoxRef($ref_str);
+		$sub = new BibleGroupPassage('bible');
+		$sub->sub_ref(new BibleGroupPassage($intersects));
+		$ref->sub_ref($sub);
+		$ref_str = $ref->get_string();
+	}
+
+	$link = bfox_ref_link($ref_str);
+	$content = $link;
+
+	if (!empty($tool)) {
+		$passage = bfox_tool_shortcode(array('tool' => $tool, 'ref' => $ref_str));
+		$content = "$link $passage";
+	}
+
+	return $content;
+}
+add_shortcode('bible-reading', 'bfox_plan_reading_shortcode');
+
 ?>
