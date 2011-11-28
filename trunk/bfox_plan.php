@@ -377,8 +377,8 @@ function bfox_plan_do_feed_readings() {
 		global $post;
 		if ('bfox_plan' == $post->post_type) {
 			$feed = get_query_var( 'feed' );
-			if ('readings-rss' == $feed) load_template(BFOX_PLANS_DIR . '/feed-readings.php');
-			else if ('readings-ical' == $feed) load_template(BFOX_PLANS_DIR . '/feed-readings-ical.php');
+			if ('readings-rss' == $feed) load_bfox_template('rss-bfox_plan');
+			else if ('readings-ical' == $feed) load_bfox_template('ical-bfox_plan');
 		}
 	}
 }
