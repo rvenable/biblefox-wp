@@ -52,7 +52,7 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 	<title><?php the_title_rss() ?></title>
 	<atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />
 	<link><?php (is_single()) ? the_permalink_rss() : bloginfo_rss("url") ?></link>
-	<description><?php the_excerpt_rss() ?></description>
+	<description><![CDATA[<?php the_excerpt_rss() ?>]]></description>
 	<lastBuildDate><?php echo bfox_plan_last_build_date_rss() ?></lastBuildDate>
 	<sy:updatePeriod><?php echo bfox_plan_update_period_rss() ?></sy:updatePeriod>
 	<sy:updateFrequency><?php echo bfox_plan_update_frequency_rss() ?></sy:updateFrequency>
@@ -66,7 +66,7 @@ echo '<?xml version="1.0" encoding="'.get_option('blog_charset').'"?'.'>';
 		<link><?php echo esc_url(bfox_plan_reading_url($reading_id)) ?></link>
 		<pubDate><?php echo bfox_plan_reading_gmdate($reading_id, 'D, d M Y H:i:s O') ?></pubDate>
 		<dc:creator><?php the_author() ?></dc:creator>
-		<guid isPermaLink="false"><?php echo bfox_plan_reading_guid($reading_id); ?></guid>
+		<guid isPermaLink="false"><?php echo esc_url(bfox_plan_reading_guid($reading_id)); ?></guid>
 		<description><![CDATA[<?php echo bfox_plan_reading_content_rss($reading_id) ?>]]></description>
 		<content:encoded><![CDATA[<?php echo bfox_plan_reading_content_rss($reading_id) ?>]]></content:encoded>
 		<?php do_action('bfox_plan_readings_feed_item'); ?>
