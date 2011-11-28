@@ -27,7 +27,7 @@ get_header(); ?>
 			</h1>
 		</header>
 
-		<?php echo bfox_tool_select(); ?>
+		<?php load_bfox_template('searchform-bfox_tool'); ?>
 
 		<div id="bfox-bible-container">
 			<?php load_bfox_template('content-bfox_tool'); ?>
