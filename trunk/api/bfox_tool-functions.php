@@ -29,7 +29,7 @@ function load_blog_bfox_tools() {
 	while ($query->have_posts()) {
 		$query->the_post();
 
-		$url = bfox_tool_source_url();
+		$url = bfox_tool_meta('url', $post_id);
 		$title = get_the_title();
 		$post = &get_post($id);
 
