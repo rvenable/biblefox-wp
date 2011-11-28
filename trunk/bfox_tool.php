@@ -22,23 +22,6 @@ function bfox_tools_create_post_type() {
 		)
 	);
 
-	/*
-	 * Javascript for changing the bible tool via ajax.
-	 * Doesn't work for Bible APIs loaded via javascript because we can't inject javascript via javascript
-	 *
-
-	// Scripts
-	wp_enqueue_script('bfox_tool', BFOX_URL . '/bfox_tool.js', array('jquery'), BFOX_VERSION);
-
-	// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
-	// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
-	wp_localize_script('bfox_tool', 'BfoxAjax', array(
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'nonce' => wp_create_nonce('bfox-ajax'),
-			'ref' => urlencode(bfox_ref_str()),
-	));
-	/**/
-
 	load_bfox_template('config-bfox_tool');
 }
 add_action('init', 'bfox_tools_create_post_type');
@@ -46,7 +29,8 @@ add_action('init', 'bfox_tools_create_post_type');
 function bfox_tool_content_ajax() {
 	if (!wp_verify_nonce($_REQUEST['bfox-ajax-nonce'], 'bfox-ajax')) die;
 
-	set_bfox_ref(new BfoxRef($_REQUEST['ref']));
+	bfox_tool_update_ref_str(urldecode($_REQUEST['ref']));
+	bfox_tool_update_tool(urldecode($_REQUEST['tool']));
 
 	ob_start();
 	load_bfox_template('content-bfox_tool');
@@ -55,6 +39,7 @@ function bfox_tool_content_ajax() {
 	$response = json_encode(array(
 		'html' => $html,
 		'nonce' => wp_create_nonce('bfox-ajax'),
+		'ref' => bfox_ref_str(),
 	));
 
 	header('Content-Type: application/json');
@@ -304,52 +289,82 @@ function bfox_tool_query_vars($query_vars) {
 }
 add_filter('query_vars', 'bfox_tool_query_vars');
 
+function bfox_tool_update_ref_str($ref_str) {
+	// Bible Tools need to have a Bible Reference
+	$ref = bfox_ref();
+	if (!$ref->is_valid()) {
+		// If no Bible reference is passed in try to use the last viewed ref
+		if (empty($ref_str)) {
+			$ref = new BfoxRef(bfox_tool_last_viewed_ref_str());
+		}
+		else {
+			$ref = new BfoxRef($ref_str);
+		}
+
+		// If we still don't have a valid ref, use Genesis 1
+		if (!$ref->is_valid()) {
+			$ref = new BfoxRef('Genesis 1');
+		}
+
+		// Set the active Bible reference
+		set_bfox_ref($ref);
+	}
+
+	$ref_str = $ref->get_string();
+
+	// Save the ref_str as the last viewed ref str
+	bfox_tool_set_last_viewed_ref_str($ref_str);
+
+	return $ref_str;
+}
+
+function bfox_tool_update_tool($toolName) {
+	$bfoxTools = BfoxBibleToolController::sharedInstance();
+
+	if (empty($toolName)) {
+		$toolName = bfox_last_viewed_tool();
+		$bfoxTools->setActiveTool($toolName);
+	}
+	else {
+		$tool = $bfoxTools->toolForShortName($toolName);
+		if (!is_null($tool)) {
+			$oldToolName = bfox_last_viewed_tool();
+			if ($oldToolName != $toolName) {
+				set_bfox_last_viewed_tool($toolName);
+			}
+			$bfoxTools->setActiveTool($toolName);
+		}
+	}
+}
+
 function bfox_tool_parse_request($wp) {
 	$post_type = $wp->query_vars['post_type'];
 	if ('bfox_tool' == $post_type) {
-		// Bible Tools need to have a Bible Reference
-		$ref = bfox_ref();
-		if (!$ref->is_valid()) {
-			// If no Bible reference is passed in try to use the last viewed ref
-			if (empty($wp->query_vars['ref'])) {
-				$ref = new BfoxRef(bfox_tool_last_viewed_ref_str());
-			}
-			else {
-				$ref = new BfoxRef($wp->query_vars['ref']);
-			}
+		// Update the ref str
+		$wp->query_vars['ref'] = bfox_tool_update_ref_str($wp->query_vars['ref']);
 
-			// If we still don't have a valid ref, use Genesis 1
-			if (!$ref->is_valid()) {
-				$ref = new BfoxRef('Genesis 1');
-			}
+		// Update the bible tool
+		bfox_tool_update_tool($wp->query_vars['tool']);
+	}
 
-			// Set the active Bible reference
-			set_bfox_ref($ref);
-		}
+	$ref = bfox_ref();
+	if ($ref->is_valid()) {
+		/*
+		* Javascript for changing the bible tool via ajax.
+		* Doesn't work for Bible APIs loaded via javascript because we can't inject javascript via javascript
+		* TODO: figure out why our Script element injection isn't working
+		*/
 
-		// Keep the ref_str in the query_vars
-		$wp->query_vars['ref'] = $ref->get_string();
+		// Scripts
+		wp_enqueue_script('bfox_tool', BFOX_URL . '/bfox_tool.js', array('jquery'), BFOX_VERSION);
 
-		// Save the ref_str as the last viewed ref str
-		bfox_tool_set_last_viewed_ref_str($wp->query_vars['ref']);
-
-		$bfoxTools = BfoxBibleToolController::sharedInstance();
-		$toolName = $wp->query_vars['tool'];
-		if (empty($toolName)) {
-			$toolName = bfox_last_viewed_tool();
-			$bfoxTools->setActiveTool($toolName);
-		}
-		else {
-			$tool = $bfoxTools->toolForShortName($toolName);
-			if (!is_null($tool)) {
-				$oldToolName = bfox_last_viewed_tool();
-				if ($oldToolName != $toolName) {
-					set_bfox_last_viewed_tool($toolName);
-				}
-				$bfoxTools->setActiveTool($toolName);
-			}
-		}
-
+		// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
+		// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
+		wp_localize_script('bfox_tool', 'BfoxAjax', array(
+						'ajaxurl' => admin_url('admin-ajax.php'),
+						'nonce' => wp_create_nonce('bfox-ajax'),
+						'ref' => urlencode(bfox_ref_str()),
+		));
 	}
 }
 add_action('parse_request', 'bfox_tool_parse_request');
