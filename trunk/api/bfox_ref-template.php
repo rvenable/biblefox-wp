@@ -1,5 +1,23 @@
 <?php
 
+function push_bfox_ref_link_action($action) {
+	$refController = BfoxRefController::sharedInstance();
+	$refController->pushLinkAction($action);
+}
+
+function bfox_ref_link_action_tooltip() {
+	return "BfoxAjax.loadTooltip('%ref%');";
+}
+
+function bfox_ref_link_action_update_form($formSelector) {
+	return "BfoxAjax.updateFormRef('$formSelector', '%ref%'); event.preventDefault();";
+}
+
+function pop_bfox_ref_link_action() {
+	$refController = BfoxRefController::sharedInstance();
+	$refController->popLinkAction();
+}
+
 function bfox_ref_link($ref_str, $options = array()) {
 	if (empty($ref_str)) return false;
 
@@ -7,7 +25,6 @@ function bfox_ref_link($ref_str, $options = array()) {
 		'href' => '',
 		'class' => array(),
 		'text' => $ref_str,
-		'tooltip' => true,
 	);
 	extract(wp_parse_args($options, $defaults));
 
@@ -18,9 +35,11 @@ function bfox_ref_link($ref_str, $options = array()) {
 	// class
 	$class = (array) $class;
 
-	if (($tooltip)) {
-		$class []= 'bible-tip';
-		$class []= 'bible-tip-' . urlencode(str_replace(' ', '_', strtolower($ref_str)));
+	if (empty($attrs['onclick'])) {
+		$refController = BfoxRefController::sharedInstance();
+		$attrs['onclick'] = esc_attr($refController->currentAction($ref_str));
+
+		if (empty($attrs['onclick'])) unset($attrs['onclick']);
 	}
 
 	if (!empty($class)) $attrs['class'] = implode(' ', $class);

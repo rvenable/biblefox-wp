@@ -41,6 +41,7 @@ define('BFOX_URL', WP_PLUGIN_URL . '/biblefox-for-wordpress');
 define('BFOX_PLANS_URL', BFOX_URL . '/reading-plans');
 
 require_once BFOX_REF_DIR . '/biblefox-ref.php';
+require_once BFOX_DIR . '/bfox_ref.php';
 require_once BFOX_DIR . '/bfox_tool.php';
 require_once BFOX_DIR . '/bfox_plan.php';
 

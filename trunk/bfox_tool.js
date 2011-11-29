@@ -1,36 +1,41 @@
-/*global jQuery, BfoxAjax, bfox_blog_iframe_select_change: true */
-'use strict';
-
-var bfox_blog_select_change;
-
-// For when bfox translation iframe selects change to update their iframe
-bfox_blog_select_change = function () {
-	var option, date, tool;
-	option = jQuery(this).find('option:selected');
-	tool = option.attr('name');
-
-	// Save the translation in a cookie for 30 days
-	date = new Date();
-	date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
-	document.cookie = "selected_bfox_tool=" + tool + "; expires=" + date.toGMTString() + "; path=/";
-
-	jQuery.post(BfoxAjax.ajaxurl,
-		{
-			'action': 'bfox-tool-content',
-			'bfox-ajax-nonce': BfoxAjax.nonce,
-			'tool': tool,
-			'ref': BfoxAjax.ref
-		},
-		function (response) {
-			BfoxAjax.nonce = response.nonce;
-			jQuery('#bfox-bible-container').html(response.html);
-		}
-	);
-
-	//jQuery(this).next('iframe.bfox-iframe').attr('src', option.val());
-};
+/*global jQuery, BfoxAjax */
 
 jQuery(document).ready(function () {
+	'use strict';
+
+	BfoxAjax.appendUrlWithParamString = function (url, paramString) {
+		return url + ((url.indexOf('?') === -1) ? '?' : '&') + paramString;
+	};
+
+	BfoxAjax.formSubmit = function () {
+		var parameters, url, updatingElement;
+
+		parameters = jQuery(this).serialize();
+
+		jQuery('.bfox-tool-updatable-form-' + jQuery(this).attr('id')).each(function () {
+			updatingElement = this;
+			url = jQuery(updatingElement).attr('data-url');
+			url = BfoxAjax.appendUrlWithParamString(url, parameters);
+
+			jQuery.get(url, function (response) {
+				jQuery(updatingElement).attr('data-url', response.dataUrl);
+				jQuery(updatingElement).html(response.html);
+			});
+		});
+
+		return false;
+	};
+
+	BfoxAjax.updateFormRef = function (formSelect, refStr) {
+		jQuery(formSelect).find('[name="ref"]').attr('value', refStr);
+		jQuery(formSelect).submit();
+
+		return false;
+	};
+
 	// Iframes
-	jQuery('select.bfox-tool-select').change(bfox_blog_select_change);
+	jQuery('form.bfox-tool-form').submit(BfoxAjax.formSubmit);
+	jQuery('select.bfox-tool-select').change(function () {
+		jQuery(this).parent('form.bfox-tool-form').submit();
+	});
 });

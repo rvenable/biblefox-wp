@@ -29,7 +29,7 @@ get_header(); ?>
 
 		<?php load_bfox_template('searchform-bfox_tool'); ?>
 
-		<div id="bfox-bible-container">
+		<div class="<?php echo bfox_tool_class_for_form_update('searchform'); ?>" data-url="<?php echo bfox_tool_context_ajax_url('main'); ?>">
 			<?php load_bfox_template('content-bfox_tool'); ?>
 		</div>
 

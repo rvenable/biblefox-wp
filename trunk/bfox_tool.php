@@ -23,11 +23,29 @@ function bfox_tools_create_post_type() {
 	);
 
 	load_bfox_template('config-bfox_tool');
+
+	// Scripts
+
+	/*
+	* Javascript for changing the bible tool via ajax.
+	* Doesn't work for Bible APIs loaded via javascript because we can't inject javascript via javascript
+	* TODO: figure out why our Script element injection isn't working
+	*/
+	wp_enqueue_script('bfox_tool', BFOX_URL . '/bfox_tool.js', array('jquery'), BFOX_VERSION);
+
+	// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
+	// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
+	wp_localize_script('bfox_tool', 'BfoxAjax', array(
+					'ajaxurl' => admin_url('admin-ajax.php'),
+	));
 }
 add_action('init', 'bfox_tools_create_post_type');
 
 function bfox_tool_content_ajax() {
-	if (!wp_verify_nonce($_REQUEST['bfox-ajax-nonce'], 'bfox-ajax')) die;
+	$context = $_REQUEST['context'];
+	if (empty($context)) die;
+
+	if (!wp_verify_nonce($_REQUEST['nonce'], 'bfox-tool-context-' . $context)) die;
 
 	bfox_tool_update_ref_str(urldecode($_REQUEST['ref']));
 	bfox_tool_update_tool(urldecode($_REQUEST['tool']));
@@ -38,8 +56,7 @@ function bfox_tool_content_ajax() {
 
 	$response = json_encode(array(
 		'html' => $html,
-		'nonce' => wp_create_nonce('bfox-ajax'),
-		'ref' => bfox_ref_str(),
+		'dataUrl' => bfox_tool_context_ajax_url($context),
 	));
 
 	header('Content-Type: application/json');
@@ -346,26 +363,6 @@ function bfox_tool_parse_request($wp) {
 
 		// Update the bible tool
 		bfox_tool_update_tool($wp->query_vars['tool']);
-	}
-
-	$ref = bfox_ref();
-	if ($ref->is_valid()) {
-		/*
-		* Javascript for changing the bible tool via ajax.
-		* Doesn't work for Bible APIs loaded via javascript because we can't inject javascript via javascript
-		* TODO: figure out why our Script element injection isn't working
-		*/
-
-		// Scripts
-		wp_enqueue_script('bfox_tool', BFOX_URL . '/bfox_tool.js', array('jquery'), BFOX_VERSION);
-
-		// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
-		// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
-		wp_localize_script('bfox_tool', 'BfoxAjax', array(
-						'ajaxurl' => admin_url('admin-ajax.php'),
-						'nonce' => wp_create_nonce('bfox-ajax'),
-						'ref' => urlencode(bfox_ref_str()),
-		));
 	}
 }
 add_action('parse_request', 'bfox_tool_parse_request');
