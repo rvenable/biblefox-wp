@@ -110,6 +110,7 @@ class BfoxBibleToolController {
 	function select($options = array()) {
 		extract($options);
 
+		$content = '';
 		$activeTool = $this->activeTool();
 		foreach ($this->tools as $tool) {
 			if ($tool == $activeTool) $selected = " selected='selected'";
