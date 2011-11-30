@@ -15,9 +15,9 @@ function bfox_tool_context_ajax_url($context, $nonce = '') {
 	return $url;
 }
 
-function bfox_tool_select($options = array()) {
+function bfox_tool_select_options($options = array()) {
 	$bfoxTools = BfoxBibleToolController::sharedInstance();
-	return $bfoxTools->select($options);
+	return $bfoxTools->selectOptions($options);
 }
 
 ?>

@@ -148,7 +148,7 @@ class BfoxBibleToolController {
 		return $this->toolForShortName($this->_activeShortName);
 	}
 
-	function select($options = array()) {
+	function selectOptions($options = array()) {
 		extract($options);
 
 		$content = '';
@@ -160,7 +160,7 @@ class BfoxBibleToolController {
 			$content .= "<option name='$tool->shortName' value='$tool->shortName'$selected>$tool->longName</option>";
 		}
 
-		return "<select $attrs>" . $content . '</select>';
+		return $content;
 	}
 }
 

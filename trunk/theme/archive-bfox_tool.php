@@ -29,7 +29,7 @@ get_header(); ?>
 
 		<form method="get" id="bible-form" action="<?php echo esc_url( bfox_tool_url() ); ?>" class="bfox-tool-form">
 			<input type="text" id="bfox-tool-ref-global" class="field bfox-tool-ref" name="ref" placeholder="<?php esc_attr_e( 'Search' ); ?>" value="<?php echo bfox_ref_str(BibleMeta::name_short) ?>" />
-			<?php echo bfox_tool_select(array('attrs' => 'class="bfox-tool-name" id="bfox-tool-name-main" name="tool"')); ?>
+			<select class="bfox-tool-name" id="bfox-tool-name-main" name="tool"><?php echo bfox_tool_select_options(); ?></select>
 			<input type="submit" class="submit" value="<?php esc_attr_e( 'Go' ); ?>" />
 		</form>
 
