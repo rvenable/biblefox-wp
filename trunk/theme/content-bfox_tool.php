@@ -13,7 +13,7 @@ push_bfox_ref_link_action(bfox_ref_link_action_update_form('form#searchform'));
 ?>
 		<article id="bfox_bible-<?php echo $tool->shortName; ?>" class="bfox_bible">
 			<header class="entry-header">
-				<h1 class="entry-title"><?php echo $tool->longName; ?></h1>
+				<h1 class="entry-title"><?php echo bfox_ref_link(bfox_ref_str()); ?> - <?php echo $tool->longName; ?></h1>
 			</header><!-- .entry-header -->
 
 			<nav class='passage-nav'>
