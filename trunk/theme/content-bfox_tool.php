@@ -5,11 +5,6 @@
  */
 
 $tool = active_bfox_tool();
-
-// Push a Bible reference link action:
-// All Bible reference links will update the search form
-push_bfox_ref_link_action(bfox_ref_link_action_update_form('form#searchform'));
-
 ?>
 		<article id="bfox_bible-<?php echo $tool->shortName; ?>" class="bfox_bible">
 			<header class="entry-header">
@@ -31,10 +26,3 @@ push_bfox_ref_link_action(bfox_ref_link_action_update_form('form#searchform'));
 			</nav><!-- #nav-above -->
 
 		</article><!-- #bfox_bible-<?php echo $tool->shortName; ?> -->
-
-<?php
-
-// Pop the Bible reference link action
-pop_bfox_ref_link_action();
-
-?>

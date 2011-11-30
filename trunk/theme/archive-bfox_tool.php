@@ -19,6 +19,8 @@ get_header(); ?>
 <section id="primary">
 	<div id="content" role="main">
 
+	<?php push_bfox_ref_link_defaults(bfox_ref_link_defaults_update_selector('#bfox-tool-ref-global')); // Bible links update #bfox-tool-ref-global ?>
+
 	<?php if ( has_bfox_tool() ) : ?>
 
 		<header class="page-header">
@@ -50,6 +52,8 @@ get_header(); ?>
 		</article><!-- #post-0 -->
 
 	<?php endif; ?>
+
+	<?php pop_bfox_ref_link_defaults(); // #bfox-tool-ref-global ?>
 
 	</div><!-- #content -->
 </section><!-- #primary -->

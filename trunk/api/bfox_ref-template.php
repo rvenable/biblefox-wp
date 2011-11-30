@@ -1,21 +1,26 @@
 <?php
 
-function push_bfox_ref_link_action($action) {
+function push_bfox_ref_link_defaults($defaults) {
 	$refController = BfoxRefController::sharedInstance();
-	$refController->pushLinkAction($action);
+	$refController->pushLinkDefaults($defaults);
 }
 
-function bfox_ref_link_action_tooltip() {
-	return "BfoxAjax.loadTooltip(this, '%ref%'); event.preventDefault();";
+function bfox_ref_link_defaults_tooltip() {
+	$attrs['class'] = 'bfox-ref-tooltip';
+
+	return array('attrs' => $attrs);
 }
 
-function bfox_ref_link_action_update_form($formSelector) {
-	return "BfoxAjax.updateFormRef('$formSelector', '%ref%'); event.preventDefault();";
+function bfox_ref_link_defaults_update_selector($selector) {
+	$attrs['class'] = 'bfox-ref-update';
+	$attrs['data-selector'] = $selector;
+
+	return array('attrs' => $attrs);
 }
 
-function pop_bfox_ref_link_action() {
+function pop_bfox_ref_link_defaults() {
 	$refController = BfoxRefController::sharedInstance();
-	$refController->popLinkAction();
+	$refController->popLinkDefaults();
 }
 
 function bfox_ref_link($ref_str, $options = array()) {
@@ -26,6 +31,10 @@ function bfox_ref_link($ref_str, $options = array()) {
 		'class' => array(),
 		'text' => $ref_str,
 	);
+
+	$refController = BfoxRefController::sharedInstance();
+	$defaults = wp_parse_args($refController->currentDefaults(), $defaults);
+
 	extract(wp_parse_args($options, $defaults));
 
 	// href
@@ -34,15 +43,10 @@ function bfox_ref_link($ref_str, $options = array()) {
 
 	// class
 	$class = (array) $class;
+	$class []= $attrs['class'];
+	$attrs['class'] = implode(' ', $class);
 
-	if (empty($attrs['onclick'])) {
-		$refController = BfoxRefController::sharedInstance();
-		$attrs['onclick'] = esc_attr($refController->currentAction($ref_str));
-
-		if (empty($attrs['onclick'])) unset($attrs['onclick']);
-	}
-
-	if (!empty($class)) $attrs['class'] = implode(' ', $class);
+	if (!isset($attrs['data-ref'])) $attrs['data-ref'] = $ref_str;
 
 	// Attribute string
 	$attr_str = '';

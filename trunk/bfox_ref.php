@@ -17,20 +17,20 @@ class BfoxRefController {
 		return self::$_sharedInstance;
 	}
 
-	private $linkActions = array();
-	private $currentAction = '';
+	private $linkDefaults = array();
+	private $currentDefaults = array();
 
-	function pushLinkAction($action) {
-		if (!empty($this->currentAction)) $this->linkActions []= $this->currentAction;
-		$this->currentAction = $action;
+	function pushLinkDefaults($defaults = array()) {
+		if (!empty($this->currentDefaults)) $this->linkDefaults []= $this->currentDefaults;
+		$this->currentDefaults = $defaults;
 	}
 
-	function popLinkAction() {
-		$this->currentAction = array_pop($this->linkActions);
+	function popLinkDefaults() {
+		$this->currentDefaults = array_pop($this->linkDefaults);
 	}
 
-	function currentAction($refStr = '') {
-		return str_replace('%ref%', $refStr, $this->currentAction);
+	function currentDefaults() {
+		return $this->currentDefaults;
 	}
 }
 

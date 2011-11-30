@@ -57,4 +57,16 @@ jQuery(document).ready(function () {
 	jQuery('select.bfox-tool-name').change(function () {
 		BfoxAjax.toolNameValueChanged(this);
 	});
+	
+	// a.bfox-ref-update links should update the ref value for a specified selector
+	jQuery('a.bfox-ref-update').live('click', function () {
+		var selector, ref;
+		selector = jQuery(this).attr('data-selector');
+		ref = jQuery(this).attr('data-ref');
+		jQuery(selector).val(ref).each(function () {
+			BfoxAjax.refValueChanged(this);
+		});
+		
+		return false;
+	});
 });

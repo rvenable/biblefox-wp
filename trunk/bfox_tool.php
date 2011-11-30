@@ -48,7 +48,10 @@ function bfox_tools_create_post_type() {
 	if (!bfox_blog_option('disable-tooltips')) {
 		wp_enqueue_style('bfox-qtip');
 		wp_enqueue_script('bfox-tooltips');
-		push_bfox_ref_link_action(bfox_ref_link_action_tooltip());
+
+		// Bible links add the tooltip by default
+		push_bfox_ref_link_defaults(bfox_ref_link_defaults_tooltip());
+
 		$bfoxAjax['tooltipNonce'] = bfox_tool_context_nonce('tooltip');
 	}
 
@@ -72,6 +75,11 @@ function bfox_tool_content_ajax() {
 
 	bfox_tool_update_ref_str(urldecode($_REQUEST['ref']));
 	bfox_tool_update_tool(urldecode($_REQUEST['tool']));
+
+	if (!empty($_REQUEST['id'])) {
+		// Bible links update the same id that was just updated
+		push_bfox_ref_link_defaults(bfox_ref_link_defaults_update_selector('#' . $_REQUEST['id']));
+	}
 
 	ob_start();
 	load_bfox_template('content-bfox_tool');
