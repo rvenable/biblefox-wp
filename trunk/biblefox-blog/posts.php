@@ -413,25 +413,7 @@ function bfox_blog_quick_view_meta_box() {
 	set_bfox_ref($ref);
 
 	// Create the form
-	?>
-	<?php if (empty($ref_str)): ?>
-		<p>This post currently has no bible references.</p>
-	<?php else: ?>
-		<p>This post is currently referencing: <?php echo bfox_blog_ref_link_ajax($ref_str) ?></p>
-	<?php endif ?>
-		<p>Add more bible references by typing them into the post, or adding them to the post tags.</p>
-		<div class="hide-if-no-js">
-			<h4>Quick Scripture Viewer</h4>
-			<input type="text" name="new-bible-ref" id="new-bible-ref" size="16" value="" />
-			<input type="button" class="button" id="view-bible-ref" value="View Scripture" tabindex="3" />
-			<span class="howto"><?php _e('Type a bible reference (ie. "gen 1")', 'bfox'); ?></span>
-			<br/>
-		</div>
-
-		<h4 id="bible-text-progress"><span id='bible_progress'><?php if ($is_valid) echo 'Viewing'?></span> <span id='bible_view_ref'><?php if ($is_valid) echo $ref->get_string(BibleMeta::name_short) ?></span></h4>
-		<input type="hidden" name="bible-request-url" id="bible-request-url" value="<?php bloginfo( 'wpurl' ); ?>/wp-admin/admin-ajax.php" />
-		<div id="bible-text"><?php if ($is_valid) load_bfox_template('admin-bfox_tool'); ?></div>
-	<?php
+	load_bfox_template('edit_post-bfox_tool');
 }
 
 /**

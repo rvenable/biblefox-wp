@@ -18,11 +18,6 @@ function bfox_blog_add_menu() {
 }
 add_action('admin_menu', 'bfox_blog_add_menu');
 
-function bfox_blog_admin_init() {
-	wp_enqueue_script('bfox-admin', BFOX_URL . '/includes/js/admin.js', array('sack'), BFOX_VERSION);
-}
-add_action('admin_init', 'bfox_blog_admin_init');
-
 /**
  * Returns a url for the search page using a Bible Reference as the search filter
  *
@@ -45,13 +40,6 @@ function bfox_ref_blog_url($ref_str) {
 	}
 
 	return $taglink;
-}
-
-// TODO: remove
-function bfox_blog_ref_link_ajax($ref_str, $text = '', $attrs = '') {
-	if (empty($text)) $text = $ref_str;
-
-	return "<a href='#bible_ref' onclick='bible_text_request(\"$ref_str\")' $attrs>$text</a>";
 }
 
 function bfox_blog_ref_write_url($ref_str, $home_url = '') {
