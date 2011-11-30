@@ -52,6 +52,11 @@ jQuery(document).ready(function () {
 			return false;
 		}
 	});
+
+	// .bfox-tool-ref-refresh should refresh once after the page loads
+	jQuery('.bfox-tool-ref-refresh').each(function () {
+		BfoxAjax.refValueChanged(this);
+	});
 	
 	// select.bfox-tool-name should update the Bible tool on value change 
 	jQuery('select.bfox-tool-name').change(function () {
