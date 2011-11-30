@@ -25,6 +25,11 @@ push_bfox_ref_link_action(bfox_ref_link_action_update_form('form#searchform'));
 				<?php $tool->echoContentForRef(bfox_ref()); ?>
 			</div><!-- .entry-content -->
 
+			<nav class='passage-nav'>
+				<div class="nav-previous"><?php echo bfox_ref_link(bfox_previous_chapter_ref_str()); ?></div>
+				<div class="nav-next"><?php echo bfox_ref_link(bfox_next_chapter_ref_str()); ?></div>
+			</nav><!-- #nav-above -->
+
 		</article><!-- #bfox_bible-<?php echo $tool->shortName; ?> -->
 
 <?php
