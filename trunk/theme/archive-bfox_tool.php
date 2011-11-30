@@ -27,9 +27,13 @@ get_header(); ?>
 			</h1>
 		</header>
 
-		<?php load_bfox_template('searchform-bfox_tool'); ?>
+		<form method="get" id="bible-form" action="<?php echo esc_url( bfox_tool_url() ); ?>" class="bfox-tool-form">
+			<input type="text" id="bfox-tool-ref-global" class="field bfox-tool-ref" name="ref" placeholder="<?php esc_attr_e( 'Search' ); ?>" value="<?php echo bfox_ref_str(BibleMeta::name_short) ?>" />
+			<?php echo bfox_tool_select(array('attrs' => 'class="bfox-tool-name" id="bfox-tool-name-main" name="tool"')); ?>
+			<input type="submit" class="submit" value="<?php esc_attr_e( 'Go' ); ?>" />
+		</form>
 
-		<div class="<?php echo bfox_tool_class_for_form_update('searchform'); ?>" data-url="<?php echo bfox_tool_context_ajax_url('main'); ?>">
+		<div class="depends-bfox-tool-ref-global depends-bfox-tool-name-main" data-url="<?php echo bfox_tool_context_ajax_url('main'); ?>">
 			<?php load_bfox_template('content-bfox_tool'); ?>
 		</div>
 

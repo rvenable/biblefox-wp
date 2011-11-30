@@ -4,10 +4,6 @@
 Template Tags
 */
 
-function bfox_tool_class_for_form_update($formId) {
-	return 'bfox-tool-updatable-form-' . $formId;
-}
-
 function bfox_tool_context_nonce($context) {
 	$nonce = wp_create_nonce('bfox-tool-context-' . $context);
 	return $nonce;

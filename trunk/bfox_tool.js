@@ -3,16 +3,22 @@
 jQuery(document).ready(function () {
 	'use strict';
 
+	/*
+	 * Add BfoxAjax functions
+	 */
+	
 	BfoxAjax.appendUrlWithParamString = function (url, paramString) {
 		return url + ((url.indexOf('?') === -1) ? '?' : '&') + paramString;
 	};
 
-	BfoxAjax.formSubmit = function () {
-		var parameters, url, updatingElement;
+	BfoxAjax.toolValueChanged = function (id, key, value) {
+		var parameters, url, updatingElement, obj;
 
-		parameters = jQuery(this).serialize();
+		obj = { 'id': id };
+		obj[key] = value;
+		parameters = jQuery.param(obj);
 
-		jQuery('.bfox-tool-updatable-form-' + jQuery(this).attr('id')).each(function () {
+		jQuery('.depends-' + id).each(function () {
 			updatingElement = this;
 			url = jQuery(updatingElement).attr('data-url');
 			url = BfoxAjax.appendUrlWithParamString(url, parameters);
@@ -25,17 +31,30 @@ jQuery(document).ready(function () {
 
 		return false;
 	};
-
-	BfoxAjax.updateFormRef = function (formSelect, refStr) {
-		jQuery(formSelect).find('[name="ref"]').attr('value', refStr);
-		jQuery(formSelect).submit();
-
-		return false;
+	
+	BfoxAjax.refValueChanged = function (element) {
+		return BfoxAjax.toolValueChanged(jQuery(element).attr('id'), 'ref', jQuery(element).val());
 	};
 
-	// Iframes
-	jQuery('form.bfox-tool-form').submit(BfoxAjax.formSubmit);
-	jQuery('select.bfox-tool-select').change(function () {
-		jQuery(this).parent('form.bfox-tool-form').submit();
+	BfoxAjax.toolNameValueChanged = function (element) {
+		return BfoxAjax.toolValueChanged(jQuery(element).attr('id'), 'tool', jQuery(element).val());
+	};
+
+	/*
+	 * Set up DOM elements
+	 */
+	
+	// input.bfox-tool-ref should update Bible references on keyboard enter
+	jQuery('input.bfox-tool-ref').keypress(function (e) {
+		if (e.which == 13) {
+			BfoxAjax.refValueChanged(this);
+			e.preventDefault();
+			return false;
+		}
+	});
+	
+	// select.bfox-tool-name should update the Bible tool on value change 
+	jQuery('select.bfox-tool-name').change(function () {
+		BfoxAjax.toolNameValueChanged(this);
 	});
 });
