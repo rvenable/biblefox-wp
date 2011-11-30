@@ -6,7 +6,7 @@ function push_bfox_ref_link_action($action) {
 }
 
 function bfox_ref_link_action_tooltip() {
-	return "BfoxAjax.loadTooltip('%ref%');";
+	return "BfoxAjax.loadTooltip(this, '%ref%'); event.preventDefault();";
 }
 
 function bfox_ref_link_action_update_form($formSelector) {

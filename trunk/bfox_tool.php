@@ -35,17 +35,40 @@ function bfox_tools_create_post_type() {
 
 	// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
 	// See: http://www.garyc40.com/2010/03/5-tips-for-using-ajax-in-wordpress/
-	wp_localize_script('bfox_tool', 'BfoxAjax', array(
-					'ajaxurl' => admin_url('admin-ajax.php'),
-	));
+
+	$bfoxAjax = array(
+		'ajaxurl' => admin_url('admin-ajax.php'),
+	);
+
+	// Tooltips
+	wp_register_style('bfox-qtip', BFOX_URL . '/external/jquery-qtip/jquery.qtip.css', array(), BFOX_VERSION);
+	wp_register_script('bfox-qtip', BFOX_URL . '/external/jquery-qtip/jquery.qtip.js', array('jquery'), BFOX_VERSION);
+	wp_register_script('bfox-tooltips', BFOX_URL . '/bfox_tooltip.js', array('jquery', 'bfox-qtip', 'bfox_tool'), BFOX_VERSION);
+
+	if (!bfox_blog_option('disable-tooltips')) {
+		wp_enqueue_style('bfox-qtip');
+		wp_enqueue_script('bfox-tooltips');
+		push_bfox_ref_link_action(bfox_ref_link_action_tooltip());
+		$bfoxAjax['tooltipNonce'] = bfox_tool_context_nonce('tooltip');
+	}
+
+	wp_localize_script('bfox_tool', 'BfoxAjax', $bfoxAjax);
 }
 add_action('init', 'bfox_tools_create_post_type');
 
 function bfox_tool_content_ajax() {
-	$context = $_REQUEST['context'];
-	if (empty($context)) die;
+	header('Content-Type: application/json');
 
-	if (!wp_verify_nonce($_REQUEST['nonce'], 'bfox-tool-context-' . $context)) die;
+	$context = $_REQUEST['context'];
+	if (empty($context)) {
+		echo json_encode(array('html' => 'Invalid Context'));
+		exit;
+	}
+
+	if (!wp_verify_nonce($_REQUEST['nonce'], 'bfox-tool-context-' . $context)) {
+		echo json_encode(array('html' => 'Context failed nonce verification'));
+		exit;
+	}
 
 	bfox_tool_update_ref_str(urldecode($_REQUEST['ref']));
 	bfox_tool_update_tool(urldecode($_REQUEST['tool']));
@@ -53,13 +76,14 @@ function bfox_tool_content_ajax() {
 	ob_start();
 	load_bfox_template('content-bfox_tool');
 	$html = ob_get_clean();
+	$nonce = bfox_tool_context_nonce($context);
 
 	$response = json_encode(array(
 		'html' => $html,
-		'dataUrl' => bfox_tool_context_ajax_url($context),
+		'dataUrl' => bfox_tool_context_ajax_url($context, $nonce),
+		'nonce' => $nonce,
 	));
 
-	header('Content-Type: application/json');
 	echo $response;
 
 	exit;

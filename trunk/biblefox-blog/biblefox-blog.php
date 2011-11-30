@@ -6,19 +6,6 @@ define('BFOX_BLOG_URL', BFOX_URL . '/biblefox-blog');
 require_once BFOX_BLOG_DIR . '/posts.php';
 
 function bfox_blog_init() {
-	if (!bfox_blog_option('disable-tooltips')) {
-		wp_register_script('bfox-qtip', BFOX_URL . '/includes/js/jquery-qtip/jquery.qtip-1.0.0-rc3-custom.min.js', array('jquery'), BFOX_VERSION);
-		wp_enqueue_script('bfox-tooltips', BFOX_URL . '/includes/js/tooltips.js', array('jquery', 'bfox-qtip'), BFOX_VERSION);
-
-		// Load the ajaxurl var if BuddyPress isn't planning on loading
-		if (!has_action('wp_head', 'bp_core_add_ajax_url_js')) {
-			function bfox_blog_add_ajax_url_js() {
-				echo '<script type="text/javascript">var ajaxurl = "' . site_url( 'wp-load.php' ) . '";</script>';
-			}
-			add_action('wp_head', 'bfox_blog_add_ajax_url_js');
-		}
-	}
-
 	bfox_add_taxonomy_ref_support('post_tag');
 	bfox_add_post_type_ref_support('post', array('post_content', 'post_tag'));
 	bfox_add_ref_links_to_taxonomy('post_tag');
