@@ -17,7 +17,7 @@
  * See style-bfox_plan.css for the different options available (or create your own in your theme's style.css)
  */ ?>
 <?php if (bfox_plan_reading_list(array('column_class' => 'reading-list-2c-h'))): ?>
-	<p><?php _e('In total, this reading plan covers all of the following passages:', 'bfox') ?> <?php echo bfox_ref_link(bfox_plan_total_ref_str(0, BibleMeta::name_short)) ?></p>
+	<p><?php _e('In total, this reading plan covers all of the following passages:', 'bfox') ?> <?php echo bfox_ref_links(bfox_plan_total_ref()) ?></p>
 <?php else: ?>
 	<p><?php _e('This reading plan doesn\'t currently have any readings.', 'bfox') ?></p>
 <?php endif ?>

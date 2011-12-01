@@ -12,7 +12,7 @@ $ref_str = bfox_ref_str();
 	<?php if (empty($ref_str)): ?>
 		<p>This post currently has no bible references.</p>
 	<?php else: ?>
-		<p>This post is currently referencing: <?php echo bfox_ref_link(bfox_ref_str()) ?></p>
+		<p>This post is currently referencing: <?php echo bfox_ref_links(bfox_ref()) ?></p>
 	<?php endif ?>
 
 		<p>Add more bible references by typing them into the post, or adding them to the post tags.</p>

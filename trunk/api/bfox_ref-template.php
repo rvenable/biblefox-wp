@@ -23,6 +23,20 @@ function pop_bfox_ref_link_defaults() {
 	$refController->popLinkDefaults();
 }
 
+function bfox_ref_links(BfoxRef $ref, $options = array()) {
+	$serializer = new BfoxRefSerializer();
+	$serializer->setCombineNone();
+	$elements = $serializer->elementsForRef($ref);
+
+	$str = '';
+	foreach ($elements as $index => $element) {
+		if ($index % 2 == 0) $str .= bfox_ref_link($element, $options);
+		else $str .= $element;
+	}
+
+	return $str;
+}
+
 function bfox_ref_link($ref_str, $options = array()) {
 	if (empty($ref_str)) return false;
 
