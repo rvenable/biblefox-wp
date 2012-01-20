@@ -97,7 +97,9 @@ function bfox_bp_before_bible_directory_activity_content() {
 		</form>
 		<h4><?php echo bfox_ref_str() ?></h4>
 		<div class="bfox-tool-bp-bible">
-			<?php load_bfox_template('iframe-bfox_tool'); ?>
+			<div id="bfox-bible-container">
+				<?php load_bfox_template('content-bfox_tool'); ?>
+			</div>
 		</div>
 	<?php
 }
